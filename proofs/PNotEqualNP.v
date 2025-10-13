@@ -224,19 +224,27 @@ Definition verifyPNotEqualNPProof (proof : ProofOfPNotEqualNP) : bool :=
 Definition checkProblemWitness (problem : DecisionProblem)
     (H_np : InNP problem) (H_not_p : ~ InP problem) : ProofOfPNotEqualNP.
 Proof.
-  apply Build_ProofOfPNotEqualNP with
-    (proves := proj1 (test_existence_of_hard_problem) (ex_intro _ problem (conj H_np H_not_p))).
-  left.
-  exists problem.
-  split; assumption.
+  refine (Build_ProofOfPNotEqualNP _ _).
+  - (* proves *)
+    apply test_existence_of_hard_problem.
+    exists problem.
+    split; assumption.
+  - (* usesValidMethod *)
+    left.
+    exists problem.
+    split; assumption.
 Defined.
 
 (** Helper: Check if SAT hardness witness satisfies P ≠ NP *)
 Definition checkSATWitness (H_sat_not_p : ~ InP SAT) : ProofOfPNotEqualNP.
 Proof.
-  apply Build_ProofOfPNotEqualNP with (proves := test_SAT_not_in_P H_sat_not_p).
-  right. right. left.
-  exact H_sat_not_p.
+  refine (Build_ProofOfPNotEqualNP _ _).
+  - (* proves *)
+    apply test_SAT_not_in_P.
+    exact H_sat_not_p.
+  - (* usesValidMethod *)
+    right. right. left.
+    exact H_sat_not_p.
 Defined.
 
 (** * Verification Checks *)
