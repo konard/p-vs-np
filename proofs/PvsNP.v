@@ -159,7 +159,7 @@ Proof.
   - exact Hpoly.
   - unfold polynomial_time_verifier.
     exists time. split. exact Hpoly. intros. exact I.
-  - intros x. split; intros.
+  - intros y. split; intros.
     + exists []. split. simpl. apply Nat.le_0_l. reflexivity.
     + apply Hdecides. exact I.
 Qed.
