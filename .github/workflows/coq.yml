@@ -21,13 +21,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        coq-version:
-          - '8.18'
-          - '8.20'
-      fail-fast: false
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -51,7 +44,7 @@ jobs:
       if: steps.check-coq.outputs.has_files == 'true'
       uses: coq-community/docker-coq-action@v1
       with:
-        coq_version: ${{ matrix.coq-version }}
+        coq_version: '8.20'
         custom_script: |
           startGroup "Coq version"
             coqc --version
