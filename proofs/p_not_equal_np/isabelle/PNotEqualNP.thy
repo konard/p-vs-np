@@ -46,17 +46,9 @@ definition InNP :: "DecisionProblem \<Rightarrow> bool" where
     (\<forall>x. problem x = (\<exists>cert. length cert \<le> certSize (length x) \<and>
                               verify v x cert))"
 
-(* The class P: all problems decidable in polynomial time *)
-definition ClassP :: "DecisionProblem set" where
-  "ClassP = {problem. InP problem}"
-
-(* The class NP: all problems verifiable in polynomial time *)
-definition ClassNP :: "DecisionProblem set" where
-  "ClassNP = {problem. InNP problem}"
-
 (* Basic axiom: P subseteq NP (every problem in P is also in NP) *)
 axiomatization where
-  P_subset_NP: "ClassP \<subseteq> ClassNP"
+  P_subset_NP: "\<forall>problem. InP problem \<longrightarrow> InNP problem"
 
 (* A problem is NP-complete if it's in NP and all NP problems reduce to it *)
 definition IsNPComplete :: "DecisionProblem \<Rightarrow> bool" where
@@ -77,7 +69,7 @@ section \<open>Formal Test for P ≠ NP\<close>
 
 (* The central question: Does P = NP? *)
 definition P_equals_NP :: bool where
-  "P_equals_NP \<equiv> ClassP = ClassNP"
+  "P_equals_NP \<equiv> (\<forall>problem. InP problem \<longleftrightarrow> InNP problem)"
 
 (* The alternative: P != NP *)
 definition P_not_equals_NP :: bool where
@@ -93,21 +85,21 @@ proof -
   have forward: "P_not_equals_NP \<Longrightarrow> (\<exists>problem. InNP problem \<and> \<not>InP problem)"
   proof -
     assume "P_not_equals_NP"
-    then have "ClassP \<noteq> ClassNP"
+    then have "\<not>(\<forall>problem. InP problem \<longleftrightarrow> InNP problem)"
       unfolding P_not_equals_NP_def P_equals_NP_def by simp
-    then have "\<not>(ClassP \<supseteq> ClassNP)"
+    then have "\<exists>problem. \<not>(InP problem \<longleftrightarrow> InNP problem)" by simp
+    then obtain problem where "\<not>(InP problem \<longleftrightarrow> InNP problem)" by auto
+    then have "InNP problem \<and> \<not>InP problem"
       using P_subset_NP by auto
-    then show "\<exists>problem. InNP problem \<and> \<not>InP problem"
-      unfolding ClassP_def ClassNP_def by auto
+    then show "\<exists>problem. InNP problem \<and> \<not>InP problem" by auto
   qed
 
   have backward: "(\<exists>problem. InNP problem \<and> \<not>InP problem) \<Longrightarrow> P_not_equals_NP"
   proof -
     assume "\<exists>problem. InNP problem \<and> \<not>InP problem"
     then obtain problem where "InNP problem" and "\<not>InP problem" by auto
-    then have "problem \<in> ClassNP" and "problem \<notin> ClassP"
-      unfolding ClassP_def ClassNP_def by auto
-    then have "ClassP \<noteq> ClassNP" by auto
+    then have "\<not>(InP problem \<longleftrightarrow> InNP problem)" by simp
+    then have "\<not>(\<forall>problem. InP problem \<longleftrightarrow> InNP problem)" by auto
     then show "P_not_equals_NP"
       unfolding P_not_equals_NP_def P_equals_NP_def by simp
   qed
