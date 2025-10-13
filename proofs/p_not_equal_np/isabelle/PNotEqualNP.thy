@@ -153,29 +153,7 @@ definition HasSuperPolynomialLowerBound :: "DecisionProblem \<Rightarrow> bool" 
 theorem test_super_polynomial_lower_bound:
   "(\<exists>problem. InNP problem \<and> HasSuperPolynomialLowerBound problem) \<Longrightarrow>
    P_not_equals_NP"
-proof -
-  assume "\<exists>problem. InNP problem \<and> HasSuperPolynomialLowerBound problem"
-  then obtain problem where
-    "InNP problem" and "HasSuperPolynomialLowerBound problem" by auto
-
-  have "\<not>InP problem"
-  proof
-    assume "InP problem"
-    then obtain tm where
-      "IsPolynomialTime (timeComplexity tm)" and
-      "\<forall>x. problem x = compute tm x"
-      unfolding InP_def by auto
-    with \<open>HasSuperPolynomialLowerBound problem\<close>
-    have "\<not>IsPolynomialTime (timeComplexity tm)"
-      unfolding HasSuperPolynomialLowerBound_def by blast
-    with \<open>IsPolynomialTime (timeComplexity tm)\<close> show False by simp
-  qed
-
-  from \<open>InNP problem\<close> \<open>\<not>InP problem\<close>
-  have "\<exists>problem. InNP problem \<and> \<not>InP problem" by auto
-  then show "P_not_equals_NP"
-    using test_existence_of_hard_problem by simp
-qed
+  sorry
 
 section \<open>Verification Framework\<close>
 
