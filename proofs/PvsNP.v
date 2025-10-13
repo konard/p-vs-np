@@ -213,16 +213,7 @@ Definition is_NP_complete (L : DecisionProblem) : Prop :=
 Theorem NP_complete_in_P_implies_P_eq_NP :
   forall L, is_NP_complete L -> in_P L -> P_equals_NP.
 Proof.
-  intros L [HLnp HLcomplete] HLp.
-  unfold P_equals_NP.
-  intros L' HL'np.
-  (* L' reduces to L, and L is in P *)
-  specialize (HLcomplete L' HL'np).
-  destruct HLcomplete as [f [time [Hpoly [Hfsize Hreduction]]]].
-  (* By reduction, L' is also in P *)
-  unfold in_P.
-  exists (let (M, _, _) := HLp in M), time.
-  admit. (* Full proof requires composition of polynomial-time computations *)
+  (* Full proof requires composition of polynomial-time computations *)
 Admitted.
 
 (** * 8. Example Problems *)
