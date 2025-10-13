@@ -52,7 +52,7 @@ jobs:
     - name: Check for Coq files
       id: check-coq
       run: |
-        if [ -f "_CoqProject" ] || ls *.v 1> /dev/null 2>&1; then
+        if [ -f "_CoqProject" ] || find . -name "*.v" -print -quit | grep -q .; then
           echo "has_files=true" >> $GITHUB_OUTPUT
         else
           echo "has_files=false" >> $GITHUB_OUTPUT
@@ -91,7 +91,7 @@ jobs:
           coq_makefile -f _CoqProject -o Makefile.coq
           make -f Makefile.coq
         else
-          coqc *.v
+          find . -name "*.v" -exec coqc {} \;
         fi
 
   isabelle-verification:
@@ -105,7 +105,7 @@ jobs:
     - name: Check for Isabelle files
       id: check-isabelle
       run: |
-        if ls *.thy 1> /dev/null 2>&1; then
+        if find . -name "*.thy" -print -quit | grep -q .; then
           echo "has_files=true" >> $GITHUB_OUTPUT
         else
           echo "has_files=false" >> $GITHUB_OUTPUT
@@ -136,7 +136,7 @@ jobs:
     - name: Check for Agda files
       id: check-agda
       run: |
-        if ls *.agda 1> /dev/null 2>&1; then
+        if find . -name "*.agda" -print -quit | grep -q .; then
           echo "has_files=true" >> $GITHUB_OUTPUT
         else
           echo "has_files=false" >> $GITHUB_OUTPUT
@@ -161,7 +161,7 @@ jobs:
       if: steps.check-agda.outputs.has_files == 'true'
       run: |
         agda --version
-        agda --safe *.agda
+        find . -name "*.agda" -exec agda --safe {} \;
 
   summary:
     name: Verification Summary

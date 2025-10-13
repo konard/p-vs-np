@@ -35,7 +35,7 @@ jobs:
     - name: Check for Coq files
       id: check-coq
       run: |
-        if [ -f "_CoqProject" ] || ls *.v 1> /dev/null 2>&1; then
+        if [ -f "_CoqProject" ] || find . -name "*.v" -print -quit | grep -q .; then
           echo "has_files=true" >> $GITHUB_OUTPUT
         else
           echo "has_files=false" >> $GITHUB_OUTPUT
@@ -80,7 +80,7 @@ jobs:
           coq_makefile -f _CoqProject -o Makefile.coq
           make -f Makefile.coq
         else
-          coqc *.v
+          find . -name "*.v" -exec coqc {} \;
         fi
 
     - name: Run Coq tests
