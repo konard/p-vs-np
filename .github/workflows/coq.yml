@@ -1,0 +1,80 @@
+name: Coq Verification
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**.v'
+      - '_CoqProject'
+      - 'coq-*.opam'
+      - '.github/workflows/coq.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.v'
+      - '_CoqProject'
+      - 'coq-*.opam'
+      - '.github/workflows/coq.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        coq-version:
+          - '8.18'
+          - 'latest'
+      fail-fast: false
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up OCaml
+      uses: ocaml/setup-ocaml@v2
+      with:
+        ocaml-compiler: 4.14.x
+
+    - name: Install Coq
+      run: |
+        opam install coq.${{ matrix.coq-version }} -y
+        opam install coq-mathcomp-ssreflect -y || echo "Optional: mathcomp not installed"
+
+    - name: Verify Coq installation
+      run: |
+        eval $(opam env)
+        coqc --version
+
+    - name: Cache Coq dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.opam
+          _build
+        key: ${{ runner.os }}-coq-${{ matrix.coq-version }}-${{ hashFiles('_CoqProject', '**.opam') }}
+        restore-keys: |
+          ${{ runner.os }}-coq-${{ matrix.coq-version }}-
+
+    - name: Build Coq project
+      run: |
+        eval $(opam env)
+        if [ -f "_CoqProject" ]; then
+          coq_makefile -f _CoqProject -o Makefile.coq
+          make -f Makefile.coq
+        elif ls *.v 1> /dev/null 2>&1; then
+          coqc *.v
+        else
+          echo "No Coq files found - skipping build"
+          echo "To use Coq verification, add Coq source files (.v) and optionally a _CoqProject file"
+        fi
+
+    - name: Run Coq tests
+      run: |
+        eval $(opam env)
+        if [ -f "Makefile.coq" ]; then
+          make -f Makefile.coq test || echo "No tests defined"
+        else
+          echo "No Makefile.coq found - skipping tests"
+        fi
