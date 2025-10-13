@@ -275,7 +275,7 @@ Proof.
   repeat split.
   - apply constant_is_poly.
   - unfold TM_time_bounded. intros. exists 1. split. apply Nat.le_refl. exact I.
-  - intro x. split; intro H; contradiction.
+  - intro y. split; intro H; contradiction.
 Qed.
 
 (** ** Check 2: Universal language is in P *)
@@ -294,7 +294,7 @@ Proof.
   repeat split.
   - apply constant_is_poly.
   - unfold TM_time_bounded. intros. exists 1. split. apply Nat.le_refl. exact I.
-  - intro x. split; intro H; exact I.
+  - intro y. split; intro H; exact I.
 Qed.
 
 (** ** Check 3: P is closed under complement *)
@@ -312,7 +312,7 @@ Proof.
            TM_reject_state := TM_accept_state M |}.
   exists time.
   repeat split; auto.
-  intro x. split; intro H; exact I.
+  intro y. split; intro H; exact I.
 Admitted.
 
 (** ** Check 4: If P = NP, then NP is closed under complement *)
