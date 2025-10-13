@@ -40,7 +40,8 @@ Proof.
   intros n.
   simpl.
   rewrite Nat.mul_1_r.
-  apply Nat.le_refl.
+  (* c <= c + c *)
+  apply Nat.le_add_r.
 Qed.
 
 Theorem linear_is_poly : is_polynomial (fun n => n).
