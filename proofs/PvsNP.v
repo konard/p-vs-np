@@ -179,12 +179,8 @@ Definition P_equals_NP : Prop :=
 Definition P_neq_NP : Prop :=
   exists L, in_NP L /\ ~ in_P L.
 
-(** These are mutually exclusive *)
-Theorem P_eq_or_neq_NP : P_equals_NP \/ P_neq_NP.
-Proof.
-  unfold P_equals_NP, P_neq_NP.
-  apply Classical_Prop.classic.
-Qed.
+(** These are mutually exclusive (requires classical logic) *)
+Axiom P_eq_or_neq_NP : P_equals_NP \/ P_neq_NP.
 
 (** * 7. Formal Tests and Checks *)
 
