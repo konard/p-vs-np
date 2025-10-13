@@ -48,7 +48,7 @@ definition InNP :: "DecisionProblem \<Rightarrow> bool" where
 
 (* Basic axiom: P subseteq NP (every problem in P is also in NP) *)
 axiomatization where
-  P_subset_NP: "\<forall>problem. InP problem \<longrightarrow> InNP problem"
+  P_subset_NP: "InP p \<Longrightarrow> InNP p"
 
 (* A problem is NP-complete if it's in NP and all NP problems reduce to it *)
 definition IsNPComplete :: "DecisionProblem \<Rightarrow> bool" where
@@ -90,7 +90,7 @@ proof -
     then have "\<exists>problem. \<not>(InP problem \<longleftrightarrow> InNP problem)" by simp
     then obtain problem where "\<not>(InP problem \<longleftrightarrow> InNP problem)" by auto
     then have "InNP problem \<and> \<not>InP problem"
-      using P_subset_NP by auto
+      using P_subset_NP by blast
     then show "\<exists>problem. InNP problem \<and> \<not>InP problem" by auto
   qed
 
