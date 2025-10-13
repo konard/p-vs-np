@@ -5,6 +5,8 @@
   including definitions of complexity classes and basic verification tests.
 -/
 
+namespace PEqNP
+
 /- ## 1. Basic Definitions -/
 
 /-- Binary strings as lists of booleans -/
@@ -193,3 +195,5 @@ axiom P_eq_NP_implies_NP_closed_complement :
 #check PolyTimeReduction
 
 #print "✓ P vs NP formal specification compiled successfully"
+
+end PEqNP
