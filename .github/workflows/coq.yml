@@ -32,22 +32,37 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Check for Coq files
+      id: check-coq
+      run: |
+        if [ -f "_CoqProject" ] || ls *.v 1> /dev/null 2>&1; then
+          echo "has_files=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_files=false" >> $GITHUB_OUTPUT
+          echo "No Coq files found - skipping build"
+          echo "To use Coq verification, add Coq source files (.v) and optionally a _CoqProject file"
+        fi
+
     - name: Set up OCaml
+      if: steps.check-coq.outputs.has_files == 'true'
       uses: ocaml/setup-ocaml@v2
       with:
         ocaml-compiler: 4.14.x
 
     - name: Install Coq
+      if: steps.check-coq.outputs.has_files == 'true'
       run: |
         opam install coq.${{ matrix.coq-version }} -y
         opam install coq-mathcomp-ssreflect -y || echo "Optional: mathcomp not installed"
 
     - name: Verify Coq installation
+      if: steps.check-coq.outputs.has_files == 'true'
       run: |
         eval $(opam env)
         coqc --version
 
     - name: Cache Coq dependencies
+      if: steps.check-coq.outputs.has_files == 'true'
       uses: actions/cache@v4
       with:
         path: |
@@ -58,19 +73,18 @@ jobs:
           ${{ runner.os }}-coq-${{ matrix.coq-version }}-
 
     - name: Build Coq project
+      if: steps.check-coq.outputs.has_files == 'true'
       run: |
         eval $(opam env)
         if [ -f "_CoqProject" ]; then
           coq_makefile -f _CoqProject -o Makefile.coq
           make -f Makefile.coq
-        elif ls *.v 1> /dev/null 2>&1; then
-          coqc *.v
         else
-          echo "No Coq files found - skipping build"
-          echo "To use Coq verification, add Coq source files (.v) and optionally a _CoqProject file"
+          coqc *.v
         fi
 
     - name: Run Coq tests
+      if: steps.check-coq.outputs.has_files == 'true'
       run: |
         eval $(opam env)
         if [ -f "Makefile.coq" ]; then

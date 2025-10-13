@@ -49,17 +49,30 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Check for Coq files
+      id: check-coq
+      run: |
+        if [ -f "_CoqProject" ] || ls *.v 1> /dev/null 2>&1; then
+          echo "has_files=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_files=false" >> $GITHUB_OUTPUT
+          echo "✓ No Coq files - skipping"
+        fi
+
     - name: Set up OCaml
+      if: steps.check-coq.outputs.has_files == 'true'
       uses: ocaml/setup-ocaml@v2
       with:
         ocaml-compiler: 4.14.x
 
     - name: Install Coq
+      if: steps.check-coq.outputs.has_files == 'true'
       run: |
         opam install coq.latest -y
         opam install coq-mathcomp-ssreflect -y || true
 
     - name: Cache Coq dependencies
+      if: steps.check-coq.outputs.has_files == 'true'
       uses: actions/cache@v4
       with:
         path: |
@@ -70,18 +83,15 @@ jobs:
           ${{ runner.os }}-coq-
 
     - name: Build and test Coq
+      if: steps.check-coq.outputs.has_files == 'true'
       run: |
         eval $(opam env)
-        if [ -f "_CoqProject" ] || ls *.v 1> /dev/null 2>&1; then
-          coqc --version
-          if [ -f "_CoqProject" ]; then
-            coq_makefile -f _CoqProject -o Makefile.coq
-            make -f Makefile.coq
-          else
-            coqc *.v
-          fi
+        coqc --version
+        if [ -f "_CoqProject" ]; then
+          coq_makefile -f _CoqProject -o Makefile.coq
+          make -f Makefile.coq
         else
-          echo "✓ No Coq files - skipping"
+          coqc *.v
         fi
 
   isabelle-verification:
@@ -92,20 +102,28 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Check for Isabelle files
+      id: check-isabelle
+      run: |
+        if ls *.thy 1> /dev/null 2>&1; then
+          echo "has_files=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_files=false" >> $GITHUB_OUTPUT
+          echo "✓ No Isabelle files - skipping"
+        fi
+
     - name: Install Isabelle
+      if: steps.check-isabelle.outputs.has_files == 'true'
       run: |
         wget https://isabelle.in.tum.de/dist/Isabelle2024_linux.tar.gz
         tar xzf Isabelle2024_linux.tar.gz
         echo "$PWD/Isabelle2024/bin" >> $GITHUB_PATH
 
     - name: Build and test Isabelle
+      if: steps.check-isabelle.outputs.has_files == 'true'
       run: |
-        if ls *.thy 1> /dev/null 2>&1; then
-          isabelle version
-          isabelle build -D .
-        else
-          echo "✓ No Isabelle files - skipping"
-        fi
+        isabelle version
+        isabelle build -D .
 
   agda-verification:
     name: Agda Verification
@@ -115,26 +133,35 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Check for Agda files
+      id: check-agda
+      run: |
+        if ls *.agda 1> /dev/null 2>&1; then
+          echo "has_files=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_files=false" >> $GITHUB_OUTPUT
+          echo "✓ No Agda files - skipping"
+        fi
+
     - name: Set up Haskell
+      if: steps.check-agda.outputs.has_files == 'true'
       uses: haskell/actions/setup@v2
       with:
         ghc-version: '9.4'
         cabal-version: '3.10'
 
     - name: Install Agda
+      if: steps.check-agda.outputs.has_files == 'true'
       run: |
         cabal update
         cabal install Agda
         echo "$HOME/.cabal/bin" >> $GITHUB_PATH
 
     - name: Build and test Agda
+      if: steps.check-agda.outputs.has_files == 'true'
       run: |
-        if ls *.agda 1> /dev/null 2>&1; then
-          agda --version
-          agda --safe *.agda
-        else
-          echo "✓ No Agda files - skipping"
-        fi
+        agda --version
+        agda --safe *.agda
 
   summary:
     name: Verification Summary
