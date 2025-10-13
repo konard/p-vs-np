@@ -48,8 +48,7 @@ definition InNP :: "DecisionProblem \<Rightarrow> bool" where
 
 (* Basic axiom: P subseteq NP (every problem in P is also in NP) *)
 lemma P_subset_NP:
-  fixes p :: DecisionProblem
-  assumes "InP p"
+  assumes "InP (p :: DecisionProblem)"
   shows "InNP p"
   by sorry
 

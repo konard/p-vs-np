@@ -32,54 +32,23 @@ jobs:
           echo "To use Isabelle verification, add Isabelle theory files (.thy)"
         fi
 
-    - name: Pull Isabelle Docker image
+    - name: Install Isabelle
       if: steps.check-isabelle.outputs.has_files == 'true'
-      run: docker pull makarius/isabelle:latest
+      run: |
+        wget https://isabelle.in.tum.de/dist/Isabelle2025_linux.tar.gz
+        tar xzf Isabelle2025_linux.tar.gz
+        echo "$PWD/Isabelle2025/bin" >> $GITHUB_PATH
 
     - name: Verify Isabelle files
       if: steps.check-isabelle.outputs.has_files == 'true'
       run: |
-        # Create a verification script
-        cat > verify_isabelle.sh <<'EOF'
-        #!/bin/bash
-        set -e
-
         echo "=== Isabelle Version ==="
         isabelle version
-
         echo ""
-        echo "=== Finding Isabelle Theory Files ==="
-        find . -name "*.thy" -type f | sort
-
+        echo "Building Isabelle theories..."
+        isabelle build -D .
         echo ""
-        echo "=== Verifying Isabelle Files ==="
-        find . -name "*.thy" -type f | while read -r file; do
-          echo "Checking: $file"
-          # Build the theory file
-          isabelle build -d "$(dirname "$file")" -v -o timeout=300 -c || {
-            echo "❌ Failed to verify $file with build command"
-            # Try processing directly
-            echo "Attempting direct processing..."
-            isabelle process -T "$(basename "$file" .thy)" -d "$(dirname "$file")" || {
-              echo "❌ Failed to verify $file"
-              exit 1
-            }
-          }
-          echo "✓ $file verified successfully"
-        done
-
-        echo ""
-        echo "✓ All Isabelle files verified successfully!"
-        EOF
-
-        chmod +x verify_isabelle.sh
-
-        # Run verification in Docker container
-        docker run --rm \
-          -v "$(pwd):/workspace" \
-          -w /workspace \
-          makarius/isabelle:latest \
-          bash -c "/workspace/verify_isabelle.sh"
+        echo "✓ All Isabelle theories verified successfully!"
 
     - name: Upload verification logs
       if: always() && steps.check-isabelle.outputs.has_files == 'true'
