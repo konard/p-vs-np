@@ -29,7 +29,7 @@ record TuringMachine =
 
 (* A problem is in P if it can be decided by a polynomial-time TM *)
 definition InP :: "DecisionProblem \<Rightarrow> bool" where
-  "InP problem \<equiv> \<exists>tm.
+  "InP problem \<equiv> \<exists>(tm::TuringMachine).
     IsPolynomialTime (timeComplexity tm) \<and>
     (\<forall>x. problem x = compute tm x)"
 
@@ -40,7 +40,7 @@ record Verifier =
 
 (* A problem is in NP if solutions can be verified in polynomial time *)
 definition InNP :: "DecisionProblem \<Rightarrow> bool" where
-  "InNP problem \<equiv> \<exists>v certSize.
+  "InNP problem \<equiv> \<exists>(v::Verifier) (certSize::TimeComplexity).
     IsPolynomialTime (verifier_timeComplexity v) \<and>
     IsPolynomialTime certSize \<and>
     (\<forall>x. problem x = (\<exists>cert. length cert \<le> certSize (length x) \<and>
