@@ -72,7 +72,7 @@ jobs:
       if: steps.check-coq.outputs.has_files == 'true'
       uses: coq-community/docker-coq-action@v1
       with:
-        coq_version: 'latest'
+        coq_version: '8.20'
         custom_script: |
           startGroup "Coq version"
             coqc --version

@@ -25,7 +25,7 @@ jobs:
       matrix:
         coq-version:
           - '8.18'
-          - 'latest'
+          - '8.20'
       fail-fast: false
 
     steps:
