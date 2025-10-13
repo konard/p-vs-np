@@ -93,9 +93,14 @@ Proof.
   intro n.
   induction n as [| n' IHn'].
   - simpl. apply Nat.lt_0_1.
-  - simpl. apply Nat.lt_0_mul.
-    + apply Nat.lt_0_succ.
-    + exact IHn'.
+  - simpl.
+    (* (S n') * factorial n' > 0 *)
+    assert (S n' > 0) by apply Nat.lt_0_succ.
+    assert (factorial n' > 0) by exact IHn'.
+    (* Both factors positive, so product is positive *)
+    apply Nat.neq_0_lt_0.
+    apply Nat.neq_mul_0.
+    split; apply Nat.lt_neq; assumption.
 Qed.
 
 (** * List Operations (relevant for algorithm complexity) *)
