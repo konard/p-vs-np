@@ -10,7 +10,7 @@ theory PNotEqualNP
   imports Main
 begin
 
-section ‹Basic Complexity Theory Definitions›
+section \<open>Basic Complexity Theory Definitions\<close>
 
 (* A decision problem is represented as a predicate on strings (inputs) *)
 type_synonym DecisionProblem = "string ⇒ bool"
@@ -73,7 +73,7 @@ axiomatization
 where
   SAT_is_NP_complete: "IsNPComplete SAT"
 
-section ‹Formal Test for P ≠ NP›
+section \<open>Formal Test for P ≠ NP\<close>
 
 (* The central question: Does P = NP? *)
 definition P_equals_NP :: bool where
@@ -183,7 +183,7 @@ proof -
     using test_existence_of_hard_problem by simp
 qed
 
-section ‹Verification Framework›
+section \<open>Verification Framework\<close>
 
 (*
   A formal proof of P ≠ NP must satisfy verification criteria
@@ -216,9 +216,9 @@ lemma verify_framework_sound:
   "verifyPNotEqualNPProof proof ⟹ proves proof = P_not_equals_NP"
   unfolding verifyPNotEqualNPProof_def by simp
 
-section ‹Documentation and Examples›
+section \<open>Documentation and Examples\<close>
 
-text ‹
+text \<open>
   This framework provides four mathematically equivalent ways to verify P ≠ NP:
 
   1. test_existence_of_hard_problem:
@@ -236,6 +236,6 @@ text ‹
   Usage:
   To verify a claimed proof of P ≠ NP, construct a ProofOfPNotEqualNP record
   and apply verifyPNotEqualNPProof to check validity.
-›
+\<close>
 
 end

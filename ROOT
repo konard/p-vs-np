@@ -2,7 +2,8 @@ session "PvsNP" = "HOL" +
   description "P vs NP formal proofs and verification"
   options [timeout = 300]
   directories
-    "proofs/isabelle"
+    "proofs/basic/isabelle"
+    "proofs/p_not_equal_np/isabelle"
   theories
-    "Basic"
-    "PNotEqualNP"
+    "proofs/basic/isabelle/Basic"
+    "proofs/p_not_equal_np/isabelle/PNotEqualNP"
