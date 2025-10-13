@@ -50,7 +50,7 @@ definition InNP :: "DecisionProblem \<Rightarrow> bool" where
 lemma P_subset_NP:
   fixes problem :: "string \<Rightarrow> bool"
   shows "InP problem \<Longrightarrow> InNP problem"
-  by sorry
+  sorry
 
 (* A problem is NP-complete if it's in NP and all NP problems reduce to it *)
 definition IsNPComplete :: "DecisionProblem \<Rightarrow> bool" where
