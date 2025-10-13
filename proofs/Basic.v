@@ -92,15 +92,14 @@ Theorem factorial_pos : forall n : nat, 0 < factorial n.
 Proof.
   intro n.
   induction n as [| n' IHn'].
-  - simpl. apply Nat.lt_0_1.
+  - simpl. auto with arith.
   - simpl.
-    (* (S n') * factorial n' > 0 *)
-    assert (S n' > 0) by apply Nat.lt_0_succ.
-    assert (factorial n' > 0) by exact IHn'.
-    (* Both factors positive, so product is positive *)
-    apply Nat.neq_0_lt_0.
-    apply Nat.neq_mul_0.
-    split; apply Nat.lt_neq; assumption.
+    (* (S n') * factorial n' > 0 because both factors > 0 *)
+    destruct (factorial n') as [| fn'].
+    + (* factorial n' = 0 contradicts IHn' *)
+      inversion IHn'.
+    + (* factorial n' = S fn', so product > 0 *)
+      simpl. auto with arith.
 Qed.
 
 (** * List Operations (relevant for algorithm complexity) *)
