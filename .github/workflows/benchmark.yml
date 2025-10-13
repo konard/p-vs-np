@@ -1,0 +1,236 @@
+name: Performance Benchmarks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    # Run benchmarks weekly on Sunday at 00:00 UTC
+    - cron: '0 0 * * 0'
+
+jobs:
+  lean-benchmark:
+    name: Lean Performance Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Elan (Lean version manager)
+      run: |
+        curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+        echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+    - name: Cache Lean dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          .lake
+          ~/.elan
+        key: ${{ runner.os }}-lean-bench-${{ hashFiles('lakefile.lean', 'lean-toolchain') }}
+
+    - name: Run Lean benchmarks
+      run: |
+        if [ -f "lakefile.lean" ]; then
+          echo "## Lean Build Performance" >> benchmark-results.md
+          echo "" >> benchmark-results.md
+
+          # Measure build time
+          START_TIME=$(date +%s)
+          lake build --verbose 2>&1 | tee lean-build.log
+          END_TIME=$(date +%s)
+          BUILD_TIME=$((END_TIME - START_TIME))
+
+          echo "- Build time: ${BUILD_TIME}s" >> benchmark-results.md
+          echo "- Lean version: $(lean --version)" >> benchmark-results.md
+
+          # Count lines of code
+          if command -v cloc &> /dev/null; then
+            echo "" >> benchmark-results.md
+            echo "### Code Metrics" >> benchmark-results.md
+            cloc --include-ext=lean . >> benchmark-results.md || true
+          fi
+        else
+          echo "No Lean project found - skipping benchmarks"
+        fi
+
+    - name: Upload Lean benchmark results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: lean-benchmark-results
+        path: |
+          benchmark-results.md
+          lean-build.log
+
+  coq-benchmark:
+    name: Coq Performance Benchmarks
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check for Coq files
+      id: check-coq
+      run: |
+        if [ -f "_CoqProject" ] || ls *.v 1> /dev/null 2>&1; then
+          echo "has_files=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_files=false" >> $GITHUB_OUTPUT
+          echo "No Coq project found - skipping benchmarks"
+        fi
+
+    - name: Set up OCaml
+      if: steps.check-coq.outputs.has_files == 'true'
+      uses: ocaml/setup-ocaml@v2
+      with:
+        ocaml-compiler: 4.14.x
+
+    - name: Install Coq and tools
+      if: steps.check-coq.outputs.has_files == 'true'
+      run: |
+        opam install coq.latest -y
+        opam install coq-mathcomp-ssreflect -y || true
+        opam install coq-equations -y || true
+
+    - name: Run Coq benchmarks
+      if: steps.check-coq.outputs.has_files == 'true'
+      run: |
+        eval $(opam env)
+        echo "## Coq Build Performance" >> coq-benchmark-results.md
+        echo "" >> coq-benchmark-results.md
+
+        # Measure build time
+        START_TIME=$(date +%s)
+        if [ -f "_CoqProject" ]; then
+          coq_makefile -f _CoqProject -o Makefile.coq
+          make -f Makefile.coq -j$(nproc) 2>&1 | tee coq-build.log
+        else
+          time coqc *.v 2>&1 | tee coq-build.log
+        fi
+        END_TIME=$(date +%s)
+        BUILD_TIME=$((END_TIME - START_TIME))
+
+        echo "- Build time: ${BUILD_TIME}s" >> coq-benchmark-results.md
+        echo "- Coq version: $(coqc --version | head -n1)" >> coq-benchmark-results.md
+
+        # Count lines of code
+        if command -v cloc &> /dev/null; then
+          echo "" >> coq-benchmark-results.md
+          echo "### Code Metrics" >> coq-benchmark-results.md
+          cloc --include-ext=v . >> coq-benchmark-results.md || true
+        fi
+
+    - name: Upload Coq benchmark results
+      uses: actions/upload-artifact@v4
+      if: steps.check-coq.outputs.has_files == 'true'
+      with:
+        name: coq-benchmark-results
+        path: |
+          coq-benchmark-results.md
+          coq-build.log
+
+  verification-metrics:
+    name: Verification Metrics
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install analysis tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cloc sloccount || true
+
+    - name: Generate metrics
+      run: |
+        echo "# P vs NP Repository Metrics" > metrics.md
+        echo "" >> metrics.md
+        echo "Generated: $(date)" >> metrics.md
+        echo "" >> metrics.md
+
+        # Lines of code by language
+        if command -v cloc &> /dev/null; then
+          echo "## Code Statistics" >> metrics.md
+          echo "" >> metrics.md
+          echo "\`\`\`" >> metrics.md
+          cloc . --exclude-dir=.git,.github >> metrics.md || true
+          echo "\`\`\`" >> metrics.md
+          echo "" >> metrics.md
+        fi
+
+        # Count formal proof files
+        echo "## Formal Verification Files" >> metrics.md
+        echo "" >> metrics.md
+        LEAN_FILES=$(find . -name "*.lean" -type f 2>/dev/null | wc -l)
+        COQ_FILES=$(find . -name "*.v" -type f 2>/dev/null | wc -l)
+        AGDA_FILES=$(find . -name "*.agda" -type f 2>/dev/null | wc -l)
+        ISABELLE_FILES=$(find . -name "*.thy" -type f 2>/dev/null | wc -l)
+
+        echo "- Lean files: $LEAN_FILES" >> metrics.md
+        echo "- Coq files: $COQ_FILES" >> metrics.md
+        echo "- Agda files: $AGDA_FILES" >> metrics.md
+        echo "- Isabelle files: $ISABELLE_FILES" >> metrics.md
+        echo "" >> metrics.md
+
+        # Documentation files
+        echo "## Documentation" >> metrics.md
+        echo "" >> metrics.md
+        MD_FILES=$(find . -name "*.md" -type f ! -path "./.git/*" 2>/dev/null | wc -l)
+        echo "- Markdown files: $MD_FILES" >> metrics.md
+
+        # Display results
+        cat metrics.md
+
+    - name: Upload metrics
+      uses: actions/upload-artifact@v4
+      with:
+        name: repository-metrics
+        path: metrics.md
+
+    - name: Display metrics summary
+      run: |
+        echo "## Repository Metrics" >> $GITHUB_STEP_SUMMARY
+        cat metrics.md >> $GITHUB_STEP_SUMMARY
+
+  benchmark-summary:
+    name: Benchmark Summary
+    runs-on: ubuntu-latest
+    needs: [lean-benchmark, coq-benchmark, verification-metrics]
+    if: always()
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Generate summary
+      run: |
+        echo "## Performance Benchmark Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ -f "lean-benchmark-results/benchmark-results.md" ]; then
+          cat lean-benchmark-results/benchmark-results.md >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ -f "coq-benchmark-results/coq-benchmark-results.md" ]; then
+          cat coq-benchmark-results/coq-benchmark-results.md >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ -f "repository-metrics/metrics.md" ]; then
+          cat repository-metrics/metrics.md >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "*Benchmarks run on: $(date)*" >> $GITHUB_STEP_SUMMARY

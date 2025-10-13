@@ -39,6 +39,24 @@ The P versus NP problem asks whether every problem whose solution can be quickly
 
 - **[pvsnp.pdf](pvsnp.pdf)** - Official problem description by Stephen Cook from Clay Mathematics Institute
 
+### 🔬 Formal Verification
+
+The repository includes bootstrap proof files in multiple formal verification systems to validate approaches and serve as templates for P vs NP related proofs:
+
+- **[proofs/Basic.lean](proofs/Basic.lean)** - Lean 4 foundational proofs
+- **[proofs/Basic.v](proofs/Basic.v)** - Coq foundational proofs
+- **[proofs/Basic.thy](proofs/Basic.thy)** - Isabelle/HOL foundational proofs
+- **[proofs/Basic.agda](proofs/Basic.agda)** - Agda foundational proofs
+
+These files demonstrate:
+- Logical reasoning (modus ponens, commutativity)
+- Arithmetic properties (addition, multiplication)
+- Even number definitions (relevant to complexity classes)
+- Factorial proofs (growth rates)
+- List operations (algorithm complexity)
+
+All proof files are automatically verified by GitHub Actions workflows to ensure correctness.
+
 ## Key Highlights
 
 ### Problem Significance

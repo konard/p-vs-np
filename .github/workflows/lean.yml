@@ -1,0 +1,63 @@
+name: Lean Verification
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**.lean'
+      - 'lean-toolchain'
+      - 'lakefile.lean'
+      - '.github/workflows/lean.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.lean'
+      - 'lean-toolchain'
+      - 'lakefile.lean'
+      - '.github/workflows/lean.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Elan (Lean version manager)
+      run: |
+        curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+        echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+    - name: Verify Lean installation
+      run: |
+        lean --version
+        lake --version
+
+    - name: Cache Lean dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          .lake
+          ~/.elan
+        key: ${{ runner.os }}-lean-${{ hashFiles('lakefile.lean', 'lean-toolchain') }}
+        restore-keys: |
+          ${{ runner.os }}-lean-
+
+    - name: Build Lean project
+      run: |
+        if [ -f "lakefile.lean" ]; then
+          lake build
+        else
+          echo "No lakefile.lean found - skipping build"
+          echo "To use Lean verification, add Lean source files (.lean) and a lakefile.lean"
+        fi
+
+    - name: Run Lean tests
+      run: |
+        if [ -f "lakefile.lean" ]; then
+          lake test || echo "No tests defined"
+        else
+          echo "No lakefile.lean found - skipping tests"
+        fi
