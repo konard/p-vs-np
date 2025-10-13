@@ -23,25 +23,16 @@ def IsPolynomial (f : Nat → Nat) : Prop :=
   ∃ (k c : Nat), ∀ n, f n ≤ c * (n ^ k) + c
 
 /-- Constant functions are polynomial -/
-theorem constant_is_poly (c : Nat) : IsPolynomial (fun _ => c) := by
-  use 0, c
-  intro n
-  -- c ≤ c * (n ^ 0) + c = c * 1 + c = 2*c
-  apply Nat.le_add_left
+theorem constant_is_poly (c : Nat) : IsPolynomial (fun _ => c) :=
+  ⟨0, c, fun n => Nat.le_add_left c (c * (n ^ 0))⟩
 
 /-- Linear functions are polynomial -/
-theorem linear_is_poly : IsPolynomial (fun n => n) := by
-  use 1, 1
-  intro n
-  -- n ≤ 1 * n^1 + 1 = n + 1
-  apply Nat.le_succ
+theorem linear_is_poly : IsPolynomial (fun n => n) :=
+  ⟨1, 1, fun n => Nat.le_succ n⟩
 
 /-- Quadratic functions are polynomial -/
-theorem quadratic_is_poly : IsPolynomial (fun n => n * n) := by
-  use 2, 1
-  intro n
-  -- n*n ≤ 1 * n^2 + 1 = n*n + 1
-  apply Nat.le_succ
+theorem quadratic_is_poly : IsPolynomial (fun n => n * n) :=
+  ⟨2, 1, fun n => Nat.le_succ (n * n)⟩
 
 /- ## 3. Deterministic Turing Machine Model -/
 
@@ -100,23 +91,12 @@ def InNP (L : DecisionProblem) : Prop :=
 /- ## 6. The P vs NP Question -/
 
 /-- P is a subset of NP -/
-theorem P_subseteq_NP : ∀ L, InP L → InNP L := by
-  intro L ⟨M, time, hpoly, hbounded, hdecides⟩
-  use (fun x _ => true), time
-  constructor
-  · exact hpoly
-  constructor
-  · use time
-    exact ⟨hpoly, fun _ _ => trivial⟩
-  · intro x
-    constructor
-    · intro hLx
-      use []
-      constructor
-      · apply Nat.zero_le
-      · rfl
-    · intro _
-      exact (hdecides x).mpr trivial
+theorem P_subseteq_NP : ∀ L, InP L → InNP L :=
+  fun L ⟨M, time, hpoly, hbounded, hdecides⟩ =>
+    ⟨(fun x _ => true), time, hpoly,
+     ⟨time, hpoly, fun _ _ => trivial⟩,
+     fun x => ⟨fun _ => ⟨[], Nat.zero_le _, rfl⟩,
+              fun _ => (hdecides x).mpr trivial⟩⟩
 
 /-- The central question: P = NP? -/
 def PEqualsNP : Prop :=
@@ -205,84 +185,52 @@ def TAUT (f : BoolFormula) : Prop :=
 /-- Empty language is in P -/
 def emptyLanguage : DecisionProblem := fun _ => False
 
-theorem empty_in_P : InP emptyLanguage := by
-  use { states := 2,
-        alphabet := 2,
-        transition := fun _ _ => (1, 0, true),
-        initialState := 0,
-        acceptState := 99,
-        rejectState := 1 }
-  use (fun _ => 1)
-  constructor
-  · exact constant_is_poly 1
-  constructor
-  · intro input
-    use 1
-    constructor
-    · apply Nat.le_refl
-    · trivial
-  · intro x
-    unfold emptyLanguage
-    constructor
-    · intro h; exact h
-    · intro _; trivial
+theorem empty_in_P : InP emptyLanguage :=
+  ⟨{ states := 2,
+     alphabet := 2,
+     transition := fun _ _ => (1, 0, true),
+     initialState := 0,
+     acceptState := 99,
+     rejectState := 1 },
+   (fun _ => 1),
+   constant_is_poly 1,
+   fun input => ⟨1, Nat.le_refl 1, trivial⟩,
+   fun x => ⟨fun h => h, fun _ => trivial⟩⟩
 
 /-- Universal language is in P -/
 def universalLanguage : DecisionProblem := fun _ => True
 
-theorem universal_in_P : InP universalLanguage := by
-  use { states := 2,
-        alphabet := 2,
-        transition := fun _ _ => (1, 0, true),
-        initialState := 0,
-        acceptState := 1,
-        rejectState := 99 }
-  use (fun _ => 1)
-  constructor
-  · exact constant_is_poly 1
-  constructor
-  · intro input
-    use 1
-    constructor
-    · apply Nat.le_refl
-    · trivial
-  · intro x
-    unfold universalLanguage
-    constructor
-    · intro _; trivial
-    · intro _; trivial
+theorem universal_in_P : InP universalLanguage :=
+  ⟨{ states := 2,
+     alphabet := 2,
+     transition := fun _ _ => (1, 0, true),
+     initialState := 0,
+     acceptState := 1,
+     rejectState := 99 },
+   (fun _ => 1),
+   constant_is_poly 1,
+   fun input => ⟨1, Nat.le_refl 1, trivial⟩,
+   fun x => ⟨fun _ => trivial, fun _ => trivial⟩⟩
 
 /-- P is closed under complement -/
 theorem P_closed_under_complement : ∀ L,
-    InP L → InP (fun x => ¬L x) := by
-  intro L ⟨M, time, hpoly, hbounded, hdecides⟩
-  -- Swap accept and reject states
-  use { states := M.states,
-        alphabet := M.alphabet,
-        transition := M.transition,
-        initialState := M.initialState,
-        acceptState := M.rejectState,
-        rejectState := M.acceptState }
-  use time
-  constructor
-  · exact hpoly
-  constructor
-  · exact hbounded
-  · intro x
-    constructor
-    · intro _; trivial
-    · intro _; trivial
+    InP L → InP (fun x => ¬L x) :=
+  fun L ⟨M, time, hpoly, hbounded, hdecides⟩ =>
+    ⟨{ states := M.states,
+       alphabet := M.alphabet,
+       transition := M.transition,
+       initialState := M.initialState,
+       acceptState := M.rejectState,
+       rejectState := M.acceptState },
+     time, hpoly, hbounded,
+     fun x => ⟨fun _ => trivial, fun _ => trivial⟩⟩
 
 /-- If P = NP, then NP is closed under complement -/
 theorem P_eq_NP_implies_NP_closed_complement :
-    PEqualsNP → ∀ L, InNP L → InNP (fun x => ¬L x) := by
-  intro heq L hLnp
-  -- If P = NP, then L is in P
-  have hLp := heq L hLnp
-  -- P is closed under complement
-  have hComplP := P_closed_under_complement L hLp
-  -- So complement of L is in P, hence in NP
-  exact P_subseteq_NP (fun x => ¬L x) hComplP
+    PEqualsNP → ∀ L, InNP L → InNP (fun x => ¬L x) :=
+  fun heq L hLnp =>
+    P_subseteq_NP (fun x => ¬L x)
+      (P_closed_under_complement L (heq L hLnp))
 
 /- ## 10. Verification Summary -/
 
