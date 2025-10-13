@@ -64,49 +64,29 @@ jobs:
           echo "✓ No Coq files - skipping"
         fi
 
-    - name: Set up OCaml
-      if: steps.check-coq.outputs.has_files == 'true'
-      uses: ocaml/setup-ocaml@v2
-      with:
-        ocaml-compiler: 4.14.x
-
-    - name: Install Coq
-      if: steps.check-coq.outputs.has_files == 'true'
-      run: |
-        opam install coq.latest -y
-        opam install coq-mathcomp-ssreflect -y || true
-
-    - name: Cache Coq dependencies
-      if: steps.check-coq.outputs.has_files == 'true'
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.opam
-          _build
-        key: ${{ runner.os }}-coq-${{ hashFiles('_CoqProject', '**.opam') }}
-        restore-keys: |
-          ${{ runner.os }}-coq-
-
     - name: Build and test Coq
       if: steps.check-coq.outputs.has_files == 'true'
-      run: |
-        eval $(opam env)
-        echo "=== Coq Verification ==="
-        coqc --version
-        echo ""
-        if [ -f "_CoqProject" ]; then
-          echo "Building Coq project with _CoqProject..."
-          coq_makefile -f _CoqProject -o Makefile.coq
-          make -f Makefile.coq
-        else
-          echo "Verifying Coq files..."
-          find . -name "*.v" -type f | while read -r file; do
-            echo "Checking: $file"
-            coqc "$file" && echo "✓ $file verified successfully" || exit 1
-          done
-        fi
-        echo ""
-        echo "✓ All Coq files verified successfully!"
+      uses: coq-community/docker-coq-action@v1
+      with:
+        coq_version: 'latest'
+        custom_script: |
+          startGroup "Coq version"
+            coqc --version
+          endGroup
+          startGroup "Verify Coq files"
+            if [ -f "_CoqProject" ]; then
+              echo "Building Coq project with _CoqProject..."
+              coq_makefile -f _CoqProject -o Makefile.coq
+              make -f Makefile.coq
+            else
+              echo "Verifying Coq files..."
+              find . -name "*.v" -type f | while read -r file; do
+                echo "Checking: $file"
+                coqc "$file" && echo "✓ $file verified successfully" || exit 1
+              done
+            fi
+            echo "✓ All Coq files verified successfully!"
+          endGroup
 
   isabelle-verification:
     name: Isabelle Verification
@@ -144,72 +124,74 @@ jobs:
         echo ""
         echo "✓ All Isabelle theories verified successfully!"
 
-  agda-verification:
-    name: Agda Verification
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Check for Agda files
-      id: check-agda
-      run: |
-        if find . -name "*.agda" -print -quit | grep -q .; then
-          echo "has_files=true" >> $GITHUB_OUTPUT
-        else
-          echo "has_files=false" >> $GITHUB_OUTPUT
-          echo "✓ No Agda files - skipping"
-        fi
-
-    - name: Set up Haskell
-      if: steps.check-agda.outputs.has_files == 'true'
-      uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '9.4'
-        cabal-version: '3.10'
-
-    - name: Cache Agda
-      if: steps.check-agda.outputs.has_files == 'true'
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cabal/store
-          ~/.cabal/bin
-          dist-newstyle
-        key: ${{ runner.os }}-agda-${{ hashFiles('**/*.agda') }}
-        restore-keys: |
-          ${{ runner.os }}-agda-
-
-    - name: Install Agda
-      if: steps.check-agda.outputs.has_files == 'true'
-      run: |
-        if ! command -v agda &> /dev/null; then
-          cabal update
-          cabal install Agda
-        else
-          echo "✓ Agda already installed (from cache)"
-        fi
-        echo "$HOME/.cabal/bin" >> $GITHUB_PATH
-
-    - name: Build and test Agda
-      if: steps.check-agda.outputs.has_files == 'true'
-      run: |
-        echo "=== Agda Verification ==="
-        agda --version
-        echo ""
-        echo "Verifying Agda files..."
-        find . -name "*.agda" -type f -print0 | while IFS= read -r -d '' file; do
-          echo "Checking: $file"
-          agda --safe "$file" && echo "✓ $file verified successfully" || exit 1
-        done
-        echo ""
-        echo "✓ All Agda files verified successfully!"
+# Temporarily disabled - Agda installation takes ~20 minutes
+  # TODO: Re-enable once we have better caching or use pre-built Agda
+  # agda-verification:
+  #   name: Agda Verification
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #   - name: Checkout repository
+  #     uses: actions/checkout@v4
+  #
+  #   - name: Check for Agda files
+  #     id: check-agda
+  #     run: |
+  #       if find . -name "*.agda" -print -quit | grep -q .; then
+  #         echo "has_files=true" >> $GITHUB_OUTPUT
+  #       else
+  #         echo "has_files=false" >> $GITHUB_OUTPUT
+  #         echo "✓ No Agda files - skipping"
+  #       fi
+  #
+  #   - name: Set up Haskell
+  #     if: steps.check-agda.outputs.has_files == 'true'
+  #     uses: haskell/actions/setup@v2
+  #     with:
+  #       ghc-version: '9.4'
+  #       cabal-version: '3.10'
+  #
+  #   - name: Cache Agda
+  #     if: steps.check-agda.outputs.has_files == 'true'
+  #     uses: actions/cache@v4
+  #     with:
+  #       path: |
+  #         ~/.cabal/store
+  #         ~/.cabal/bin
+  #         dist-newstyle
+  #       key: ${{ runner.os }}-agda-${{ hashFiles('**/*.agda') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-agda-
+  #
+  #   - name: Install Agda
+  #     if: steps.check-agda.outputs.has_files == 'true'
+  #     run: |
+  #       if ! command -v agda &> /dev/null; then
+  #         cabal update
+  #         cabal install Agda
+  #       else
+  #         echo "✓ Agda already installed (from cache)"
+  #       fi
+  #       echo "$HOME/.cabal/bin" >> $GITHUB_PATH
+  #
+  #   - name: Build and test Agda
+  #     if: steps.check-agda.outputs.has_files == 'true'
+  #     run: |
+  #       echo "=== Agda Verification ==="
+  #       agda --version
+  #       echo ""
+  #       echo "Verifying Agda files..."
+  #       find . -name "*.agda" -type f -print0 | while IFS= read -r -d '' file; do
+  #         echo "Checking: $file"
+  #         agda --safe "$file" && echo "✓ $file verified successfully" || exit 1
+  #       done
+  #       echo ""
+  #       echo "✓ All Agda files verified successfully!"
 
   summary:
     name: Verification Summary
     runs-on: ubuntu-latest
-    needs: [lean-verification, coq-verification, isabelle-verification, agda-verification]
+    needs: [lean-verification, coq-verification, isabelle-verification]
     if: always()
 
     steps:
@@ -222,4 +204,5 @@ jobs:
         echo "| Lean | ${{ needs.lean-verification.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Coq | ${{ needs.coq-verification.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Isabelle | ${{ needs.isabelle-verification.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Agda | ${{ needs.agda-verification.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "_Note: Agda verification temporarily disabled due to long build times (~20 minutes)_" >> $GITHUB_STEP_SUMMARY

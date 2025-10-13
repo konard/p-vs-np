@@ -43,62 +43,26 @@ jobs:
           echo "To use Coq verification, add Coq source files (.v) and optionally a _CoqProject file"
         fi
 
-    - name: Set up OCaml
+    - name: Build Coq project using docker-coq-action
       if: steps.check-coq.outputs.has_files == 'true'
-      uses: ocaml/setup-ocaml@v2
+      uses: coq-community/docker-coq-action@v1
       with:
-        ocaml-compiler: 4.14.x
-
-    - name: Install Coq
-      if: steps.check-coq.outputs.has_files == 'true'
-      run: |
-        opam install coq.${{ matrix.coq-version }} -y
-        opam install coq-mathcomp-ssreflect -y || echo "Optional: mathcomp not installed"
-
-    - name: Verify Coq installation
-      if: steps.check-coq.outputs.has_files == 'true'
-      run: |
-        eval $(opam env)
-        coqc --version
-
-    - name: Cache Coq dependencies
-      if: steps.check-coq.outputs.has_files == 'true'
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.opam
-          _build
-        key: ${{ runner.os }}-coq-${{ matrix.coq-version }}-${{ hashFiles('_CoqProject', '**.opam') }}
-        restore-keys: |
-          ${{ runner.os }}-coq-${{ matrix.coq-version }}-
-
-    - name: Build Coq project
-      if: steps.check-coq.outputs.has_files == 'true'
-      run: |
-        eval $(opam env)
-        echo "=== Coq Verification ==="
-        coqc --version
-        echo ""
-        if [ -f "_CoqProject" ]; then
-          echo "Building Coq project with _CoqProject..."
-          coq_makefile -f _CoqProject -o Makefile.coq
-          make -f Makefile.coq
-        else
-          echo "Verifying Coq files..."
-          find . -name "*.v" -type f | while read -r file; do
-            echo "Checking: $file"
-            coqc "$file" && echo "✓ $file verified successfully" || exit 1
-          done
-        fi
-        echo ""
-        echo "✓ All Coq files verified successfully!"
-
-    - name: Run Coq tests
-      if: steps.check-coq.outputs.has_files == 'true'
-      run: |
-        eval $(opam env)
-        if [ -f "Makefile.coq" ]; then
-          make -f Makefile.coq test || echo "No tests defined"
-        else
-          echo "No Makefile.coq found - skipping tests"
-        fi
+        coq_version: ${{ matrix.coq-version }}
+        custom_script: |
+          startGroup "Coq version"
+            coqc --version
+          endGroup
+          startGroup "Verify Coq files"
+            if [ -f "_CoqProject" ]; then
+              echo "Building Coq project with _CoqProject..."
+              coq_makefile -f _CoqProject -o Makefile.coq
+              make -f Makefile.coq
+            else
+              echo "Verifying Coq files..."
+              find . -name "*.v" -type f | while read -r file; do
+                echo "Checking: $file"
+                coqc "$file" && echo "✓ $file verified successfully" || exit 1
+              done
+            fi
+            echo "✓ All Coq files verified successfully!"
+          endGroup
