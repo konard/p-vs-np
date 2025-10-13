@@ -64,15 +64,15 @@ jobs:
           echo "✓ No Coq files - skipping"
         fi
 
+    - name: Fix permissions for docker
+      if: steps.check-coq.outputs.has_files == 'true'
+      run: sudo chown -R 1000:1000 .
+
     - name: Build and test Coq
       if: steps.check-coq.outputs.has_files == 'true'
       uses: coq-community/docker-coq-action@v1
       with:
         coq_version: 'latest'
-        before_script: |
-          startGroup "Workaround permission issue"
-            sudo chown -R 1000:1000 .
-          endGroup
         custom_script: |
           startGroup "Coq version"
             coqc --version

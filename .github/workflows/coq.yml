@@ -43,15 +43,15 @@ jobs:
           echo "To use Coq verification, add Coq source files (.v) and optionally a _CoqProject file"
         fi
 
+    - name: Fix permissions for docker
+      if: steps.check-coq.outputs.has_files == 'true'
+      run: sudo chown -R 1000:1000 .
+
     - name: Build Coq project using docker-coq-action
       if: steps.check-coq.outputs.has_files == 'true'
       uses: coq-community/docker-coq-action@v1
       with:
         coq_version: ${{ matrix.coq-version }}
-        before_script: |
-          startGroup "Workaround permission issue"
-            sudo chown -R 1000:1000 .
-          endGroup
         custom_script: |
           startGroup "Coq version"
             coqc --version
