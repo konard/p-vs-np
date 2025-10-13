@@ -34,8 +34,13 @@ jobs:
     - name: Build and test Lean
       run: |
         if [ -f "lakefile.lean" ]; then
+          echo "=== Lean Verification ==="
           lean --version
+          echo ""
+          echo "Building Lean project..."
           lake build
+          echo "✓ Lean build completed successfully!"
+          echo ""
           lake test || echo "No tests defined"
         else
           echo "✓ No Lean files - skipping"
@@ -86,13 +91,22 @@ jobs:
       if: steps.check-coq.outputs.has_files == 'true'
       run: |
         eval $(opam env)
+        echo "=== Coq Verification ==="
         coqc --version
+        echo ""
         if [ -f "_CoqProject" ]; then
+          echo "Building Coq project with _CoqProject..."
           coq_makefile -f _CoqProject -o Makefile.coq
           make -f Makefile.coq
         else
-          find . -name "*.v" -exec coqc {} \;
+          echo "Verifying Coq files..."
+          find . -name "*.v" -type f | while read -r file; do
+            echo "Checking: $file"
+            coqc "$file" && echo "✓ $file verified successfully" || exit 1
+          done
         fi
+        echo ""
+        echo "✓ All Coq files verified successfully!"
 
   isabelle-verification:
     name: Isabelle Verification
@@ -122,8 +136,13 @@ jobs:
     - name: Build and test Isabelle
       if: steps.check-isabelle.outputs.has_files == 'true'
       run: |
+        echo "=== Isabelle Verification ==="
         isabelle version
+        echo ""
+        echo "Building Isabelle theories..."
         isabelle build -D .
+        echo ""
+        echo "✓ All Isabelle theories verified successfully!"
 
   agda-verification:
     name: Agda Verification
@@ -150,18 +169,42 @@ jobs:
         ghc-version: '9.4'
         cabal-version: '3.10'
 
+    - name: Cache Agda
+      if: steps.check-agda.outputs.has_files == 'true'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cabal/store
+          ~/.cabal/bin
+          dist-newstyle
+        key: ${{ runner.os }}-agda-${{ hashFiles('**/*.agda') }}
+        restore-keys: |
+          ${{ runner.os }}-agda-
+
     - name: Install Agda
       if: steps.check-agda.outputs.has_files == 'true'
       run: |
-        cabal update
-        cabal install Agda
+        if ! command -v agda &> /dev/null; then
+          cabal update
+          cabal install Agda
+        else
+          echo "✓ Agda already installed (from cache)"
+        fi
         echo "$HOME/.cabal/bin" >> $GITHUB_PATH
 
     - name: Build and test Agda
       if: steps.check-agda.outputs.has_files == 'true'
       run: |
+        echo "=== Agda Verification ==="
         agda --version
-        find . -name "*.agda" -exec agda --safe {} \;
+        echo ""
+        echo "Verifying Agda files..."
+        find . -name "*.agda" -type f -print0 | while IFS= read -r -d '' file; do
+          echo "Checking: $file"
+          agda --safe "$file" && echo "✓ $file verified successfully" || exit 1
+        done
+        echo ""
+        echo "✓ All Agda files verified successfully!"
 
   summary:
     name: Verification Summary

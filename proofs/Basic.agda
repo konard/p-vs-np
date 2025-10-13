@@ -6,7 +6,7 @@
   future P vs NP related proofs.
 -}
 
-module Basic where
+module proofs.Basic where
 
 open import Agda.Builtin.Nat renaming (Nat to ℕ)
 open import Agda.Builtin.Equality

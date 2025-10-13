@@ -76,12 +76,22 @@ jobs:
       if: steps.check-coq.outputs.has_files == 'true'
       run: |
         eval $(opam env)
+        echo "=== Coq Verification ==="
+        coqc --version
+        echo ""
         if [ -f "_CoqProject" ]; then
+          echo "Building Coq project with _CoqProject..."
           coq_makefile -f _CoqProject -o Makefile.coq
           make -f Makefile.coq
         else
-          find . -name "*.v" -exec coqc {} \;
+          echo "Verifying Coq files..."
+          find . -name "*.v" -type f | while read -r file; do
+            echo "Checking: $file"
+            coqc "$file" && echo "✓ $file verified successfully" || exit 1
+          done
         fi
+        echo ""
+        echo "✓ All Coq files verified successfully!"
 
     - name: Run Coq tests
       if: steps.check-coq.outputs.has_files == 'true'
