@@ -69,6 +69,10 @@ jobs:
       uses: coq-community/docker-coq-action@v1
       with:
         coq_version: 'latest'
+        before_script: |
+          startGroup "Workaround permission issue"
+            sudo chown -R 1000:1000 .
+          endGroup
         custom_script: |
           startGroup "Coq version"
             coqc --version
@@ -87,6 +91,10 @@ jobs:
             fi
             echo "✓ All Coq files verified successfully!"
           endGroup
+
+    - name: Revert permissions
+      if: ${{ always() && steps.check-coq.outputs.has_files == 'true' }}
+      run: sudo chown -R 1001:116 .
 
   isabelle-verification:
     name: Isabelle Verification
