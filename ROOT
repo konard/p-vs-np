@@ -4,6 +4,8 @@ session "PvsNP" = "HOL" +
   directories
     "proofs/basic/isabelle"
     "proofs/p_not_equal_np/isabelle"
+    "proofs/p_eq_np/isabelle"
   theories
     "proofs/basic/isabelle/Basic"
     "proofs/p_not_equal_np/isabelle/PNotEqualNP"
+    "proofs/p_eq_np/isabelle/PvsNP"
