@@ -47,8 +47,8 @@ definition InNP :: "DecisionProblem \<Rightarrow> bool" where
                               verify v x cert))"
 
 (* Basic axiom: P subseteq NP (every problem in P is also in NP) *)
-axiomatization where
-  P_subset_NP: "InP p \<Longrightarrow> InNP p"
+lemma P_subset_NP: "InP p \<Longrightarrow> InNP p"
+  sorry
 
 (* A problem is NP-complete if it's in NP and all NP problems reduce to it *)
 definition IsNPComplete :: "DecisionProblem \<Rightarrow> bool" where
