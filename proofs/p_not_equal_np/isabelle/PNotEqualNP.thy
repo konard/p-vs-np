@@ -47,9 +47,7 @@ definition InNP :: "DecisionProblem \<Rightarrow> bool" where
                               verify v x cert))"
 
 (* Basic axiom: P subseteq NP (every problem in P is also in NP) *)
-lemma P_subset_NP:
-  assumes "InP (p :: DecisionProblem)"
-  shows "InNP p"
+lemma P_subset_NP: "InP problem \<Longrightarrow> InNP problem"
   by sorry
 
 (* A problem is NP-complete if it's in NP and all NP problems reduce to it *)
