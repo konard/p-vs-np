@@ -432,14 +432,52 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
 ### 4.3 Proof Assistants and Verification
 
 **Interactive Theorem Provers**
-- **Examples:** Coq, Isabelle/HOL, Lean
-- **Applications:**
-  - Formalizing complexity theory
-  - Verified proofs
-  - Checking reasoning
-- **Notable Proofs:**
-  - Four-color theorem (Coq)
-  - Kepler conjecture (Isabelle)
+
+This repository includes working examples of four major proof assistants, with bootstrap proofs in `proofs/`:
+
+1. **Lean 4** ([proofs/Basic.lean](proofs/Basic.lean))
+   - Modern proof assistant with emphasis on automation
+   - Excellent for mathematical reasoning and type theory
+   - Active development and growing library (Mathlib)
+   - Configuration: `lakefile.lean`, `Main.lean`
+   - Verified by GitHub Actions on every push
+
+2. **Coq** ([proofs/Basic.v](proofs/Basic.v))
+   - Mature proof assistant based on Calculus of Inductive Constructions
+   - Strong ecosystem and extensive libraries (MathComp, Stdpp)
+   - Used for verified software (CompCert) and mathematics
+   - Tested with versions 8.18 and latest
+   - Verified by GitHub Actions on every push
+
+3. **Isabelle/HOL** ([proofs/Basic.thy](proofs/Basic.thy))
+   - Higher-order logic framework
+   - Powerful automation (sledgehammer, auto, simp)
+   - Used for large-scale verification projects
+   - Verified by GitHub Actions on every push
+
+4. **Agda** ([proofs/Basic.agda](proofs/Basic.agda))
+   - Dependently-typed functional programming language
+   - Proof assistant based on intensional type theory
+   - Close correspondence between programs and proofs
+   - Verified by GitHub Actions on every push
+
+**Bootstrap Proofs Include:**
+- Logical reasoning (modus ponens, logical operators)
+- Arithmetic properties (commutativity, associativity)
+- Even numbers (complexity class foundation)
+- Factorial functions (growth rates)
+- List operations (algorithm complexity)
+
+**Applications:**
+- Formalizing complexity theory
+- Verified proofs of lower bounds
+- Machine-checked reasoning
+- Automated proof checking via CI/CD
+
+**Notable Verified Proofs:**
+- Four-color theorem (Coq)
+- Kepler conjecture (Isabelle)
+- Odd order theorem (Coq/MathComp)
 
 **Automated Theorem Provers**
 - **Examples:** E, Vampire, SPASS
