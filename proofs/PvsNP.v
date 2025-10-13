@@ -47,25 +47,25 @@ Qed.
 Theorem linear_is_poly : is_polynomial (fun n => n).
 Proof.
   unfold is_polynomial.
-  exists 1, 1.
+  exists 1, 2.
   intros n.
   simpl.
-  (* Goal: n <= 1 * (n * 1) + 1 = n + 1 *)
-  rewrite Nat.mul_1_r.
-  rewrite Nat.mul_1_l.
-  apply Nat.le_add_r.
+  (* n <= 2 * (n * 1) + 2 = 2n + 2 *)
+  destruct n.
+  - simpl. apply Nat.le_refl.
+  - simpl. apply le_n_S. apply le_n_S. apply Nat.le_add_r.
 Qed.
 
 Theorem quadratic_is_poly : is_polynomial (fun n => n * n).
 Proof.
   unfold is_polynomial.
-  exists 2, 1.
+  exists 2, 2.
   intros n.
   simpl.
-  (* Goal: n * n <= 1 * (n * (n * 1)) + 1 *)
-  rewrite Nat.mul_1_r.
-  rewrite Nat.mul_1_l.
-  apply Nat.le_add_r.
+  (* n * n <= 2 * (n * (n * 1)) + 2 = 2n^2 + 2 *)
+  destruct n.
+  - simpl. apply Nat.le_refl.
+  - simpl. apply le_n_S. apply le_n_S. apply Nat.le_add_r.
 Qed.
 
 (** Sum and product of polynomials are polynomial *)
