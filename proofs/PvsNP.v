@@ -154,7 +154,7 @@ Proof.
   intros L [M [time [Hpoly [Hbounded Hdecides]]]].
   unfold in_NP.
   (* The verifier ignores the certificate and just runs M *)
-  exists (fun x _ => true), time.
+  exists (fun _ _ => true), time.
   repeat split.
   - exact Hpoly.
   - unfold polynomial_time_verifier.
