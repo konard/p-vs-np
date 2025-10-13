@@ -52,7 +52,7 @@ Proof.
   simpl.
   (* n <= 2 * (n * 1) + 2 = 2n + 2 *)
   destruct n.
-  - simpl. apply Nat.le_refl.
+  - simpl. apply le_0_n.
   - simpl. apply le_n_S. apply le_n_S. apply Nat.le_add_r.
 Qed.
 
@@ -64,7 +64,7 @@ Proof.
   simpl.
   (* n * n <= 2 * (n * (n * 1)) + 2 = 2n^2 + 2 *)
   destruct n.
-  - simpl. apply Nat.le_refl.
+  - simpl. apply le_0_n.
   - simpl. apply le_n_S. apply le_n_S. apply Nat.le_add_r.
 Qed.
 
