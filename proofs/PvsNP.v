@@ -50,8 +50,7 @@ Proof.
   exists 1, 1.
   intros n.
   simpl.
-  rewrite Nat.mul_1_l.
-  rewrite Nat.add_comm.
+  (* Goal: n <= n + 1 *)
   apply Nat.le_add_r.
 Qed.
 
@@ -61,8 +60,7 @@ Proof.
   exists 2, 1.
   intros n.
   simpl.
-  rewrite Nat.mul_1_l.
-  rewrite Nat.add_comm.
+  (* Goal: n * n <= n * n + 1 *)
   apply Nat.le_add_r.
 Qed.
 
