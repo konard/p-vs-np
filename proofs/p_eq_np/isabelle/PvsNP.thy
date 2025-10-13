@@ -45,7 +45,7 @@ lemma linear_is_poly:
 lemma quadratic_is_poly:
   "is_polynomial (\<lambda>n. n * n)"
   unfolding is_polynomial_def
-  by (rule_tac x=2 in exI, rule_tac x=1 in exI, auto)
+  by (rule_tac x=2 in exI, rule_tac x=1 in exI, simp add: power2_eq_square)
 
 (* Sum of polynomial functions is polynomial *)
 lemma poly_sum:
