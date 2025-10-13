@@ -1,0 +1,92 @@
+name: Isabelle Verification
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**.thy'
+      - '.github/workflows/isabelle.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.thy'
+      - '.github/workflows/isabelle.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check for Isabelle files
+      id: check-isabelle
+      run: |
+        if find . -name "*.thy" -print -quit | grep -q .; then
+          echo "has_files=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_files=false" >> $GITHUB_OUTPUT
+          echo "No Isabelle files found - skipping build"
+          echo "To use Isabelle verification, add Isabelle theory files (.thy)"
+        fi
+
+    - name: Pull Isabelle Docker image
+      if: steps.check-isabelle.outputs.has_files == 'true'
+      run: docker pull makarius/isabelle:latest
+
+    - name: Verify Isabelle files
+      if: steps.check-isabelle.outputs.has_files == 'true'
+      run: |
+        # Create a verification script
+        cat > verify_isabelle.sh <<'EOF'
+        #!/bin/bash
+        set -e
+
+        echo "=== Isabelle Version ==="
+        isabelle version
+
+        echo ""
+        echo "=== Finding Isabelle Theory Files ==="
+        find . -name "*.thy" -type f | sort
+
+        echo ""
+        echo "=== Verifying Isabelle Files ==="
+        find . -name "*.thy" -type f | while read -r file; do
+          echo "Checking: $file"
+          # Build the theory file
+          isabelle build -d "$(dirname "$file")" -v -o timeout=300 -c || {
+            echo "❌ Failed to verify $file with build command"
+            # Try processing directly
+            echo "Attempting direct processing..."
+            isabelle process -T "$(basename "$file" .thy)" -d "$(dirname "$file")" || {
+              echo "❌ Failed to verify $file"
+              exit 1
+            }
+          }
+          echo "✓ $file verified successfully"
+        done
+
+        echo ""
+        echo "✓ All Isabelle files verified successfully!"
+        EOF
+
+        chmod +x verify_isabelle.sh
+
+        # Run verification in Docker container
+        docker run --rm \
+          -v "$(pwd):/workspace" \
+          -w /workspace \
+          makarius/isabelle:latest \
+          bash -c "/workspace/verify_isabelle.sh"
+
+    - name: Upload verification logs
+      if: always() && steps.check-isabelle.outputs.has_files == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: isabelle-logs
+        path: |
+          **/*.log
+          verify_isabelle.sh
+        retention-days: 7

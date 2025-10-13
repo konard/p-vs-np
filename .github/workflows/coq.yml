@@ -28,6 +28,8 @@ jobs:
     - name: Check for Coq files
       id: check-coq
       run: |
+        echo "=== Coq Files Found ==="
+        find . -name "*.v" -type f | sort
         if [ -f "_CoqProject" ] || find . -name "*.v" -print -quit | grep -q .; then
           echo "has_files=true" >> $GITHUB_OUTPUT
         else
@@ -67,3 +69,14 @@ jobs:
     - name: Revert permissions
       if: ${{ always() && steps.check-coq.outputs.has_files == 'true' }}
       run: sudo chown -R 1001:116 .
+
+    - name: Upload build logs
+      if: always() && steps.check-coq.outputs.has_files == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coq-logs
+        path: |
+          **/*.log
+          **/*.vo
+          **/*.glob
+        retention-days: 7
