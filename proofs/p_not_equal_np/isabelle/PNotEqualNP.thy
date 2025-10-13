@@ -147,7 +147,7 @@ qed
 *)
 definition HasSuperPolynomialLowerBound :: "DecisionProblem \<Rightarrow> bool" where
   "HasSuperPolynomialLowerBound problem \<equiv>
-    \<forall>tm. (\<forall>x. problem x = compute tm x) \<longrightarrow>
+    \<forall>(tm::TuringMachine). (\<forall>x. problem x = compute tm x) \<longrightarrow>
          \<not>IsPolynomialTime (timeComplexity tm)"
 
 theorem test_super_polynomial_lower_bound:
