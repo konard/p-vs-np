@@ -88,7 +88,7 @@ Record TuringMachine := {
 }.
 
 (** Configuration of a TM: (current_state, tape, head_position, step_count) *)
-Definition Configuration := (nat * list nat * nat * nat).
+Definition Configuration : Set := (nat * list nat * nat * nat)%type.
 
 (** Time bound for a TM on an input *)
 Definition TM_time_bounded (M : TuringMachine) (time : nat -> nat) : Prop :=
