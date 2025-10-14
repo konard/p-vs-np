@@ -39,7 +39,19 @@ The P versus NP problem asks whether every problem whose solution can be quickly
    - Specific tactics and best practices
    - Milestones and evaluation criteria
 
-4. **[P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md)** - Solution strategies for testing P vs NP independence
+4. **[P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md)** - Comprehensive list of potential solution strategies for proving P ≠ NP
+   - Circuit complexity approaches (general circuits, monotone, bounded-depth, arithmetic)
+   - Algebraic methods (GCT, Valiant's model, algebraic independence)
+   - Algorithm-to-lower-bound techniques (Williams' framework, SAT algorithms)
+   - Proof complexity approaches (super-polynomial proofs, resolution, algebraic systems)
+   - Communication complexity methods
+   - Derandomization and pseudorandomness connections
+   - Structural and indirect approaches
+   - Novel interdisciplinary methods (quantum, statistical physics, topology)
+   - Meta-complexity and conditional results
+   - Restricted models and special cases
+
+5. **[P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md)** - Solution strategies for testing P vs NP independence
    - Theoretical foundations of independence and undecidability
    - 30+ strategies across 6 major categories (logical, proof-theoretic, algorithmic, empirical, interdisciplinary, hybrid)
    - Analysis of Shoenfield absoluteness and its implications
@@ -198,6 +210,7 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [P_VS_NP_TASK_DESCRIPTION.md](P_VS_NP_TASK_DESCRIPTION.md) - Comprehensive problem description
 - [TOOLS_AND_METHODOLOGIES.md](TOOLS_AND_METHODOLOGIES.md) - Tools, techniques, and resources
 - [DETAILED_SOLUTION_PLAN.md](DETAILED_SOLUTION_PLAN.md) - Multi-phase research plan
+- [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md) - Catalog of solution strategies for P ≠ NP
 - [P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md) - Solution strategies for testing independence
 
 ### Formal Verification Documentation
