@@ -1,6 +1,8 @@
-# P vs NP: Comprehensive Research Repository
+# P vs NP: Educational Research Repository
 
-This repository contains comprehensive documentation for approaching the P versus NP problem, one of the seven Clay Mathematics Institute Millennium Prize Problems.
+**An Educational Resource for Researchers and Students**
+
+This repository contains extensive educational documentation for studying the P versus NP problem, one of the seven Clay Mathematics Institute Millennium Prize Problems.
 
 ## Overview
 
@@ -41,18 +43,18 @@ The P versus NP problem asks whether every problem whose solution can be quickly
 
 ### 🔬 Formal Verification
 
-The repository includes comprehensive formal proofs and verification frameworks in multiple proof assistants (Lean 4, Coq, Isabelle/HOL, and Agda) organized into the following categories:
+The repository includes formal verification frameworks in multiple proof assistants (Lean 4, Coq, Isabelle/HOL, and Agda) organized into the following categories:
 
-#### Basic Proofs (`proofs/basic/`)
-Bootstrap proof files demonstrating foundational concepts:
+#### Tutorial Proofs for Learning Proof Assistants (`proofs/basic/`)
+Bootstrap proof files demonstrating foundational formal verification concepts and serving as templates:
 - **[proofs/basic/lean/Basic.lean](proofs/basic/lean/Basic.lean)** - Lean 4 foundational proofs
 - **[proofs/basic/coq/Basic.v](proofs/basic/coq/Basic.v)** - Coq foundational proofs
 - **[proofs/basic/isabelle/Basic.thy](proofs/basic/isabelle/Basic.thy)** - Isabelle/HOL foundational proofs
 - **[proofs/basic/agda/Basic.agda](proofs/basic/agda/Basic.agda)** - Agda foundational proofs
 
-These files demonstrate logical reasoning, arithmetic properties, even number definitions, factorial proofs, and list operations.
+These files serve as tutorials for researchers learning to use proof assistants and provide CI validation that the formal verification infrastructure is working correctly.
 
-#### Advanced Proof Frameworks
+#### Advanced Proof Frameworks for P vs NP
 The repository contains four distinct proof frameworks exploring different aspects of the P vs NP problem:
 
 1. **[P = NP Formalization](proofs/p_eq_np/)** (`proofs/p_eq_np/`)
@@ -183,4 +185,8 @@ All documents are interlinked - you can navigate between them using hyperlinks w
 
 ---
 
-**Note:** This repository provides educational and research materials. While it contains comprehensive information about approaches to P vs NP, resolving this problem likely requires fundamentally new mathematical insights beyond current techniques.
+**Important Notes:**
+- This repository provides educational and research materials for studying complexity theory and the P vs NP problem.
+- The goal is to advance understanding, develop research skills, and contribute to complexity theory—not to claim a solution to P vs NP on a fixed timeline.
+- Resolving P vs NP likely requires fundamentally new mathematical insights beyond currently known techniques.
+- Any claimed proof must address known barriers (relativization, natural proofs, algebrization) and undergo rigorous peer review.
