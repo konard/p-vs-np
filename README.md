@@ -129,7 +129,7 @@ This is a research repository. Contributions welcome:
 
 ## License
 
-MIT License - See [LICENSE](LICENSE)
+The Unlicense - See [LICENSE](LICENSE)
 
 ## References
 
