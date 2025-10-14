@@ -86,12 +86,19 @@ Theorem pSubsetNP : forall L : ClassP, exists L' : ClassNP,
 Proof.
   intro L.
   (* Construct an NP machine that ignores the certificate *)
+  assert (correct_prop: forall s : string,
+    p_language L s = true <-> exists cert : string, p_language L s = true).
+  {
+    intro s. split.
+    - intro H. exists EmptyString. exact H.
+    - intro H. destruct H as [cert H]. exact H.
+  }
   exists (mkClassNP
     (p_language L)
     (fun s _ => p_language L s)  (* Verifier ignores certificate *)
     (p_timeComplexity L)
     (p_isPoly L)
-    (fun s => conj (fun H => ex_intro _ EmptyString H) (fun H => match H with ex_intro _ _ h => h end))
+    correct_prop
   ).
   intro s.
   reflexivity.
