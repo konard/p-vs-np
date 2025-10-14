@@ -46,12 +46,12 @@ The P versus NP problem is one of the seven Millennium Prize Problems establishe
 
 ### 2.1 Origins
 
-- **1936:** Alan Turing introduces the Turing machine model
-- **1960s:** Cobham and Edmonds introduce polynomial-time computation
-- **1971:** Stephen Cook proves SAT is NP-complete (Cook-Levin theorem)
-- **1972:** Richard Karp identifies 21 NP-complete problems
-- **1970s:** Levin independently develops similar theory in Russia
-- **2000:** Clay Mathematics Institute designates P vs NP as Millennium Prize Problem
+- **1936:** Alan Turing introduces the Turing machine model ([Turing 1936](https://doi.org/10.1112/plms/s2-42.1.230))
+- **1960s:** Cobham and Edmonds introduce polynomial-time computation ([Cobham 1965](https://doi.org/10.1145/321250.321259), [Edmonds 1965](https://doi.org/10.4153/CJM-1965-045-4))
+- **1971:** Stephen Cook proves SAT is NP-complete (Cook-Levin theorem) ([Cook 1971](https://doi.org/10.1145/800157.805047))
+- **1972:** Richard Karp identifies 21 NP-complete problems ([Karp 1972](https://doi.org/10.1007/978-3-540-68279-0_8))
+- **1970s:** Levin independently develops similar theory in Russia ([Levin 1973](https://www.mathnet.ru/eng/ppi903))
+- **2000:** Clay Mathematics Institute designates P vs NP as Millennium Prize Problem ([CMI 2000](https://www.claymath.org/millennium/p-vs-np/))
 
 ### 2.2 Why This Problem Matters
 
@@ -100,12 +100,12 @@ The P versus NP problem is one of the seven Millennium Prize Problems establishe
 
 **1. SAT (Boolean Satisfiability)**
 - **Problem:** Given a Boolean formula F, determine if there exists a truth assignment making F true
-- **Status:** First proven NP-complete (Cook-Levin theorem, 1971)
+- **Status:** First proven NP-complete (Cook-Levin theorem, [Cook 1971](https://doi.org/10.1145/800157.805047), [Levin 1973](https://www.mathnet.ru/eng/ppi903))
 - **Example:** (P ∨ Q) ∧ (¬P ∨ R) ∧ (¬Q ∨ ¬R)
 
 **2. 3-SAT**
 - **Problem:** SAT restricted to formulas in conjunctive normal form with exactly 3 literals per clause
-- **Status:** NP-complete (Karp, 1972)
+- **Status:** NP-complete ([Karp 1972](https://doi.org/10.1007/978-3-540-68279-0_8))
 - **Example:** (P ∨ Q ∨ R) ∧ (¬P ∨ Q ∨ ¬R) ∧ (P ∨ ¬Q ∨ S) ∧ (¬P ∨ ¬R ∨ ¬S)
 
 **3. Graph Problems**
@@ -128,7 +128,7 @@ The P versus NP problem is one of the seven Millennium Prize Problems establishe
 **Graph Isomorphism:**
 - Determine if two graphs are structurally identical
 - In NP but not known to be NP-complete or in P
-- Recent quasi-polynomial time algorithm (Babai, 2015)
+- Recent quasi-polynomial time algorithm ([Babai 2015](https://arxiv.org/abs/1512.03547))
 
 **Integer Factorization:**
 - Factor an integer into primes
@@ -143,14 +143,14 @@ The P versus NP problem is one of the seven Millennium Prize Problems establishe
 ### 4.1 What We Know
 
 **Upper Bounds:**
-- Best known SAT algorithms run in time ~O(1.5^n) for n variables
+- Best known SAT algorithms run in time ~O(1.5^n) for n variables ([Moser & Scheder 2011](https://doi.org/10.1145/1993636.1993702))
 - No polynomial-time algorithm known for any NP-complete problem
 - Many exponential and sub-exponential algorithms exist
 
 **Lower Bounds:**
 - No super-linear lower bound proven for general Boolean circuits
-- Best proven lower bound for explicit functions: ~4n gates
-- Exponential lower bounds for restricted models (monotone circuits, bounded-depth circuits)
+- Best proven lower bound for explicit functions: ~3.1n gates ([Li & Yang 2021/2022](https://eccc.weizmann.ac.il/report/2021/083/))
+- Exponential lower bounds for restricted models (monotone circuits [Razborov 1985](https://doi.org/10.1007/BF01305233), bounded-depth circuits [Håstad 1987](https://doi.org/10.1145/28395.28400))
 
 **Complexity Class Relationships:**
 ```
@@ -162,21 +162,23 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 
 ### 4.2 Known Barriers to Resolution
 
-**1. Relativization Barrier (Baker-Gill-Solovay, 1975)**
+**1. Relativization Barrier ([Baker, Gill, Solovay 1975](https://doi.org/10.1137/0204037))**
 - There exist oracles A and B such that:
   - P^A = NP^A (relative to oracle A)
   - P^B ≠ NP^B (relative to oracle B)
 - Implication: Techniques that relativize cannot resolve P vs NP
 - Most classical proof techniques (diagonalization, simulation) relativize
 
-**2. Natural Proofs Barrier (Razborov-Rudich, 1997)**
+**2. Natural Proofs Barrier ([Razborov, Rudich 1997](https://doi.org/10.1006/jcss.1997.1494))**
 - "Natural proofs" are constructive, large, and useful against P/poly
 - If strong pseudo-random generators exist, natural proofs cannot prove circuit lower bounds
 - Implication: Most known circuit lower bound techniques are blocked
 
-**3. Algebraic Barriers**
+**3. Algebrization Barrier ([Aaronson, Wigderson 2008](https://doi.org/10.1145/1536414.1536451))**
+- Extends relativization and arithmetization barriers
+- Shows further limitations on proof techniques
 - Many algebraic techniques fail due to fundamental limitations
-- Geometric complexity theory attempts to overcome this
+- Geometric complexity theory attempts to overcome these barriers
 
 ### 4.3 What Would Resolution Mean?
 
@@ -227,37 +229,37 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 
 **2. Boolean Circuit Lower Bounds**
 - **Goal:** Prove super-polynomial circuit size lower bound for NP-complete problem
-- **Background:** Shannon (1949) proved almost all n-bit functions require 2^n/n gates
+- **Background:** Shannon (1949) proved almost all n-bit functions require 2^n/n gates ([Shannon 1949](https://doi.org/10.1002/j.1538-7305.1949.tb00928.x))
 - **Progress:** Exponential lower bounds for restricted models:
-  - Monotone circuits (Razborov, 1985)
-  - Constant-depth circuits (Ajtai, 1983; Furst-Saxe-Sipser, 1984)
-  - AC^0 circuits (Håstad, 1987)
-- **Best General Result:** ~4n gates (far from super-polynomial)
-- **Limitation:** Natural proofs barrier
+  - Monotone circuits ([Razborov 1985](https://doi.org/10.1007/BF01305233))
+  - Constant-depth circuits ([Ajtai 1983](https://doi.org/10.1145/800061.808726); [Furst, Saxe, Sipser 1984](https://doi.org/10.1016/0022-0000(84)90091-7))
+  - AC^0 circuits ([Håstad 1987](https://doi.org/10.1145/28395.28400))
+- **Best General Result:** ~3.1n gates ([Li & Yang 2021/2022](https://eccc.weizmann.ac.il/report/2021/083/)) (far from super-polynomial)
+- **Limitation:** Natural proofs barrier ([Razborov, Rudich 1997](https://doi.org/10.1006/jcss.1997.1494))
 
 **3. Algebraic Techniques**
 - **Method:** Represent Boolean functions as polynomials over finite fields
 - **Success:** Lower bounds for arithmetic circuits
-- **Example:** IP = PSPACE (Shamir, 1992) uses algebraic techniques
+- **Example:** IP = PSPACE ([Shamir 1992](https://doi.org/10.1145/146585.146609)) uses algebraic techniques
 - **Advantage:** Can be non-relativizing
 
-**4. Geometric Complexity Theory (Mulmuley-Sohoni)**
+**4. Geometric Complexity Theory ([Mulmuley, Sohoni 2001](https://doi.org/10.1137/S0097539700366802))**
 - **Method:** Use algebraic geometry and representation theory
 - **Goal:** Prove VP ≠ VNP (algebraic analogue of P vs NP)
 - **Status:** Long-term research program, no resolution yet
 
 **5. Circuit Satisfiability Lower Bounds**
-- **Williams' Approach (2010):** Convert algorithms into circuit lower bounds
+- **Williams' Approach ([Williams 2011](https://arxiv.org/abs/1111.1261)):** Convert algorithms into circuit lower bounds
 - **Result:** NEXP ⊄ ACC^0
 - **Significance:** First major non-relativizing separation in decades
 - **Technique:** Combines algorithms, diagonalization, and circuit analysis
 
 ### 5.3 Indirect Approaches
 
-**Proposition (Impagliazzo-Wigderson, 1997):**
+**Proposition ([Impagliazzo, Wigderson 1997](https://doi.org/10.1145/258533.258590)):**
 - If some language in E (exponential time) requires exponential circuit size, then BPP = P
 
-**Proposition (Kabanets):**
+**Proposition ([Kabanets 2001](https://doi.org/10.1007/3-540-44676-1_14)):**
 - If every language in E has small circuits, then P ≠ NP
 
 **Implication:**
@@ -312,7 +314,7 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 
 ### 7.3 Quantum Computers
 - **Model:** Computation using quantum superposition
-- **Known Results:** Shor's algorithm factors integers in polynomial time
+- **Known Results:** Shor's algorithm factors integers in polynomial time ([Shor 1994](https://doi.org/10.1109/SFCS.1994.365700))
 - **Relationship to P vs NP:** Quantum computers likely don't solve NP-complete problems efficiently
 - **Class:** BQP (Bounded-Error Quantum Polynomial Time)
 - **Belief:** BQP incomparable to NP
@@ -358,7 +360,7 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 
 ### 9.1 Proof Complexity
 
-**Key Result (Cook-Reckhow, 1979):**
+**Key Result ([Cook, Reckhow 1979](https://doi.org/10.1016/0022-0000(79)90044-4)):**
 - NP ≠ coNP implies no propositional proof system has polynomial-size proofs for all tautologies
 
 **Implications:**
@@ -384,8 +386,8 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 
 ### Key Results
 
-**Graph Isomorphism (Babai, 2015):**
-- Quasi-polynomial time algorithm
+**Graph Isomorphism ([Babai 2015](https://arxiv.org/abs/1512.03547)):**
+- Quasi-polynomial time algorithm (revised [2016](https://arxiv.org/abs/1512.03547v2))
 - Not polynomial, but major improvement
 - Revised and corrected by 2017
 
