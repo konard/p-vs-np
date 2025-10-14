@@ -145,8 +145,8 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
 
 **Polynomial Methods**
 - **Applications:**
-  - Circuit lower bounds (Razborov-Smolensky)
-  - IP = PSPACE proof
+  - Circuit lower bounds ([Razborov-Smolensky 1987](https://doi.org/10.1016/0022-0000(93)90044-5))
+  - IP = PSPACE proof ([Shamir 1992](https://doi.org/10.1145/146585.146609))
   - Algebraic complexity theory
 - **Techniques:**
   - Polynomials over finite fields (F₂, Fₚ)
@@ -194,8 +194,8 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
   - Descriptive complexity
   - Finite model theory
 - **Key Results:**
-  - Fagin's theorem: NP = existential second-order logic
-  - Immerman-Szelepcsényi: NL = coNL
+  - Fagin's theorem ([Fagin 1974](https://doi.org/10.1016/S0022-0000(74)80051-6)): NP = existential second-order logic
+  - Immerman-Szelepcsényi ([Immerman 1988](https://doi.org/10.1137/0217032), [Szelepcsényi 1988](https://doi.org/10.1007/BF02579094)): NL = coNL
 
 **Model Theory**
 - **Applications:**
@@ -222,8 +222,8 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
   - Extractors
   - Derandomization
 - **Key Results:**
-  - Impagliazzo-Wigderson: hard functions imply PRGs
-  - Nisan-Wigderson generator
+  - [Impagliazzo-Wigderson 1997](https://doi.org/10.1145/258533.258590): hard functions imply PRGs
+  - [Nisan-Wigderson 1994](https://doi.org/10.1006/jcss.1994.1001) generator
 - **Tools:**
   - Random number testing suites
   - Pseudorandom generator implementations
@@ -302,18 +302,18 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
 
 **Monotone Circuit Lower Bounds**
 - **Method:** Analyze circuits without NOT gates
-- **Key Result:** Razborov (1985) - monotone circuit for CLIQUE requires exponential size
+- **Key Result:** [Razborov 1985](https://doi.org/10.1007/BF01305233) - monotone circuit for CLIQUE requires exponential size
 - **Technique:** Approximation method
 - **Limitation:** Doesn't apply to general circuits
 
 **Constant-Depth Circuit Lower Bounds**
-- **Ajtai (1983), Furst-Saxe-Sipser (1984):**
+- **[Ajtai 1983](https://doi.org/10.1145/800061.808726), [Furst, Saxe, Sipser 1984](https://doi.org/10.1016/0022-0000(84)90091-7):**
   - PARITY not in AC^0
   - Method: Switching lemma, random restrictions
-- **Håstad (1987):**
+- **[Håstad 1987](https://doi.org/10.1145/28395.28400):**
   - Optimal AC^0 lower bounds
   - Refined switching lemma
-- **Razborov-Smolensky (1987):**
+- **[Razborov-Smolensky 1987](https://doi.org/10.1016/0022-0000(93)90044-5):**
   - ACC^0 lower bounds for MOD functions
   - Method: Polynomial approximation
 
@@ -338,7 +338,7 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
 
 ### 3.3 Algorithm Design Implies Lower Bounds
 
-**Williams' Technique (2010)**
+**Williams' Technique ([Williams 2011](https://arxiv.org/abs/1111.1261))**
 - **Insight:** Better algorithms for circuit satisfiability imply circuit lower bounds
 - **Result:** NEXP ⊄ ACC^0
 - **Method:**
@@ -354,7 +354,7 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
 
 ### 3.4 Natural Proofs and Barriers
 
-**Natural Proofs Framework (Razborov-Rudich, 1997)**
+**Natural Proofs Framework ([Razborov, Rudich 1997](https://doi.org/10.1006/jcss.1997.1494))**
 - **Properties of Natural Proofs:**
   1. **Constructivity:** Can efficiently recognize "hard" functions
   2. **Largeness:** Many functions satisfy the property
@@ -479,9 +479,9 @@ This repository includes working examples of four major proof assistants, with b
 - Automated proof checking via CI/CD
 
 **Notable Verified Proofs:**
-- Four-color theorem (Coq)
-- Kepler conjecture (Isabelle)
-- Odd order theorem (Coq/MathComp)
+- Four-color theorem ([Gonthier 2008](https://doi.org/10.1090/S0002-9904-2008-01217-9), Coq)
+- Kepler conjecture ([Hales et al. 2017](https://doi.org/10.1017/fmp.2017.1), Isabelle)
+- Odd order theorem ([Gonthier et al. 2013](https://doi.org/10.1007/978-3-642-39634-2_14), Coq/MathComp)
 
 **Automated Theorem Provers**
 - **Examples:** E, Vampire, SPASS
@@ -648,7 +648,7 @@ This repository includes working examples of four major proof assistants, with b
 
 **Goals:**
 - Prove P ≠ NP or VP ≠ VNP via algebraic geometry
-- Use representation theory and orbit closures
+- Use representation theory and orbit closures ([Mulmuley, Sohoni 2001](https://doi.org/10.1137/S0097539700366802))
 
 **Key Concepts:**
 - **Orbit closures:** Geometric objects representing complexity
@@ -676,7 +676,7 @@ This repository includes working examples of four major proof assistants, with b
 - Connect to NP vs coNP
 
 **Key Result:**
-- If NP ≠ coNP, no proof system has polynomial-size proofs for all tautologies
+- If NP ≠ coNP, no proof system has polynomial-size proofs for all tautologies ([Cook, Reckhow 1979](https://doi.org/10.1016/0022-0000(79)90044-4))
 
 **Research Areas:**
 - Lower bounds for resolution
@@ -701,13 +701,13 @@ This repository includes working examples of four major proof assistants, with b
 **Approaches:**
 - **Pseudorandom generators:**
   - Construct PRGs from hard functions
-  - Impagliazzo-Wigderson framework
+  - [Impagliazzo-Wigderson 1997](https://doi.org/10.1145/258533.258590) framework
 - **Hardness vs randomness:**
   - Hard functions imply derandomization
 
 **Connection to P vs NP:**
-- If E requires exponential circuits, then BPP = P
-- If E has small circuits, then P ≠ NP (Kabanets)
+- If E requires exponential circuits, then BPP = P ([Impagliazzo, Wigderson 1997](https://doi.org/10.1145/258533.258590))
+- If E has small circuits, then P ≠ NP ([Kabanets 2001](https://doi.org/10.1007/3-540-44676-1_14))
 
 **Tools:**
 - PRG implementations
