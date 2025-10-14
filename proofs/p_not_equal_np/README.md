@@ -1,5 +1,11 @@
 # Formal Test/Check for P ≠ NP
 
+**Navigation:** [↑ Back to Repository Root](../../README.md) | [Core Documentation](../../README.md#core-documentation) | [All Proof Frameworks](../../README.md#-formal-verification)
+
+**Related Frameworks:** [P = NP](../p_eq_np/) | [P vs NP Decidability](../p_vs_np_decidable/README.md) | [P vs NP Undecidability](../p_vs_np_undecidable/README.md)
+
+---
+
 This directory contains formal specifications and test frameworks for verifying proofs of **P ≠ NP** across multiple proof assistants.
 
 ## Overview
@@ -208,7 +214,7 @@ To add a new proof engine implementation:
 
 ## License
 
-This framework is provided for research and educational purposes. See repository LICENSE file.
+This framework is provided for research and educational purposes. See repository [LICENSE](../../LICENSE) file.
 
 ## Status
 
@@ -216,3 +222,7 @@ This framework is provided for research and educational purposes. See repository
 - ✅ Coq implementation: Complete and verified
 - ✅ Isabelle/HOL implementation: Complete and verified
 - 🚧 Agda implementation: Basic definitions only
+
+---
+
+**Navigation:** [↑ Back to Repository Root](../../README.md) | [P_VS_NP_TASK_DESCRIPTION.md](../../P_VS_NP_TASK_DESCRIPTION.md) | [TOOLS_AND_METHODOLOGIES.md](../../TOOLS_AND_METHODOLOGIES.md) | [DETAILED_SOLUTION_PLAN.md](../../DETAILED_SOLUTION_PLAN.md)

@@ -1,5 +1,9 @@
 # Tools and Methodologies for Approaching the P vs NP Problem
 
+**Navigation:** [↑ Back to Repository Root](README.md) | [Problem Description](P_VS_NP_TASK_DESCRIPTION.md) | [Solution Plan](DETAILED_SOLUTION_PLAN.md) | [Formal Proofs](README.md#-formal-verification)
+
+---
+
 ## Overview
 
 This document catalogs the theoretical tools, mathematical methodologies, computational techniques, and resources available for studying and potentially solving the P vs NP problem. It serves as a comprehensive guide for researchers approaching this fundamental question in computational complexity theory.
@@ -933,3 +937,7 @@ The problem has resisted 50+ years of attack by brilliant researchers, suggestin
 - Engage with research community
 
 **Key Insight:** Progress on P vs NP may come from solving related problems, developing new techniques, or understanding why existing techniques fail. Even partial progress is valuable to the field.
+
+---
+
+**Navigation:** [↑ Back to Repository Root](README.md) | [Problem Description](P_VS_NP_TASK_DESCRIPTION.md) | [Solution Plan](DETAILED_SOLUTION_PLAN.md) | [Formal Proofs](README.md#-formal-verification)

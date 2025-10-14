@@ -1,5 +1,9 @@
 # Detailed Plan for Approaching the P vs NP Problem
 
+**Navigation:** [↑ Back to Repository Root](README.md) | [Problem Description](P_VS_NP_TASK_DESCRIPTION.md) | [Tools & Methodologies](TOOLS_AND_METHODOLOGIES.md) | [Formal Proofs](README.md#-formal-verification)
+
+---
+
 ## Overview
 
 This document outlines a comprehensive, scientifically rigorous plan for approaching the P vs NP problem. Given the extraordinary difficulty of this problem and 50+ years of unsuccessful attempts, this plan emphasizes:
@@ -706,3 +710,7 @@ The P vs NP problem stands as one of the greatest intellectual challenges of our
 - Continuous engagement with field
 
 **Remember:** The journey of a thousand miles begins with a single step. Start with solid foundations, remain persistent, stay humble, and contribute to collective human knowledge.
+
+---
+
+**Navigation:** [↑ Back to Repository Root](README.md) | [Problem Description](P_VS_NP_TASK_DESCRIPTION.md) | [Tools & Methodologies](TOOLS_AND_METHODOLOGIES.md) | [Formal Proofs](README.md#-formal-verification)
