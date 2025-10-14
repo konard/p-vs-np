@@ -15,6 +15,7 @@ Require Import Coq.Arith.Arith.
 Require Import Coq.Lists.List.
 Require Import Coq.Strings.String.
 Require Import Coq.Logic.Classical_Prop.
+Require Import Lia.
 Import ListNotations.
 Open Scope string_scope.
 
@@ -148,7 +149,7 @@ Proof.
   exists 42, 0.
   intro n.
   simpl.
-  omega.
+  lia.
 Qed.
 
 Lemma quadratic_is_polynomial : isPolynomial (fun n => n * n).
@@ -158,7 +159,7 @@ Proof.
   intro n.
   simpl.
   rewrite Nat.pow_2_r.
-  omega.
+  lia.
 Qed.
 
 (** Test 6: Consequence of undecidability *)
