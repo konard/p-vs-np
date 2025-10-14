@@ -137,3 +137,21 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Lean build artifacts
+.lake/
+lake-manifest.json
+
+# Coq build artifacts
+*.vo
+*.vok
+*.vos
+*.glob
+.*.aux
+Makefile.coq
+Makefile.coq.conf
+.coqdeps.d
+
+# Isabelle build artifacts
+.isabelle/
+*.thy~
