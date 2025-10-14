@@ -2,6 +2,8 @@
 
 **An Educational Resource for Researchers and Students**
 
+*Last Updated: October 2025*
+
 This repository contains extensive educational documentation for studying the P versus NP problem, one of the seven Clay Mathematics Institute Millennium Prize Problems.
 
 ## Overview
@@ -99,8 +101,8 @@ All proof files are automatically verified by GitHub Actions workflows to ensure
   - **Natural Proofs** ([Razborov, Rudich, 1997](https://doi.org/10.1006/jcss.1997.1494)): Under cryptographic assumptions, "natural" techniques cannot prove super-polynomial circuit lower bounds
   - **Algebrization** ([Aaronson, Wigderson, 2008](https://doi.org/10.1145/1536414.1536451)): Extends relativization and arithmetization barriers, showing further limitations
 - **Best Known Algorithms:**
-  - **2-SAT:** O(n + m) via implication graph + strongly connected components (Aspvall, Plass, Tarjan, 1979)
-  - **3-SAT:** ~O(1.306973^n) (PPSZ improvements; carries from Unique-3-SAT to general 3-SAT per Hertli-type arguments)
+  - **2-SAT:** O(n + m) via implication graph + strongly connected components ([Aspvall, Plass, Tarjan, 1979](https://doi.org/10.1016/0020-0190(79)90002-4))
+  - **3-SAT:** ~O(1.306973^n) ([PPSZ improvements](https://epubs.siam.org/doi/10.1137/130919876); carries from Unique-3-SAT to general 3-SAT per [Hertli 2014](https://epubs.siam.org/doi/10.1137/130919876))
   - **k-SAT (k≥4):** Base depends on k (PPSZ variants)
   - **General CNF-SAT:** Bounds depend on clause structure
 - **Best Lower Bounds:**
@@ -115,8 +117,11 @@ All proof files are automatically verified by GitHub Actions workflows to ensure
 - **1972:** Karp identifies 21 NP-complete problems
 - **1985:** Razborov proves exponential monotone circuit lower bounds
 - **1997:** Razborov-Rudich identify Natural Proofs barrier
-- **2010:** Williams proves NEXP ⊄ ACC⁰ ([Williams 2011](https://www.cs.cmu.edu/~ryanw/acc-lbs.pdf)) - major non-relativizing result using algorithm-to-lower-bound connection
+- **2011:** Williams proves NEXP ⊄ ACC⁰ ([Williams 2011](https://arxiv.org/abs/1111.1261)) - major non-relativizing result using algorithm-to-lower-bound connection
 - **2024:** Continued research with novel approaches (thermodynamic perspectives)
+- **2025:** Advances in circuit lower bounds, including:
+  - Superpolynomial lower bounds against constant-depth algebraic circuits (Limaye-Srinivasan-Tavenas, J. ACM 2025)
+  - Quantum circuit lower bounds in the magic hierarchy, showing state preparation limits (Parham 2025, [arXiv:2504.19966](https://arxiv.org/abs/2504.19966))
 
 ## Getting Started
 
