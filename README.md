@@ -86,7 +86,7 @@ All proof files are automatically verified by GitHub Actions workflows to ensure
 
 ### Problem Significance
 
-- **Cryptography:** Modern internet security depends on P ≠ NP
+- **Cryptography:** Many cryptographic schemes rely on *average-case* hardness of specific problems (factoring, discrete logarithm, lattice problems). A constructive proof that **P = NP** with practical algorithms would break most standard public-key cryptosystems, but **P ≠ NP** alone does not guarantee the existence of one-way functions or secure cryptography.
 - **Optimization:** Thousands of real-world problems are NP-complete
 - **Mathematics:** P = NP would enable automated theorem proving
 - **Artificial Intelligence:** Impacts machine learning and automated reasoning
@@ -94,9 +94,19 @@ All proof files are automatically verified by GitHub Actions workflows to ensure
 ### Current Consensus
 
 - **Most Believed:** P ≠ NP (problems exist that can be verified but not efficiently solved)
-- **Major Barriers:** Relativization, Natural Proofs, Algebrization
-- **Best Known Algorithms:** ~O(1.5^n) for SAT with n variables
-- **Best Lower Bounds:** Only ~4n gates for Boolean circuits (far from super-polynomial)
+- **Major Barriers:**
+  - **Relativization** (Baker-Gill-Solovay 1975): Techniques that work in all oracle worlds cannot resolve P vs NP
+  - **Natural Proofs** (Razborov-Rudich 1997): Under cryptographic assumptions, "natural" techniques cannot prove super-polynomial circuit lower bounds
+  - **Algebrization** (Aaronson-Wigderson 2008): Extends relativization and arithmetization barriers, showing further limitations
+- **Best Known Algorithms:**
+  - **2-SAT:** O(n²) polynomial time
+  - **3-SAT:** ~O(1.308^n) (Hertli 2011; PPSZ-based algorithms achieve ~O(1.307^n))
+  - **k-SAT (k≥4):** Base depends on k (PPSZ variants)
+  - **General CNF-SAT:** Bounds depend on clause structure
+- **Best Lower Bounds:**
+  - **General circuits (full binary basis):** (3 + 1/86)·n − o(n) gates for explicit functions (Golovnev et al.)
+  - **Restricted models:** Exponential bounds for monotone circuits, AC⁰, etc.
+  - Still far from the super-polynomial bounds needed for P ≠ NP
 
 ### Notable Results
 
@@ -104,7 +114,7 @@ All proof files are automatically verified by GitHub Actions workflows to ensure
 - **1972:** Karp identifies 21 NP-complete problems
 - **1985:** Razborov proves exponential monotone circuit lower bounds
 - **1997:** Razborov-Rudich identify Natural Proofs barrier
-- **2010:** Williams proves NEXP ⊄ ACC^0 (major non-relativizing result)
+- **2010:** Williams proves NEXP ⊄ ACC⁰ ([Williams 2011](https://www.cs.cmu.edu/~ryanw/acc-lbs.pdf)) - major non-relativizing result using algorithm-to-lower-bound connection
 - **2024:** Continued research with novel approaches (thermodynamic perspectives)
 
 ## Getting Started
@@ -159,6 +169,7 @@ The Unlicense - See [LICENSE](LICENSE)
 ## References
 
 - Clay Mathematics Institute: https://www.claymath.org/millennium/p-vs-np/
+- Official Problem Statement PDF: https://www.claymath.org/wp-content/uploads/2022/06/pvsnp.pdf
 - Complexity Zoo: https://complexityzoo.net/
 - ECCC (Electronic Colloquium on Computational Complexity): https://eccc.weizmann.ac.il/
 
