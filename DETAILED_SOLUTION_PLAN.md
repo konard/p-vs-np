@@ -6,7 +6,7 @@
 
 ## ⚠️ Important Disclaimer
 
-**This timeline is designed for building research expertise and making contributions to complexity theory, NOT for solving P vs NP on a fixed schedule.**
+**This is an aspirational framework for building skills in complexity theory, NOT a guaranteed roadmap to resolving P vs NP.**
 
 The phases outlined below are educational milestones for:
 - Developing deep expertise in computational complexity theory
@@ -14,7 +14,13 @@ The phases outlined below are educational milestones for:
 - Making publishable contributions to the field
 - Understanding why P vs NP is extraordinarily difficult
 
-**Resolving P vs NP may require decades, centuries, or fundamentally new mathematical breakthroughs not yet conceived.** These phases help researchers contribute meaningfully to the field regardless of whether P vs NP is ultimately resolved in their lifetime.
+**Critical Reality Check:**
+- Most researchers spend years (often 5-10+) on prerequisites alone
+- Progress typically comes from tackling related subproblems (e.g., improving specific lower bounds) rather than direct attempts at P vs NP
+- The problem has resisted 50+ years of attempts by brilliant researchers
+- **Resolving P vs NP may require decades, centuries, or fundamentally new mathematical breakthroughs not yet conceived**
+
+This plan emphasizes collaboration, peer review, and working on tractable open problems. The timeline is aspirational for skill-building, not a linear path to breakthrough results.
 
 ---
 
@@ -105,7 +111,7 @@ Develop expert-level understanding of computational complexity theory, known res
 - [ ] Geometric complexity theory introduction
 
 **Resources:**
-- Original papers (Cook 1971, Karp 1972, Razborov 1985, Williams 2010)
+- Original papers (Cook 1971, Karp 1972, Razborov 1985, Williams 2011)
 - Jukna "Boolean Function Complexity"
 - Survey papers from CCC, STOC, FOCS
 - Razborov-Rudich "Natural Proofs" paper

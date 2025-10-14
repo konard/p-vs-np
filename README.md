@@ -2,6 +2,8 @@
 
 **An Educational Resource for Researchers and Students**
 
+*Last Updated: October 2025*
+
 This repository contains extensive educational documentation for studying the P versus NP problem, one of the seven Clay Mathematics Institute Millennium Prize Problems.
 
 ## Overview
@@ -100,7 +102,7 @@ All proof files are automatically verified by GitHub Actions workflows to ensure
   - **Algebrization** (Aaronson-Wigderson 2008): Extends relativization and arithmetization barriers, showing further limitations
 - **Best Known Algorithms:**
   - **2-SAT:** O(n²) polynomial time
-  - **3-SAT:** ~O(1.308^n) (Hertli 2011; PPSZ-based algorithms achieve ~O(1.307^n))
+  - **3-SAT:** ~O(1.308^n) for general instances ([Hertli 2014](https://epubs.siam.org/doi/10.1137/130919876)); PPSZ-based algorithms achieve ~O(1.307^n) for unique 3-SAT
   - **k-SAT (k≥4):** Base depends on k (PPSZ variants)
   - **General CNF-SAT:** Bounds depend on clause structure
 - **Best Lower Bounds:**
@@ -114,8 +116,11 @@ All proof files are automatically verified by GitHub Actions workflows to ensure
 - **1972:** Karp identifies 21 NP-complete problems
 - **1985:** Razborov proves exponential monotone circuit lower bounds
 - **1997:** Razborov-Rudich identify Natural Proofs barrier
-- **2010:** Williams proves NEXP ⊄ ACC⁰ ([Williams 2011](https://www.cs.cmu.edu/~ryanw/acc-lbs.pdf)) - major non-relativizing result using algorithm-to-lower-bound connection
+- **2011:** Williams proves NEXP ⊄ ACC⁰ ([Williams 2011](https://arxiv.org/abs/1111.1261)) - major non-relativizing result using algorithm-to-lower-bound connection
 - **2024:** Continued research with novel approaches (thermodynamic perspectives)
+- **2025:** Advances in circuit lower bounds, including:
+  - Superpolynomial lower bounds against constant-depth algebraic circuits (Limaye-Srinivasan-Tavenas, J. ACM 2025)
+  - Quantum circuit lower bounds in the magic hierarchy, showing state preparation limits (Parham 2025, [arXiv:2504.19966](https://arxiv.org/abs/2504.19966))
 
 ## Getting Started
 
