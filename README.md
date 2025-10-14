@@ -39,6 +39,14 @@ The P versus NP problem asks whether every problem whose solution can be quickly
    - Specific tactics and best practices
    - Milestones and evaluation criteria
 
+4. **[SOLUTION_STRATEGIES.md](SOLUTION_STRATEGIES.md)** - Comprehensive catalog of 17 solution strategies for formal testing and progress on P vs NP
+   - Formal verification frameworks (6 strategies)
+   - Barrier-aware approaches (3 strategies)
+   - Incremental progress strategies (6 strategies)
+   - Novel and interdisciplinary approaches (5 strategies)
+   - Strategy integration matrix and implementation priorities
+   - Recommended roadmap with realistic timelines and success metrics
+
 ### 📄 Reference Materials
 
 - **[pvsnp.pdf](pvsnp.pdf)** - Official problem description by Stephen Cook from Clay Mathematics Institute
@@ -190,6 +198,7 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [P_VS_NP_TASK_DESCRIPTION.md](P_VS_NP_TASK_DESCRIPTION.md) - Comprehensive problem description
 - [TOOLS_AND_METHODOLOGIES.md](TOOLS_AND_METHODOLOGIES.md) - Tools, techniques, and resources
 - [DETAILED_SOLUTION_PLAN.md](DETAILED_SOLUTION_PLAN.md) - Multi-phase research plan
+- [SOLUTION_STRATEGIES.md](SOLUTION_STRATEGIES.md) - Catalog of 17 solution strategies for formal testing
 
 ### Formal Verification Documentation
 - [Basic Proofs](proofs/basic/) - Foundational proofs in multiple proof assistants
