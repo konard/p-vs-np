@@ -158,7 +158,9 @@ Proof.
   exists 1, 2.
   intro n.
   simpl.
-  rewrite Nat.pow_2_r.
+  (* n * n <= 1 * (n ^ 2) *)
+  assert (n * n = n ^ 2) by (simpl; ring).
+  rewrite H.
   lia.
 Qed.
 
