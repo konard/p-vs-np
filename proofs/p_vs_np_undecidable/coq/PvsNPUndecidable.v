@@ -16,6 +16,7 @@ Require Import Coq.Lists.List.
 Require Import Coq.Strings.String.
 Require Import Coq.Logic.Classical_Prop.
 Import ListNotations.
+Open Scope string_scope.
 
 (** * 1. Basic Definitions *)
 
@@ -90,7 +91,7 @@ Proof.
     (fun s _ => p_language L s)  (* Verifier ignores certificate *)
     (p_timeComplexity L)
     (p_isPoly L)
-    (fun s => conj (fun H => ex_intro _ "" H) (fun H => match H with ex_intro _ _ h => h end))
+    (fun s => conj (fun H => ex_intro _ EmptyString H) (fun H => match H with ex_intro _ _ h => h end))
   ).
   intro s.
   reflexivity.
