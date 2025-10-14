@@ -51,6 +51,14 @@ The P versus NP problem asks whether every problem whose solution can be quickly
    - Meta-complexity and conditional results
    - Restricted models and special cases
 
+5. **[P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md)** - Solution strategies for testing P vs NP independence
+   - Theoretical foundations of independence and undecidability
+   - 30+ strategies across 6 major categories (logical, proof-theoretic, algorithmic, empirical, interdisciplinary, hybrid)
+   - Analysis of Shoenfield absoluteness and its implications
+   - Practical research plans and formalization approaches
+   - Realistic assessments and expected outcomes
+   - Comprehensive references for logic, set theory, and complexity theory
+
 ### 📄 Reference Materials
 
 - **[pvsnp.pdf](pvsnp.pdf)** - Official problem description by Stephen Cook from Clay Mathematics Institute
@@ -203,6 +211,7 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [TOOLS_AND_METHODOLOGIES.md](TOOLS_AND_METHODOLOGIES.md) - Tools, techniques, and resources
 - [DETAILED_SOLUTION_PLAN.md](DETAILED_SOLUTION_PLAN.md) - Multi-phase research plan
 - [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md) - Catalog of solution strategies for P ≠ NP
+- [P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md) - Solution strategies for testing independence
 
 ### Formal Verification Documentation
 - [Basic Proofs](proofs/basic/) - Foundational proofs in multiple proof assistants
