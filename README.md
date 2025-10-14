@@ -39,6 +39,18 @@ The P versus NP problem asks whether every problem whose solution can be quickly
    - Specific tactics and best practices
    - Milestones and evaluation criteria
 
+4. **[P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md)** - Comprehensive list of potential solution strategies for proving P ≠ NP
+   - Circuit complexity approaches (general circuits, monotone, bounded-depth, arithmetic)
+   - Algebraic methods (GCT, Valiant's model, algebraic independence)
+   - Algorithm-to-lower-bound techniques (Williams' framework, SAT algorithms)
+   - Proof complexity approaches (super-polynomial proofs, resolution, algebraic systems)
+   - Communication complexity methods
+   - Derandomization and pseudorandomness connections
+   - Structural and indirect approaches
+   - Novel interdisciplinary methods (quantum, statistical physics, topology)
+   - Meta-complexity and conditional results
+   - Restricted models and special cases
+
 ### 📄 Reference Materials
 
 - **[pvsnp.pdf](pvsnp.pdf)** - Official problem description by Stephen Cook from Clay Mathematics Institute
@@ -190,6 +202,7 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [P_VS_NP_TASK_DESCRIPTION.md](P_VS_NP_TASK_DESCRIPTION.md) - Comprehensive problem description
 - [TOOLS_AND_METHODOLOGIES.md](TOOLS_AND_METHODOLOGIES.md) - Tools, techniques, and resources
 - [DETAILED_SOLUTION_PLAN.md](DETAILED_SOLUTION_PLAN.md) - Multi-phase research plan
+- [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md) - Catalog of solution strategies for P ≠ NP
 
 ### Formal Verification Documentation
 - [Basic Proofs](proofs/basic/) - Foundational proofs in multiple proof assistants
