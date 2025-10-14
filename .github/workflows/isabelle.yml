@@ -1,0 +1,61 @@
+name: Isabelle Verification
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**.thy'
+      - '.github/workflows/isabelle.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.thy'
+      - '.github/workflows/isabelle.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check for Isabelle files
+      id: check-isabelle
+      run: |
+        if find . -name "*.thy" -print -quit | grep -q .; then
+          echo "has_files=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_files=false" >> $GITHUB_OUTPUT
+          echo "No Isabelle files found - skipping build"
+          echo "To use Isabelle verification, add Isabelle theory files (.thy)"
+        fi
+
+    - name: Install Isabelle
+      if: steps.check-isabelle.outputs.has_files == 'true'
+      run: |
+        wget https://isabelle.in.tum.de/dist/Isabelle2025_linux.tar.gz
+        tar xzf Isabelle2025_linux.tar.gz
+        echo "$PWD/Isabelle2025/bin" >> $GITHUB_PATH
+
+    - name: Verify Isabelle files
+      if: steps.check-isabelle.outputs.has_files == 'true'
+      run: |
+        echo "=== Isabelle Version ==="
+        isabelle version
+        echo ""
+        echo "Building Isabelle theories..."
+        isabelle build -D .
+        echo ""
+        echo "✓ All Isabelle theories verified successfully!"
+
+    - name: Upload verification logs
+      if: always() && steps.check-isabelle.outputs.has_files == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: isabelle-logs
+        path: |
+          **/*.log
+          verify_isabelle.sh
+        retention-days: 7

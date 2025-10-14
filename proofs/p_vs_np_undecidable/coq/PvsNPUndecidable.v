@@ -1,5 +1,5 @@
 (**
-  PvsNPUndecidability.v - Formal framework for "P vs NP is undecidable"
+  PvsNPUndecidable.v - Formal framework for "P vs NP is undecidable"
 
   This file provides a formal test/check for the undecidability claim regarding P vs NP.
   It formalizes the basic structure needed to express that P = NP might be independent
@@ -17,7 +17,7 @@ Require Import Coq.Strings.String.
 Require Import Coq.Logic.Classical_Prop.
 Import ListNotations.
 
-(** * Basic Definitions *)
+(** * 1. Basic Definitions *)
 
 (** A language is a decision problem over strings *)
 Definition Language := string -> bool.
@@ -29,7 +29,7 @@ Definition TimeComplexity := nat -> nat.
 Definition isPolynomial (T : TimeComplexity) : Prop :=
   exists (c k : nat), forall n : nat, T n <= c * n ^ k.
 
-(** * Complexity Classes *)
+(** * 2. Complexity Classes *)
 
 (** Class P: Languages decidable in polynomial time *)
 Record ClassP : Type := mkClassP {
@@ -49,7 +49,7 @@ Record ClassNP : Type := mkClassNP {
   np_correct : forall s : string, np_language s = true <-> exists cert : string, np_verifier s cert = true
 }.
 
-(** * The P vs NP Question *)
+(** * 3. The P vs NP Question *)
 
 (** P = NP: Every NP language is also in P *)
 Definition PEqualsNP : Prop :=
@@ -58,9 +58,9 @@ Definition PEqualsNP : Prop :=
 (** P ≠ NP: Negation of P = NP *)
 Definition PNotEqualsNP : Prop := ~ PEqualsNP.
 
-(** * Independence and Undecidability *)
+(** * 4. Independence and Undecidability *)
 
-(** A statement is independent if neither it nor its negation can be proven
+(** A statement is independent if neither it nor its negation can be proven.
     Note: This is a simplified formalization. A fully rigorous version would
     require encoding provability in a meta-theory. *)
 Record IndependenceStatement (Statement : Prop) : Type := mkIndependence {
@@ -77,7 +77,7 @@ Definition PvsNPIsUndecidable : Prop :=
      In practice, undecidability means we cannot prove either direction *)
   True.  (* Placeholder: represents the existence of independence *)
 
-(** * Fundamental Properties and Tests *)
+(** * 5. Fundamental Properties and Tests *)
 
 (** Test 1: P ⊆ NP (well-known inclusion) *)
 Theorem pSubsetNP : forall L : ClassP, exists L' : ClassNP,
@@ -108,7 +108,7 @@ Proof.
   apply classic.
 Qed.
 
-(** * NP-Complete Problems *)
+(** * 6. NP-Complete Problems *)
 
 (** Abstract type representing NP-complete problems *)
 Axiom NPComplete : Type.
@@ -131,7 +131,7 @@ Proof.
   trivial.
 Qed.
 
-(** * Consistency Checks *)
+(** * 7. Consistency Checks *)
 
 (** Test 5: Polynomial complexity examples *)
 Lemma constant_is_polynomial : isPolynomial (fun _ => 42).
@@ -161,7 +161,7 @@ Proof.
   trivial.
 Qed.
 
-(** * Verification Summary *)
+(** * 8. Verification Summary *)
 
 (** Check that all main definitions and theorems are well-formed *)
 Check pSubsetNP.
@@ -172,7 +172,7 @@ Check constant_is_polynomial.
 Check quadratic_is_polynomial.
 Check undecidabilityImpliesMultipleModels.
 
-(** * Meta-level Tests *)
+(** * 9. Meta-level Tests *)
 
 (** Test that we can express independence claims *)
 Definition testIndependenceFormulation : bool :=

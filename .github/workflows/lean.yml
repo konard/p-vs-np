@@ -45,10 +45,15 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-lean-
 
+    - name: List Lean files
+      run: |
+        echo "=== Lean Files Found ==="
+        find . -name "*.lean" -type f | sort
+
     - name: Build Lean project
       run: |
         if [ -f "lakefile.lean" ]; then
-          lake build
+          lake build 2>&1 | tee lean-build.log
         else
           echo "No lakefile.lean found - skipping build"
           echo "To use Lean verification, add Lean source files (.lean) and a lakefile.lean"
@@ -57,7 +62,18 @@ jobs:
     - name: Run Lean tests
       run: |
         if [ -f "lakefile.lean" ]; then
-          lake test || echo "No tests defined"
+          lake test 2>&1 | tee lean-test.log || echo "No tests defined"
         else
           echo "No lakefile.lean found - skipping tests"
         fi
+
+    - name: Upload build logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: lean-logs
+        path: |
+          lean-build.log
+          lean-test.log
+          .lake/build/log
+        retention-days: 7

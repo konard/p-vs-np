@@ -5,6 +5,7 @@ package «p-vs-np» where
   -- add package configuration options here
 
 lean_lib «proofs» where
+  globs := #[.submodules `proofs]
   -- add library configuration options here
 
 @[default_target]
