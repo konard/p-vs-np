@@ -1,5 +1,11 @@
 # P vs NP Undecidability Formalization
 
+**Navigation:** [↑ Back to Repository Root](../../README.md) | [Core Documentation](../../README.md#core-documentation) | [All Proof Frameworks](../../README.md#-formal-verification)
+
+**Related Frameworks:** [P = NP](../p_eq_np/) | [P ≠ NP](../p_not_equal_np/README.md) | [P vs NP Decidability](../p_vs_np_decidable/README.md)
+
+---
+
 This directory contains formal frameworks in four proof assistants (**Lean 4**, **Coq**, **Isabelle/HOL**, and **Agda**) that formalize the concept of "P vs NP is undecidable." These formalizations provide a rigorous mathematical structure for reasoning about whether the P vs NP problem might be independent of standard axiom systems like ZFC.
 
 ## What is "P vs NP is undecidable"?
@@ -334,4 +340,8 @@ When extending this formalization:
 
 ## License
 
-This formalization is part of the p-vs-np repository and follows the repository's license.
+This formalization is part of the p-vs-np repository and follows the repository's [LICENSE](../../LICENSE).
+
+---
+
+**Navigation:** [↑ Back to Repository Root](../../README.md) | [P_VS_NP_TASK_DESCRIPTION.md](../../P_VS_NP_TASK_DESCRIPTION.md) | [TOOLS_AND_METHODOLOGIES.md](../../TOOLS_AND_METHODOLOGIES.md) | [DETAILED_SOLUTION_PLAN.md](../../DETAILED_SOLUTION_PLAN.md)

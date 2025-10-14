@@ -41,19 +41,42 @@ The P versus NP problem asks whether every problem whose solution can be quickly
 
 ### 🔬 Formal Verification
 
-The repository includes bootstrap proof files in multiple formal verification systems to validate approaches and serve as templates for P vs NP related proofs:
+The repository includes comprehensive formal proofs and verification frameworks in multiple proof assistants (Lean 4, Coq, Isabelle/HOL, and Agda) organized into the following categories:
 
-- **[proofs/Basic.lean](proofs/Basic.lean)** - Lean 4 foundational proofs
-- **[proofs/Basic.v](proofs/Basic.v)** - Coq foundational proofs
-- **[proofs/Basic.thy](proofs/Basic.thy)** - Isabelle/HOL foundational proofs
-- **[proofs/Basic.agda](proofs/Basic.agda)** - Agda foundational proofs
+#### Basic Proofs (`proofs/basic/`)
+Bootstrap proof files demonstrating foundational concepts:
+- **[proofs/basic/lean/Basic.lean](proofs/basic/lean/Basic.lean)** - Lean 4 foundational proofs
+- **[proofs/basic/coq/Basic.v](proofs/basic/coq/Basic.v)** - Coq foundational proofs
+- **[proofs/basic/isabelle/Basic.thy](proofs/basic/isabelle/Basic.thy)** - Isabelle/HOL foundational proofs
+- **[proofs/basic/agda/Basic.agda](proofs/basic/agda/Basic.agda)** - Agda foundational proofs
 
-These files demonstrate:
-- Logical reasoning (modus ponens, commutativity)
-- Arithmetic properties (addition, multiplication)
-- Even number definitions (relevant to complexity classes)
-- Factorial proofs (growth rates)
-- List operations (algorithm complexity)
+These files demonstrate logical reasoning, arithmetic properties, even number definitions, factorial proofs, and list operations.
+
+#### Advanced Proof Frameworks
+The repository contains four distinct proof frameworks exploring different aspects of the P vs NP problem:
+
+1. **[P = NP Formalization](proofs/p_eq_np/)** (`proofs/p_eq_np/`)
+   - Framework for verifying hypothetical proofs that P equals NP
+   - Implements four test methods for validating P = NP claims
+   - Available in Lean, Coq, and Isabelle/HOL
+
+2. **[P ≠ NP Formalization](proofs/p_not_equal_np/)** (`proofs/p_not_equal_np/`)
+   - Framework for verifying proofs that P does not equal NP
+   - See [detailed documentation](proofs/p_not_equal_np/README.md)
+   - Includes four mathematically equivalent test methods
+   - Available in Lean, Coq, Isabelle/HOL, and Agda
+
+3. **[P vs NP Decidability](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
+   - Proves that P vs NP has a definite answer in classical logic
+   - See [detailed documentation](proofs/p_vs_np_decidable/README.md)
+   - Demonstrates law of excluded middle application
+   - Available in Lean, Coq, Isabelle/HOL, and Agda
+
+4. **[P vs NP Undecidability](proofs/p_vs_np_undecidable/)** (`proofs/p_vs_np_undecidable/`)
+   - Framework for reasoning about potential independence from ZFC
+   - See [detailed documentation](proofs/p_vs_np_undecidable/README.md)
+   - Explores meta-mathematical properties of the problem
+   - Available in Lean, Coq, Isabelle/HOL, and Agda
 
 All proof files are automatically verified by GitHub Actions workflows to ensure correctness.
 
@@ -140,6 +163,23 @@ The Unlicense - See [LICENSE](LICENSE)
 ## Acknowledgments
 
 Based on Stephen Cook's official problem description and extensive research in computational complexity theory spanning five decades of work by the theoretical computer science community.
+
+## Documentation Navigation
+
+### Core Documentation
+- [README.md](README.md) - This file (repository overview)
+- [P_VS_NP_TASK_DESCRIPTION.md](P_VS_NP_TASK_DESCRIPTION.md) - Comprehensive problem description
+- [TOOLS_AND_METHODOLOGIES.md](TOOLS_AND_METHODOLOGIES.md) - Tools, techniques, and resources
+- [DETAILED_SOLUTION_PLAN.md](DETAILED_SOLUTION_PLAN.md) - Multi-phase research plan
+
+### Formal Verification Documentation
+- [Basic Proofs](proofs/basic/) - Foundational proofs in multiple proof assistants
+- [P = NP Framework](proofs/p_eq_np/) - Framework for verifying P = NP proofs
+- [P ≠ NP Framework](proofs/p_not_equal_np/README.md) - Framework for verifying P ≠ NP proofs
+- [P vs NP Decidability](proofs/p_vs_np_decidable/README.md) - Proof that P vs NP has a definite answer
+- [P vs NP Undecidability](proofs/p_vs_np_undecidable/README.md) - Framework for independence reasoning
+
+All documents are interlinked - you can navigate between them using hyperlinks within each file.
 
 ---
 

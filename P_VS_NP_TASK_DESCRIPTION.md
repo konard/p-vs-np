@@ -1,5 +1,9 @@
 # The P versus NP Problem: Comprehensive Task Description
 
+**Navigation:** [↑ Back to Repository Root](README.md) | [Tools & Methodologies](TOOLS_AND_METHODOLOGIES.md) | [Solution Plan](DETAILED_SOLUTION_PLAN.md) | [Formal Proofs](README.md#-formal-verification)
+
+---
+
 ## Executive Summary
 
 The P versus NP problem is one of the seven Millennium Prize Problems established by the Clay Mathematics Institute, offering a $1 million prize for its resolution. It asks whether every problem whose solution can be quickly verified (NP) can also be quickly solved (P).
@@ -434,4 +438,8 @@ The P versus NP problem remains the central open question in theoretical compute
 
 **Current Consensus:** P ≠ NP, but proving it may require fundamentally new mathematical insights beyond current proof techniques.
 
-**Next Steps:** See accompanying documents on methodologies and detailed solution plans.
+**Next Steps:** See accompanying documents on [methodologies](TOOLS_AND_METHODOLOGIES.md) and [detailed solution plans](DETAILED_SOLUTION_PLAN.md).
+
+---
+
+**Navigation:** [↑ Back to Repository Root](README.md) | [Tools & Methodologies](TOOLS_AND_METHODOLOGIES.md) | [Solution Plan](DETAILED_SOLUTION_PLAN.md) | [Formal Proofs](README.md#-formal-verification)
