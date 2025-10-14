@@ -79,6 +79,14 @@ The P versus NP problem asks whether every problem whose solution can be quickly
    - Realistic assessments and expected outcomes
    - Comprehensive references for logic, set theory, and complexity theory
 
+8. **[PROVING_P_VS_NP_UNDECIDABILITY.md](PROVING_P_VS_NP_UNDECIDABILITY.md)** - Practical roadmap for proving P vs NP is undecidable/independent
+   - Concrete, actionable implementation plan with timelines
+   - Three-tier approach: Achievable, Challenging, and Ambitious goals
+   - Phase-by-phase roadmap (6 phases covering 5-10 years)
+   - Milestone checklists and success criteria
+   - Risk management and realistic outcome scenarios
+   - Week-by-week getting started guide
+
 ### 📄 Reference Materials
 
 - **[pvsnp.pdf](pvsnp.pdf)** - Official problem description by Stephen Cook from Clay Mathematics Institute
@@ -234,6 +242,7 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md](SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md) - Solution strategies for decidability testing
 - [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md) - Catalog of solution strategies for P ≠ NP
 - [P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md) - Solution strategies for testing independence
+- [PROVING_P_VS_NP_UNDECIDABILITY.md](PROVING_P_VS_NP_UNDECIDABILITY.md) - Practical roadmap for proving independence
 
 ### Formal Verification Documentation
 - [Basic Proofs](proofs/basic/) - Foundational proofs in multiple proof assistants
