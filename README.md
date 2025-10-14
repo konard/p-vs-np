@@ -70,25 +70,25 @@ The repository contains four distinct proof frameworks exploring different aspec
    - Includes four mathematically equivalent test methods
    - Available in Lean, Coq, Isabelle/HOL, and Agda
 
-3. **[P vs NP Decidability](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
-   - Proves that P vs NP has a definite answer in classical logic
+3. **[Classical Tautology: (P = NP) ∨ (P ≠ NP)](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
+   - Formalizes that P vs NP has a definite answer in classical logic via law of excluded middle
    - See [detailed documentation](proofs/p_vs_np_decidable/README.md)
-   - Demonstrates law of excluded middle application
+   - **Note:** This is NOT "decidability" in the algorithmic sense, but the classical tautology that (P=NP) ∨ (P≠NP) holds
    - Available in Lean, Coq, Isabelle/HOL, and Agda
 
-4. **[P vs NP Undecidability](proofs/p_vs_np_undecidable/)** (`proofs/p_vs_np_undecidable/`)
-   - Framework for reasoning about potential independence from ZFC
+4. **[Possible Independence from ZFC](proofs/p_vs_np_undecidable/)** (`proofs/p_vs_np_undecidable/`)
+   - Framework for reasoning about potential independence from ZFC (meta-mathematical exploration)
    - See [detailed documentation](proofs/p_vs_np_undecidable/README.md)
-   - Explores meta-mathematical properties of the problem
+   - Explores whether P vs NP could be independent of standard axiom systems
    - Available in Lean, Coq, Isabelle/HOL, and Agda
 
-All proof files are automatically verified by GitHub Actions workflows to ensure correctness.
+All proof files are automatically verified by GitHub Actions workflows to ensure correctness. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
 
 ## Key Highlights
 
 ### Problem Significance
 
-- **Cryptography:** Many cryptographic schemes rely on *average-case* hardness of specific problems (factoring, discrete logarithm, lattice problems). A constructive proof that **P = NP** with practical algorithms would break most standard public-key cryptosystems, but **P ≠ NP** alone does not guarantee the existence of one-way functions or secure cryptography.
+- **Cryptography:** Many cryptographic schemes rely on *average-case* hardness of specific problems (factoring, discrete logarithm, lattice problems). A constructive proof that **P = NP** with practical algorithms would break most standard public-key cryptosystems, but **P ≠ NP** alone does not guarantee the existence of one-way functions or secure cryptography. **Note on one-way functions (OWFs):** Existence of OWFs would imply P ≠ NP, but P ≠ NP alone does **not** imply OWFs exist—the converse direction is unknown. This is because P ≠ NP only establishes worst-case hardness for some problems, while cryptography requires average-case hardness.
 - **Optimization:** Thousands of real-world problems are NP-complete
 - **Mathematics:** P = NP would enable automated theorem proving
 - **Artificial Intelligence:** Impacts machine learning and automated reasoning
@@ -97,16 +97,17 @@ All proof files are automatically verified by GitHub Actions workflows to ensure
 
 - **Most Believed:** P ≠ NP (problems exist that can be verified but not efficiently solved)
 - **Major Barriers:**
-  - **Relativization** (Baker-Gill-Solovay 1975): Techniques that work in all oracle worlds cannot resolve P vs NP
-  - **Natural Proofs** (Razborov-Rudich 1997): Under cryptographic assumptions, "natural" techniques cannot prove super-polynomial circuit lower bounds
-  - **Algebrization** (Aaronson-Wigderson 2008): Extends relativization and arithmetization barriers, showing further limitations
+  - **Relativization** ([Baker, Gill, Solovay, 1975](https://doi.org/10.1137/0204037)): Techniques that work in all oracle worlds cannot resolve P vs NP
+  - **Natural Proofs** ([Razborov, Rudich, 1997](https://doi.org/10.1006/jcss.1997.1494)): Under cryptographic assumptions, "natural" techniques cannot prove super-polynomial circuit lower bounds
+  - **Algebrization** ([Aaronson, Wigderson, 2008](https://doi.org/10.1145/1536414.1536451)): Extends relativization and arithmetization barriers, showing further limitations
 - **Best Known Algorithms:**
-  - **2-SAT:** O(n²) polynomial time
-  - **3-SAT:** ~O(1.308^n) for general instances ([Hertli 2014](https://epubs.siam.org/doi/10.1137/130919876)); PPSZ-based algorithms achieve ~O(1.307^n) for unique 3-SAT
+  - **2-SAT:** O(n + m) via implication graph + strongly connected components ([Aspvall, Plass, Tarjan, 1979](https://doi.org/10.1016/0020-0190(79)90002-4))
+  - **3-SAT:** ~O(1.306973^n) ([PPSZ improvements](https://epubs.siam.org/doi/10.1137/130919876); carries from Unique-3-SAT to general 3-SAT per [Hertli 2014](https://epubs.siam.org/doi/10.1137/130919876))
   - **k-SAT (k≥4):** Base depends on k (PPSZ variants)
   - **General CNF-SAT:** Bounds depend on clause structure
 - **Best Lower Bounds:**
-  - **General circuits (full binary basis):** (3 + 1/86)·n − o(n) gates for explicit functions (Golovnev et al.)
+  - **General circuits (full binary basis):** ~3.1·n − o(n) gates for explicit functions (Li & Yang, STOC 2022)
+    - Prior record: (3 + 1/86)·n − o(n) (Golovnev, Kulikov, Williams et al., FOCS 2016)
   - **Restricted models:** Exponential bounds for monotone circuits, AC⁰, etc.
   - Still far from the super-polynomial bounds needed for P ≠ NP
 
@@ -194,8 +195,8 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [Basic Proofs](proofs/basic/) - Foundational proofs in multiple proof assistants
 - [P = NP Framework](proofs/p_eq_np/) - Framework for verifying P = NP proofs
 - [P ≠ NP Framework](proofs/p_not_equal_np/README.md) - Framework for verifying P ≠ NP proofs
-- [P vs NP Decidability](proofs/p_vs_np_decidable/README.md) - Proof that P vs NP has a definite answer
-- [P vs NP Undecidability](proofs/p_vs_np_undecidable/README.md) - Framework for independence reasoning
+- [Classical Tautology](proofs/p_vs_np_decidable/README.md) - Formalization that (P=NP) ∨ (P≠NP) holds in classical logic
+- [Possible Independence from ZFC](proofs/p_vs_np_undecidable/README.md) - Framework for meta-mathematical independence reasoning
 
 All documents are interlinked - you can navigate between them using hyperlinks within each file.
 
