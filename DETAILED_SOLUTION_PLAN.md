@@ -4,6 +4,20 @@
 
 ---
 
+## ⚠️ Important Disclaimer
+
+**This timeline is designed for building research expertise and making contributions to complexity theory, NOT for solving P vs NP on a fixed schedule.**
+
+The phases outlined below are educational milestones for:
+- Developing deep expertise in computational complexity theory
+- Learning to conduct original research in theoretical computer science
+- Making publishable contributions to the field
+- Understanding why P vs NP is extraordinarily difficult
+
+**Resolving P vs NP may require decades, centuries, or fundamentally new mathematical breakthroughs not yet conceived.** These phases help researchers contribute meaningfully to the field regardless of whether P vs NP is ultimately resolved in their lifetime.
+
+---
+
 ## Overview
 
 This document outlines a comprehensive, scientifically rigorous plan for approaching the P vs NP problem. Given the extraordinary difficulty of this problem and 50+ years of unsuccessful attempts, this plan emphasizes:
@@ -12,6 +26,7 @@ This document outlines a comprehensive, scientifically rigorous plan for approac
 3. Making incremental progress on related problems
 4. Developing new techniques while respecting known barriers
 5. Maintaining scientific rigor and peer validation
+6. **Realistic expectations: the goal is advancing complexity theory, not solving P vs NP on a timeline**
 
 ---
 
@@ -188,10 +203,10 @@ Choose specific research direction(s) and develop specialized expertise. Identif
 
 ---
 
-## Phase 3: Original Research (Months 13-24)
+## Phase 3: Original Research (Months 13-24+)
 
 ### Objective
-Conduct original research on P vs NP or closely related problems. Make progress on open questions.
+Conduct original research on P vs NP or closely related problems. Aim for publishable contributions to complexity theory. This phase focuses on making meaningful progress on open questions in the field, which may include related problems, barrier results, or incremental advances—not necessarily solving P vs NP itself.
 
 ### 3.1 Research Strategy
 
