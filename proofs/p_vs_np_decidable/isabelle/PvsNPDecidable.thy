@@ -95,9 +95,10 @@ proof -
   {
     fix L :: ClassP
     (* Construct an NP machine that ignores the certificate and uses the P decider *)
+    (* The verifier ignores the certificate and directly uses the P language *)
     define L' where "L' = \<lparr>
       np_language = p_language L,
-      np_verifier = (\<lambda>s cert. p_language L s),  (* Verifier ignores certificate *)
+      np_verifier = (\<lambda>s cert. p_language L s),
       np_timeComplexity = p_timeComplexity L,
       np_isPoly = p_isPoly L
     \<rparr>"
