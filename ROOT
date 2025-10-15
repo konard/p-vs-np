@@ -10,4 +10,4 @@ session "PvsNP" = "HOL" +
     "proofs/basic/isabelle/Basic"
     "proofs/p_not_equal_np/isabelle/PNotEqualNP"
     "proofs/p_eq_np/isabelle/PvsNP"
-    "proofs/p_vs_np_decidable/isabelle/PvsNPDecidable"
+    "proofs/p_vs_np_decidable/isabelle/PSubsetNP"
