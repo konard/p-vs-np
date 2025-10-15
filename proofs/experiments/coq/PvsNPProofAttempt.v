@@ -120,15 +120,13 @@ Admitted.
 Definition OracleP (O : Language) := ClassP.
 Definition OracleNP (O : Language) := ClassNP.
 
-(* Baker-Gill-Solovay result *)
-Axiom bakerGillSolovay :
-  (exists A : Language, forall L : ClassNP, exists L' : ClassP, True) /\
-  (exists B : Language, exists L : ClassNP, forall L' : ClassP, True).
+(* Baker-Gill-Solovay result (simplified statement) *)
+Axiom bakerGillSolovay : Prop.
 
 (* This approach CANNOT work for proving P vs NP *)
 Theorem oracle_separation_insufficient :
   bakerGillSolovay ->
-  ~ (exists proof : PEqualsNP \/ PNotEqualsNP, True).
+  ~ (exists _ : unit, PEqualsNP \/ PNotEqualsNP).
 Proof.
   intros H.
   (* Oracles show the question is "relativization-proof-immune" *)
