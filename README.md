@@ -47,19 +47,7 @@ The P versus NP problem asks whether every problem whose solution can be quickly
    - Strategy integration matrix and implementation priorities
    - Recommended roadmap with realistic timelines and success metrics
 
-5. **[SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md](SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md)** - Comprehensive catalog of formal solution strategies
-   - Direct classical logic approaches (law of excluded middle, proof by contradiction)
-   - Constructive and intuitionistic approaches (proof search, realizability)
-   - Model-theoretic strategies (standard models, forcing, independence)
-   - Proof-theoretic strategies (provability, Gödel's theorems, reverse mathematics)
-   - Computational logic approaches (ATP, SAT/SMT solving, proof assistants)
-   - Meta-mathematical strategies (arithmetical hierarchy, definability, category theory)
-   - Formalization strategies (multi-proof-assistant verification, modular design)
-   - Indirect approaches via related problems
-   - Hybrid and interdisciplinary strategies
-   - Implementation roadmap with concrete milestones
-
-6. **[P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md)** - Comprehensive list of potential solution strategies for proving P ≠ NP
+5. **[P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md)** - Comprehensive list of potential solution strategies for proving P ≠ NP
    - Circuit complexity approaches (general circuits, monotone, bounded-depth, arithmetic)
    - Algebraic methods (GCT, Valiant's model, algebraic independence)
    - Algorithm-to-lower-bound techniques (Williams' framework, SAT algorithms)
@@ -71,7 +59,7 @@ The P versus NP problem asks whether every problem whose solution can be quickly
    - Meta-complexity and conditional results
    - Restricted models and special cases
 
-7. **[P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md)** - Solution strategies for testing P vs NP independence
+6. **[P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md)** - Solution strategies for testing P vs NP independence
    - Theoretical foundations of independence and undecidability
    - 30+ strategies across 6 major categories (logical, proof-theoretic, algorithmic, empirical, interdisciplinary, hybrid)
    - Analysis of Shoenfield absoluteness and its implications
@@ -96,31 +84,15 @@ Bootstrap proof files demonstrating foundational formal verification concepts an
 
 These files serve as tutorials for researchers learning to use proof assistants and provide CI validation that the formal verification infrastructure is working correctly.
 
-#### Advanced Proof Frameworks for P vs NP
-The repository contains four distinct proof frameworks exploring different aspects of the P vs NP problem:
+#### P vs NP Decidability Proof
+The repository contains a complete formal proof that the P vs NP question is decidable in classical logic:
 
-1. **[P = NP Formalization](proofs/p_eq_np/)** (`proofs/p_eq_np/`)
-   - Framework for verifying hypothetical proofs that P equals NP
-   - Implements four test methods for validating P = NP claims
-   - Available in Lean, Coq, and Isabelle/HOL
-
-2. **[P ≠ NP Formalization](proofs/p_not_equal_np/)** (`proofs/p_not_equal_np/`)
-   - Framework for verifying proofs that P does not equal NP
-   - See [detailed documentation](proofs/p_not_equal_np/README.md)
-   - Includes four mathematically equivalent test methods
-   - Available in Lean, Coq, Isabelle/HOL, and Agda
-
-3. **[Classical Tautology: (P = NP) ∨ (P ≠ NP)](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
-   - Formalizes that P vs NP has a definite answer in classical logic via law of excluded middle
-   - See [detailed documentation](proofs/p_vs_np_decidable/README.md)
-   - **Note:** This is NOT "decidability" in the algorithmic sense, but the classical tautology that (P=NP) ∨ (P≠NP) holds
-   - Available in Lean, Coq, Isabelle/HOL, and Agda
-
-4. **[Possible Independence from ZFC](proofs/p_vs_np_undecidable/)** (`proofs/p_vs_np_undecidable/`)
-   - Framework for reasoning about potential independence from ZFC (meta-mathematical exploration)
-   - See [detailed documentation](proofs/p_vs_np_undecidable/README.md)
-   - Explores whether P vs NP could be independent of standard axiom systems
-   - Available in Lean, Coq, Isabelle/HOL, and Agda
+**[P vs NP Decidability](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
+- Proves that (P = NP) ∨ (P ≠ NP) holds in classical logic via the law of excluded middle
+- See [detailed documentation](proofs/p_vs_np_decidable/README.md)
+- **Important**: This proves the question has a definite answer, NOT which answer is correct
+- Fully proven in Lean 4, Coq, and Isabelle/HOL
+- Type-checked in Agda (with postulated classical axioms, standard for constructive systems)
 
 All proof files are automatically verified by GitHub Actions workflows to ensure correctness. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
 
@@ -231,16 +203,12 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [TOOLS_AND_METHODOLOGIES.md](TOOLS_AND_METHODOLOGIES.md) - Tools, techniques, and resources
 - [DETAILED_SOLUTION_PLAN.md](DETAILED_SOLUTION_PLAN.md) - Multi-phase research plan
 - [SOLUTION_STRATEGIES.md](SOLUTION_STRATEGIES.md) - Catalog of 17 solution strategies for formal testing
-- [SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md](SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md) - Solution strategies for decidability testing
 - [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md) - Catalog of solution strategies for P ≠ NP
 - [P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md) - Solution strategies for testing independence
 
 ### Formal Verification Documentation
 - [Basic Proofs](proofs/basic/) - Foundational proofs in multiple proof assistants
-- [P = NP Framework](proofs/p_eq_np/) - Framework for verifying P = NP proofs
-- [P ≠ NP Framework](proofs/p_not_equal_np/README.md) - Framework for verifying P ≠ NP proofs
-- [Classical Tautology](proofs/p_vs_np_decidable/README.md) - Formalization that (P=NP) ∨ (P≠NP) holds in classical logic
-- [Possible Independence from ZFC](proofs/p_vs_np_undecidable/README.md) - Framework for meta-mathematical independence reasoning
+- [P vs NP Decidability](proofs/p_vs_np_decidable/README.md) - Complete proof that (P=NP) ∨ (P≠NP) holds in classical logic
 
 All documents are interlinked - you can navigate between them using hyperlinks within each file.
 

@@ -1,12 +1,10 @@
 # P vs NP Decidability Formalization
 
-**Navigation:** [↑ Back to Repository Root](../../README.md) | [Core Documentation](../../README.md#core-documentation) | [All Proof Frameworks](../../README.md#-formal-verification)
-
-**Related Frameworks:** [P = NP](../p_eq_np/) | [P ≠ NP](../p_not_equal_np/README.md) | [P vs NP Undecidability](../p_vs_np_undecidable/README.md)
+**Navigation:** [↑ Back to Repository Root](../../README.md)
 
 ---
 
-This directory contains formal frameworks in four proof assistants (**Lean 4**, **Coq**, **Isabelle/HOL**, and **Agda**) that formalize the concept of "P vs NP is decidable." These formalizations provide a rigorous mathematical structure for proving that the P vs NP question has a definite answer in classical logic.
+This directory contains formal proofs in four proof assistants (**Lean 4**, **Coq**, **Isabelle/HOL**, and **Agda**) that demonstrate "P vs NP is decidable." These formalizations prove that the P vs NP question has a definite answer in classical logic.
 
 ## What is "P vs NP is decidable"?
 
@@ -14,7 +12,7 @@ The statement "P vs NP is decidable" means that the question "P = NP?" must have
 
 **Important distinction**: This does **NOT** solve the P vs NP problem. It only proves that the question is well-formed and must have an answer (either true or false), even though we don't know which answer is correct.
 
-This is fundamentally different from "P vs NP is undecidable," which would claim that the question might be independent of standard axiom systems (like the Continuum Hypothesis is independent of ZFC).
+**Note**: The formalization uses classical logic's law of excluded middle. In constructive logic (like Agda without additional axioms), this would not hold without explicitly postulating it.
 
 ## Repository Structure
 
@@ -140,8 +138,8 @@ Theorem: ∀L∈P. ∃L'∈NP. ∀s. L(s) = L'(s)
 **Status**:
 - ✅ Lean 4: Fully proven
 - ✅ Coq: Fully proven
-- ⚠️ Isabelle/HOL: Admitted (sorry)
-- ⚠️ Agda: Postulated
+- ✅ Isabelle/HOL: Fully proven
+- ⚠️ Agda: Postulated (Agda is constructive by default, classical axioms must be postulated)
 
 #### Test 2: Well-formedness
 ```
@@ -294,19 +292,13 @@ This formalization demonstrates an important meta-mathematical fact:
 - We do **NOT** determine which answer is correct
 - We do **NOT** provide any computational evidence either way
 
-### Relationship to Independence:
-This formalization is **opposite** to the undecidability formalization:
-- **Decidability** (this directory): P vs NP has a definite classical answer
-- **Undecidability** (p_vs_np_undecidable/): P vs NP might be independent of ZFC
-
-Both can be formally stated, but they represent different claims about the nature of the problem.
 
 ## Verification Status
 
-- ✅ **Lean 4**: All definitions compile, main theorems proven using classical logic
-- ✅ **Coq**: All definitions compile, all theorems proven, polynomial lemmas complete
-- ✅ **Isabelle/HOL**: All definitions compile, main theorems proven (P ⊆ NP admitted)
-- ✅ **Agda**: All definitions type-check, classical axioms postulated
+- ✅ **Lean 4**: All theorems fully proven using classical logic
+- ✅ **Coq**: All theorems fully proven, polynomial lemmas complete
+- ✅ **Isabelle/HOL**: All theorems fully proven including P ⊆ NP
+- ✅ **Agda**: All definitions type-check, classical axioms postulated (standard for constructive systems)
 
 ## Educational Value
 
@@ -374,4 +366,4 @@ This formalization is part of the p-vs-np repository and follows the repository'
 
 ---
 
-**Navigation:** [↑ Back to Repository Root](../../README.md) | [P_VS_NP_TASK_DESCRIPTION.md](../../P_VS_NP_TASK_DESCRIPTION.md) | [TOOLS_AND_METHODOLOGIES.md](../../TOOLS_AND_METHODOLOGIES.md) | [DETAILED_SOLUTION_PLAN.md](../../DETAILED_SOLUTION_PLAN.md)
+**Navigation:** [↑ Back to Repository Root](../../README.md)
