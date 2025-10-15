@@ -8,6 +8,7 @@
   This is a fundamental result in computational complexity theory.
 *)
 
+Require Import Coq.Arith.Arith.
 Require Import Coq.Strings.String.
 Open Scope string_scope.
 
