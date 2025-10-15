@@ -13,13 +13,14 @@ Require Import Coq.Init.Nat.
 Require Import Coq.Arith.PeanoNat.
 Require Import Coq.Logic.Classical_Prop.
 Require Import Coq.Lists.List.
+Require Import Coq.Strings.String.
 Import ListNotations.
 
 Module PvsNPProofAttempt.
 
 (* ## 1. Basic Definitions *)
 
-Definition Language := string -> bool.
+Definition Language := String.string -> bool.
 
 Definition TimeComplexity := nat -> nat.
 
@@ -34,32 +35,32 @@ Definition isExponential (T : TimeComplexity) : Prop :=
 (* Class P: Languages decidable in polynomial time *)
 Record ClassP := {
   p_language : Language;
-  p_decider : string -> nat;
+  p_decider : String.string -> nat;
   p_timeComplexity : TimeComplexity;
   p_isPoly : isPolynomial p_timeComplexity;
-  p_correct : forall s : string, p_language s = (p_decider s >? 0)
+  p_correct : forall s : String.string, p_language s = (p_decider s >? 0)
 }.
 
 (* Class NP: Languages with polynomial-time verifiable certificates *)
 Record ClassNP := {
   np_language : Language;
-  np_verifier : string -> string -> bool;
+  np_verifier : String.string -> String.string -> bool;
   np_timeComplexity : TimeComplexity;
   np_isPoly : isPolynomial np_timeComplexity;
-  np_correct : forall s : string, np_language s = true <-> exists cert : string, np_verifier s cert = true
+  np_correct : forall s : String.string, np_language s = true <-> exists cert : String.string, np_verifier s cert = true
 }.
 
 (* NP-Complete languages (hardest problems in NP) *)
 Record NPComplete := {
   npc_problem : ClassNP;
-  npc_hardest : forall L : ClassNP, exists reduction : string -> string,
-    forall s : string, np_language L s = true <-> np_language npc_problem (reduction s) = true
+  npc_hardest : forall L : ClassNP, exists reduction : String.string -> String.string,
+    forall s : String.string, np_language L s = true <-> np_language npc_problem (reduction s) = true
 }.
 
 (* ## 2. The P vs NP Question *)
 
 Definition PEqualsNP : Prop :=
-  forall L : ClassNP, exists L' : ClassP, forall s : string, np_language L s = p_language L' s.
+  forall L : ClassNP, exists L' : ClassP, forall s : String.string, np_language L s = p_language L' s.
 
 Definition PNotEqualsNP : Prop := ~ PEqualsNP.
 
@@ -77,7 +78,7 @@ Axiom SATIsNPComplete : exists sat : NPComplete, True.
 (* Proof attempt: If we can solve SAT in P, then P = NP *)
 Theorem attempt_prove_P_eq_NP_via_SAT :
   (exists sat : NPComplete, exists satP : ClassP,
-    forall s : string, np_language (npc_problem sat) s = p_language satP s) ->
+    forall s : String.string, np_language (npc_problem sat) s = p_language satP s) ->
   PEqualsNP.
 Proof.
   intros H.
@@ -100,7 +101,7 @@ Axiom timeHierarchyTheorem :
 
 (* Proof attempt: Diagonalization to show P ≠ NP *)
 Theorem attempt_prove_P_neq_NP_via_diagonalization :
-  (exists L : ClassNP, forall M : ClassP, exists s : string, np_language L s <> p_language M s) ->
+  (exists L : ClassNP, forall M : ClassP, exists s : String.string, np_language L s <> p_language M s) ->
   PNotEqualsNP.
 Proof.
   intros H.
@@ -144,13 +145,13 @@ Admitted.
 Record Circuit := {
   c_size : nat;      (* number of gates *)
   c_depth : nat;     (* longest path from input to output *)
-  c_compute : string -> bool
+  c_compute : String.string -> bool
 }.
 
 (* Circuit complexity class *)
 Definition hasPolynomialCircuits (L : Language) : Prop :=
   exists (c k : nat), forall n : nat, exists C : Circuit,
-    c_size C <= c * n ^ k /\ forall s : string, String.length s = n -> L s = c_compute C s.
+    c_size C <= c * n ^ k /\ forall s : String.string, String.length s = n -> L s = c_compute C s.
 
 (* P implies polynomial circuits *)
 Axiom P_has_poly_circuits :
@@ -221,8 +222,8 @@ Admitted.
 
 (* Known barriers to proving P vs NP *)
 Record ProofBarrier := {
-  pb_name : string;
-  pb_description : string;
+  pb_name : String.string;
+  pb_description : String.string;
   pb_limitation : Prop
 }.
 
@@ -243,9 +244,9 @@ Definition knownBarriers : list ProofBarrier := [
 (* Requirements for proving P = NP *)
 Record ProofOfPEqualsNP := {
   (* Explicit polynomial-time algorithm for an NP-complete problem *)
-  poeq_algorithm : string -> string -> bool;
+  poeq_algorithm : String.string -> String.string -> bool;
   (* Proof that algorithm is correct *)
-  poeq_correctness : forall sat : NPComplete, forall s cert : string,
+  poeq_correctness : forall sat : NPComplete, forall s cert : String.string,
     np_verifier (npc_problem sat) s cert = poeq_algorithm s cert;
   (* Proof that algorithm runs in polynomial time *)
   poeq_polynomialTime : exists T : TimeComplexity, isPolynomial T;
@@ -260,7 +261,7 @@ Record ProofOfPNotEqualsNP := {
   (* Proof that it's NP-complete *)
   poneq_isComplete : NPComplete;
   (* Proof that NO polynomial-time algorithm exists for it *)
-  poneq_impossibility : forall alg : ClassP, exists s : string,
+  poneq_impossibility : forall alg : ClassP, exists s : String.string,
     np_language poneq_hardProblem s <> p_language alg s;
   (* Proof that this implies P ≠ NP *)
   poneq_impliesInequality : PNotEqualsNP
