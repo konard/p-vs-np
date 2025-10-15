@@ -38,7 +38,7 @@ Record ClassP := {
   p_decider : String.string -> nat;
   p_timeComplexity : TimeComplexity;
   p_isPoly : isPolynomial p_timeComplexity;
-  p_correct : forall s : String.string, p_language s = (p_decider s >? 0)
+  p_correct : forall s : String.string, p_language s = negb (Nat.eqb (p_decider s) 0)
 }.
 
 (* Class NP: Languages with polynomial-time verifiable certificates *)
