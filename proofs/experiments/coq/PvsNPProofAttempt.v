@@ -277,9 +277,11 @@ Theorem proof_structure_expressible :
   (~ exists p : ProofOfPEqualsNP, True).
 Proof.
   (* We can express the structure even if we can't construct it *)
-  destruct (classic (exists p : ProofOfPEqualsNP, True)).
-  - left. exact H.
-  - right. apply classic.
+  destruct (classic (exists p : ProofOfPEqualsNP, True)) as [H1 | H1].
+  - left. exact H1.
+  - right. destruct (classic (exists p : ProofOfPNotEqualsNP, True)) as [H2 | H2].
+    + left. exact H2.
+    + right. exact H1.
 Qed.
 
 (* Test: Decidability doesn't give us the proof *)
