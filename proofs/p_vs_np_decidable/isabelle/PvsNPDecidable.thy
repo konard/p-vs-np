@@ -91,7 +91,23 @@ section \<open>6. Fundamental Properties\<close>
 (* Test 1: P \<subseteq> NP (well-known inclusion) *)
 lemma pSubsetNP:
   "\<forall>L::ClassP. \<exists>L'::ClassNP. \<forall>s. p_language L s = np_language L' s"
-  sorry  (* Proof: construct NP machine that ignores certificate *)
+proof -
+  {
+    fix L :: ClassP
+    (* Construct an NP machine that ignores the certificate and uses the P decider *)
+    define L' where "L' = \<lparr>
+      np_language = p_language L,
+      np_verifier = (\<lambda>s cert. p_language L s),  (* Verifier ignores certificate *)
+      np_timeComplexity = p_timeComplexity L,
+      np_isPoly = p_isPoly L
+    \<rparr>"
+    have "\<forall>s. p_language L s = np_language L' s"
+      by (simp add: L'_def)
+    hence "\<exists>L'::ClassNP. \<forall>s. p_language L s = np_language L' s"
+      by blast
+  }
+  thus ?thesis by auto
+qed
 
 (* Test 2: P vs NP is a well-formed proposition *)
 lemma pvsnpIsWellFormed:
