@@ -19,53 +19,13 @@ This directory contains experimental proof explorations, verification reports, a
 
 ## Contents
 
-### Proof Attempts and Explorations
+### Formal Proof Attempts
 
-#### [p_not_equal_np_proof_attempt.md](p_not_equal_np_proof_attempt.md)
-**Experimental Proof Exploration: P ≠ NP via Williams' Framework**
+**Note:** Formal proof attempts have been moved to [proofs/experiments/](../proofs/experiments/) for better organization:
+- [P ≠ NP via Williams' Framework](../proofs/experiments/p_not_equal_np_proof_attempt.md)
+- [WilliamsFramework.lean formalization](../proofs/experiments/WilliamsFramework.lean)
 
-A comprehensive exploration of proving P ≠ NP using Ryan Williams' algorithm-to-lower-bound technique, one of the most promising modern approaches.
-
-**Contents:**
-- Detailed explanation of Williams' framework
-- Attempted extension to TC⁰ and beyond
-- Analysis of barriers encountered
-- Conditional results and insights
-- Connection to formal verification framework
-
-**Status:** Educational demonstration showing methodology and limitations
-
-**Key Insight:** Demonstrates why Williams' technique successfully proves NEXP ⊄ ACC⁰ but faces fundamental barriers when extended toward P vs NP.
-
-**Supporting Formalization:** [WilliamsFramework.lean](WilliamsFramework.lean)
-
----
-
-#### [WilliamsFramework.lean](WilliamsFramework.lean)
-**Formal Verification: Williams' Algorithm-to-Lower-Bound Technique**
-
-Lean 4 formalization of the key concepts from Williams' framework, demonstrating:
-- Structure of the algorithm-to-lower-bound connection
-- Conditional results (if fast SAT algorithms exist, then lower bounds)
-- Precise nature of barriers preventing completion
-- Educational value of formal proof structures
-
-**Key Definitions:**
-```lean
--- Fast SAT algorithm definition
-def IsFastSATAlgorithm {C : CircuitClass} (alg : SATAlgorithm C) : Prop
-
--- Williams' main theorem (axiomatized)
-axiom williams_main_theorem (C : CircuitClass) (alg : SATAlgorithm C) :
-  IsFastSATAlgorithm alg → ∃ (L : Language), L ∈ NEXP ∧ ¬(ComputedBy L C)
-
--- Our conditional result for TC⁰
-theorem our_conditional_result :
-  (∃ (alg : SATAlgorithm TC0), IsFastSATAlgorithm alg) →
-  ∃ (L : Language), L ∈ NEXP ∧ ¬(ComputedBy L TC0)
-```
-
-**Note:** Uses axioms for components we don't actually have (like fast SAT algorithms). This is intentional for educational demonstration.
+See [proofs/experiments/README.md](../proofs/experiments/README.md) for details.
 
 ---
 
@@ -127,12 +87,12 @@ This honesty is essential for educational repositories about major open problems
 
 ### For Students
 
-1. **Start with:** [p_not_equal_np_proof_attempt.md](p_not_equal_np_proof_attempt.md)
+1. **Start with:** [P ≠ NP proof attempt](../proofs/experiments/p_not_equal_np_proof_attempt.md)
    - Read sections 1-3 for background
    - Study section 5 for technical details
    - Review section 6 for barriers
 
-2. **Then examine:** [WilliamsFramework.lean](WilliamsFramework.lean)
+2. **Then examine:** [WilliamsFramework.lean](../proofs/experiments/WilliamsFramework.lean)
    - See formal structure
    - Understand conditional results
    - Learn proof assistant techniques
@@ -236,11 +196,11 @@ Experiments target:
 
 | Experiment | Status | Formal Verification | Educational Value |
 |------------|--------|---------------------|-------------------|
-| p_not_equal_np_proof_attempt.md | Complete | Partial (WilliamsFramework.lean) | High |
-| WilliamsFramework.lean | Complete | Yes (with axioms) | High |
 | issue28_verification.md | Complete | N/A | Medium |
 | issue31_verification.md | Complete | N/A | Medium |
 | implementation_plan.md | Complete | N/A | Medium |
+
+**Note:** Formal proof attempts have been moved to [proofs/experiments/](../proofs/experiments/).
 
 ---
 

@@ -1,6 +1,6 @@
 # Experimental Proof Exploration: P ≠ NP via Williams' Framework
 
-**Navigation:** [↑ Experiments](../experiments/) | [Back to Repository Root](../README.md) | [P ≠ NP Strategies](../P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md) | [Formal Framework](../proofs/p_not_equal_np/README.md)
+**Navigation:** [↑ Proofs](../) | [↑ P ≠ NP Proofs](../p_not_equal_np/) | [Back to Repository Root](../../README.md) | [P ≠ NP Strategies](../../P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md)
 
 **Date:** October 2025
 **Issue:** #10
@@ -63,7 +63,7 @@ This makes it one of the most promising directions for approaching P ≠ NP.
 
 ### 2.1 Available Strategies
 
-From [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](../P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md), we have 10+ strategy categories. We focus on:
+From [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](../../P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md), we have 10+ strategy categories. We focus on:
 
 **Strategy 3.1: Algorithm-to-Lower-Bound Techniques (Williams' Framework)**
 
@@ -149,7 +149,7 @@ Williams' framework connects two seemingly unrelated areas:
 
 ### 4.3 Connection to Formal Framework
 
-This approach targets **Test Method 4** from [proofs/p_not_equal_np/README.md](../proofs/p_not_equal_np/README.md):
+This approach targets **Test Method 4** from [proofs/p_not_equal_np/README.md](../p_not_equal_np/README.md):
 
 > **Test 4: Super-Polynomial Lower Bound**
 > If there exists a problem in NP with a proven super-polynomial lower bound, then P ≠ NP
@@ -391,7 +391,7 @@ theorem conditional_NEXP_not_in_TC0 (h : FastTC0SAT) : NEXP ⊄ TC⁰ := by
 
 ### 8.2 Connection to Test Method 4
 
-**From [proofs/p_not_equal_np/README.md](../proofs/p_not_equal_np/README.md):**
+**From [proofs/p_not_equal_np/README.md](../p_not_equal_np/README.md):**
 
 ```lean
 theorem test_super_polynomial_lower_bound :
@@ -584,18 +584,18 @@ Each of these contributes to our understanding and may eventually lead to a brea
     - Advanced circuit complexity techniques
 
 ### Repository Resources
-12. [P vs NP Task Description](../P_VS_NP_TASK_DESCRIPTION.md)
-13. [P ≠ NP Solution Strategies](../P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md)
-14. [Formal Verification Framework](../proofs/p_not_equal_np/README.md)
-15. [Tools and Methodologies](../TOOLS_AND_METHODOLOGIES.md)
+12. [P vs NP Task Description](../../P_VS_NP_TASK_DESCRIPTION.md)
+13. [P ≠ NP Solution Strategies](../../P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md)
+14. [Formal Verification Framework](../p_not_equal_np/README.md)
+15. [Tools and Methodologies](../../TOOLS_AND_METHODOLOGIES.md)
 
 ---
 
-**Navigation:** [↑ Back to Experiments](../experiments/) | [Repository Root](../README.md) | [Issue #10](https://github.com/konard/p-vs-np/issues/10)
+**Navigation:** [↑ Back to Proofs](../) | [Repository Root](../../README.md) | [Issue #10](https://github.com/konard/p-vs-np/issues/10)
 
 ---
 
 **Document Status:** Experimental exploration - Not a claimed proof
 **Last Updated:** October 2025
 **Author:** AI Issue Solver (Claude Code)
-**License:** The Unlicense (see [LICENSE](../LICENSE))
+**License:** The Unlicense (see [LICENSE](../../LICENSE))
