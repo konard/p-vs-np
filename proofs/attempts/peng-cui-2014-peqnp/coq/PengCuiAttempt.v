@@ -154,7 +154,7 @@ Lemma correct_P_eq_NP_proof_structure :
   forall (prob : Problem) (alg : nat -> bool),
     NP_complete prob ->           (* Must be NP-complete, not just NP-hard *)
     polynomial_time alg ->        (* Algorithm is polynomial time *)
-    (forall instance, True) ->    (* Algorithm correctly solves ALL instances *)
+    (forall instance : nat, True) -> (* Algorithm correctly solves ALL instances *)
     (* Only then can we conclude P = NP *)
     (forall p : Problem, NP p -> P p).
 Proof.
