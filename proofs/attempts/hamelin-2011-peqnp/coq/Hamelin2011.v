@@ -187,7 +187,7 @@ Admitted. (* The key point holds: runtime is exponential *)
 Theorem hamelin_proof_gap : forall n : nat,
   n >= 1 ->
   (** Vertices in K_n belong to exponentially many cliques *)
-  (exists cliques, length cliques = pow2 (n - 1)) /\
+  (exists cliques : list VertexSet, length cliques = pow2 (n - 1)) /\
   (** An algorithm bounded by this is exponential, not polynomial *)
   ~ IsPolynomial pow2.
 Proof.
