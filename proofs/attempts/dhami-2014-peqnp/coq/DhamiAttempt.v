@@ -161,11 +161,13 @@ Proof.
   destruct dhami_algorithm_partial as [M [time [Hpartial Hnot_valid]]].
   exists M, time.
   split.
-  - apply Hpartial.
+  - destruct Hpartial as [_ Hexists].
+    exact Hexists.
   - intro H.
     apply Hnot_valid.
     split.
-    + apply Hpartial.
+    + destruct Hpartial as [Hpoly _].
+      exact Hpoly.
     + exact H.
 Qed.
 
