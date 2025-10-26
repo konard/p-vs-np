@@ -24,13 +24,13 @@ Record Model : Type := mkModel {
 }.
 
 (** Standard model: natural numbers *)
-Inductive StandardModel : Model :=
-  standard_model : StandardModel.
+Definition StandardModel : Model :=
+  mkModel nat 0 S.
 
 (** Non-standard models exist (we axiomatize their existence) *)
 Axiom NonStandardModel : Model.
 Axiom NonStandardModel_differs_from_standard :
-  NonStandardModel <> standard_model.
+  NonStandardModel <> StandardModel.
 
 (** * PA Formula and Provability *)
 
@@ -83,7 +83,7 @@ Qed.
 (** Singh Anand's incorrect conclusion *)
 Axiom singh_anand_incorrect_claim :
   provable_in_PA forall_G ->
-  ~exists (M : Model), M <> standard_model.
+  ~exists (M : Model), M <> StandardModel.
 
 (** * REFUTATION: The Error Exposed *)
 
@@ -91,11 +91,11 @@ Axiom singh_anand_incorrect_claim :
 Theorem singh_anand_argument_is_wrong : False.
 Proof.
   (** We have a non-standard model *)
-  assert (H_nonstandard_exists : exists M : Model, M <> standard_model).
+  assert (H_nonstandard_exists : exists M : Model, M <> StandardModel).
   { exists NonStandardModel. apply NonStandardModel_differs_from_standard. }
 
   (** Singh Anand claims this is impossible *)
-  assert (H_singh_claim : ~exists (M : Model), M <> standard_model).
+  assert (H_singh_claim : ~exists (M : Model), M <> StandardModel).
   { apply singh_anand_incorrect_claim. apply provable_forall_G. }
 
   (** Contradiction! *)
@@ -134,7 +134,7 @@ Qed.
 
 (** This demonstrates the error: proving G doesn't eliminate non-standard models *)
 Corollary proving_G_does_not_eliminate_nonstandard_models :
-  provable_in_PA forall_G /\ (exists M : Model, M <> standard_model).
+  provable_in_PA forall_G /\ (exists M : Model, M <> StandardModel).
 Proof.
   split.
   - apply provable_forall_G.

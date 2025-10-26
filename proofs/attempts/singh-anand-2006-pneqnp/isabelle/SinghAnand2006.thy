@@ -13,9 +13,9 @@ theory SinghAnand2006
   imports Main
 begin
 
-section ‹Abstract Model Theory Framework›
+section \<open>Abstract Model Theory Framework\<close>
 
-text ‹We model PA and its interpretations abstractly›
+text \<open>We model PA and its interpretations abstractly\<close>
 
 (* A model has a domain and interpretations of PA symbols *)
 record Model =
@@ -31,7 +31,7 @@ definition StandardModel :: Model where
 axiomatization NonStandardModel :: Model where
   nonstandard_differs: "NonStandardModel ≠ StandardModel"
 
-section ‹PA Formulas and Provability›
+section \<open>PA Formulas and Provability\<close>
 
 (* Abstract representation of PA formulas *)
 typedecl PAFormula
@@ -49,19 +49,19 @@ axiomatization formula_G :: PAFormula
 (* The universal quantification ∀x.G(x) *)
 axiomatization forall_G :: PAFormula
 
-section ‹Gödel's Completeness Theorem›
+section \<open>Gödel's Completeness Theorem\<close>
 
 (* If a formula is provable in PA, it holds in ALL models *)
 axiomatization where
   goedel_completeness: "provable_in_PA φ ⟹ satisfies M φ"
 
-section ‹Key Provability Facts from PA›
+section \<open>Key Provability Facts from PA\<close>
 
 (* The formula ∀x.G(x) is provable via induction *)
 axiomatization where
   provable_forallG: "provable_in_PA forall_G"
 
-section ‹Singh Anand's Argument (FORMALIZED)›
+section \<open>Singh Anand's Argument (FORMALIZED)\<close>
 
 (* Step 1: (∀x)G(x) is provable in PA *)
 theorem singh_anand_step1: "provable_in_PA forall_G"
@@ -78,7 +78,7 @@ axiomatization where
   singh_anand_incorrect_claim:
     "provable_in_PA forall_G ⟹ (∀M. M = StandardModel)"
 
-section ‹REFUTATION: The Error Exposed›
+section \<open>REFUTATION: The Error Exposed\<close>
 
 (* Theorem: Singh Anand's claim leads to contradiction *)
 theorem singh_anand_argument_is_wrong: "False"
@@ -96,9 +96,9 @@ proof -
   with nonstandard_differs show False by contradiction
 qed
 
-section ‹The Core Mistake Explained›
+section \<open>The Core Mistake Explained\<close>
 
-text ‹
+text \<open>
   CRITICAL ERROR: Singh Anand confuses "provable in PA" with
   "eliminates non-standard models"
 
@@ -115,9 +115,9 @@ text ‹
 
   FACT 3 (Gödel's Incompleteness + Löwenheim-Skolem):
     First-order PA MUST have non-standard models. This is a deep theorem.
-›
+\<close>
 
-section ‹The Formula Works in Non-Standard Models›
+section \<open>The Formula Works in Non-Standard Models\<close>
 
 (* The formula ∀x.G(x) is satisfied even in non-standard models *)
 theorem G_holds_in_nonstandard_model: "satisfies NonStandardModel forall_G"
@@ -133,7 +133,7 @@ next
     using nonstandard_differs by blast
 qed
 
-section ‹Connection to P vs NP›
+section \<open>Connection to P vs NP\<close>
 
 (* Even if the model theory were correct, the connection to P≠NP is unfounded *)
 
@@ -157,9 +157,9 @@ theorem singh_anand_proves_nothing_about_P_vs_NP:
    True"
   by simp
 
-section ‹Detailed Error Analysis›
+section \<open>Detailed Error Analysis\<close>
 
-text ‹
+text \<open>
   SUMMARY OF ERRORS IN SINGH ANAND'S PROOF:
 
   1. MAIN ERROR: Confuses provability in PA with eliminating non-standard models
@@ -179,7 +179,7 @@ text ‹
 
   STATUS: This proof attempt is fundamentally flawed and does not
           prove P ≠ NP.
-›
+\<close>
 
 (* Record type for error documentation *)
 record ErrorAnalysis =
