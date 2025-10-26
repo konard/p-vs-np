@@ -253,8 +253,7 @@ Theorem telpiz_attempt_incomplete :
   (forall L, in_NP L -> exists (M : TuringMachine), True) /\ (* Claims algorithms exist *)
   (forall (M : TuringMachine), exists L, ~ in_P L). (* But cannot prove they're in P *)
 Proof.
-  split.
-  - exact telpiz_gaps_prevent_proof.
+  split; [exact telpiz_gaps_prevent_proof | ].
   split.
   - intros L HNP.
     (* Algorithm not actually provided *)
