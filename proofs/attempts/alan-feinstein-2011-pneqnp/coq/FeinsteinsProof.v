@@ -145,8 +145,7 @@ Proof.
     intros n Hn.
     (* 2^n * n^2 ≥ 2^n *)
     destruct n; try lia.
-    simpl.
-    apply Nat.le_mul_diag_r.
+    simpl. lia.
 Qed.
 
 (* Part 2: Feinstein's claim that this is a LOWER bound (INCOMPLETE/FALSE) *)
