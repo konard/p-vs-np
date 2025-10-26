@@ -127,7 +127,7 @@ Proof.
   - (* Prove polynomial *)
     exists 1, 2. intros. simpl. lia.
   - (* Prove correctness *)
-    intros. split; intros; trivial. exists "". trivial.
+    intros. split; intros; trivial. exists (EmptyString). trivial.
 Defined.
 
 (* TSP is NP-complete *)
