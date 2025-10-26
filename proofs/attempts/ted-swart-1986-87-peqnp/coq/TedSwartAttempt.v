@@ -236,7 +236,7 @@ Admitted.
 
 (** Lesson 2: Encoding size matters critically in complexity theory *)
 Remark encoding_size_matters :
-  forall (problem : DecisionProblem) (encoding : DecisionProblem -> LinearProgram),
+  forall (problem : DecisionProblem) (encoding : list bool -> LinearProgram),
     (* Even if encoding is "correct" semantically *)
     (forall input, True) ->
     (* The encoding might still be exponential size *)
