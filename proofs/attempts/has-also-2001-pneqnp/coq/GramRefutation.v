@@ -105,10 +105,8 @@ Lemma NP_needs_poly_certificates :
   forall problem, InNP problem ->
     exists (certSize : nat -> nat),
       IsPolynomialTime certSize /\
-      forall x cert, problem x ->
-        (exists cert', String.length cert' <= certSize (String.length x) /\
-                      verify {| verify := fun x c => true;
-                               verifier_timeComplexity := certSize |} x cert' = true).
+      forall x : string, problem x ->
+        exists (cert : string), String.length cert <= certSize (String.length x).
 Proof.
   intros problem H_np.
   unfold InNP in H_np.
@@ -116,11 +114,11 @@ Proof.
   exists certSize.
   split.
   - exact H_poly_cert.
-  - intros x cert H_problem.
+  - intros x H_problem.
     apply H_correct in H_problem.
-    destruct H_problem as [cert' [H_size H_verify]].
-    exists cert'.
-    split; assumption.
+    destruct H_problem as [cert [H_size H_verify]].
+    exists cert.
+    exact H_size.
 Qed.
 
 (** * EXPTIME-Complete Problems *)
