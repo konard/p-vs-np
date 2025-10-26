@@ -17,7 +17,6 @@ Require Import Coq.Lists.List.
 Require Import Coq.Strings.String.
 Require Import Coq.Logic.Classical_Prop.
 Import ListNotations.
-Open Scope R_scope.
 
 (** * 1. Quantum Mechanics Basics *)
 
@@ -27,6 +26,8 @@ Record Vector3 : Type := mkVector3 {
   y : R;
   z : R
 }.
+
+Local Open Scope R_scope.
 
 (** Dot product *)
 Definition dot (v1 v2 : Vector3) : R :=
@@ -118,6 +119,9 @@ Axiom physical_equivalence :
 (** This is just the general equivalence applied to the self-reference case *)
 
 (** ** Error 3: No computational problem is defined *)
+
+Close Scope R_scope.
+Local Open Scope nat_scope.
 
 (** Standard complexity theory definition *)
 Definition Language := string -> bool.
