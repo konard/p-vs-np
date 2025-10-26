@@ -149,12 +149,12 @@ axiomatization
 axiomatization
   encode_formula :: "Formula3CNF \<Rightarrow> BinaryString"
 
-(* The error: integer sizes grow super-polynomially *)
+(* The error: integer sizes grow super-polynomially
+   For a family of inputs of size n, the maximum integer value
+   grows super-polynomially *)
 definition integers_grow_superpolynomially :: bool where
   "integers_grow_superpolynomially \<equiv> \<exists>f_sequence.
-    (* For a family of inputs of size n *)
     (\<forall>n. input_size (encode_formula (f_sequence n)) = n) \<and>
-    (* The maximum integer value grows super-polynomially *)
     (\<forall>poly. is_polynomial poly \<longrightarrow>
       (\<exists>n0. \<forall>n. n \<ge> n0 \<longrightarrow>
         max_integer_in_computation (f_sequence n) > poly n))"
