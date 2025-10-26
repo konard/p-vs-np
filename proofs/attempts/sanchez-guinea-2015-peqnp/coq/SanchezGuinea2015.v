@@ -51,13 +51,15 @@ Definition understanding := literal -> understanding_value.
 Definition empty_understanding : understanding :=
   fun _ => u_free.
 
-(** Update understanding for a literal *)
-Definition update_understanding (u : understanding) (l : literal) (v : understanding_value) : understanding :=
-  fun l' => if literal_eq_dec l l' then v else u l'
-where literal_eq_dec (l1 l2 : literal) : bool :=
+(** Literal equality test *)
+Definition literal_eq_dec (l1 l2 : literal) : bool :=
   match l1, l2 with
   | Lit v1 b1, Lit v2 b2 => andb (Nat.eqb v1 v2) (Bool.eqb b1 b2)
   end.
+
+(** Update understanding for a literal *)
+Definition update_understanding (u : understanding) (l : literal) (v : understanding_value) : understanding :=
+  fun l' => if literal_eq_dec l l' then v else u l'.
 
 (** ** Concepts and Contexts *)
 
@@ -224,6 +226,15 @@ Fixpoint algorithm_D (fuel : nat) (u : understanding) (phi : formula) (l : liter
 
 (** Algorithm U processes clauses one by one, maintaining an understanding *)
 
+(** Understanding value equality *)
+Definition understanding_value_eq (v1 v2 : understanding_value) : bool :=
+  match v1, v2 with
+  | u_true, u_true => true
+  | u_false, u_false => true
+  | u_free, u_free => true
+  | _, _ => false
+  end.
+
 Fixpoint algorithm_U (fuel : nat) (u : understanding) (phi_remaining : formula) (phi_processed : formula) : option understanding :=
   match fuel with
   | 0 => None
@@ -253,13 +264,6 @@ Fixpoint algorithm_U (fuel : nat) (u : understanding) (phi_remaining : formula) 
           | _ => None  (* Invalid clause *)
           end
       end
-  end
-where understanding_value_eq (v1 v2 : understanding_value) : bool :=
-  match v1, v2 with
-  | u_true, u_true => true
-  | u_false, u_false => true
-  | u_free, u_free => true
-  | _, _ => false
   end.
 
 (** ** The Claimed Theorem and Where It Fails *)
