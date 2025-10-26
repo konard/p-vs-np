@@ -289,7 +289,7 @@ Theorem conclusion :
   (* Does not establish P ≠ NP *)
   True.
 Proof.
-  intro _.
+  intro H.
   trivial.
 Qed.
 
