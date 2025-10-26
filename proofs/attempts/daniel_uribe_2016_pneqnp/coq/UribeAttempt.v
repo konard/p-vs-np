@@ -46,7 +46,7 @@ Inductive DecisionTree : Type :=
 Fixpoint tree_depth (t : DecisionTree) : nat :=
   match t with
   | Leaf _ => 0
-  | Node _ _ left right => S (max (tree_depth left) (tree_depth right))
+  | Node _ _ l r => S (max (tree_depth l) (tree_depth r))
   end.
 
 (** Helper function to check if an edge exists in the edge list *)
@@ -61,10 +61,10 @@ Fixpoint has_edge (u v : nat) (es : list (nat * nat)) : bool :=
 Fixpoint eval_tree (t : DecisionTree) (G : Graph) : bool :=
   match t with
   | Leaf b => b
-  | Node u v left right =>
+  | Node u v l r =>
       if has_edge u v (edges G)
-      then eval_tree left G
-      else eval_tree right G
+      then eval_tree l G
+      else eval_tree r G
   end.
 
 (** A decision tree is correct for CLIQUE if it returns true iff a k-clique exists *)
