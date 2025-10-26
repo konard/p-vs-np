@@ -284,8 +284,12 @@ Qed.
 
 (** * Verification *)
 
-Check tazawa_original_attempt.
-Check tazawa_automorphism_attempt.
+(** Note: The following lemmas were intentionally aborted to show where proofs fail:
+    - tazawa_original_attempt (Aborted - circular reasoning)
+    - tazawa_automorphism_attempt (Aborted - missing connection)
+
+    Successfully defined:
+*)
 Check tazawa_error_original.
 Check tazawa_error_automorphism.
 Check tazawa_attempt_has_gaps.
