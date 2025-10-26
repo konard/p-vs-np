@@ -163,8 +163,8 @@ Theorem confusion_leads_to_error :
   False.
 Proof.
   intro H.
-  unfold would_imply_P_equals_NP in dp_not_polynomial_in_binary.
   apply dp_not_polynomial_in_binary.
+  unfold would_imply_P_equals_NP.
   apply H.
   exact dp_is_pseudopolynomial.
 Qed.
