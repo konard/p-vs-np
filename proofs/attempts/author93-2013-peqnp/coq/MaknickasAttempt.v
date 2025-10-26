@@ -11,6 +11,7 @@ Require Import Coq.Bool.Bool.
 Require Import Coq.Lists.List.
 Require Import Coq.Reals.Reals.
 Require Import Coq.Logic.Classical_Prop.
+Require Import Coq.micromega.Lra.
 Import ListNotations.
 
 (* ====================================================================== *)
@@ -73,7 +74,7 @@ Record LPProblem : Type := {
 
 (* LP solution - may have fractional values *)
 Definition lp_solution (lp : LPProblem) (assign : RealAssignment) : Prop :=
-  Forall (fun c => c assign) lp.lp_constraints.
+  Forall (fun c => c assign) (lp_constraints lp).
 
 (* Integer Linear Programming requires integer solutions *)
 Definition is_integer (r : R) : Prop :=
@@ -81,7 +82,7 @@ Definition is_integer (r : R) : Prop :=
 
 Definition ilp_solution (lp : LPProblem) (assign : RealAssignment) : Prop :=
   lp_solution lp assign /\
-  (forall v, In v lp.lp_vars -> is_integer (assign v)).
+  (forall v, In v (lp_vars lp) -> is_integer (assign v)).
 
 (* Boolean solutions are a special case of integer solutions (0 or 1) *)
 Definition is_boolean (r : R) : Prop :=
@@ -89,7 +90,7 @@ Definition is_boolean (r : R) : Prop :=
 
 Definition boolean_solution (lp : LPProblem) (assign : RealAssignment) : Prop :=
   lp_solution lp assign /\
-  (forall v, In v lp.lp_vars -> is_boolean (assign v)).
+  (forall v, In v (lp_vars lp) -> is_boolean (assign v)).
 
 (* ====================================================================== *)
 (* Part 3: The Fundamental Error *)
@@ -153,16 +154,7 @@ Qed.
 Lemma half_not_boolean : ~ is_boolean 0.5%R.
 Proof.
   unfold is_boolean.
-  intros [H | H].
-  - apply Rgt_not_eq in H.
-    + contradiction.
-    + apply Rlt_gt.
-      apply (Rlt_trans 0 0.5 1).
-      * fourier.
-      * fourier.
-  - apply Rlt_not_eq in H.
-    + contradiction.
-    + fourier.
+  intros [H | H]; lra.
 Qed.
 
 (* ====================================================================== *)
