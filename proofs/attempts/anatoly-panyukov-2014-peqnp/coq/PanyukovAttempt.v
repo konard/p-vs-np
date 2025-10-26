@@ -29,11 +29,11 @@ Record Graph : Type := mkGraph {
 Definition Path := list nat.
 
 (* Check if a path is valid (consecutive vertices are connected) *)
-Fixpoint is_valid_path (G : Graph) (p : Path) {struct p} : Prop :=
+Fixpoint is_valid_path (G : Graph) (p : Path) : Prop :=
   match p with
   | [] => True
-  | [_] => True
-  | v1 :: v2 :: rest =>
+  | _ :: [] => True
+  | v1 :: (v2 :: rest) =>
       In (v1, v2) (edges G) /\ is_valid_path G (v2 :: rest)
   end.
 
