@@ -175,12 +175,12 @@ Proof.
 
   split.
   - (* Correctness *)
-    intro f.
-    unfold CorrectlyDecides in H_correct.
     unfold CorrectlyDecides.
-    intro.
+    intro f.
     specialize (H_equiv f).
     specialize (H_correct (reduction f)).
+    unfold CorrectlyDecides in H_correct.
+    simpl.
     tauto.
   - (* Polynomial time *)
     simpl.
