@@ -1,0 +1,4 @@
+session "TazawaAttempt" = "HOL" +
+  options [document = pdf, document_output = "output"]
+  theories
+    TazawaAttempt
