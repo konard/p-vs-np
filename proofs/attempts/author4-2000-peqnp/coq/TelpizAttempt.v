@@ -198,11 +198,12 @@ Proof.
   unfold in_P.
   destruct (polynomial_time proof L HNP) as [time [Hpoly Hbound]].
   exists (algorithm proof L HNP), time.
-  repeat split.
+  split.
   - exact Hpoly.
-  - exact Hbound.
-  - intro input.
-    apply (correctness proof L HNP input).
+  - split.
+    + exact Hbound.
+    + intro input.
+      apply (correctness proof L HNP input).
 Qed.
 
 (** But Telpiz does not provide such a proof *)
