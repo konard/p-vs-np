@@ -84,7 +84,7 @@ Definition is_valid_hamiltonian_cycle (g : Graph) (cycle : HamiltonianCycle) : P
 Fixpoint cycle_cost_helper (g : Graph) (cycle : list Vertex) : nat :=
   match cycle with
   | [] => 0
-  | [v] => 0  (** Need to return to start, handled separately *)
+  | v :: [] => 0  (** Need to return to start, handled separately *)
   | v1 :: v2 :: rest =>
       match find (fun e =>
         (edge_from e =? v1) && (edge_to e =? v2) ||
@@ -138,7 +138,7 @@ Definition hash_computable_in_poly_time (h : HashFunction) : Prop :=
 Fixpoint encode_cycle_helper (g : Graph) (cycle : list Vertex) : string :=
   match cycle with
   | [] => EmptyString
-  | [v] => String (ascii_of_nat v) EmptyString
+  | v :: [] => String (ascii_of_nat v) EmptyString
   | v1 :: v2 :: rest =>
       let v1_str := String (ascii_of_nat v1) EmptyString in
       let cost_str := match find (fun e =>
