@@ -182,7 +182,7 @@ Axiom existence_not_discovery :
 Definition practically_computable (prob : Problem) : Prop :=
   exists (algo : nat -> nat),
     (forall n, algo n < n * n * n) /\  (* reasonable polynomial *)
-    (forall n, algo n < 10^10).  (* reasonable constant *)
+    (forall n, algo n < 10000000000).  (* reasonable constant: 10^10 *)
 
 (** P=NP (polynomial) does NOT imply practically computable! *)
 Axiom p_equals_np_not_practical :
