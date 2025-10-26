@@ -113,12 +113,13 @@ Proof.
   exists (n * n).
   unfold standard_dp_complexity.
   (* n * 2^n * n >= 2^n when n > 0 *)
-  apply Nat.le_trans with (m := 2^n * 1).
-  - rewrite Nat.mul_1_r. apply Nat.le_refl.
-  - apply Nat.mul_le_mono_l.
-    apply Nat.le_trans with (m := n * n).
-    + destruct n. omega. simpl. omega.
-    + apply Nat.le_refl.
+  (* This simplifies to n^2 * 2^n >= 2^n which is true for n > 0 *)
+  destruct n. omega.
+  simpl.
+  apply Nat.le_trans with (m := 1 * 2^(S n)).
+  - rewrite Nat.mul_1_l. apply Nat.le_refl.
+  - apply Nat.mul_le_mono_r.
+    omega.
 Qed.
 
 (** * 6. Polynomial Time Bound *)
