@@ -189,7 +189,9 @@ Admitted.
 
 (* DIABY'S COMPLETE ARGUMENT (Conditional on correspondence) *)
 Theorem diaby_complete_argument :
-  diaby_correspondence_claim ->
+  (forall g : Graph,
+    (forall tour : TSPTour g, exists ep : ExtremePoint (diabyLPFormulation g), True) /\
+    (forall ep : ExtremePoint (diabyLPFormulation g), exists tour : TSPTour g, True)) ->
   PEqualsNP.
 Proof.
   intros correspondence.
@@ -223,7 +225,9 @@ Axiom hofman_counter_example :
 
 (* Therefore, Diaby's correspondence claim is FALSE *)
 Theorem diaby_correspondence_is_false :
-  ~ diaby_correspondence_claim.
+  ~ (forall g : Graph,
+    (forall tour : TSPTour g, exists ep : ExtremePoint (diabyLPFormulation g), True) /\
+    (forall ep : ExtremePoint (diabyLPFormulation g), exists tour : TSPTour g, True)).
 Proof.
   intro h_claim.
   (* Hofman's counter-example contradicts the claim *)
@@ -235,11 +239,15 @@ Admitted.
 
 (* Since the correspondence fails, Diaby's argument is invalid *)
 Theorem diaby_argument_invalid :
-  ~ (diaby_correspondence_claim -> True).
+  ~ ((forall g : Graph,
+    (forall tour : TSPTour g, exists ep : ExtremePoint (diabyLPFormulation g), True) /\
+    (forall ep : ExtremePoint (diabyLPFormulation g), exists tour : TSPTour g, True)) -> True).
 Proof.
   intro h.
   (* The premise is false, so relying on it is invalid *)
-  assert (~ diaby_correspondence_claim) by apply diaby_correspondence_is_false.
+  assert (~ (forall g : Graph,
+    (forall tour : TSPTour g, exists ep : ExtremePoint (diabyLPFormulation g), True) /\
+    (forall ep : ExtremePoint (diabyLPFormulation g), exists tour : TSPTour g, True))) by apply diaby_correspondence_is_false.
   admit.
 Admitted.
 
@@ -276,7 +284,9 @@ Qed.
 (* Lesson 2: Polynomial size alone is insufficient *)
 Theorem size_not_enough :
   isPolynomial (fun n => n ^ 9) /\
-  ~ diaby_correspondence_claim.
+  (~ (forall g : Graph,
+    (forall tour : TSPTour g, exists ep : ExtremePoint (diabyLPFormulation g), True) /\
+    (forall ep : ExtremePoint (diabyLPFormulation g), exists tour : TSPTour g, True))).
 Proof.
   split.
   - exists 1, 9. intros. simpl. lia.
@@ -285,8 +295,12 @@ Qed.
 
 (* Lesson 3: Proof obligations must be met *)
 Theorem proof_obligations_matter :
-  (diaby_correspondence_claim -> PEqualsNP) /\
-  ~ diaby_correspondence_claim.
+  ((forall g : Graph,
+    (forall tour : TSPTour g, exists ep : ExtremePoint (diabyLPFormulation g), True) /\
+    (forall ep : ExtremePoint (diabyLPFormulation g), exists tour : TSPTour g, True)) -> PEqualsNP) /\
+  (~ (forall g : Graph,
+    (forall tour : TSPTour g, exists ep : ExtremePoint (diabyLPFormulation g), True) /\
+    (forall ep : ExtremePoint (diabyLPFormulation g), exists tour : TSPTour g, True))).
 Proof.
   split.
   - apply diaby_complete_argument.
@@ -315,7 +329,9 @@ Proof.
   exists {|
     da_polynomialSize := diaby_formulation_is_polynomial;
     da_lpSolvable := fun lp => ex_intro _ (fun n => n) (ex_intro _ 1 (ex_intro _ 1 (fun n => le_n n)));
-    da_correspondence := diaby_correspondence_claim;
+    da_correspondence := (forall g : Graph,
+      (forall tour : TSPTour g, exists ep : ExtremePoint (diabyLPFormulation g), True) /\
+      (forall ep : ExtremePoint (diabyLPFormulation g), exists tour : TSPTour g, True));
     da_implication := diaby_complete_argument
   |}.
   simpl. apply diaby_correspondence_is_false.
@@ -326,7 +342,9 @@ Qed.
 (* Diaby's attempt is well-formed but relies on a false premise *)
 Theorem diaby_attempt_summary :
   (exists structure : DiabyAttempt, True) /\
-  (~ diaby_correspondence_claim) /\
+  (~ (forall g : Graph,
+    (forall tour : TSPTour g, exists ep : ExtremePoint (diabyLPFormulation g), True) /\
+    (forall ep : ExtremePoint (diabyLPFormulation g), exists tour : TSPTour g, True))) /\
   (exists counter_example : CounterExample, True).
 Proof.
   split; [| split].
