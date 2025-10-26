@@ -192,12 +192,8 @@ Axiom incomplete_proof :
 
 (** * 9. The Withdrawal *)
 
-(** The author recognized this issue and withdrew the paper *)
-Axiom paper_withdrawn : True.
-
-(** Withdrawal reason: integer operations cannot be proven polynomial-time *)
-Axiom withdrawal_reason :
-  ~ missing_proof -> paper_withdrawn.
+(** The author recognized this issue and withdrew the paper.
+    Withdrawal reason: integer operations cannot be proven to have polynomial run time. *)
 
 (** * 10. Lessons Learned *)
 
