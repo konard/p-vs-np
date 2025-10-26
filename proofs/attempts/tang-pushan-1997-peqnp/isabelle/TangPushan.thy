@@ -65,8 +65,8 @@ theorem HEWN_polynomial_when_j_constant:
   fixes j :: nat
   shows "polynomial_time (\<lambda>n. HEWN_actual_time n j)"
 proof -
-  define c where "c = 2^j"
-  define d where "d = 1"
+  define c :: nat where "c = 2^j"
+  define d :: nat where "d = 1"
 
   have "\<forall>x::nat. HEWN_actual_time x j \<le> c * x^d + c"
   proof

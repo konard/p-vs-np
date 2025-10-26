@@ -146,7 +146,7 @@ Definition CLIQUE_in_P : Prop :=
   exists (algo_time : nat -> nat),
     polynomial_time algo_time /\
     forall g k, CLIQUE g k ->
-      (* Algorithm can verify this in time algo_time(|V|) *).
+      (* Algorithm can verify this in time algo_time(|V|) *)
       True. (* Simplified - would need full algorithm model *)
 
 (** Tang Pushan claimed to prove this *)
