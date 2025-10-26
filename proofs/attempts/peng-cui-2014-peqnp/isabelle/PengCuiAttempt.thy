@@ -33,7 +33,7 @@ section \<open>Polynomial Time Algorithm\<close>
 
 text \<open>An algorithm runs in polynomial time if there exists a polynomial bound\<close>
 definition polynomial_time :: "(nat \<Rightarrow> bool) \<Rightarrow> bool" where
-  "polynomial_time alg \<equiv> \<exists>k. \<forall>n. True"
+  "polynomial_time alg \<equiv> (\<exists>k::nat. \<forall>n::nat. True)"
   (* Simplified - full definition would need time complexity model *)
 
 section \<open>3-XOR and Constraint Satisfaction Problems\<close>
