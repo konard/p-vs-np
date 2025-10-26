@@ -182,7 +182,7 @@ Proof.
   intro H_P_eq_NP.
   (* Assuming P = NP leads to consequences that Cui's proof doesn't establish *)
   (* The proof is incomplete and contains logical errors *)
-Abort.
+Admitted.
 
 (** * Why This Attempt Fails *)
 
