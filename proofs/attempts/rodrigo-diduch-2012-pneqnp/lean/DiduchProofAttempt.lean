@@ -98,13 +98,14 @@ def P_not_equals_NP : Prop := ¬P_equals_NP
 
 theorem diduch_attempt_from_definitions :
   -- The fact that P and NP have different definitions
-  (∀ L, InP L → ∃ tm, IsPolynomialTime tm.timeComplexity ∧
+  (∀ L, InP L → ∃ (tm : TuringMachine), IsPolynomialTime tm.timeComplexity ∧
                         ∀ x, L x ↔ tm.compute x = true) →
-  (∀ L, InNP L → ∃ v certSize, IsPolynomialTime v.timeComplexity ∧
-                                 IsPolynomialTime certSize ∧
-                                 ∀ x, L x ↔ ∃ cert,
-                                   cert.length ≤ certSize x.length ∧
-                                   v.verify x cert = true) →
+  (∀ L, InNP L → ∃ (v : Verifier) (certSize : Nat → Nat),
+                   IsPolynomialTime v.timeComplexity ∧
+                   IsPolynomialTime certSize ∧
+                   ∀ x, L x ↔ ∃ (cert : String),
+                     cert.length ≤ certSize x.length ∧
+                     v.verify x cert = true) →
   -- Does not imply P ≠ NP
   P_not_equals_NP := by
   intro _H_P_def _H_NP_def
@@ -130,17 +131,9 @@ theorem diduch_attempt_from_definitions :
   Many problems once thought hard were later solved efficiently.
 -/
 
-axiom SAT_appears_hard :
-  -- No currently known polynomial-time algorithm for SAT
-  ∀ (tm : TuringMachine),
-    (∀ x, SAT x ↔ tm.compute x = true) →
-    -- This doesn't prove it's not polynomial time!
-    True
-
+-- Note: Intuitive arguments are insufficient for formal proof
 theorem diduch_attempt_from_intuition :
-  SAT_appears_hard →
   P_not_equals_NP := by
-  intro _H_appears_hard
   unfold P_not_equals_NP P_equals_NP
   intro _H_equal
   /-
@@ -180,12 +173,14 @@ theorem diduch_needs_lower_bound :
   intro H_equal
   -- If P = NP, then SAT is in P
   have H_SAT_in_P : InP SAT := by
-    apply H_equal
+    have h := H_equal SAT
+    apply h.mpr
     exact SAT_is_NP_complete.1
   -- But SAT has a super-polynomial lower bound
   unfold InP at H_SAT_in_P
   obtain ⟨tm, H_poly, H_decides⟩ := H_SAT_in_P
   -- This contradicts the lower bound
+  unfold HasSuperPolynomialLowerBound at H_lower_bound
   exact H_lower_bound tm H_decides H_poly
 
 /-
@@ -201,7 +196,6 @@ axiom diduch_claims_lower_bound :
 
 theorem diduch_main_claim :
   P_not_equals_NP := by
-  apply diduch_needs_lower_bound
   /-
     ERROR: This axiom is not proven in the paper.
 
@@ -216,8 +210,9 @@ theorem diduch_main_claim :
     Any valid proof must use non-relativizing, non-naturalizing techniques,
     which are extremely difficult to find.
   -/
+  apply diduch_needs_lower_bound
   exact diduch_claims_lower_bound
-  sorry  -- INCOMPLETE: Lower bound not proven
+  -- INCOMPLETE: Lower bound not proven
 
 /-
   ANALYSIS OF COMMON ERRORS
@@ -288,10 +283,10 @@ def addresses_known_barriers : Prop :=
 structure DiduchProofAttemptAnalysis where
   -- What the proof claims
   claims : P_not_equals_NP
-  -- What it would need to prove
-  needs : HasSuperPolynomialLowerBound SAT
-  -- The gap: the lower bound is not proven
-  gap : needs → claims
+  -- What it would need to prove (as a Prop)
+  needsLowerBound : Prop
+  -- The gap: shows the dependency
+  gap : HasSuperPolynomialLowerBound SAT → P_not_equals_NP
 
 /-
   The formalization shows that without proving the lower bound,
@@ -299,9 +294,10 @@ structure DiduchProofAttemptAnalysis where
 -/
 
 -- Verification checks
-#check diduch_attempt_from_definitions  -- INCOMPLETE
-#check diduch_attempt_from_intuition    -- INCOMPLETE
-#check diduch_main_claim                -- INCOMPLETE
-#check diduch_needs_lower_bound         -- COMPLETE - shows what's needed
+-- Note: These theorems compile but contain 'sorry' indicating incomplete proofs
+-- #check diduch_attempt_from_definitions  -- INCOMPLETE
+-- #check diduch_attempt_from_intuition    -- INCOMPLETE
+-- #check diduch_main_claim                -- INCOMPLETE
+-- #check diduch_needs_lower_bound         -- COMPLETE - shows what's needed
 
-#print "✓ Diduch proof attempt formalization loaded (with identified gaps)"
+-- #print "✓ Diduch proof attempt formalization loaded (with identified gaps)"
