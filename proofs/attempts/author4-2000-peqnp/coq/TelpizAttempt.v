@@ -198,9 +198,8 @@ Proof.
   unfold in_P.
   destruct (polynomial_time proof L HNP) as [time [Hpoly Hbound]].
   exists (algorithm proof L HNP), time.
-  split.
+  repeat split.
   - exact Hpoly.
-  split.
   - exact Hbound.
   - intro x.
     apply (correctness proof L HNP x).
