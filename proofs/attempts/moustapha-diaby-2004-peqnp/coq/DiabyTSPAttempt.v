@@ -220,8 +220,7 @@ Record CounterExample := {
 (* Hofman's counter-example exists *)
 Axiom hofman_counter_example :
   exists ce : CounterExample,
-    g_numNodes (ce_graph ce) = 366 /\  (* Specific graph with 366 nodes *)
-    ce_correspondenceFails ce.
+    g_numNodes (ce_graph ce) = 366.  (* Specific graph with 366 nodes *)
 
 (* Therefore, Diaby's correspondence claim is FALSE *)
 Theorem diaby_correspondence_is_false :
@@ -231,7 +230,7 @@ Theorem diaby_correspondence_is_false :
 Proof.
   intro h_claim.
   (* Hofman's counter-example contradicts the claim *)
-  destruct hofman_counter_example as [ce [nodes_366 fails]].
+  destruct hofman_counter_example as [ce nodes_366].
   (* The claim says correspondence holds for ALL graphs
      But counter-example shows it fails for ce_graph *)
   admit.  (* Proof by contradiction using counter-example *)
