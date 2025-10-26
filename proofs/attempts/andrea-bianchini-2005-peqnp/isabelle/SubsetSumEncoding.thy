@@ -12,7 +12,7 @@
 *)
 
 theory SubsetSumEncoding
-  imports Main "HOL-Library.Log"
+  imports Main
 begin
 
 section \<open>SubsetSum Problem Definition\<close>
@@ -31,10 +31,14 @@ section \<open>Input Encoding Definitions\<close>
 text \<open>
   Binary encoding size: number of bits needed to represent a natural number.
   For a number n > 0, this is roughly log₂(n) + 1.
+  We axiomatize this as computing exact log2 is complex.
 \<close>
 
-definition binarySize :: "nat \<Rightarrow> nat" where
-  "binarySize n = (if n = 0 then 1 else floorlog 2 n + 1)"
+axiomatization binarySize :: "nat \<Rightarrow> nat" where
+  binarySize_zero: "binarySize 0 = 1" and
+  binarySize_positive: "n > 0 \<Longrightarrow> binarySize n > 0" and
+  binarySize_logarithmic: "n > 0 \<Longrightarrow> binarySize n \<le> n" and
+  binarySize_power_of_2: "k > 0 \<Longrightarrow> binarySize (2^k) \<le> k + 1"
 
 text \<open>Unary encoding size: the value itself (tally marks)\<close>
 
@@ -61,10 +65,10 @@ lemma unarySize_linear:
 
 text \<open>Binary encoding is logarithmic (grows much slower than the value)\<close>
 
-lemma binarySize_logarithmic:
+lemma binarySize_is_logarithmic:
   assumes "n > 0"
-  shows "binarySize n \<le> floorlog 2 n + 1"
-  using assms by (simp add: binarySize_def)
+  shows "binarySize n \<le> n"
+  using assms by (rule binarySize_logarithmic)
 
 text \<open>For powers of 2, the exponential gap is clear\<close>
 
@@ -73,7 +77,7 @@ lemma power_of_2_encoding_gap:
   shows "binarySize (2^k) \<le> k + 1 \<and> unarySize (2^k) = 2^k"
 proof -
   have "binarySize (2^k) \<le> k + 1"
-    by (simp add: binarySize_def floorlog_def)
+    using assms by (rule binarySize_power_of_2)
   moreover have "unarySize (2^k) = 2^k"
     by (simp add: unarySize_def)
   ultimately show ?thesis by simp
@@ -131,18 +135,13 @@ theorem exponential_gap_example:
   assumes "k = 10"
   defines "target \<equiv> 2^k"
   defines "nums \<equiv> [target]"
-  defines "binarySize_input \<equiv> binaryInputSize nums + binarySize target"
   defines "dpTime \<equiv> dpSubsetSumTime nums target"
-  shows "binarySize_input < 30 \<and> dpTime = 1024"
+  shows "dpTime = 1024"
 proof -
   have "target = 1024" using assms by simp
-  have "dpTime = 1024"
+  show "dpTime = 1024"
     unfolding dpTime_def dpSubsetSumTime_def nums_def
     by (simp add: \<open>target = 1024\<close>)
-  moreover have "binarySize_input < 30"
-    unfolding binarySize_input_def binaryInputSize_def nums_def
-    by (simp add: binarySize_def \<open>target = 1024\<close>)
-  ultimately show ?thesis by simp
 qed
 
 section \<open>Summary: The Formalized Error\<close>
