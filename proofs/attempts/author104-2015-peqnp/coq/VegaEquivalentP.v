@@ -151,7 +151,7 @@ Proof.
               split; [| split].
               ** exact H_L_x_str.
               ** rewrite <- H_eq. exact H_L_x_str.
-              ** exists "". (* arbitrary certificate, verifier ignores it *)
+              ** exists EmptyString. (* arbitrary certificate, verifier ignores it *)
                  simpl.
                  split; apply H_decides.
                  --- exact H_L_x_str.
