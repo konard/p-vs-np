@@ -8,11 +8,6 @@
   Critical error: Assignment problem solutions may not yield Hamiltonian cycles (subtour problem)
 -/
 
-import Mathlib.Data.List.Basic
-import Mathlib.Data.Finset.Basic
-import Mathlib.Data.Nat.Basic
-import Mathlib.Logic.Basic
-
 namespace PanyukovAttempt
 
 /-! ## Graph Definitions -/
