@@ -131,7 +131,7 @@ Proof.
   destruct H_L_in_P as [tm [H_poly H_decides]].
   (* Construct trivial verifiers that ignore the certificate *)
   pose (v := Build_Verifier
-    (fun x cert => compute tm x)
+    (fun input cert => compute tm input)
     (timeComplexity tm)).
   exists v, v.
   repeat split.
