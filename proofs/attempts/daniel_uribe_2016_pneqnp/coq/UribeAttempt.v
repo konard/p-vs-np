@@ -49,12 +49,20 @@ Fixpoint tree_depth (t : DecisionTree) : nat :=
   | Node _ _ left right => S (max (tree_depth left) (tree_depth right))
   end.
 
+(** Helper function to check if an edge exists in the edge list *)
+Fixpoint has_edge (u v : nat) (es : list (nat * nat)) : bool :=
+  match es with
+  | nil => false
+  | (a, b) :: rest =>
+      if (Nat.eqb u a && Nat.eqb v b)%bool then true else has_edge u v rest
+  end.
+
 (** A decision tree computes a function from graphs to booleans *)
 Fixpoint eval_tree (t : DecisionTree) (G : Graph) : bool :=
   match t with
   | Leaf b => b
   | Node u v left right =>
-      if in_dec Nat.eq_dec (u, v) (edges G)
+      if has_edge u v (edges G)
       then eval_tree left G
       else eval_tree right G
   end.
