@@ -69,8 +69,8 @@ axiomatization OWMF_modulus :: "nat \<Rightarrow> nat"
 (* OWMF target value *)
 axiomatization OWMF_target :: "nat \<Rightarrow> nat"
 
-(* OWMF one-way function *)
-axiomatization OWMF_function :: "nat \<Rightarrow> nat \<Rightarrow> nat"  -- "(modulus, x) -> f(x)"
+(* OWMF one-way function: (modulus, x) -> f(x) *)
+axiomatization OWMF_function :: "nat \<Rightarrow> nat \<Rightarrow> nat"
 
 (* OWMF input encoding *)
 type_synonym OWMF_input_encoding = string
