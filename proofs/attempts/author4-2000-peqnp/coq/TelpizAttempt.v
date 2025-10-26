@@ -250,8 +250,8 @@ Record RigorousComputationalModel := {
 (** The Telpiz attempt is incomplete *)
 Theorem telpiz_attempt_incomplete :
   ~ (exists (principle : PositionalityPrinciple), True) /\
-  (forall L, in_NP L -> exists M, True) /\ (* Claims algorithms exist *)
-  (forall M, exists L, ~ in_P L). (* But cannot prove they're in P *)
+  (forall L, in_NP L -> exists (M : TuringMachine), True) /\ (* Claims algorithms exist *)
+  (forall (M : TuringMachine), exists L, ~ in_P L). (* But cannot prove they're in P *)
 Proof.
   split.
   - exact telpiz_gaps_prevent_proof.
