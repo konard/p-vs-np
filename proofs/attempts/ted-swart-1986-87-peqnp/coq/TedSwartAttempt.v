@@ -238,9 +238,9 @@ Admitted.
 Remark encoding_size_matters :
   forall (problem : DecisionProblem) (encoding : list bool -> LinearProgram),
     (* Even if encoding is "correct" semantically *)
-    (forall input, True) ->
+    (forall (input : list bool), True) ->
     (* The encoding might still be exponential size *)
-    exists input, forall poly, LP_size (encoding input) > poly (length input).
+    exists (input : list bool), forall poly, LP_size (encoding input) > poly (length input).
 Proof.
   (* This is the key insight that invalidates many P=NP attempts *)
 Admitted.
