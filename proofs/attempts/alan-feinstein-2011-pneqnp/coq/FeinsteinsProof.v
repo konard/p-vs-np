@@ -17,6 +17,7 @@ Require Import Coq.Logic.Classical_Prop.
 Require Import Coq.Lists.List.
 Require Import Coq.Strings.String.
 Require Import Coq.Sets.Ensembles.
+Require Import Coq.micromega.Lia.
 Import ListNotations.
 
 Module FeinsteinsProof.
