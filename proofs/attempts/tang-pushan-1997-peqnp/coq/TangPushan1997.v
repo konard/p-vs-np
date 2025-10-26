@@ -120,9 +120,9 @@ Definition valid_poly_time_algorithm (L : DecisionProblem) (A : BinaryString -> 
   (* 1. Must run in polynomial time on ALL inputs *)
   (exists (time : nat -> nat),
     is_polynomial time /\
-    forall x, True) /\  (* Abstract: A(x) completes in time(|x|) steps *)
+    forall (x : BinaryString), True) /\  (* Abstract: A(x) completes in time(|x|) steps *)
   (* 2. Must be correct on ALL inputs *)
-  (forall x, L x <-> A x = true).
+  (forall (x : BinaryString), L x <-> A x = true).
 
 (** ** The HEWN Algorithm *)
 
