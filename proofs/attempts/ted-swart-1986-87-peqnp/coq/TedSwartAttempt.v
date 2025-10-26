@@ -16,6 +16,7 @@
 Require Import Coq.Arith.Arith.
 Require Import Coq.Lists.List.
 Require Import Coq.Logic.Classical_Prop.
+Require Import Coq.micromega.Lia.
 Import ListNotations.
 
 (** * Basic Definitions *)
@@ -177,7 +178,7 @@ Proof.
   specialize (Hbig poly).
 
   (* Contradiction: can't be both ≤ poly(n) and > poly(n) *)
-  omega.
+  lia.
 Qed.
 
 (** * Why This Matters for P vs NP *)
