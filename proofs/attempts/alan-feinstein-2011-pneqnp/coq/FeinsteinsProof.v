@@ -71,14 +71,14 @@ Definition Tour := list nat.
 Definition isValidTour (g : Graph) (t : Tour) : bool :=
   Nat.eqb (List.length t) (vertices g).  (* simplified - just check length *)
 
-(* Tour length *)
-Fixpoint tourLength (g : Graph) (t : Tour) : nat :=
+(* Tour length - simplified implementation *)
+Fixpoint tourLength (g : Graph) (t : Tour) {struct t} : nat :=
   match t with
   | [] => 0
-  | [v] => 0
-  | v1 :: v2 :: rest =>
+  | [_] => 0
+  | v1 :: ((v2 :: _) as rest) =>
       match edges g v1 v2 with
-      | Some w => w + tourLength g (v2 :: rest)
+      | Some w => w + tourLength g rest
       | None => 0  (* invalid tour *)
       end
   end.
