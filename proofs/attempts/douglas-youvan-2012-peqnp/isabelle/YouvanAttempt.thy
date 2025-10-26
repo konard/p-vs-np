@@ -55,7 +55,7 @@ axiomatization where
 
 (* Key insight: Complexity is defined by step count, not physical duration *)
 definition complexity_of_computation :: "computation \<Rightarrow> nat" where
-  "complexity_of_computation comp = number_of_steps comp"
+  "complexity_of_computation = number_of_steps"
 
 (* Theorem: Time dilation doesn't change computational complexity *)
 lemma time_dilation_does_not_change_complexity:
@@ -80,10 +80,10 @@ lemma youvan_error:
 
 (* Formalization of the error: confusing physical time with computational steps *)
 definition physical_time_to_complete :: "computation \<Rightarrow> reference_frame \<Rightarrow> physical_time" where
-  "physical_time_to_complete comp rf = physical_duration comp rf"
+  "physical_time_to_complete = physical_duration"
 
 definition computational_steps_required :: "computation \<Rightarrow> nat" where
-  "computational_steps_required comp = number_of_steps comp"
+  "computational_steps_required = number_of_steps"
 
 (* These are fundamentally different concepts *)
 lemma physical_time_vs_steps:
