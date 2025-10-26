@@ -11,6 +11,16 @@
 *)
 
 Require Import Coq.Logic.Classical_Prop.
+Require Import Coq.Arith.Arith.
+
+(* Define power notation for nat *)
+Fixpoint pow (base exp : nat) : nat :=
+  match exp with
+  | 0 => 1
+  | S exp' => base * pow base exp'
+  end.
+
+Notation "x ^ y" := (pow x y) (at level 30, right associativity) : nat_scope.
 
 (** * Basic Definitions *)
 
