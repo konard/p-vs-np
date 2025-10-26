@@ -131,10 +131,10 @@ Qed.
 (* For clause (¬x ∨ ¬y), we'd have: (1-x) + (1-y) >= 1, i.e., x + y <= 1 *)
 
 Definition naive_lp_constraint_clause1 (assign : RealAssignment) : Prop :=
-  (assign 0 + assign 1 >= 1)%R.
+  (assign 0%nat + assign 1%nat >= 1)%R.
 
 Definition naive_lp_constraint_clause2 (assign : RealAssignment) : Prop :=
-  (assign 0 + assign 1 <= 1)%R.
+  (assign 0%nat + assign 1%nat <= 1)%R.
 
 (* The fractional solution x=0.5, y=0.5 satisfies these LP constraints *)
 Lemma fractional_satisfies_lp :
