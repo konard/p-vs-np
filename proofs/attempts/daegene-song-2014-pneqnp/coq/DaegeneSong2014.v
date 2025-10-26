@@ -67,7 +67,7 @@ Axiom picture_equivalence_general :
 (** * 4. Song's Self-Reference Case *)
 
 (** Initial setup: reference frame pointing in z-direction *)
-Definition initial_frame : Vector3 := mkVector3 0 0 1.
+Definition initial_frame : Vector3 := mkVector3 R0 R0 R1.
 
 (** Song's case (P2): state = observable = initial_frame *)
 Definition song_state : Vector3 := initial_frame.
@@ -86,7 +86,7 @@ Definition heisenberg_self_reference (theta : R) : Vector3 :=
 (** The key observation: these vectors appear different *)
 Axiom vectors_appear_different :
   forall theta : R,
-    theta <> 0 ->
+    theta <> R0 ->
     theta <> PI ->
     schrodinger_self_reference theta <> heisenberg_self_reference theta.
 
@@ -167,7 +167,7 @@ Axiom song_process_not_a_language :
 Theorem song_refutation :
   (* Even if we accept all of Song's setup... *)
   (forall theta : R,
-    theta <> 0 ->
+    theta <> R0 ->
     theta <> PI ->
     schrodinger_self_reference theta <> heisenberg_self_reference theta) ->
   (* It still doesn't prove P ≠ NP *)
@@ -213,7 +213,7 @@ Admitted.
 Theorem what_song_showed :
   exists (process : R -> Vector3) (process' : R -> Vector3),
     forall theta : R,
-      theta <> 0 ->
+      theta <> R0 ->
       theta <> PI ->
       process theta <> process' theta.
 Proof.
@@ -228,7 +228,7 @@ Qed.
 Theorem representation_not_complexity :
   (* Different representations exist *)
   (exists p1 p2 : R -> Vector3,
-    forall theta, theta <> 0 -> p1 theta <> p2 theta) ->
+    forall theta, theta <> R0 -> p1 theta <> p2 theta) ->
   (* But this doesn't imply P ≠ NP *)
   ~ (forall _, PNotEqualsNP).
 Proof.
@@ -286,7 +286,7 @@ Axiom error5_verifier_fails :
 Theorem conclusion :
   (* Song's self-reference argument *)
   (forall theta : R,
-    theta <> 0 ->
+    theta <> R0 ->
     schrodinger_self_reference theta <> heisenberg_self_reference theta) ->
   (* Does not establish P ≠ NP *)
   True.
