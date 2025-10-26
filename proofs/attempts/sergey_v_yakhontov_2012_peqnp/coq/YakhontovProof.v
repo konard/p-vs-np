@@ -309,10 +309,23 @@ Theorem yakhontov_error_identified :
     In error yakhontovErrors /\
     error_description error = "Confuses polynomial in t(n) with polynomial in n".
 Proof.
-  exists (nth 1 yakhontovErrors (mkYakhontovError 0 "" True)).
-  split.
-  - apply in_nth. simpl. omega.
-  - simpl. reflexivity.
+  unfold yakhontovErrors.
+  exists (nth 1 [mkYakhontovError 1 "Complexity is doubly exponential in input size for SAT"
+                  (exists c n : nat, yakhontovTimeComplexity satNDTM n >= 2 ^ (2 ^ (c * n)));
+                mkYakhontovError 2 "Confuses polynomial in t(n) with polynomial in n"
+                  (exists M : NDTM, (isPolynomial (fun tn => 2 ^ (10 * tn ^ 272))) /\
+                    (~isPolynomial (fun n => 2 ^ (10 * (ndtm_timeBound M n) ^ 272))));
+                mkYakhontovError 3 "CFG size is exponential in input size when t(n) is exponential"
+                  (exists M : NDTM, exists input : string,
+                    cfg_size (ndtmToControlFlowGraph M input) >= 2 ^ (String.length input));
+                mkYakhontovError 4 "Circular reasoning: assumes TCPE (NP-complete) solvable in poly-time"
+                  (exists (_ : ClassNP), True);
+                mkYakhontovError 5 "Number of commodities (tape cells) is exponential in input size"
+                  (exists M : NDTM, exists n : nat, ndtm_timeBound M n >= 2 ^ n)]
+                (mkYakhontovError 0 "" True)).
+  simpl. split.
+  - right. left. reflexivity.
+  - reflexivity.
 Qed.
 
 (**
