@@ -121,15 +121,10 @@ Definition some_algorithms_are_slow : Prop :=
 (**
   This is much weaker than ivanov_universal_lower_bound_claim!
   The existential (∃) vs universal (∀) quantifier makes all the difference.
-*)
 
-Lemma quantifier_error :
-  some_algorithms_are_slow -> ~ ivanov_universal_lower_bound_claim.
-Proof.
-  intros H_some H_all.
-  (* This doesn't actually lead to a contradiction *)
-  (* We can have SOME slow algorithms while OTHER fast algorithms exist *)
-Abort.  (* Cannot prove this! They are compatible statements *)
+  We can have SOME slow algorithms while OTHER fast algorithms exist.
+  These are compatible statements - one being true doesn't contradict the other.
+*)
 
 (**
   ERROR TYPE 2: Incomplete Case Analysis
