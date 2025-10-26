@@ -115,8 +115,8 @@ Axiom np_state_space_not_contractible : forall (L : Language),
    But the assumptions are unproven!
 *)
 Lemma annila_circular_argument :
-  (forall L, InNP L -> ~ EfficientContraction nat) ->
-  (forall L, InP L -> EfficientContraction nat) ->
+  (forall L, InNP L -> ~ @EfficientContraction nat) ->
+  (forall L, InP L -> @EfficientContraction nat) ->
   ~ (forall L, InP L <-> InNP L).
 Proof.
   intros H_np_no_contract H_p_contract.
@@ -156,7 +156,7 @@ Axiom dissipation_time_relation : forall n,
 (* It tells us nothing about whether NP = P *)
 
 Lemma np_has_poly_verification : forall L,
-  InNP L -> exists V t, PolynomialTime t.
+  InNP L -> exists (V : Verifier) (t : TimeComplexity), PolynomialTime t.
 Proof.
   intros L [V [t [Hpoly Hverif]]].
   exists V, t. exact Hpoly.
