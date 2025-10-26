@@ -78,7 +78,7 @@ Definition is_valid_hamiltonian_cycle (g : Graph) (cycle : HamiltonianCycle) : P
   NoDup cycle /\
   (forall v, In v (vertices g) <-> In v cycle) /\
   (** Length equals number of vertices *)
-  length cycle = length (vertices g).
+  List.length cycle = List.length (vertices g).
 
 (** Cost of a cycle *)
 Fixpoint cycle_cost_helper (g : Graph) (cycle : list Vertex) : nat :=
@@ -202,7 +202,7 @@ Proof.
   exists (fun n => n).
   unfold PolynomialBound.
   exists 1, 1.
-  split; [omega | split; [omega | intros; omega]].
+  split; [auto with arith | split; [auto with arith | intros; auto with arith]].
 Qed.
 
 (** Main theorem: HPTSP is in NP *)
@@ -217,7 +217,7 @@ Proof.
   - (** Polynomial time bound *)
     unfold PolynomialBound.
     exists 1, 1.
-    split; [omega | split; [omega | intros; omega]].
+    split; [auto with arith | split; [auto with arith | intros; auto with arith]].
   - (** Correctness *)
     intro input.
     unfold HPTSP.
