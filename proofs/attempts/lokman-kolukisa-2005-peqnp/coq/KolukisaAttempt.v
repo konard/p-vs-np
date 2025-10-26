@@ -177,8 +177,11 @@ Proof.
   - (* Correctness *)
     intro f.
     unfold CorrectlyDecides in H_correct.
-    rewrite <- H_equiv.
-    apply H_correct.
+    unfold CorrectlyDecides.
+    intro.
+    specialize (H_equiv f).
+    specialize (H_correct (reduction f)).
+    tauto.
   - (* Polynomial time *)
     simpl.
     (* Composition of polynomial time operations is polynomial *)
