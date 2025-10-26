@@ -14,6 +14,7 @@
 
 Require Import Coq.Arith.Arith.
 Require Import Coq.Strings.String.
+Require Import Coq.Strings.Ascii.
 Require Import Coq.Lists.List.
 Require Import Coq.Bool.Bool.
 Import ListNotations.

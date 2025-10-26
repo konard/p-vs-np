@@ -98,13 +98,8 @@ record TapeArbitrarySequence =
 (* Tape consistency condition: read/write operations must match *)
 definition isTapeConsistent :: "ComputationPath \<Rightarrow> bool" where
   "isTapeConsistent path \<equiv>
-    (* A path is tape-consistent if whenever we read from a cell,
-       the symbol matches what was last written to that cell *)
     \<forall>i j. i < j \<and> j < length path \<longrightarrow>
-      (* If steps i and j access the same tape cell... *)
-      (\<exists>cell. True) \<longrightarrow>
-      (* Then the symbol read at step j matches what was written at step i *)
-      True"  (* Simplified for demonstration *)
+      (\<exists>cell. True) \<longrightarrow> True"
 
 (* Tape-consistent sequence: tape-arbitrary + consistency *)
 record TapeConsistentSequence =
