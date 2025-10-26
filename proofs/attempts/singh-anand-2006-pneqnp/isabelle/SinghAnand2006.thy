@@ -21,15 +21,15 @@ text \<open>We model PA and its interpretations abstractly\<close>
 record Model =
   domain_type :: "nat set"  (* Using nat set as proxy for abstract domain *)
   zero_elem :: nat
-  succ_func :: "nat ⇒ nat"
+  succ_func :: "nat \<Rightarrow> nat"
 
 (* Standard model: natural numbers *)
 definition StandardModel :: Model where
-  "StandardModel ≡ ⟦ domain_type = UNIV, zero_elem = 0, succ_func = Suc ⟧"
+  "StandardModel \<equiv> \<lparr> domain_type = UNIV, zero_elem = 0, succ_func = Suc \<rparr>"
 
 (* Non-standard models exist (axiomatized) *)
 axiomatization NonStandardModel :: Model where
-  nonstandard_differs: "NonStandardModel ≠ StandardModel"
+  nonstandard_differs: "NonStandardModel \<noteq> StandardModel"
 
 section \<open>PA Formulas and Provability\<close>
 
@@ -37,11 +37,11 @@ section \<open>PA Formulas and Provability\<close>
 typedecl PAFormula
 
 (* Provability relation *)
-axiomatization provable_in_PA :: "PAFormula ⇒ bool" where
+axiomatization provable_in_PA :: "PAFormula \<Rightarrow> bool" where
   provability_is_well_defined: "True"  (* Placeholder for well-definedness *)
 
 (* Model satisfaction relation *)
-axiomatization satisfies :: "Model ⇒ PAFormula ⇒ bool"
+axiomatization satisfies :: "Model \<Rightarrow> PAFormula \<Rightarrow> bool"
 
 (* The formula G(x): "x = 0 or x is a successor" *)
 axiomatization formula_G :: PAFormula
@@ -53,7 +53,7 @@ section \<open>Gödel's Completeness Theorem\<close>
 
 (* If a formula is provable in PA, it holds in ALL models *)
 axiomatization where
-  goedel_completeness: "provable_in_PA φ ⟹ satisfies M φ"
+  goedel_completeness: "provable_in_PA φ \<Longrightarrow> satisfies M φ"
 
 section \<open>Key Provability Facts from PA\<close>
 
@@ -76,7 +76,7 @@ theorem singh_anand_step2: "satisfies M forall_G"
 (* Singh Anand's incorrect claim *)
 axiomatization where
   singh_anand_incorrect_claim:
-    "provable_in_PA forall_G ⟹ (∀M. M = StandardModel)"
+    "provable_in_PA forall_G \<Longrightarrow> (\<forall>M. M = StandardModel)"
 
 section \<open>REFUTATION: The Error Exposed\<close>
 
@@ -84,11 +84,11 @@ section \<open>REFUTATION: The Error Exposed\<close>
 theorem singh_anand_argument_is_wrong: "False"
 proof -
   (* We have a non-standard model *)
-  have h_nonstandard_exists: "∃M. M ≠ StandardModel"
+  have h_nonstandard_exists: "\<exists>M. M \<noteq> StandardModel"
     using nonstandard_differs by blast
 
   (* Singh Anand claims all models are standard *)
-  have h_singh_claim: "∀M. M = StandardModel"
+  have h_singh_claim: "\<forall>M. M = StandardModel"
     by (rule singh_anand_incorrect_claim, rule provable_forallG)
 
   (* This contradicts the existence of non-standard models *)
@@ -125,11 +125,11 @@ theorem G_holds_in_nonstandard_model: "satisfies NonStandardModel forall_G"
 
 (* This demonstrates the error: proving G doesn't eliminate non-standard models *)
 theorem proving_G_does_not_eliminate_nonstandard_models:
-  "provable_in_PA forall_G ∧ (∃M. M ≠ StandardModel)"
+  "provable_in_PA forall_G \<and> (\<exists>M. M \<noteq> StandardModel)"
 proof
   show "provable_in_PA forall_G" by (rule provable_forallG)
 next
-  show "∃M. M ≠ StandardModel"
+  show "\<exists>M. M \<noteq> StandardModel"
     using nonstandard_differs by blast
 qed
 
@@ -144,16 +144,16 @@ axiomatization
 (* Singh Anand's claimed implication *)
 axiomatization where
   singh_anand_main_claim:
-    "PA_has_no_nonstandard_models ⟹ ¬P_equals_NP"
+    "PA_has_no_nonstandard_models \<Longrightarrow> \<not>P_equals_NP"
 
 (* But PA having non-standard models is actually TRUE *)
 axiomatization where
-  PA_has_nonstandard_models_TRUE: "¬PA_has_no_nonstandard_models"
+  PA_has_nonstandard_models_TRUE: "\<not>PA_has_no_nonstandard_models"
 
 (* So the implication's antecedent is false, giving us no information about P vs NP *)
 theorem singh_anand_proves_nothing_about_P_vs_NP:
-  "¬PA_has_no_nonstandard_models ⟹
-   (PA_has_no_nonstandard_models ⟶ conclusion) ⟹
+  "\<not>PA_has_no_nonstandard_models \<Longrightarrow>
+   (PA_has_no_nonstandard_models \<longrightarrow> conclusion) \<Longrightarrow>
    True"
   by simp
 
@@ -189,10 +189,10 @@ record ErrorAnalysis =
 
 (* The formalized error analysis *)
 definition singh_anand_errors :: ErrorAnalysis where
-  "singh_anand_errors ≡ ⟦
+  "singh_anand_errors \<equiv> \<lparr>
     error_1 = ''Provable formulas are true in ALL models, not just standard ones'',
     error_2 = ''PA provably has non-standard models (Gödel, Löwenheim-Skolem)'',
     error_3 = ''No rigorous analysis of polynomial time or NP-completeness''
-  ⟧"
+  \<rparr>"
 
 end
