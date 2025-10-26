@@ -53,7 +53,7 @@ section \<open>Gödel's Completeness Theorem\<close>
 
 (* If a formula is provable in PA, it holds in ALL models *)
 axiomatization where
-  goedel_completeness: "provable_in_PA φ \<Longrightarrow> satisfies M φ"
+  goedel_completeness: "provable_in_PA phi \<Longrightarrow> satisfies M phi"
 
 section \<open>Key Provability Facts from PA\<close>
 
