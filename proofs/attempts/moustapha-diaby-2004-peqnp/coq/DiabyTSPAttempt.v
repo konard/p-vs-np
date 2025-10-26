@@ -21,7 +21,6 @@ Require Import Coq.Arith.PeanoNat.
 Require Import Coq.Logic.Classical_Prop.
 Require Import Coq.Lists.List.
 Require Import Coq.Strings.String.
-Require Import Coq.QArith.QArith.
 Import ListNotations.
 
 Module DiabyTSPAttempt.
@@ -65,46 +64,23 @@ Record NPComplete := {
 Definition PEqualsNP : Prop :=
   forall L : ClassNP, exists L' : ClassP, forall s : String.string, np_language L s = p_language L' s.
 
-(* ## 2. Linear Programming Formalization *)
+(* ## 2. Linear Programming Formalization (Simplified) *)
 
-(* Linear constraints: Ax ≤ b *)
-Record LinearConstraint := {
-  lc_numVars : nat;
-  lc_numConstraints : nat;
-  (* Coefficient matrix A *)
-  lc_A : nat -> nat -> Q;
-  (* Right-hand side vector b *)
-  lc_b : nat -> Q
-}.
-
-(* Linear objective function: c^T x *)
-Record LinearObjective := {
-  lo_numVars : nat;
-  (* Objective coefficients c *)
-  lo_c : nat -> Q
-}.
-
-(* A Linear Programming problem *)
+(* A Linear Programming problem (simplified to avoid rational numbers) *)
 Record LPProblem := {
-  lp_constraints : LinearConstraint;
-  lp_objective : LinearObjective;
-  (* Ensure objective has same number of variables as constraints *)
-  lp_varMatch : lc_numVars lp_constraints = lo_numVars lp_objective
+  lp_numVars : nat;
+  lp_numConstraints : nat
 }.
 
-(* A solution to an LP problem *)
+(* A solution to an LP problem (simplified) *)
 Record LPSolution (lp : LPProblem) := {
-  lps_x : nat -> Q;
-  (* Solution satisfies all constraints *)
-  lps_feasible : forall i : nat, i < lc_numConstraints (lp_constraints lp) -> True  (* Simplified *)
+  lps_valid : True  (* Simplified *)
 }.
 
-(* An extreme point (vertex) of the LP polytope *)
+(* An extreme point (vertex) of the LP polytope (simplified) *)
 Record ExtremePoint (lp : LPProblem) := {
   ep_solution : LPSolution lp;
-  (* It's a vertex (cannot be written as convex combination of other solutions) *)
-  ep_isVertex : forall (s1 s2 : LPSolution lp) (lambda : Q),
-    0 < lambda -> lambda < 1 -> True  (* Simplified *)
+  ep_isVertex : True  (* Simplified *)
 }.
 
 (* LP problems can be solved in polynomial time *)
@@ -159,22 +135,10 @@ Axiom TSP_is_NP_complete : exists tsp : NPComplete, npc_problem tsp = TSP.
 (* ## 4. Diaby's Construction *)
 
 (* Diaby's claimed LP formulation of TSP *)
-Definition diabyLPFormulation (g : Graph) : LPProblem.
-Proof.
-  refine {|
-    lp_constraints := {|
-      lc_numVars := (g_numNodes g) ^ 9;  (* O(n^9) variables *)
-      lc_numConstraints := (g_numNodes g) ^ 7;  (* O(n^7) constraints *)
-      lc_A := fun i j => 0;  (* Simplified: actual constraints are complex *)
-      lc_b := fun i => 0
-    |};
-    lp_objective := {|
-      lo_numVars := (g_numNodes g) ^ 9;
-      lo_c := fun j => 0  (* Objective: minimize tour cost *)
-    |};
-    lp_varMatch := eq_refl
+Definition diabyLPFormulation (g : Graph) : LPProblem :=
+  {| lp_numVars := (g_numNodes g) ^ 9;  (* O(n^9) variables *)
+     lp_numConstraints := (g_numNodes g) ^ 7  (* O(n^7) constraints *)
   |}.
-Defined.
 
 (* The size of Diaby's LP formulation is polynomial *)
 Theorem diaby_formulation_is_polynomial :
