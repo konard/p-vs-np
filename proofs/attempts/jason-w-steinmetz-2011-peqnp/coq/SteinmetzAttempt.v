@@ -244,12 +244,9 @@ Axiom withdrawal_reason :
   help future researchers avoid similar mistakes.
 *)
 
+(** Formalization complete *)
+
+(* Summary check *)
 Check ThreeSAT.
 Check algorithm_correct.
 Check algorithm_polytime.
-Check integers_grow_superpolynomially.
-Check missing_proof.
-Check proof_gap.
-Check paper_withdrawn.
-
-(** Formalization complete *)

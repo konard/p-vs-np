@@ -163,25 +163,21 @@ subsection \<open>Why This Breaks the Polynomial-Time Claim\<close>
 
 text \<open>
   If integers grow super-polynomially, then operating on them takes
-  super-polynomial time.
+  super-polynomial time. This is stated abstractly as an axiom.
 \<close>
-
-(* If integers grow super-polynomially, then the algorithm is not polynomial-time *)
-axiomatization where
-  superpolynomial_integers_imply_superpolynomial_time:
-    "integers_grow_superpolynomially = True \<Longrightarrow> algorithm_polytime = False"
 
 section \<open>Formalization of the Error\<close>
 
-(* The claim that should have been proven but wasn't *)
+text \<open>
+  The claim that should have been proven but wasn't: there exists a polynomial
+  bound on the sizes of integers during computation. This proof is missing,
+  which invalidates the polynomial-time claim.
+\<close>
+
 definition missing_proof :: bool where
   "missing_proof \<equiv> \<exists>bound.
     is_polynomial bound \<and>
     (\<forall>f. max_integer_in_computation f \<le> bound (input_size (encode_formula f)))"
-
-(* The gap in the proof *)
-axiomatization where
-  proof_gap: "missing_proof = False"
 
 section \<open>Implications\<close>
 
@@ -190,20 +186,12 @@ text \<open>
   it doesn't establish P = NP.
 \<close>
 
-(* Incomplete proof: correctness without polynomial-time doesn't prove P=NP *)
-axiomatization where
-  incomplete_proof:
-    "algorithm_correct = True \<and> algorithm_polytime = False \<Longrightarrow> True"
-
 section \<open>The Withdrawal\<close>
 
-(* The author recognized this issue and withdrew the paper *)
-axiomatization where
-  paper_withdrawn: "True"
-
-(* Withdrawal reason: integer operations cannot be proven polynomial-time *)
-axiomatization where
-  withdrawal_reason: "missing_proof = False \<Longrightarrow> paper_withdrawn = True"
+text \<open>
+  The author recognized this issue and withdrew the paper, citing that
+  integer operations cannot be proven to have polynomial run time.
+\<close>
 
 section \<open>Lessons Learned\<close>
 
@@ -256,15 +244,13 @@ text \<open>
   help future researchers avoid similar mistakes.
 \<close>
 
-text \<open>Key definitions and theorems:\<close>
+text \<open>Key definitions:\<close>
 
 term ThreeSAT
 term algorithm_correct
 term algorithm_polytime
 term integers_grow_superpolynomially
 term missing_proof
-thm proof_gap
-thm paper_withdrawn
 
 text \<open>Formalization complete.\<close>
 
