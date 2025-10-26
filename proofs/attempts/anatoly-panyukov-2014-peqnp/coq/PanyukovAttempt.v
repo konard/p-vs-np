@@ -242,7 +242,7 @@ Admitted.
 *)
 
 (* We formalize this gap: *)
-Axiom unproven_claim_from_page_8 : forall G n lambda_star,
+Axiom unproven_claim_from_page_8 : forall (G : Graph) (n : nat) (lambda_star : nat),
   (* If lambda_star is optimal for the dual... *)
   (* Then the primal optimal solution must be in D2 *)
   True.  (* Placeholder - the actual claim is not proven in the paper *)
