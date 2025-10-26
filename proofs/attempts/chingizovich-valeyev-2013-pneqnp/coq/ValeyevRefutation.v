@@ -112,8 +112,8 @@ Proof.
   rewrite exhaustive_search_time in H_time.
 
   (* But poly_alg is polynomial *)
+  specialize (H_poly n).
   unfold polynomial in H_poly.
-  destruct H_poly as [H_poly _].
   destruct H_poly as [c [k H_poly_bound]].
 
   (* Contradiction: polynomial algorithm has exponential time *)
