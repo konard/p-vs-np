@@ -43,7 +43,7 @@ Fixpoint tour_length (g : Graph) (tour : list nat) : R :=
 Definition TSP (g : Graph) (bound : R) : Prop :=
   exists (tour : Tour (num_vertices g)),
     is_valid_tour (num_vertices g) tour /\
-    tour_length g tour <= bound.
+    (tour_length g tour <= bound)%R.
 
 (** * 2. Linear Programming vs Integer Linear Programming *)
 
@@ -65,9 +65,9 @@ Definition LPSolution (lp : LinearProgram) := list R.
 
 (** Check if LP solution satisfies a constraint *)
 Definition satisfies_constraint (sol : list R) (c : LinearConstraint) : Prop :=
-  let products := map (fun '(coeff, val) => coeff * val)
+  let products := map (fun '(coeff, val) => (coeff * val)%R)
                       (combine (constraint_coeffs c) sol) in
-  fold_right Rplus 0 products <= constraint_bound c.
+  (fold_right Rplus 0%R products <= constraint_bound c)%R.
 
 (** Check if solution is feasible for LP *)
 Definition is_feasible_LP (lp : LinearProgram) (sol : LPSolution lp) : Prop :=
@@ -76,7 +76,7 @@ Definition is_feasible_LP (lp : LinearProgram) (sol : LPSolution lp) : Prop :=
 
 (** LP objective value *)
 Definition objective_value (coeffs : list R) (sol : list R) : R :=
-  fold_right Rplus 0 (map (fun '(c, v) => c * v) (combine coeffs sol)).
+  fold_right Rplus 0%R (map (fun '(c, v) => (c * v)%R) (combine coeffs sol)).
 
 (** LP is solvable in polynomial time (assumed as axiom) *)
 Axiom LP_polynomial_time : forall (lp : LinearProgram),
@@ -84,8 +84,8 @@ Axiom LP_polynomial_time : forall (lp : LinearProgram),
   is_feasible_LP lp sol /\
   (exists k c, forall n, time n <= c * (n ^ k) + c) /\
   forall other_sol, is_feasible_LP lp other_sol ->
-    objective_value (objective_coeffs lp) sol <=
-    objective_value (objective_coeffs lp) other_sol.
+    (objective_value (objective_coeffs lp) sol <=
+     objective_value (objective_coeffs lp) other_sol)%R.
 
 (** An integer linear program: LP with integrality constraints *)
 Record IntegerLinearProgram := {
@@ -214,7 +214,7 @@ Theorem MERLIN_ILP_correct :
     TSP g bound <->
     exists (sol : list R),
       is_feasible_ILP (MERLIN_ILP g) sol /\
-      objective_value (objective_coeffs (MERLIN_LP g)) sol <= bound.
+      (objective_value (objective_coeffs (MERLIN_LP g)) sol <= bound)%R.
 Proof.
   intros g bound.
   split.
