@@ -264,7 +264,7 @@ Proof.
   exists tm.
   split.
   - exact H_poly_L.
-  - intros [x y].
+  - intros [x_pair y_pair].
     unfold DiagonalEmbedding.
     (**
       The decidability is straightforward, but the key point is:
