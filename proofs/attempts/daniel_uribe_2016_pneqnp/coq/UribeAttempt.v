@@ -12,7 +12,6 @@
 Require Import Coq.Arith.Arith.
 Require Import Coq.Lists.List.
 Require Import Coq.Logic.Classical_Prop.
-Require Import Coq.Sets.Ensembles.
 Import ListNotations.
 
 (** * Graph Theory Foundations *)
