@@ -107,7 +107,7 @@ Definition standard_dp_complexity (n : nat) : nat :=
 
 (** The standard DP approach has exponential time complexity *)
 Theorem standard_dp_is_exponential : forall n,
-  n > 0 -> exists k, standard_dp_complexity n >= 2^n.
+  n > 0 -> exists k : nat, standard_dp_complexity n >= 2^n.
 Proof.
   intros n Hn.
   exists (n * n).
@@ -201,7 +201,7 @@ Definition nuriyev_approach : Prop :=
 Theorem nuriyev_approach_has_gap :
   nuriyev_approach ->
   (* Either algorithm is incorrect or complexity analysis is wrong *)
-  exists error_type, error_type = true.
+  exists error_type : bool, error_type = true.
 Proof.
   intros Happ.
   exists true.
@@ -222,14 +222,14 @@ Definition expensive_operations_error (num_states ops_per_state : nat) : Prop :=
 
 (** Error Pattern 3: Algorithm incomplete (misses some cases) *)
 Definition incomplete_algorithm_error (alg : DirectedGraph -> bool) : Prop :=
-  exists G, has_hamiltonian_path G /\ alg G = false.
+  exists G : DirectedGraph, has_hamiltonian_path G /\ alg G = false.
 
 (** * 11. The Core Impossibility Result *)
 
 (** The key insight: You cannot avoid exponential state space for Hamiltonian Path *)
 Theorem hamiltonian_dp_requires_exponential_time : forall n,
   n > 1 ->
-  exists f, ~ is_polynomial f /\ forall m, m = n -> f m <= standard_dp_complexity m.
+  exists f : nat -> nat, ~ is_polynomial f /\ forall m, m = n -> f m <= standard_dp_complexity m.
 Proof.
   intros n Hn.
   exists (fun k => 2^k).
@@ -277,7 +277,7 @@ Proof.
     simpl. omega.
   - split.
     + apply nuriyev_claim_is_polynomial.
-    + exists 16. intros Hn0.
+    + exists 16%nat. intros Hn0.
       unfold nuriyev_claimed_complexity.
       (* n^8 < 2^n for n >= 16 *)
       (* This is true because exponential grows faster than polynomial *)
