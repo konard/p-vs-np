@@ -201,8 +201,8 @@ Proof.
   repeat split.
   - exact Hpoly.
   - exact Hbound.
-  - intro x.
-    apply (correctness proof L HNP x).
+  - intro input.
+    apply (correctness proof L HNP input).
 Qed.
 
 (** But Telpiz does not provide such a proof *)
