@@ -144,7 +144,8 @@ Axiom rcnf_p_complete :
     (* Log-space reduction exists *) True) /\
   (* RCNF satisfiability is in P *)
   (forall r : RCNF_Structure,
-    exists algorithm, exists poly, True).
+    exists (algorithm : RCNF_Structure -> bool),
+    exists (poly : nat -> nat), True).
 
 (** * 3CNF and TCNF *)
 
