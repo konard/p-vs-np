@@ -143,9 +143,9 @@ Proof.
     lia.
   - (* T(n) ≥ 1 * 2^(1*n) for n > 0 *)
     intros n Hn.
-    simpl. rewrite Nat.mul_1_l.
     (* 2^n * n^2 ≥ 2^n *)
-    rewrite Nat.mul_comm.
+    destruct n; try lia.
+    simpl.
     apply Nat.le_mul_diag_r.
 Qed.
 
