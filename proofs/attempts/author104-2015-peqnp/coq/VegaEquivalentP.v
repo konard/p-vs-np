@@ -134,32 +134,35 @@ Proof.
     (fun input cert => compute tm input)
     (timeComplexity tm)).
   exists v, v.
-  split; [split; [split; [split |] |] |].
+  split.
   - (* L1 is in P *) exists tm. split; assumption.
-  - (* L2 is in P *) exists tm. split; assumption.
-  - (* v1 is polynomial *) exact H_poly.
-  - (* v2 is polynomial *) exact H_poly.
-  - (* Characterization of diagonal embedding *)
-    intros x_str y_str.
-    unfold DiagonalEmbedding.
-    split.
-    + (* Forward *)
-      intros [H_eq H_L_x_str].
-      split; [| split].
-      * rewrite <- H_eq. exact H_L_x_str.
-      * rewrite H_eq. exact H_L_x_str.
-      * exists "". (* arbitrary certificate, verifier ignores it *)
-        simpl.
-        split; apply H_decides; [rewrite <- H_eq |]; exact H_L_x_str.
-    + (* Backward *)
-      intros [H_L1_x_str [H_L2_y_str [cert [H_v1 H_v2]]]].
-      simpl in H_v1, H_v2.
-      split.
-      * (* Show x_str = y_str *)
-        (* This is the WEAK POINT: we cannot actually prove x_str = y_str from the premises! *)
-        (* In Vega's examples, he ASSUMES the diagonal structure {(φ,φ)} *)
-        admit.
-      * exact H_L1_x_str.
+  - split.
+    + (* L2 is in P *) exists tm. split; assumption.
+    + split.
+      * (* v1 is polynomial *) exact H_poly.
+      * split.
+        -- (* v2 is polynomial *) exact H_poly.
+        -- (* Characterization of diagonal embedding *)
+           intros x_str y_str.
+           unfold DiagonalEmbedding.
+           split.
+           ++ (* Forward *)
+              intros [H_eq H_L_x_str].
+              split; [| split].
+              ** rewrite <- H_eq. exact H_L_x_str.
+              ** rewrite H_eq. exact H_L_x_str.
+              ** exists "". (* arbitrary certificate, verifier ignores it *)
+                 simpl.
+                 split; apply H_decides; [rewrite <- H_eq |]; exact H_L_x_str.
+           ++ (* Backward *)
+              intros [H_L1_x_str [H_L2_y_str [cert [H_v1 H_v2]]]].
+              simpl in H_v1, H_v2.
+              split.
+              ** (* Show x_str = y_str *)
+                 (* This is the WEAK POINT: we cannot actually prove x_str = y_str from the premises! *)
+                 (* In Vega's examples, he ASSUMES the diagonal structure {(φ,φ)} *)
+                 admit.
+              ** exact H_L1_x_str.
 Admitted.
 
 (** * The Logical Fallacy *)
