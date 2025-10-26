@@ -10,7 +10,6 @@
 Require Import Coq.Lists.List.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Arith.Arith.
-Require Import Coq.omega.Omega.
 Import ListNotations.
 
 (** ** Basic Definitions *)
