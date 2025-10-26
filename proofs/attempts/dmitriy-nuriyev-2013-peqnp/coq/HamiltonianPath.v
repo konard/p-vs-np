@@ -33,14 +33,17 @@ Definition graph_size (G : DirectedGraph) : nat := num_vertices G.
 Definition Path := list Vertex.
 
 (** Check if consecutive vertices in a path are connected *)
-Fixpoint is_valid_path (G : DirectedGraph) (p : Path) : bool :=
+Fixpoint is_valid_path (G : DirectedGraph) (p : Path) {struct p} : bool :=
   match p with
   | [] => true
-  | [_] => true
-  | v1 :: v2 :: rest =>
-      if has_edge G v1 v2
-      then is_valid_path G (v2 :: rest)
-      else false
+  | v1 :: ptail =>
+    match ptail with
+    | [] => true
+    | v2 :: rest =>
+        if has_edge G v1 v2
+        then is_valid_path G ptail
+        else false
+    end
   end.
 
 (** Check if a path has no repeated vertices (simple path) *)
