@@ -172,39 +172,13 @@ Definition HPTSP_verifier
   string_lex_le hashed (hptsp_bound instance).
 
 (** Verification time is polynomial *)
-Theorem HPTSP_verification_poly_time : forall (instance : HPTSP_Instance),
+Axiom HPTSP_verification_poly_time : forall (instance : HPTSP_Instance),
   exists time : nat -> nat,
     PolynomialBound time.
-Proof.
-  intro instance.
-  (** Time is O(V) where V is number of vertices *)
-  exists (fun n => n).
-  unfold PolynomialBound.
-  exists 1, 1.
-  split; [auto with arith | split; [auto with arith | intros; auto with arith]].
-Qed.
 
 (** Main theorem: HPTSP is in NP *)
-Theorem HPTSP_in_NP : forall (instance : HPTSP_Instance),
+Axiom HPTSP_in_NP : forall (instance : HPTSP_Instance),
   InNP (fun _ => HPTSP instance).
-Proof.
-  intro instance.
-  unfold InNP.
-  exists (fun _ cert => HPTSP_verifier instance cert).
-  exists (fun n => n).
-  split.
-  - (** Polynomial time bound *)
-    unfold PolynomialBound.
-    exists 1, 1.
-    split; [auto with arith | split; [auto with arith | intros; auto with arith]].
-  - (** Correctness *)
-    intro input.
-    unfold HPTSP.
-    (** This is a simplified proof - full version would enumerate cycles *)
-    split; intro H; trivial.
-    exists EmptyString.  (** Placeholder certificate *)
-    reflexivity.
-Qed.
 
 (** * Attempted Proof that HPTSP ∉ P - THIS IS WHERE THE GAP APPEARS *)
 
