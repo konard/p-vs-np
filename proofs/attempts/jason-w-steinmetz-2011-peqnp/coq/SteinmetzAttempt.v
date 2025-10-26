@@ -145,6 +145,9 @@ Definition algorithm_polytime : Prop :=
 (** Maximum integer value encountered during algorithm execution *)
 Parameter max_integer_in_computation : Formula3CNF -> nat.
 
+(** Abstract encoding of formula to binary string *)
+Parameter encode_formula : Formula3CNF -> BinaryString.
+
 (** The error: integer sizes grow super-polynomially *)
 Definition integers_grow_superpolynomially : Prop :=
   exists (f_sequence : nat -> Formula3CNF),
@@ -156,9 +159,7 @@ Definition integers_grow_superpolynomially : Prop :=
       exists (n0 : nat),
         forall (n : nat),
           n >= n0 ->
-          max_integer_in_computation (f_sequence n) > poly n)
-where
-  "encode_formula f" := ([] : BinaryString) (* Abstract encoding *).
+          max_integer_in_computation (f_sequence n) > poly n).
 
 (** ** Why This Breaks the Polynomial-Time Claim *)
 
@@ -175,9 +176,7 @@ Definition missing_proof : Prop :=
   exists (bound : nat -> nat),
     is_polynomial bound /\
     forall (f : Formula3CNF),
-      max_integer_in_computation f <= bound (input_size (encode_formula f))
-where
-  "encode_formula f" := ([] : BinaryString). (* Abstract encoding *)
+      max_integer_in_computation f <= bound (input_size (encode_formula f)).
 
 (** The gap in the proof *)
 Axiom proof_gap : ~ missing_proof.

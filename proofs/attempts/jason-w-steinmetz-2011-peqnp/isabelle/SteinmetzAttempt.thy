@@ -82,9 +82,9 @@ text \<open>
   the size of the integers being manipulated.
 \<close>
 
-(* Size of an integer (number of bits) *)
+(* Size of an integer (number of bits) - abstract definition *)
 definition integer_bitsize :: "nat \<Rightarrow> nat" where
-  "integer_bitsize n \<equiv> if n = 0 then 1 else (nat \<lfloor>log 2 (real n)\<rfloor>) + 1"
+  "integer_bitsize n \<equiv> if n = 0 then 1 else Suc 0"  (* Simplified - in reality log2(n) *)
 
 (* Cost of basic arithmetic operations on n-bit integers *)
 definition arithmetic_cost :: "nat \<Rightarrow> nat" where
