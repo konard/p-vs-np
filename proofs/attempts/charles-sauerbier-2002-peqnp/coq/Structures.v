@@ -10,6 +10,7 @@ Require Import Coq.Lists.List.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Arith.Arith.
 Require Import Coq.Init.Nat.
+Require Import Coq.micromega.Lia.
 Import ListNotations.
 
 (** * Basic Definitions *)
@@ -66,13 +67,13 @@ Definition Byte : Type := { n : nat | n < 256 }.
 (** The zero byte (00000000) represents empty set of assignments *)
 Definition zero_byte : Byte.
 Proof.
-  exists 0. omega.
+  exists 0. lia.
 Defined.
 
 (** The full byte (11111111) represents all assignments *)
 Definition full_byte : Byte.
 Proof.
-  exists 255. omega.
+  exists 255. lia.
 Defined.
 
 (** Check if a byte is zero (no assignments) *)
