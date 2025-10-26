@@ -24,19 +24,19 @@ Record Graph := {
 Definition Tour (n : nat) := list nat.
 
 (** Check if a tour is valid: visits each vertex exactly once *)
-Fixpoint is_valid_tour (n : nat) (tour : Tour n) : Prop :=
+Definition is_valid_tour (n : nat) (tour : Tour n) : Prop :=
   length tour = n /\
   (forall i, i < n -> In i tour) /\
   (forall i, In i tour -> i < n) /\
   NoDup tour.
 
 (** Tour length calculation *)
-Fixpoint tour_length (g : Graph) (tour : Tour (num_vertices g)) : R :=
+Fixpoint tour_length (g : Graph) (tour : list nat) : R :=
   match tour with
-  | [] => 0
-  | [x] => edge_weight g x (hd 0 tour)  (* return to start *)
-  | x :: y :: rest =>
-      edge_weight g x y + tour_length g (y :: rest)
+  | [] => 0%R
+  | [x] => edge_weight g x x  (* simplified: return to self *)
+  | x :: ((y :: _) as rest) =>
+      (edge_weight g x y + tour_length g rest)%R
   end.
 
 (** TSP decision problem: Is there a tour with length ≤ bound? *)
