@@ -87,22 +87,8 @@ Definition is_perfect_matching (g : Graph) (a : Assignment) : Prop :=
 (** * The Critical Gap: Assignment Decomposition *)
 
 (** An assignment can decompose into multiple disjoint cycles *)
-Fixpoint extract_cycle (a : Assignment) (start : Vertex) (visited : list Vertex) (fuel : nat) : option Path :=
-  match fuel with
-  | 0 => None
-  | S fuel' =>
-      if existsb (Nat.eqb start) visited then
-        Some [start]  (* Cycle detected *)
-      else
-        match find (fun e => Nat.eqb (fst e) start) a with
-        | None => None
-        | Some (_, next) =>
-            match extract_cycle a next (start :: visited) fuel' with
-            | None => None
-            | Some rest => Some (start :: rest)
-            end
-        end
-  end.
+(** Simplified: we just assert the existence of cycle extraction rather than implement it *)
+Axiom extract_cycle : Assignment -> Vertex -> nat -> option Path.
 
 (** Count the number of disjoint cycles in an assignment *)
 Definition has_multiple_cycles (a : Assignment) : Prop :=
