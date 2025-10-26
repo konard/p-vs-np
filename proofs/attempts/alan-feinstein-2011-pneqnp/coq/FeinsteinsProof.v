@@ -114,8 +114,8 @@ Definition numSubsets (n : nat) : nat := 2 ^ n.
 Fixpoint heldKarpStep (g : Graph) (subsets : list Subset) : nat :=
   match subsets with
   | [] => 0
-  | S :: rest =>
-      (* Process subset S *)
+  | subset :: rest =>
+      (* Process subset *)
       1 + heldKarpStep g rest
   end.
 
