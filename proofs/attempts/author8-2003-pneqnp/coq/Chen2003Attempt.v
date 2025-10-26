@@ -107,8 +107,8 @@ Axiom invalid_generation_claim :
   P_equals_NP ->
   forall (s : Prop),
     (exists (p : Proof s), True) ->  (* if a proof exists mathematically *)
-    (exists (algo : nat -> option (Proof s)), (* then there's a polynomial algorithm *)
-      PolynomialTime (Build_Problem)).  (* This is INVALID reasoning! *)
+    (exists (algo : nat -> option (Proof s)) (prob : Problem), (* then there's a polynomial algorithm *)
+      PolynomialTime prob).  (* This is INVALID reasoning! *)
 
 (**
   Step 5: The empirical observation (not a mathematical statement!)
