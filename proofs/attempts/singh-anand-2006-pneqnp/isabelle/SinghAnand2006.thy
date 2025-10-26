@@ -49,7 +49,7 @@ axiomatization formula_G :: PAFormula
 (* The universal quantification ∀x.G(x) *)
 axiomatization forall_G :: PAFormula
 
-section \<open>Gödel's Completeness Theorem\<close>
+section \<open>Goedel's Completeness Theorem\<close>
 
 (* If a formula is provable in PA, it holds in ALL models *)
 axiomatization where
@@ -102,18 +102,18 @@ text \<open>
   CRITICAL ERROR: Singh Anand confuses "provable in PA" with
   "eliminates non-standard models"
 
-  FACT 1 (Gödel's Completeness):
+  FACT 1 (Goedel's Completeness):
     Provable formulas are true in ALL models (standard AND non-standard)
 
   FACT 2 (What G(x) really says):
-    In the standard model: Every nat is 0 or a successor of a nat ✓
-    In non-standard models: Every element (including "infinite" ones)
-                            is 0 or a successor of something ✓
+    In the standard model: Every nat is 0 or a successor of a nat
+    In non-standard models: Every element (including infinite ones)
+                            is 0 or a successor of something
 
   The non-standard elements are successors of OTHER non-standard elements!
   The formula G(x) is satisfied in non-standard models too.
 
-  FACT 3 (Gödel's Incompleteness + Löwenheim-Skolem):
+  FACT 3 (Goedel's Incompleteness + Loewenheim-Skolem):
     First-order PA MUST have non-standard models. This is a deep theorem.
 \<close>
 
@@ -167,8 +167,8 @@ text \<open>
      - The formula ∀x.G(x) holds in non-standard models too
 
   2. CONTRADICTS KNOWN RESULTS: First-order PA provably has non-standard models
-     - Gödel's Incompleteness Theorem
-     - Löwenheim-Skolem Theorem
+     - Goedel's Incompleteness Theorem
+     - Loewenheim-Skolem Theorem
      - Compactness Theorem
 
   3. WEAK CONNECTION TO P vs NP: Even if PA had no non-standard models,
@@ -191,7 +191,7 @@ record ErrorAnalysis =
 definition singh_anand_errors :: ErrorAnalysis where
   "singh_anand_errors \<equiv> \<lparr>
     error_1 = ''Provable formulas are true in ALL models, not just standard ones'',
-    error_2 = ''PA provably has non-standard models (Gödel, Löwenheim-Skolem)'',
+    error_2 = ''PA provably has non-standard models (Goedel, Loewenheim-Skolem)'',
     error_3 = ''No rigorous analysis of polynomial time or NP-completeness''
   \<rparr>"
 
