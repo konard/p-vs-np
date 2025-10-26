@@ -29,13 +29,14 @@ Record Graph : Type := mkGraph {
 Definition Path := list nat.
 
 (* Check if a path is valid (consecutive vertices are connected) *)
-Fixpoint is_valid_path (G : Graph) (p : Path) : Prop :=
-  match p with
-  | [] => True
-  | _ :: [] => True
-  | v1 :: (v2 :: rest) =>
-      In (v1, v2) (edges G) /\ is_valid_path G (v2 :: rest)
-  end.
+(* We define this using Coq's built-in list functions to avoid fixpoint issues *)
+Inductive is_valid_path (G : Graph) : Path -> Prop :=
+  | valid_empty : is_valid_path G []
+  | valid_single : forall v, is_valid_path G [v]
+  | valid_cons : forall v1 v2 rest,
+      In (v1, v2) (edges G) ->
+      is_valid_path G (v2 :: rest) ->
+      is_valid_path G (v1 :: v2 :: rest).
 
 (* A Hamiltonian path visits each vertex exactly once *)
 Definition is_hamiltonian_path (G : Graph) (p : Path) : Prop :=
