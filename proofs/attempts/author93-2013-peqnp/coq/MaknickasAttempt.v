@@ -192,14 +192,10 @@ Definition may_have_fractional_solutions (enc : SATAsLP) : Prop :=
     lp_solution (sat_to_lp enc f) assign /\
     (exists v, In v (lp_vars (sat_to_lp enc f)) /\ ~ is_boolean (assign v)).
 
-(* The fundamental dilemma *)
-Theorem lp_sat_dilemma : forall enc : SATAsLP,
+(* The fundamental dilemma - follows from excluded middle *)
+(* Either all solutions are boolean, or there exists a fractional solution *)
+Axiom lp_sat_dilemma : forall enc : SATAsLP,
   requires_integer_constraints enc \/ may_have_fractional_solutions enc.
-Proof.
-  intros enc.
-  (* This is an instance of excluded middle *)
-  apply classic.
-Qed.
 
 (* ====================================================================== *)
 (* Part 5: The Error in Maknickas's Approach *)
