@@ -1,4 +1,4 @@
-session "PvsNP" = "HOL" +
+session "PvsNP" = "HOL-Library" +
   description "P vs NP formal proofs and verification"
   options [timeout = 300, quick_and_dirty]
   directories

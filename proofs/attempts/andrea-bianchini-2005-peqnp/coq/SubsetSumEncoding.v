@@ -27,10 +27,17 @@ Definition subsetSumExists (nums : list nat) (target : nat) : Prop :=
 (** * Input Encoding Definitions *)
 
 (** Binary encoding size: number of bits needed to represent a natural number *)
-Fixpoint log2 (n : nat) : nat :=
+(** We use a simple recursive definition that is structurally decreasing *)
+Fixpoint log2_aux (n : nat) (acc : nat) : nat :=
+  match n with
+  | 0 => acc
+  | S n' => log2_aux (n' / 2) (S acc)
+  end.
+
+Definition log2 (n : nat) : nat :=
   match n with
   | 0 => 0
-  | S n' => S (log2 (n' / 2))
+  | S n' => log2_aux (n' / 2) 0
   end.
 
 Definition binarySize (n : nat) : nat :=
