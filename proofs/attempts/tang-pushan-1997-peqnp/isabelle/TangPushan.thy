@@ -68,9 +68,9 @@ proof -
   define c where "c = 2^j"
   define d where "d = 1"
 
-  have "\<forall>x. HEWN_actual_time x j \<le> c * x^d + c"
+  have "\<forall>x::nat. HEWN_actual_time x j \<le> c * x^d + c"
   proof
-    fix x
+    fix x :: nat
     have "HEWN_actual_time x j = x * 2^j"
       unfolding HEWN_actual_time_def by simp
     also have "... = 2^j * x"
@@ -138,7 +138,7 @@ proof
   assume A: "\<forall>n. polynomial_time (\<lambda>x. HEWN_actual_time x n)"
 
   text \<open>Consider the case n = 100 (arbitrary large constant)\<close>
-  define n where "n = 100"
+  define n :: nat where "n = 100"
 
   have poly: "polynomial_time (\<lambda>x. HEWN_actual_time x n)"
     using A by simp
