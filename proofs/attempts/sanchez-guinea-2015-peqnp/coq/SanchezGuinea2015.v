@@ -81,7 +81,7 @@ Definition get_concept (u : understanding) (c : clause) (l : literal) : option c
 
 (** Concept types from the paper *)
 Inductive concept_type : Type :=
-| C_plus : concept_type   (** Type C⁺: both false, both free, or one free and one false *)
+| C_plus : concept_type   (** Type C+: both false, both free, or one free and one false *)
 | C_star : concept_type.  (** Type C*: both true, one true and one false, or one free and one true *)
 
 (** Determine the type of a concept *)
@@ -102,25 +102,25 @@ Definition classify_concept (c : concept) : concept_type :=
 Definition get_all_concepts (u : understanding) (phi : formula) (l : literal) : list concept :=
   flat_map (fun c => match get_concept u c l with Some co => [co] | None => [] end) phi.
 
-(** Get all concepts of type C⁺ for the negation of a literal *)
+(** Get all concepts of type C+ for the negation of a literal *)
 Definition get_C_minus (u : understanding) (phi : formula) (l : literal) : list concept :=
   filter (fun c => match classify_concept c with C_plus => true | _ => false end)
          (get_all_concepts u phi (negate_literal l)).
 
-(** Check if a set of concepts is of type C̃⁺ (at least one C⁺) *)
+(** Check if a set of concepts is of type C-tilde+ (at least one C+) *)
 Definition is_Ctilde_plus (concepts : list concept) : bool :=
   existsb (fun c => match classify_concept c with C_plus => true | _ => false end) concepts.
 
-(** Check if a set of concepts is of type C̃* (all C*) *)
+(** Check if a set of concepts is of type C-tilde* (all C*) *)
 Definition is_Ctilde_star (concepts : list concept) : bool :=
   forallb (fun c => match classify_concept c with C_star => true | _ => false end) concepts.
 
 (** ** Computing Understanding for a Literal (Definition from paper) *)
 
-(**  Define understanding of λ with respect to set φ:
-     ũ(λ) = ε, if C̃[λ] is empty or (C̃[λ]⁻ is empty and C̃[λ] is of type C̃*)
-     ũ(λ) = t, if C̃[λ] is of type C̃⁺ and C̃[λ]⁻ is empty
-     ũ(λ) = f, if C̃[λ]⁻ is not empty and C̃[λ] is not of type C̃⁺
+(**  Define understanding of lambda with respect to set phi:
+     u-tilde(lambda) = epsilon, if C-tilde[lambda] is empty or (C-tilde[lambda]- is empty and C-tilde[lambda] is of type C-tilde*)
+     u-tilde(lambda) = t, if C-tilde[lambda] is of type C-tilde+ and C-tilde[lambda]- is empty
+     u-tilde(lambda) = f, if C-tilde[lambda]- is not empty and C-tilde[lambda] is not of type C-tilde+
      undefined otherwise
 *)
 Definition compute_literal_understanding (u : understanding) (phi : formula) (l : literal) : option understanding_value :=
@@ -134,11 +134,11 @@ Definition compute_literal_understanding (u : understanding) (phi : formula) (l 
                   then Some u_true
                   else None  (* undefined case *)
   | _, _ :: _ => if is_Ctilde_plus C_lambda
-                 then None  (* undefined: C̃[λ] is C̃⁺ and C̃[λ]⁻ not empty *)
+                 then None  (* undefined: C-tilde[lambda] is C-tilde+ and C-tilde[lambda]- not empty *)
                  else Some u_false
   end.
 
-(** ** The <Compute ũ> Operation *)
+(** ** The <Compute u-tilde> Operation *)
 
 (** This is a fixed-point computation that recomputes understanding for all literals
     until no changes occur. This is a KEY PART where complexity blows up. *)
@@ -173,7 +173,7 @@ Fixpoint compute_understanding_fixpoint (fuel : nat) (u : understanding) (phi : 
 
 (** ** Algorithm G (Check if literal can be made true) *)
 
-(** Algorithm G tries to verify if a free literal λ can be made true
+(** Algorithm G tries to verify if a free literal lambda can be made true
     without contradiction. It iterates through concepts and checks each one. *)
 
 (** This is simplified - the full version would need more detail *)
@@ -209,7 +209,7 @@ Fixpoint algorithm_D (fuel : nat) (u : understanding) (phi : formula) (l : liter
   | 0 => None  (* Ran out of fuel - complexity issue! *)
   | S n =>
       let C_minus := get_C_minus u phi l in
-      (* Try each concept in C̃[λ]⁻ *)
+      (* Try each concept in C-tilde[lambda]- *)
       let try_concepts := fix try_concepts_aux (concepts : list concept) :=
         match concepts with
         | [] => None
@@ -327,7 +327,7 @@ Admitted.  (* Proof sketch above; full proof would use algorithm_D_unbounded_rec
 
 (** ** Additional Issues *)
 
-(** ISSUE 1: <Compute ũ> fixed-point iteration count *)
+(** ISSUE 1: <Compute u-tilde> fixed-point iteration count *)
 Lemma compute_understanding_fixpoint_unbounded :
   exists (phi : formula) (u : understanding),
     let m := num_clauses phi in
@@ -337,7 +337,7 @@ Lemma compute_understanding_fixpoint_unbounded :
         compute_understanding_fixpoint (fuel + 1) u phi <>
         compute_understanding_fixpoint fuel u phi.
 Proof.
-  (* The paper assumes <Compute ũ> converges quickly but doesn't prove it.
+  (* The paper assumes <Compute u-tilde> converges quickly but doesn't prove it.
      Changes can propagate through the concept graph in complex ways.
   *)
 Admitted.
@@ -360,7 +360,7 @@ Admitted.
     The error is in the COMPLEXITY ANALYSIS (Section 2.2), specifically:
 
     1. Algorithm D's recursion depth is NOT bounded by O(m) as claimed
-    2. The <Compute ũ> operation's convergence is NOT bounded
+    2. The <Compute u-tilde> operation's convergence is NOT bounded
     3. The "arithmetic series" argument is informal and incorrect
     4. The actual complexity appears to be EXPONENTIAL in worst case
 
