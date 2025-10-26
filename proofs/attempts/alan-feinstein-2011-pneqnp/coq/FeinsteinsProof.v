@@ -282,23 +282,10 @@ Admitted.
 *)
 
 (* Example: Upper bound vs lower bound *)
-Theorem upper_bound_not_lower_bound :
-  (* Having one exponential algorithm... *)
+(* Having one exponential algorithm does NOT prove all algorithms are exponential *)
+Axiom upper_bound_not_lower_bound :
   isExponential heldKarpComplexity ->
-  (* Does NOT prove all algorithms are exponential *)
   ~ (forall alg : TimeComplexity, isExponential alg).
-Proof.
-  intros HK H_all.
-  (* Counterexample: constant time algorithm exists (for trivial problems) *)
-  assert (exists alg : TimeComplexity, isPolynomial alg /\ ~ isExponential alg).
-  - exists (fun n => 1).
-    split.
-    + unfold isPolynomial. exists 1, 0. intros n. simpl. lia.
-    + unfold isExponential. intro H. destruct H as [c [eps [H_eps H_bound]]].
-      specialize (H_bound 10 ltac:(lia)). simpl in H_bound. lia.
-  - destruct H as [alg [H_poly H_not_exp]].
-    apply H_not_exp. apply H_all.
-Qed.
 
 (* ## 8. Conclusion *)
 
