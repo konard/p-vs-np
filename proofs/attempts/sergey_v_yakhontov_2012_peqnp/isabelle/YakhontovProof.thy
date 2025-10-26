@@ -178,8 +178,8 @@ lemma yakhontov_complexity_is_doubly_exponential:
 
 (* ERROR 2: Confusing "polynomial in t(n)" with "polynomial in n" *)
 lemma polynomial_in_wrong_variable:
-  "(\<forall>M. \<exists>c k. \<forall>tn. 2 ^ (c * tn ^ k) \<le> 2 ^ (c * tn ^ k)) \<and>  (* Trivially true *)
-   (\<not>(\<forall>M. \<exists>c k. \<forall>n. yakhontovTimeComplexity M n \<le> c * n ^ k))"  (* False for exponential t(n) *)
+  "(\<forall>M. \<exists>c k. \<forall>tn. 2 ^ (c * tn ^ k) \<le> 2 ^ (c * tn ^ k)) \<and>
+   (\<not>(\<forall>M. \<exists>c k. \<forall>n. yakhontovTimeComplexity M n \<le> c * n ^ k))"
 proof -
   have trivial: "\<forall>M. \<exists>c k. \<forall>tn. 2 ^ (c * tn ^ k) \<le> 2 ^ (c * tn ^ k)"
     by auto

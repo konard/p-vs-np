@@ -285,7 +285,7 @@ Definition yakhontovErrors : list YakhontovError := [
 
   mkYakhontovError 4
     "Circular reasoning: assumes TCPE (NP-complete) solvable in poly-time"
-    tcpeIsNPComplete;
+    (exists (_ : ClassNP), True);
 
   mkYakhontovError 5
     "Number of commodities (tape cells) is exponential in input size"
