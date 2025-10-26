@@ -69,10 +69,10 @@ axiomatization
   SDP_algorithm :: "nat \<Rightarrow> bool" and
   Charikar_Wirth_SDP :: "nat \<Rightarrow> bool"
 
-text \<open>Cui's claim that running the algorithm twice solves the gap problem\<close>
+text \<open>Cui's claim that running the algorithm twice solves the gap problem
+      Simplified model: idempotency property\<close>
 axiomatization where
   Cui_claims_solves_gap: "\<forall>instance.
-    (* Simplified model: idempotency property *)
     SDP_algorithm instance = SDP_algorithm instance"
 
 text \<open>Cui's claim that the algorithm runs in polynomial time\<close>
