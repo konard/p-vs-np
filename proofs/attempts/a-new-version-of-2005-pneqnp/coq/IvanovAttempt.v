@@ -230,11 +230,14 @@ Proof.
 
     unfold IsPolynomialTime in H_poly.
     destruct H_poly as [k H_poly_bound].
-    unfold IsSuperPolynomialTime in ivanov_lower_bound_is_super_poly.
+
+    (* Get the super-polynomial property *)
+    pose proof ivanov_lower_bound_is_super_poly as H_super_poly.
+    unfold IsSuperPolynomialTime in H_super_poly.
 
     (* Get a witness that ivanov_lower_bound eventually exceeds n^k *)
-    specialize (ivanov_lower_bound_is_super_poly k).
-    destruct ivanov_lower_bound_is_super_poly as [n0 H_super].
+    specialize (H_super_poly k).
+    destruct H_super_poly as [n0 H_super].
 
     (* For n >= n0, we have n^k < ivanov_lower_bound n *)
     specialize (H_super (max n0 1)).
