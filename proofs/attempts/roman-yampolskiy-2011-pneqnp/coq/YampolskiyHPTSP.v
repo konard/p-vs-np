@@ -172,7 +172,7 @@ Definition HPTSP_verifier
   string_lex_le hashed (hptsp_bound instance).
 
 (** Verification time is polynomial *)
-Theorem HPTSP_verification_poly_time : forall instance,
+Theorem HPTSP_verification_poly_time : forall (instance : HPTSP_Instance),
   exists time : nat -> nat,
     PolynomialBound time.
 Proof.
@@ -185,7 +185,7 @@ Proof.
 Qed.
 
 (** Main theorem: HPTSP is in NP *)
-Theorem HPTSP_in_NP : forall instance,
+Theorem HPTSP_in_NP : forall (instance : HPTSP_Instance),
   InNP (fun _ => HPTSP instance).
 Proof.
   intro instance.
@@ -254,7 +254,7 @@ Axiom must_check_all_paths : forall (instance : HPTSP_Instance),
 
   This is where Yampolskiy's argument fails.
 *)
-Axiom HPTSP_requires_exponential_time : forall instance,
+Axiom HPTSP_requires_exponential_time : forall (instance : HPTSP_Instance),
   ~ InP (fun _ => HPTSP instance).
 
 (** * Summary of Formalization *)
