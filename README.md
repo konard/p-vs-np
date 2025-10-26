@@ -122,6 +122,17 @@ The repository contains four distinct proof frameworks exploring different aspec
    - Explores whether P vs NP could be independent of standard axiom systems
    - Available in Lean, Coq, Isabelle/HOL, and Agda
 
+#### Historical P vs NP Proof Attempts (`proofs/attempts/`)
+
+The repository includes formal analysis of historical claimed proofs of P vs NP, documenting where each attempt failed:
+
+1. **[Ted Swart (1986/87) - P=NP via Linear Programming](proofs/attempts/ted-swart-1986-87-peqnp/)** (`proofs/attempts/ted-swart-1986-87-peqnp/`)
+   - Entry #1 on [Woeginger's list](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm)
+   - Claimed polynomial-size LP formulations for Hamiltonian cycle
+   - Refuted by Yannakakis (STOC 1988): symmetric LP formulations require exponential size
+   - See [detailed documentation](proofs/attempts/ted-swart-1986-87-peqnp/README.md)
+   - Formalized in Lean, Coq, and Isabelle/HOL
+
 All proof files are automatically verified by GitHub Actions workflows to ensure correctness. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
 
 ## Key Highlights
@@ -241,6 +252,8 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [P ≠ NP Framework](proofs/p_not_equal_np/README.md) - Framework for verifying P ≠ NP proofs
 - [Classical Tautology](proofs/p_vs_np_decidable/README.md) - Formalization that (P=NP) ∨ (P≠NP) holds in classical logic
 - [Possible Independence from ZFC](proofs/p_vs_np_undecidable/README.md) - Framework for meta-mathematical independence reasoning
+- [Historical Proof Attempts](proofs/attempts/) - Formal analysis of failed P vs NP attempts
+  - [Ted Swart (1986/87)](proofs/attempts/ted-swart-1986-87-peqnp/README.md) - P=NP via linear programming (refuted by Yannakakis)
 
 All documents are interlinked - you can navigate between them using hyperlinks within each file.
 
