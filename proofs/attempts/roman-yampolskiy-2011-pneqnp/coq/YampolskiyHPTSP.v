@@ -71,9 +71,9 @@ Definition is_complete_graph (g : Graph) : Prop :=
      (edge_from e = v2 /\ edge_to e = v1)).
 
 (** Hamiltonian cycle (permutation of vertices) *)
-Definition HamiltonianCycle (g : Graph) := list Vertex.
+Definition HamiltonianCycle := list Vertex.
 
-Definition is_valid_hamiltonian_cycle (g : Graph) (cycle : HamiltonianCycle g) : Prop :=
+Definition is_valid_hamiltonian_cycle (g : Graph) (cycle : HamiltonianCycle) : Prop :=
   (** All vertices appear exactly once *)
   NoDup cycle /\
   (forall v, In v (vertices g) <-> In v cycle) /\
@@ -94,7 +94,7 @@ Fixpoint cycle_cost_helper (g : Graph) (cycle : list Vertex) : nat :=
       end
   end.
 
-Definition cycle_cost (g : Graph) (cycle : HamiltonianCycle g) : nat :=
+Definition cycle_cost (g : Graph) (cycle : HamiltonianCycle) : nat :=
   cycle_cost_helper g cycle.
 
 (** * Hash Function Formalization *)
@@ -135,7 +135,7 @@ Definition hash_computable_in_poly_time (h : HashFunction) : Prop :=
 (** * HPTSP Definition *)
 
 (** Route encoding: converts a cycle to a string with edge weights included *)
-Fixpoint encode_cycle (g : Graph) (cycle : list Vertex) : string :=
+Fixpoint encode_cycle (g : Graph) (cycle : HamiltonianCycle) : string :=
   match cycle with
   | [] => EmptyString
   | [v] => String (ascii_of_nat v) EmptyString
