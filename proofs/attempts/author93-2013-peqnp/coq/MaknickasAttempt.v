@@ -141,13 +141,7 @@ Lemma fractional_satisfies_lp :
   naive_lp_constraint_clause1 (fun _ => 0.5%R) /\
   naive_lp_constraint_clause2 (fun _ => 0.5%R).
 Proof.
-  split.
-  - unfold naive_lp_constraint_clause1.
-    simpl.
-    apply Rge_refl.
-  - unfold naive_lp_constraint_clause2.
-    simpl.
-    apply Rle_refl.
+  split; unfold naive_lp_constraint_clause1, naive_lp_constraint_clause2; simpl; lra.
 Qed.
 
 (* But 0.5 is not a boolean value *)
