@@ -134,7 +134,7 @@ Proof.
     (fun input cert => compute tm input)
     (timeComplexity tm)).
   exists v, v.
-  repeat split.
+  split; [split; [split; [split |] |] |].
   - (* L1 is in P *) exists tm. split; assumption.
   - (* L2 is in P *) exists tm. split; assumption.
   - (* v1 is polynomial *) exact H_poly.
