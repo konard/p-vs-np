@@ -224,7 +224,7 @@ Definition CompleteProofWouldRequire : Prop :=
 
 Theorem nam_proof_is_incomplete :
   (* The proof assumes its conclusion *)
-  (nam_asserted_not_in_P -> P_not_equals_NP) /\
+  ((~ InP NamCountingProblem) -> P_not_equals_NP) /\
   (* But nam_asserted_not_in_P is not derived, only asserted *)
   True.
 Proof.
