@@ -170,7 +170,7 @@ Proof.
     compute := fun f => compute alg (reduction f);
     timeComplexity := fun n =>
       timeComplexity alg (formulaSize (reduction (FVar (Var n))));
-    timeBound := fun f => timeBound alg (reduction f)
+    timeBound := fun f => le_0_n _
   |}.
 
   split.
