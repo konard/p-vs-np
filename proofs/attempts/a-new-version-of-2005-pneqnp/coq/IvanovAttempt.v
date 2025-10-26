@@ -13,6 +13,7 @@ Require Import Coq.Init.Nat.
 Require Import Coq.Sets.Ensembles.
 Require Import Coq.Logic.Classical_Prop.
 Require Import Coq.Arith.PeanoNat.
+Require Import Coq.micromega.Lia.
 
 (** * Basic Complexity Theory Definitions *)
 
