@@ -8,16 +8,11 @@
   to be correct or polynomial time.
 -/
 
-import Mathlib.Data.Nat.Basic
-import Mathlib.Data.List.Basic
-import Mathlib.Logic.Basic
-
 namespace KolukisaAttempt
 
 /-- Boolean variables -/
 inductive BoolVar : Type
   | var : Nat → BoolVar
-deriving DecidableEq
 
 /-- Boolean formulas -/
 inductive BoolFormula : Type
@@ -26,7 +21,6 @@ inductive BoolFormula : Type
   | and : BoolFormula → BoolFormula → BoolFormula
   | or : BoolFormula → BoolFormula → BoolFormula
   | implies : BoolFormula → BoolFormula → BoolFormula
-deriving DecidableEq
 
 /-- Assignment: maps variables to truth values -/
 def Assignment := Nat → Bool
