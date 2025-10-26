@@ -200,7 +200,7 @@ Axiom exists_non_decision_tree_algorithm :
 (** The gap is made explicit: *)
 Theorem decision_tree_bound_insufficient :
   (** Even if the decision tree lower bound holds *)
-  (forall n k t, k >= 3 -> correct_clique_tree t k ->
+  (forall k t, k >= 3 -> correct_clique_tree t k ->
     tree_depth t >= 2^(k * (k-1) / 2)) ->
   (** We CANNOT conclude CLIQUE not in P *)
   (** Because: *)
