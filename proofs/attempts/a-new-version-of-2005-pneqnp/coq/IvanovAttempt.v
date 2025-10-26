@@ -166,21 +166,13 @@ Axiom ivanov_analyzes_some_classes :
 (**
   Simplified relativization check:
   Does the proof work equally well in oracle-augmented worlds?
-*)
 
-Definition oracle := string -> bool.
-
-Definition relativized_problem (O : oracle) : DecisionProblem -> DecisionProblem :=
-  fun P => P.  (* Simplified *)
-
-(**
   If ivanov_universal_lower_bound_claim holds in all relativized worlds,
   it violates the relativization barrier and cannot prove P≠NP.
-*)
 
-Axiom relativization_barrier :
-  (forall O : oracle, ivanov_universal_lower_bound_claim) ->
-  False.  (* This would be a contradiction *)
+  The Baker-Gill-Solovay result shows that techniques that relativize
+  (work in all oracle worlds) cannot resolve P vs NP.
+*)
 
 (**
   ERROR TYPE 4: Hidden Assumptions
