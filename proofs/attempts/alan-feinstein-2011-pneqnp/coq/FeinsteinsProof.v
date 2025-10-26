@@ -143,11 +143,10 @@ Proof.
     lia.
   - (* T(n) ≥ 1 * 2^(1*n) for n > 0 *)
     intros n Hn.
-    simpl.
-    (* 2^n * n^2 ≥ 2^n when n > 0 *)
-    apply Nat.le_trans with (m := 2 ^ n).
-    + apply Nat.pow_le_mono_r. lia. lia.
-    + apply Nat.le_mul_diag_r.
+    simpl. rewrite Nat.mul_1_l.
+    (* 2^n * n^2 ≥ 2^n *)
+    rewrite Nat.mul_comm.
+    apply Nat.le_mul_diag_r.
 Qed.
 
 (* Part 2: Feinstein's claim that this is a LOWER bound (INCOMPLETE/FALSE) *)
