@@ -135,7 +135,7 @@ Definition hash_computable_in_poly_time (h : HashFunction) : Prop :=
 (** * HPTSP Definition *)
 
 (** Route encoding: converts a cycle to a string with edge weights included *)
-Fixpoint encode_cycle (g : Graph) (cycle : HamiltonianCycle) : string :=
+Fixpoint encode_cycle_helper (g : Graph) (cycle : list Vertex) : string :=
   match cycle with
   | [] => EmptyString
   | [v] => String (ascii_of_nat v) EmptyString
@@ -146,8 +146,11 @@ Fixpoint encode_cycle (g : Graph) (cycle : HamiltonianCycle) : string :=
         | Some e => String (ascii_of_nat (edge_cost e)) EmptyString
         | None => EmptyString
         end in
-      append v1_str (append cost_str (encode_cycle g (v2 :: rest)))
+      append v1_str (append cost_str (encode_cycle_helper g (v2 :: rest)))
   end.
+
+Definition encode_cycle (g : Graph) (cycle : HamiltonianCycle) : string :=
+  encode_cycle_helper g cycle.
 
 (** Lexicographic comparison of strings *)
 Fixpoint string_lex_le (s1 s2 : string) : bool :=
