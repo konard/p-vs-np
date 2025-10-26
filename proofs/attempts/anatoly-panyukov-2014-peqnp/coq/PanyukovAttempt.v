@@ -38,7 +38,7 @@ Definition has_edge (g : Graph) (v1 v2 : Vertex) : bool :=
 Definition Path := list Vertex.
 
 (** Check if a path is valid (consecutive vertices are connected) *)
-Fixpoint is_valid_path (g : Graph) (p : Path) : bool :=
+Fixpoint is_valid_path (g : Graph) (p : Path) {struct p} : bool :=
   match p with
   | [] => true
   | [_] => true
