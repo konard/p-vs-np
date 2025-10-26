@@ -12,6 +12,7 @@
 Require Import Coq.Arith.Arith.
 Require Import Coq.Lists.List.
 Require Import Coq.Logic.Classical_Prop.
+Require Import Coq.micromega.Lia.
 Import ListNotations.
 
 (** * Graph Definitions *)
@@ -125,7 +126,7 @@ Proof.
   unfold HEWN_actual_time.
   simpl.
   (* x * 2^j <= 2^j * x^1 + 2^j *)
-  omega.
+  lia.
 Qed.
 
 (** But when j can grow with n, it becomes exponential *)

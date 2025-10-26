@@ -149,10 +149,12 @@ proof
   text \<open>For large x, HEWN_actual_time x x dominates HEWN_actual_time x n\<close>
   text \<open>This creates a contradiction between polynomial and exponential claims\<close>
 
-  (* The full proof would require showing that no function can be
+  text \<open>The full proof would require showing that no function can be
      simultaneously polynomial and exponential. This is formalized
-     but left as an axiom for brevity. *)
-  sorry
+     but left as sorry for brevity.\<close>
+
+  show False
+    sorry
 qed
 
 section \<open>Error Analysis\<close>
