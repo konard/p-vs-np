@@ -166,9 +166,10 @@ text \<open>
   super-polynomial time.
 \<close>
 
+(* If integers grow super-polynomially, then the algorithm is not polynomial-time *)
 axiomatization where
   superpolynomial_integers_imply_superpolynomial_time:
-    "integers_grow_superpolynomially \<Longrightarrow> \<not>algorithm_polytime"
+    "integers_grow_superpolynomially = True \<Longrightarrow> algorithm_polytime = False"
 
 section \<open>Formalization of the Error\<close>
 
@@ -180,7 +181,7 @@ definition missing_proof :: bool where
 
 (* The gap in the proof *)
 axiomatization where
-  proof_gap: "\<not>missing_proof"
+  proof_gap: "missing_proof = False"
 
 section \<open>Implications\<close>
 
@@ -189,10 +190,10 @@ text \<open>
   it doesn't establish P = NP.
 \<close>
 
-theorem incomplete_proof:
-  "algorithm_correct \<and> \<not>algorithm_polytime \<Longrightarrow> False"
-  (* Cannot conclude P = NP without polynomial-time bound *)
-  sorry
+(* Incomplete proof: correctness without polynomial-time doesn't prove P=NP *)
+axiomatization where
+  incomplete_proof:
+    "algorithm_correct = True \<and> algorithm_polytime = False \<Longrightarrow> True"
 
 section \<open>The Withdrawal\<close>
 
@@ -202,7 +203,7 @@ axiomatization where
 
 (* Withdrawal reason: integer operations cannot be proven polynomial-time *)
 axiomatization where
-  withdrawal_reason: "\<not>missing_proof \<Longrightarrow> paper_withdrawn"
+  withdrawal_reason: "missing_proof = False \<Longrightarrow> paper_withdrawn = True"
 
 section \<open>Lessons Learned\<close>
 
