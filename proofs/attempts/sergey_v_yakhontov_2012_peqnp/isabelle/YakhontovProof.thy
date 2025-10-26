@@ -182,7 +182,7 @@ lemma polynomial_in_wrong_variable:
    (\<not>(\<forall>M. \<exists>c k. \<forall>n. yakhontovTimeComplexity M n \<le> c * n ^ k))"
 proof -
   have trivial: "\<forall>M. \<exists>c k. \<forall>tn. 2 ^ (c * tn ^ k) \<le> 2 ^ (c * tn ^ k)"
-    by (intro allI, rule exI[where x=1], rule exI[where x=1], simp)
+    by (intro allI, rule exI[where x=1], rule exI[where x=1], intro allI, simp)
   have not_poly: "\<not>(\<forall>M. \<exists>c k. \<forall>n. yakhontovTimeComplexity M n \<le> c * n ^ k)"
     sorry
   show ?thesis using trivial not_poly by auto
