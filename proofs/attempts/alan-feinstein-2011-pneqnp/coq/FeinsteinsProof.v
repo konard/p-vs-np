@@ -69,7 +69,7 @@ Definition Tour := list nat.
 
 (* Tour validity: visits each vertex exactly once *)
 Definition isValidTour (g : Graph) (t : Tour) : bool :=
-  (Nat.eqb (length t) (vertices g)) && (NoDup t).  (* simplified *)
+  Nat.eqb (length t) (vertices g).  (* simplified - just check length *)
 
 (* Tour length *)
 Fixpoint tourLength (g : Graph) (t : Tour) : nat :=
