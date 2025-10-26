@@ -10,6 +10,8 @@
 
 Require Import Coq.Logic.Classical.
 Require Import Coq.Sets.Ensembles.
+Require Import Coq.Arith.PeanoNat.
+Require Import Coq.Arith.Arith.
 
 (* Basic definitions for computational complexity classes *)
 
