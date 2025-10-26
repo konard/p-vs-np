@@ -182,9 +182,8 @@ lemma polynomial_in_wrong_variable:
    (\<not>(\<forall>M. \<exists>c k. \<forall>n. yakhontovTimeComplexity M n \<le> c * n ^ k))"
 proof -
   have trivial: "\<forall>M. \<exists>c k. \<forall>tn. 2 ^ (c * tn ^ k) \<le> 2 ^ (c * tn ^ k)"
-    by auto
+    by simp
   have not_poly: "\<not>(\<forall>M. \<exists>c k. \<forall>n. yakhontovTimeComplexity M n \<le> c * n ^ k)"
-    (* Derive contradiction: can't be polynomial in n if t(n) is exponential *)
     sorry
   show ?thesis using trivial not_poly by auto
 qed
@@ -279,7 +278,7 @@ lemma yakhontov_error_identified:
   "\<exists>error. error \<in> set yakhontovErrors \<and>
     error_description error = ''Confuses polynomial in t(n) with polynomial in n''"
   unfolding yakhontovErrors_def
-  by (rule exI[where x="hd (tl yakhontovErrors)"], auto)
+  by (rule exI[where x="\<lparr>error_number = 2, error_description = ''Confuses polynomial in t(n) with polynomial in n'', error_statement = True\<rparr>"], simp)
 
 text \<open>
   Summary: This formalization demonstrates that Yakhontov's claimed P=NP proof is flawed.
