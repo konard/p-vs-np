@@ -149,11 +149,13 @@ Proof.
            ++ (* Forward *)
               intros [H_eq H_L_x_str].
               split; [| split].
+              ** exact H_L_x_str.
               ** rewrite <- H_eq. exact H_L_x_str.
-              ** rewrite H_eq. exact H_L_x_str.
               ** exists "". (* arbitrary certificate, verifier ignores it *)
                  simpl.
-                 split; apply H_decides; [rewrite <- H_eq |]; exact H_L_x_str.
+                 split; apply H_decides.
+                 --- exact H_L_x_str.
+                 --- rewrite <- H_eq. exact H_L_x_str.
            ++ (* Backward *)
               intros [H_L1_x_str [H_L2_y_str [cert [H_v1 H_v2]]]].
               simpl in H_v1, H_v2.
