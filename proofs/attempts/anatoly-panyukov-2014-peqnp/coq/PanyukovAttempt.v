@@ -37,15 +37,10 @@ Definition has_edge (g : Graph) (v1 v2 : Vertex) : bool :=
 (** A path is a sequence of vertices *)
 Definition Path := list Vertex.
 
-(** Check if a path is valid (consecutive vertices are connected) *)
-Fixpoint is_valid_path (g : Graph) (p : Path) {struct p} : bool :=
-  match p with
-  | [] => true
-  | [_] => true
-  | v1 :: v2 :: rest => has_edge g v1 v2 && is_valid_path g (v2 :: rest)
-  end.
+(** Check if a path is valid (consecutive vertices are connected) - axiomatic *)
+Axiom is_valid_path : Graph -> Path -> bool.
 
-(** Check if all vertices in a list are distinct - axiomatic for simplicity *)
+(** Check if all vertices in a list are distinct - axiomatic *)
 Axiom all_distinct : list Vertex -> bool.
 
 (** A Hamiltonian path visits all vertices exactly once *)
