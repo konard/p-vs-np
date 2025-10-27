@@ -160,8 +160,8 @@ Proof.
   exists [(0, 1); (1, 2); (2, 0); (3, 4); (4, 5); (5, 3)].
 
   (* All three parts admitted for simplicity - the key theorem structure is demonstrated *)
-  repeat split; try (unfold is_perfect_matching; admit); try (unfold has_multiple_cycles; admit).
-  - apply two_triangles_not_hamiltonian.
+  repeat split; try (unfold is_perfect_matching; admit); try (unfold has_multiple_cycles; admit);
+  try (apply two_triangles_not_hamiltonian).
 Admitted.
 
 (** * Consequence: Panyukov's Algorithm Cannot Exist *)
