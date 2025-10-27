@@ -260,7 +260,8 @@ Qed.
   the computational model does not help resolve the question.
 *)
 Theorem Meyer_doesnt_resolve_P_vs_NP :
-  Meyer_claim_MRAM -> (forall problem, InP_TM problem <-> InNP_TM problem).
+  (forall problem, InP_MRAM problem <-> InNP_MRAM problem) ->
+  (forall problem, InP_TM problem <-> InNP_TM problem).
 Proof.
   intro H.
   apply Meyer_error.
