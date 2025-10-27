@@ -9,11 +9,11 @@
   of the problem by identifying where proof attempts typically get stuck.
 *)
 
-Require Import Coq.Init.Nat.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Logic.Classical_Prop.
-Require Import Coq.Lists.List.
-Require Import Coq.Strings.String.
+Require Import Rocq.Init.Nat.
+Require Import Rocq.Arith.PeanoNat.
+Require Import Rocq.Logic.Classical_Prop.
+Require Import Rocq.Lists.List.
+Require Import Rocq.Strings.String.
 Import ListNotations.
 
 Module PvsNPProofAttempt.

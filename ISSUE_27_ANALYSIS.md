@@ -35,14 +35,14 @@ $ find /tmp/gh-issue-solver-1760425494326/proofs -type f | wc -l
 ```
 
 **Reality:** The `proofs` directory contains **21 files** organized into **7 subdirectories**, including:
-- **Basic proofs** in Lean 4, Coq, Isabelle/HOL, and Agda (`proofs/basic/`)
+- **Basic proofs** in Lean 4, Rocq, Isabelle/HOL, and Agda (`proofs/basic/`)
 - **P = NP framework** (`proofs/p_eq_np/`)
 - **P ≠ NP framework** with comprehensive README (`proofs/p_not_equal_np/`)
 - **P vs NP Decidability proofs** (`proofs/p_vs_np_decidable/`)
 - **P vs NP Undecidability framework** (`proofs/p_vs_np_undecidable/`)
 
 Each framework includes:
-- Multiple proof assistant implementations (Lean, Coq, Isabelle, Agda)
+- Multiple proof assistant implementations (Lean, Rocq, Isabelle, Agda)
 - Detailed README documentation
 - Formal verification of foundational concepts
 - Test methods for validating proof attempts
@@ -67,7 +67,7 @@ While earlier versions may have used "experiment" language (this appears in the 
 
 However, valid concerns exist:
 
-1. **Appropriate Use of Formal Verification:** The repository DOES use proof assistants (Lean, Coq, Isabelle, Agda) for formal mathematical proofs, NOT empirical testing. This is actually the CORRECT approach for mathematical problems.
+1. **Appropriate Use of Formal Verification:** The repository DOES use proof assistants (Lean, Rocq, Isabelle, Agda) for formal mathematical proofs, NOT empirical testing. This is actually the CORRECT approach for mathematical problems.
 
 2. **Framework vs. Solution:** The proofs directory contains *verification frameworks* for validating hypothetical P vs NP proofs, not claims to have solved the problem. From `proofs/p_not_equal_np/README.md` (lines 16-22):
    > "Rather than attempting to prove P ≠ NP itself (which remains an open problem), this framework provides:
@@ -131,7 +131,7 @@ And from lines 685-687:
 
 The bootstrap proofs serve two legitimate purposes:
 
-1. **Proof Assistant Template/Tutorial:** They demonstrate how to use Lean, Coq, Isabelle, and Agda for researchers who want to formalize complexity theory results. This is standard practice in formal verification repositories.
+1. **Proof Assistant Template/Tutorial:** They demonstrate how to use Lean, Rocq, Isabelle, and Agda for researchers who want to formalize complexity theory results. This is standard practice in formal verification repositories.
 
 2. **CI/CD Verification:** They validate that the proof assistant infrastructure is working correctly.
 
@@ -236,7 +236,7 @@ The README contains both:
 
 The repository DOES use appropriate formal methods:
 
-1. **Proof Assistants with Type-Checked Proofs:** Lean, Coq, Isabelle, Agda all provide mathematical rigor through dependent type systems. These are used by professional mathematicians to verify major theorems (Four Color Theorem, Kepler Conjecture, etc.).
+1. **Proof Assistants with Type-Checked Proofs:** Lean, Rocq, Isabelle, Agda all provide mathematical rigor through dependent type systems. These are used by professional mathematicians to verify major theorems (Four Color Theorem, Kepler Conjecture, etc.).
 
 2. **Git for Academic Collaboration:** Git is standard in modern mathematical research for:
    - Collaborative proof development (Homotopy Type Theory, Liquid Tensor Experiment)

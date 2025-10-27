@@ -6,10 +6,10 @@
   and criteria that any proof of P ≠ NP must satisfy.
 *)
 
-Require Import Coq.Strings.String.
-Require Import Coq.Init.Nat.
-Require Import Coq.Sets.Ensembles.
-Require Import Coq.Logic.Classical_Prop.
+Require Import Rocq.Strings.String.
+Require Import Rocq.Init.Nat.
+Require Import Rocq.Sets.Ensembles.
+Require Import Rocq.Logic.Classical_Prop.
 
 (** * Basic Complexity Theory Definitions *)
 

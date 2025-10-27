@@ -46,54 +46,54 @@ jobs:
           echo "✓ No Lean files - skipping"
         fi
 
-  coq-verification:
-    name: Coq Verification
+  rocq-verification:
+    name: Rocq Verification
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Check for Coq files
-      id: check-coq
+    - name: Check for Rocq files
+      id: check-rocq
       run: |
         if [ -f "_CoqProject" ] || find . -name "*.v" -print -quit | grep -q .; then
           echo "has_files=true" >> $GITHUB_OUTPUT
         else
           echo "has_files=false" >> $GITHUB_OUTPUT
-          echo "✓ No Coq files - skipping"
+          echo "✓ No Rocq files - skipping"
         fi
 
     - name: Fix permissions for docker
-      if: steps.check-coq.outputs.has_files == 'true'
+      if: steps.check-rocq.outputs.has_files == 'true'
       run: sudo chown -R 1000:1000 .
 
     - name: Build and test Coq
-      if: steps.check-coq.outputs.has_files == 'true'
+      if: steps.check-rocq.outputs.has_files == 'true'
       uses: coq-community/docker-coq-action@v1
       with:
         coq_version: '8.20'
         custom_script: |
-          startGroup "Coq version"
+          startGroup "Rocq version"
             coqc --version
           endGroup
-          startGroup "Verify Coq files"
+          startGroup "Verify Rocq files"
             if [ -f "_CoqProject" ]; then
-              echo "Building Coq project with _CoqProject..."
+              echo "Building Rocq project with _CoqProject..."
               coq_makefile -f _CoqProject -o Makefile.coq
               make -f Makefile.coq
             else
-              echo "Verifying Coq files..."
+              echo "Verifying Rocq files..."
               find . -name "*.v" -type f | while read -r file; do
                 echo "Checking: $file"
                 coqc "$file" && echo "✓ $file verified successfully" || exit 1
               done
             fi
-            echo "✓ All Coq files verified successfully!"
+            echo "✓ All Rocq files verified successfully!"
           endGroup
 
     - name: Revert permissions
-      if: ${{ always() && steps.check-coq.outputs.has_files == 'true' }}
+      if: ${{ always() && steps.check-rocq.outputs.has_files == 'true' }}
       run: sudo chown -R 1001:116 .
 
   isabelle-verification:
@@ -199,7 +199,7 @@ jobs:
   summary:
     name: Verification Summary
     runs-on: ubuntu-latest
-    needs: [lean-verification, coq-verification, isabelle-verification]
+    needs: [lean-verification, rocq-verification, isabelle-verification]
     if: always()
 
     steps:
@@ -210,7 +210,7 @@ jobs:
         echo "| Tool | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
         echo "| Lean | ${{ needs.lean-verification.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Coq | ${{ needs.coq-verification.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Coq | ${{ needs.rocq-verification.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Isabelle | ${{ needs.isabelle-verification.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "_Note: Agda verification temporarily disabled due to long build times (~20 minutes)_" >> $GITHUB_STEP_SUMMARY

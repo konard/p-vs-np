@@ -85,12 +85,12 @@ The P versus NP problem asks whether every problem whose solution can be quickly
 
 ### 🔬 Formal Verification
 
-The repository includes formal verification frameworks in multiple proof assistants (Lean 4, Coq, Isabelle/HOL, and Agda) organized into the following categories:
+The repository includes formal verification frameworks in multiple proof assistants (Lean 4, Rocq, Isabelle/HOL, and Agda) organized into the following categories:
 
 #### Tutorial Proofs for Learning Proof Assistants (`proofs/basic/`)
 Bootstrap proof files demonstrating foundational formal verification concepts and serving as templates:
 - **[proofs/basic/lean/Basic.lean](proofs/basic/lean/Basic.lean)** - Lean 4 foundational proofs
-- **[proofs/basic/coq/Basic.v](proofs/basic/coq/Basic.v)** - Coq foundational proofs
+- **[proofs/basic/rocq/Basic.v](proofs/basic/rocq/Basic.v)** - Rocq foundational proofs
 - **[proofs/basic/isabelle/Basic.thy](proofs/basic/isabelle/Basic.thy)** - Isabelle/HOL foundational proofs
 - **[proofs/basic/agda/Basic.agda](proofs/basic/agda/Basic.agda)** - Agda foundational proofs
 
@@ -102,25 +102,25 @@ The repository contains four distinct proof frameworks exploring different aspec
 1. **[P = NP Formalization](proofs/p_eq_np/)** (`proofs/p_eq_np/`)
    - Framework for verifying hypothetical proofs that P equals NP
    - Implements four test methods for validating P = NP claims
-   - Available in Lean, Coq, and Isabelle/HOL
+   - Available in Lean, Rocq, and Isabelle/HOL
 
 2. **[P ≠ NP Formalization](proofs/p_not_equal_np/)** (`proofs/p_not_equal_np/`)
    - Framework for verifying proofs that P does not equal NP
    - See [detailed documentation](proofs/p_not_equal_np/README.md)
    - Includes four mathematically equivalent test methods
-   - Available in Lean, Coq, Isabelle/HOL, and Agda
+   - Available in Lean, Rocq, Isabelle/HOL, and Agda
 
 3. **[Classical Tautology: (P = NP) ∨ (P ≠ NP)](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
    - Formalizes that P vs NP has a definite answer in classical logic via law of excluded middle
    - See [detailed documentation](proofs/p_vs_np_decidable/README.md)
    - **Note:** This is NOT "decidability" in the algorithmic sense, but the classical tautology that (P=NP) ∨ (P≠NP) holds
-   - Available in Lean, Coq, Isabelle/HOL, and Agda
+   - Available in Lean, Rocq, Isabelle/HOL, and Agda
 
 4. **[Possible Independence from ZFC](proofs/p_vs_np_undecidable/)** (`proofs/p_vs_np_undecidable/`)
    - Framework for reasoning about potential independence from ZFC (meta-mathematical exploration)
    - See [detailed documentation](proofs/p_vs_np_undecidable/README.md)
    - Explores whether P vs NP could be independent of standard axiom systems
-   - Available in Lean, Coq, Isabelle/HOL, and Agda
+   - Available in Lean, Rocq, Isabelle/HOL, and Agda
 
 All proof files are automatically verified by GitHub Actions workflows to ensure correctness. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
 

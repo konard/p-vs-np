@@ -6,7 +6,7 @@
 
 ---
 
-This directory contains formal frameworks in four proof assistants (**Lean 4**, **Coq**, **Isabelle/HOL**, and **Agda**) that formalize the concept of "P vs NP is undecidable." These formalizations provide a rigorous mathematical structure for reasoning about whether the P vs NP problem might be independent of standard axiom systems like ZFC.
+This directory contains formal frameworks in four proof assistants (**Lean 4**, **Rocq**, **Isabelle/HOL**, and **Agda**) that formalize the concept of "P vs NP is undecidable." These formalizations provide a rigorous mathematical structure for reasoning about whether the P vs NP problem might be independent of standard axiom systems like ZFC.
 
 ## What is "P vs NP is undecidable"?
 
@@ -23,8 +23,8 @@ proofs/p_vs_np_undecidable/
 ├── README.md                          # This file
 ├── lean/
 │   └── PvsNPUndecidable.lean         # Lean 4 formalization (168 lines)
-├── coq/
-│   └── PvsNPUndecidable.v            # Coq formalization (209 lines)
+├── rocq/
+│   └── PvsNPUndecidable.v            # Rocq formalization (209 lines)
 ├── isabelle/
 │   └── PvsNPUndecidable.thy          # Isabelle/HOL formalization (154 lines)
 └── agda/
@@ -107,7 +107,7 @@ Theorem: ∀L∈P. ∃L'∈NP. ∀s. L(s) = L'(s)
 
 **Status**:
 - ✅ Lean 4: Fully proven
-- ✅ Coq: Fully proven
+- ✅ Rocq: Fully proven
 - ⚠️ Isabelle/HOL: Admitted (sorry)
 - ⚠️ Agda: Postulated
 
@@ -127,7 +127,7 @@ Theorem: PEqualsNP ∨ ¬PEqualsNP
 
 **Status**:
 - ✅ Lean 4: Proven via `Classical.em`
-- ✅ Coq: Proven via `classic`
+- ✅ Rocq: Proven via `classic`
 - ✅ Isabelle/HOL: Proven via `auto`
 - ⚠️ Agda: Postulated (requires classical axiom)
 
@@ -148,7 +148,7 @@ Lemma: isPolynomial(λn. n·n)        -- Quadratic function
 
 **Status**:
 - ✅ Lean 4: Axiomatized
-- ✅ Coq: Fully proven using `lia` and `ring` tactics
+- ✅ Rocq: Fully proven using `lia` and `ring` tactics
 - ✅ Isabelle/HOL: Proven
 - ⚠️ Agda: Postulated
 
@@ -190,7 +190,7 @@ structure ClassP where
   correct : ∀ s : String, language s = (decider s > 0)
 ```
 
-### Coq (`coq/PvsNPUndecidable.v`)
+### Rocq (`rocq/PvsNPUndecidable.v`)
 
 **Lines**: 209
 **Proof style**: Gallina term-based with tactics
@@ -274,7 +274,7 @@ This is a **pedagogical formalization** that demonstrates the concept. A fully r
 ## Verification Status
 
 - ✅ **Lean 4**: All definitions compile, main theorems proven
-- ✅ **Coq**: All definitions compile, P ⊆ NP and polynomial lemmas fully proven
+- ✅ **Rocq**: All definitions compile, P ⊆ NP and polynomial lemmas fully proven
 - ✅ **Isabelle/HOL**: All definitions compile, most lemmas proven (P ⊆ NP admitted)
 - ✅ **Agda**: All definitions type-check, classical axioms postulated
 
@@ -297,7 +297,7 @@ This formalization serves multiple purposes:
 
 ### Related Formalizations:
 - Formal Abstracts Project (P ≠ NP statement in Lean)
-- Complexity theory formalizations in Coq and Lean
+- Complexity theory formalizations in Rocq and Lean
 - Independence results analogous to Continuum Hypothesis
 
 ## Future Directions
@@ -319,8 +319,8 @@ Each file can be checked independently:
 # Lean 4
 lake build
 
-# Coq
-coqc proofs/p_vs_np_undecidable/coq/PvsNPUndecidable.v
+# Rocq
+coqc proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v
 
 # Isabelle/HOL
 isabelle build -d . PvsNPUndecidable
