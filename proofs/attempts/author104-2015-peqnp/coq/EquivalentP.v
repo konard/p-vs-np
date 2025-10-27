@@ -206,8 +206,8 @@ Axiom certificate_extraction_hard :
     P L1 /\ P L2 /\
     forall cert_func : Instance -> Certificate,
       ~(exists (f : Instance -> Instance -> bool),
-          (forall x1 x2, f x1 x2 = true <-> cert_func x1 = cert_func x2) /\
-          (forall x1 x2, exists t size, t <= poly_time (size))).
+          (forall (x1 x2 : Instance), f x1 x2 = true <-> cert_func x1 = cert_func x2) /\
+          (forall (x1 x2 : Instance), exists (t : nat) (size : nat), t <= poly_time size)).
 
 (**
   This axiom captures the idea that checking certificate equality
