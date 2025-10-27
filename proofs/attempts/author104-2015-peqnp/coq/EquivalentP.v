@@ -41,7 +41,7 @@ Definition PolynomialTimeDecidable (L : Language) : Prop :=
 Definition PolynomialTimeVerifiable (L : Language) : Prop :=
   exists (verify : Instance -> Certificate -> bool) (size : Instance -> nat),
     (forall x, L x <-> exists c, verify x c = true) /\
-    (forall x c, exists t, t <= poly_time (size x)).
+    (forall (x : Instance) (c : Certificate), exists t, t <= poly_time (size x)).
 
 (** * Complexity Classes *)
 
