@@ -143,8 +143,18 @@ Proof.
       intro x.
       specialize (H_sim_correct x).
       specialize (H_correct x).
-      rewrite H_sim_correct in H_correct.
-      exact H_correct.
+      (* H_correct: problem x <-> tm_compute tm x = true *)
+      (* H_sim_correct: mram_compute mram x = tm_compute tm x *)
+      (* Goal: problem x <-> mram_compute mram x = true *)
+      split.
+      * intro Hpx.
+        rewrite H_sim_correct.
+        apply H_correct.
+        exact Hpx.
+      * intro Hmram.
+        apply H_correct.
+        rewrite <- H_sim_correct.
+        exact Hmram.
   - (* MRAM to TM *)
     intro H.
     unfold InP_MRAM in H.
@@ -167,8 +177,18 @@ Proof.
       intro x.
       specialize (H_sim_correct x).
       specialize (H_correct x).
-      rewrite <- H_sim_correct in H_correct.
-      exact H_correct.
+      (* H_correct: problem x <-> mram_compute mram x = true *)
+      (* H_sim_correct: tm_compute tm x = mram_compute mram x *)
+      (* Goal: problem x <-> tm_compute tm x = true *)
+      split.
+      * intro Hpx.
+        rewrite H_sim_correct.
+        apply H_correct.
+        exact Hpx.
+      * intro Htm.
+        apply H_correct.
+        rewrite <- H_sim_correct.
+        exact Htm.
 Admitted.
 
 (** Theorem: NP is the same in both models *)
