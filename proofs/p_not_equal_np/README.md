@@ -75,7 +75,7 @@ cd lean
 lake build
 ```
 
-### Coq Implementation (`coq/PNotEqualNP.v`)
+### Rocq Implementation (`rocq/PNotEqualNP.v`)
 
 **Features**:
 - Classical logic via `Classical_Prop`
@@ -219,7 +219,7 @@ This framework is provided for research and educational purposes. See repository
 ## Status
 
 - ✅ Lean 4 implementation: Complete and verified
-- ✅ Coq implementation: Complete and verified
+- ✅ Rocq implementation: Complete and verified
 - ✅ Isabelle/HOL implementation: Complete and verified
 - 🚧 Agda implementation: Basic definitions only
 

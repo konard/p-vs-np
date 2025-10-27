@@ -30,7 +30,7 @@ All valid technical accuracy issues have been resolved.
 **Evidence:**
 - All files exist at the documented locations:
   - `proofs/basic/lean/Basic.lean` ✓
-  - `proofs/basic/coq/Basic.v` ✓
+  - `proofs/basic/rocq/Basic.v` ✓
   - `proofs/basic/isabelle/Basic.thy` ✓
   - `proofs/basic/agda/Basic.agda` ✓
 - GitHub Actions workflows exist and are passing:

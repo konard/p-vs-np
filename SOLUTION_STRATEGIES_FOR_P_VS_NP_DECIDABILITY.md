@@ -61,7 +61,7 @@ theorem P_vs_NP_decidable : PEqualsNP ∨ ¬PEqualsNP :=
 
 **Proof Assistant Support:**
 - **Lean 4**: `Classical.em`
-- **Coq**: `classic` from `Classical_Prop`
+- **Rocq**: `classic` from `Classical_Prop`
 - **Isabelle/HOL**: Built-in classical logic
 - **Agda**: Requires postulated classical axiom
 
@@ -361,7 +361,7 @@ Forcing is a technique used by Cohen to prove independence of the Continuum Hypo
 
 **Formal Investigation:**
 ```coq
-(* In Coq with ZFC axioms *)
+(* In Rocq with ZFC axioms *)
 Require Import Classical_Prop.
 Require Import ClassicalDescription.
 
@@ -574,14 +574,14 @@ fof(p_eq_np, conjecture, p_equals_np | ~p_equals_np).
 **Principle:** Combine interactive proving with automated tactics.
 
 **Approach:**
-1. Use proof assistants with strong automation (Isabelle, Lean, Coq)
+1. Use proof assistants with strong automation (Isabelle, Lean, Rocq)
 2. Apply automated tactics to decidability goal
 3. Fill gaps interactively where automation fails
 4. Verify entire proof is machine-checked
 
 **Proof Assistant Tactics:**
 - **Lean 4**: `decide`, `omega`, `simp`, `aesop`
-- **Coq**: `auto`, `tauto`, `lia`, `ring`
+- **Rocq**: `auto`, `tauto`, `lia`, `ring`
 - **Isabelle/HOL**: `auto`, `simp`, `blast`, `metis`, `sledgehammer`
 - **Agda**: Agsy proof search
 
@@ -728,7 +728,7 @@ This is a Π₂⁰ statement (with simplifications).
 
 **Approach:**
 1. Implement in Lean 4 (modern, automation)
-2. Implement in Coq (mature, extensive libraries)
+2. Implement in Rocq (mature, extensive libraries)
 3. Implement in Isabelle/HOL (classical, strong automation)
 4. Implement in Agda (dependently-typed, constructive)
 5. Compare results and identify dependencies
@@ -742,7 +742,7 @@ This is a Π₂⁰ statement (with simplifications).
 **Implementation Status:**
 ```
 ✅ Lean 4:  proofs/p_vs_np_decidable/lean/PvsNPDecidable.lean
-✅ Coq:     proofs/p_vs_np_decidable/coq/PvsNPDecidable.v
+✅ Rocq:     proofs/p_vs_np_decidable/rocq/PvsNPDecidable.v
 ✅ Isabelle: proofs/p_vs_np_decidable/isabelle/PvsNPDecidable.thy
 ✅ Agda:    proofs/p_vs_np_decidable/agda/PvsNPDecidable.agda
 ```
@@ -836,7 +836,7 @@ This proof applies the law of excluded middle...
 - Literate programming tools
 - Markdown + code blocks
 - Proof assistant documentation generators
-- Alectryon (for Coq)
+- Alectryon (for Rocq)
 
 **Advantages:**
 - ✅ Accessible to non-experts
@@ -964,7 +964,7 @@ If determining class membership is decidable, this might imply P vs NP is decida
 **Principle:** Combine logical analysis with computational verification.
 
 **Approach:**
-1. Use proof assistants for formal logic (Lean, Coq, Isabelle)
+1. Use proof assistants for formal logic (Lean, Rocq, Isabelle)
 2. Use ATP/SMT for automated verification (Z3, E, Vampire)
 3. Use computational tools to verify specific instances
 4. Synthesize results
@@ -984,7 +984,7 @@ If determining class membership is decidable, this might imply P vs NP is decida
 
 **Tools Integration:**
 - Lean ↔ TPTP translation
-- Coq + Hammer (connection to ATPs)
+- Rocq + Hammer (connection to ATPs)
 - Isabelle Sledgehammer (integrated ATP)
 
 **Advantages:**
@@ -1076,7 +1076,7 @@ Use empirical insights to:
 
 **Tasks:**
 - ✅ **Week 1**: Review existing formalizations in `proofs/p_vs_np_decidable/`
-- ✅ **Week 2**: Verify all four proof assistants (Lean, Coq, Isabelle, Agda)
+- ✅ **Week 2**: Verify all four proof assistants (Lean, Rocq, Isabelle, Agda)
 - ✅ **Week 3**: Add documentation and comments
 - ✅ **Week 4**: Write tutorial materials
 
@@ -1200,7 +1200,7 @@ This document presents a comprehensive catalog of solution strategies for formal
 ### Key Findings
 
 **Primary Result:**
-In classical logic, P vs NP is decidable via the law of excluded middle. This is already formalized and verified in four proof assistants (Lean 4, Coq, Isabelle/HOL, Agda).
+In classical logic, P vs NP is decidable via the law of excluded middle. This is already formalized and verified in four proof assistants (Lean 4, Rocq, Isabelle/HOL, Agda).
 
 **Open Questions:**
 1. Is P vs NP decidable *constructively* (without classical axioms)?
