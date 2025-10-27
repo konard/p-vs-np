@@ -33,7 +33,7 @@ Record TuringMachine := {
 Definition DTIME (t : TimeBound) : Language -> Prop :=
   fun L => exists M : TuringMachine,
     tm_accepts M = L /\
-    forall x, tm_time M (length x) <= t (length x).
+    forall x : list bool, tm_time M (List.length x) <= t (List.length x).
 
 (** The class P (polynomial time) *)
 Definition P_class : Language -> Prop :=
@@ -54,7 +54,7 @@ Definition Sigma2_Time (t : TimeBound) : Language -> Prop :=
     (** This is a placeholder - full formalization would require
         modeling alternating Turing machines explicitly *)
     tm_accepts M = L /\
-    forall x, tm_time M (length x) <= t (length x).
+    forall x : list bool, tm_time M (List.length x) <= t (List.length x).
     (** NOTE: This definition is incomplete - it doesn't capture
         the alternation structure properly. This is GAP #1. *)
 
