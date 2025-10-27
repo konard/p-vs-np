@@ -141,8 +141,10 @@ Proof.
       admit. (* Proof sketch: polynomial composition *)
     + (* Correctness *)
       intro x.
-      rewrite <- H_sim_correct.
-      apply H_correct.
+      specialize (H_sim_correct x).
+      specialize (H_correct x).
+      rewrite H_sim_correct.
+      exact H_correct.
   - (* MRAM to TM *)
     intro H.
     unfold InP_MRAM in H.
@@ -163,8 +165,10 @@ Proof.
       admit. (* Proof sketch: polynomial composition *)
     + (* Correctness *)
       intro x.
+      specialize (H_sim_correct x).
+      specialize (H_correct x).
       rewrite <- H_sim_correct.
-      apply H_correct.
+      exact H_correct.
 Admitted.
 
 (** Theorem: NP is the same in both models *)
