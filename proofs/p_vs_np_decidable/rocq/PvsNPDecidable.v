@@ -12,10 +12,10 @@
   4. Tests to verify the logical consistency of the formalization
 *)
 
-Require Import Coq.Arith.Arith.
-Require Import Coq.Lists.List.
-Require Import Coq.Strings.String.
-Require Import Coq.Logic.Classical_Prop.
+Require Import Rocq.Arith.Arith.
+Require Import Rocq.Lists.List.
+Require Import Rocq.Strings.String.
+Require Import Rocq.Logic.Classical_Prop.
 Require Import Lia.
 Import ListNotations.
 Open Scope string_scope.
@@ -237,5 +237,5 @@ Check decidability_formalization_complete.
   Summary: We have formally stated the P vs NP question and proven that
   it is decidable (has an answer) in the classical logic sense, even though
   we don't know which answer is correct. This provides a formal foundation
-  for reasoning about P vs NP decidability in Coq.
+  for reasoning about P vs NP decidability in Rocq.
 *)

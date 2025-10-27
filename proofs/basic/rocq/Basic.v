@@ -1,13 +1,13 @@
 (**
-  Basic.v - Simple foundational proofs in Coq
+  Basic.v - Simple foundational proofs in Rocq
 
-  This file serves as a bootstrap for formal verification in Coq,
+  This file serves as a bootstrap for formal verification in Rocq,
   demonstrating basic proof techniques and serving as a template for
   future P vs NP related proofs.
 *)
 
-Require Import Coq.Arith.Arith.
-Require Import Coq.Lists.List.
+Require Import Rocq.Arith.Arith.
+Require Import Rocq.Lists.List.
 Import ListNotations.
 
 (** * Basic Logical Proofs *)
@@ -128,4 +128,4 @@ Check add_comm.
 Check factorial_pos.
 Check list_length_append.
 
-(** All basic Coq proofs verified successfully *)
+(** All basic Rocq proofs verified successfully *)

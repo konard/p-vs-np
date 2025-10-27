@@ -5,9 +5,9 @@
   including definitions of complexity classes and basic verification tests.
 *)
 
-Require Import Coq.Arith.Arith.
-Require Import Coq.Lists.List.
-Require Import Coq.Logic.FunctionalExtensionality.
+Require Import Rocq.Arith.Arith.
+Require Import Rocq.Lists.List.
+Require Import Rocq.Logic.FunctionalExtensionality.
 Import ListNotations.
 
 (** * 1. Basic Definitions *)
