@@ -143,7 +143,7 @@ Proof.
       intro x.
       specialize (H_sim_correct x).
       specialize (H_correct x).
-      rewrite H_sim_correct.
+      rewrite H_sim_correct in H_correct.
       exact H_correct.
   - (* MRAM to TM *)
     intro H.
@@ -167,7 +167,7 @@ Proof.
       intro x.
       specialize (H_sim_correct x).
       specialize (H_correct x).
-      rewrite <- H_sim_correct.
+      rewrite <- H_sim_correct in H_correct.
       exact H_correct.
 Admitted.
 
