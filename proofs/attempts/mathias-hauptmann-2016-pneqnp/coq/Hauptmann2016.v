@@ -81,11 +81,18 @@ Definition TimeConstructible (t : TimeBound) : Prop :=
 
 (** ** McCreight-Meyer Union Theorem *)
 
+(** Pointwise ordering on time bounds *)
+Definition TimeBound_le (t1 t2 : TimeBound) : Prop :=
+  forall n, t1 n <= t2 n.
+
+Definition TimeBound_lt (t1 t2 : TimeBound) : Prop :=
+  forall n, t1 n < t2 n.
+
 (** The Union Theorem states that for a sequence of time bounds,
     their union can be captured by a single time bound. *)
 Axiom UnionTheorem :
   forall (seq : nat -> TimeBound),
-  (forall i, seq i < seq (S i))%nat -> (** increasing sequence *)
+  (forall i, TimeBound_lt (seq i) (seq (S i))) -> (** increasing sequence *)
   exists t : TimeBound,
     forall L, (exists i, DTIME (seq i) L) <-> DTIME t L.
 
@@ -95,7 +102,7 @@ Axiom UnionTheorem :
     This is stated as an axiom since we cannot prove it. *)
 Axiom Hauptmann_Union_Theorem_Variant :
   forall (seq : nat -> TimeBound),
-  (forall i, seq i < seq (S i))%nat ->
+  (forall i, TimeBound_lt (seq i) (seq (S i))) ->
   exists F : TimeBound,
     TimeConstructible F /\
     (forall L, (exists i, Sigma2_Time (seq i) L) <-> Sigma2_Time F L) /\
