@@ -21,14 +21,14 @@ Import ListNotations.
 Definition BinaryString := list bool.
 
 (** Variables and literals *)
-Definition Variable := nat.
+Definition Var := nat.
 
 Inductive Literal : Type :=
-  | Pos : Variable -> Literal
-  | Neg : Variable -> Literal.
+  | Pos : Var -> Literal
+  | Neg : Var -> Literal.
 
 (** Extract variable from literal *)
-Definition lit_var (l : Literal) : Variable :=
+Definition lit_var (l : Literal) : Var :=
   match l with
   | Pos v => v
   | Neg v => v
