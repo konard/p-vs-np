@@ -6,8 +6,10 @@ session "PvsNP" = "HOL" +
     "proofs/p_not_equal_np/isabelle"
     "proofs/p_eq_np/isabelle"
     "proofs/p_vs_np_decidable/isabelle"
+    "proofs/attempts/steven-meyer-2016-peqnp/isabelle"
   theories
     "proofs/basic/isabelle/Basic"
     "proofs/p_not_equal_np/isabelle/PNotEqualNP"
     "proofs/p_eq_np/isabelle/PvsNP"
     "proofs/p_vs_np_decidable/isabelle/PSubsetNP"
+    "proofs/attempts/steven-meyer-2016-peqnp/isabelle/MeyerAttempt"
