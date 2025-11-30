@@ -157,9 +157,10 @@ Theorem exists_counterexample_graph :
     (HamiltonianCircuit g /\
      forall p : Path, alg liu_algorithm g <> Some p)).
 Proof.
-  unfold covers_all_cases in liu_incomplete_coverage.
-  apply not_all_ex_not in liu_incomplete_coverage.
-  destruct liu_incomplete_coverage as [g H_not_covers].
+  pose proof liu_incomplete_coverage as H_liu.
+  unfold covers_all_cases in H_liu.
+  apply not_all_ex_not in H_liu.
+  destruct H_liu as [g H_not_covers].
   exists g.
 
   apply not_and_or in H_not_covers.
