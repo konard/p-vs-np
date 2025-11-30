@@ -14,7 +14,6 @@
 Require Import Coq.Strings.String.
 Require Import Coq.Init.Nat.
 Require Import Coq.Lists.List.
-Require Import Coq.Sets.Ensembles.
 Require Import Coq.Logic.Classical_Prop.
 
 (** * Graph Theory Definitions *)
