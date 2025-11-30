@@ -1,197 +1,258 @@
-# Ted Swart (1986/87) - P=NP via Linear Programming
+# Formal Analysis: Ted Swart (1986/87) - P=NP Claim
 
-**Navigation:** [↑ Back to Repository Root](../../../README.md) | [All Proof Attempts](../)
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [Core Documentation](../../../README.md#core-documentation) | [All Proof Frameworks](../../../README.md#-formal-verification)
+
+**Related Frameworks:** [P = NP](../../p_eq_np/) | [P ≠ NP](../../p_not_equal_np/README.md) | [P vs NP Decidability](../../p_vs_np_decidable/README.md)
 
 ---
 
-**Attempt ID**: #1
+## Overview
+
+This directory contains formal verification work analyzing Ted Swart's 1986/87 claimed proof that P=NP. This is entry #1 on Gerhard J. Woeginger's famous list of [P versus NP attempts](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm).
+
+**Status**: REFUTED by Mihalis Yannakakis (1988)
+
+## The Claim
+
 **Author**: Ted Swart (University of Guelph)
 **Year**: 1986/87
 **Claim**: P = NP
-**Status**: **REFUTED** by Yannakakis (1988/1991)
-
-## Summary
-
-In 1986/87, Ted Swart from the University of Guelph published a series of papers (some titled "P=NP") claiming to prove P=NP. His approach was based on providing polynomial-size linear programming (LP) formulations for the Hamiltonian cycle problem, which is known to be NP-hard.
-
-**Swart's Argument**:
-1. The Hamiltonian cycle problem is NP-hard
-2. He claimed to construct a linear programming formulation of polynomial size for the Hamiltonian cycle problem
-3. Linear programming is solvable in polynomial time (Khachiyan 1979, Karmarkar 1984)
-4. Therefore, Hamiltonian cycle ∈ P
-5. Since Hamiltonian cycle is NP-hard, this would imply P = NP
-
-**Refutation**: In 1988, Mihalis Yannakakis presented a decisive refutation at STOC 1988 (journal version in JCSS 1991), proving that any *symmetric* linear program for the Traveling Salesman Problem (TSP) must have exponential size. This closed the discussion on Swart's approach.
+**Method**: Linear programming formulation of Hamiltonian cycle problem
 
 ## The Main Argument
 
-### Swart's Approach
+Ted Swart wrote several papers (some titled "P=NP") proposing the following argument:
 
-Swart attempted to formulate the Hamiltonian cycle problem as a linear program with:
-- Variables: A polynomial number (reportedly n^8 to n^10, where n is the number of vertices)
-- Constraints: Linear inequalities defining a polytope
-- Objective: Find a feasible solution in the polytope
+1. **Observation**: The Hamiltonian cycle problem is NP-complete (well-known result)
+2. **Construction**: Swart provided linear programming (LP) formulations of polynomial size for the Hamiltonian cycle problem
+3. **Known fact**: Linear programming is solvable in polynomial time (Khachiyan 1979, Karmarkar 1984)
+4. **Conclusion**: Since an NP-complete problem can be formulated as polynomial-size LP, and LP is in P, therefore P = NP
 
-The key insight Swart tried to exploit: If the Hamiltonian cycle problem can be expressed as a polynomial-size LP, and LP is in P, then Hamiltonian cycle is in P, which would prove P=NP since Hamiltonian cycle is NP-complete.
+### The Apparent Logic
 
-### Why This Seemed Plausible
+```
+Hamiltonian Cycle ∈ NP-complete
+Hamiltonian Cycle has polynomial-size LP formulation (claimed)
+Linear Programming ∈ P
+────────────────────────────────────────────────────────
+Therefore: Hamiltonian Cycle ∈ P
+Therefore: P = NP (by NP-completeness)
+```
 
-1. **Linear Programming is in P**: The ellipsoid method (Khachiyan, 1979) and interior point methods (Karmarkar, 1984) can solve linear programs in polynomial time
-2. **Many Problems Have LP Formulations**: Integer linear programming (ILP) can express many combinatorial problems
-3. **Relaxations Often Work Well**: In practice, LP relaxations of ILP problems often give good approximate solutions
+## The Refutation
 
-## The Error in Swart's Proof
-
-### The Fatal Flaw: Confusing LP with ILP
-
-The critical error in Swart's approach is the confusion between:
-- **Linear Programming (LP)**: Variables can be real numbers
-- **Integer Linear Programming (ILP)**: Variables must be integers
-
-**Key distinction**:
-- LP is solvable in polynomial time
-- ILP is NP-complete
-
-### What Swart Actually Showed (at best)
-
-If Swart had a correct formulation, it would be an *integer* linear program, not a pure linear program. The Hamiltonian cycle problem naturally requires discrete choices (edge is in cycle or not), which requires integer constraints.
-
-### Extended Formulations and Symmetry
-
-Even if one considers LP *extended formulations* (where the polytope projects onto the convex hull of Hamiltonian cycles), Yannakakis proved a fundamental barrier:
-
-**Yannakakis's Theorem (1988/1991)**: Any *symmetric* extended formulation for the Traveling Salesman Problem requires exponential size.
-
-**Definition**: An LP is *symmetric* if every permutation of vertices can be extended to a permutation of all variables that preserves the constraints.
-
-Since natural formulations of graph problems are symmetric (they don't distinguish between vertices arbitrarily), this result showed that Swart's approach was fundamentally blocked.
-
-### The Full Story: Fiorini et al. (2012)
-
-The question remained: What about *non-symmetric* extended formulations?
-
-In 2012, Fiorini, Massar, Pokutta, Tiwary, and de Wolf proved that **no** polynomial-size extended formulation exists for TSP, symmetric or not. This completely ruled out any LP-based approach to proving P=NP.
-
-## Known Refutation
-
-### Yannakakis (1988): "Expressing Combinatorial Optimization Problems by Linear Programs"
-
+**Refuted by**: Mihalis Yannakakis
+**Paper**: "Expressing combinatorial optimization problems by linear programs"
 **Conference**: STOC 1988, pp. 223-228
-**Journal**: Journal of Computer and System Sciences, Vol. 43, 1991, pp. 441-466
+**Journal**: Journal of Computer and System Sciences, 1991
 
-**Main Result**: Yannakakis proved that expressing the Traveling Salesman Problem (and by extension, Hamiltonian cycle) using a symmetric linear program requires exponential size.
+### Yannakakis's Key Result
 
-**Technique**: Yannakakis used non-negative matrix factorization to show that the "slack matrix" of any symmetric extended formulation must have exponential non-negative rank.
+Yannakakis proved a fundamental limitation theorem:
 
-**Implication**: Any natural, symmetric LP formulation for Hamiltonian problems cannot be polynomial-sized.
+**Theorem (Yannakakis 1988)**: Expressing the Traveling Salesman Problem (and thus Hamiltonian Cycle) by a **symmetric linear program** requires **exponential size**.
 
-### Fiorini et al. (2012): Beyond Symmetry
+More precisely:
+- Any symmetric LP formulation of TSP/Hamiltonian Cycle must have exponentially many constraints or variables
+- This applies to a broad class of "natural" LP formulations, including those proposed by Swart
 
-**Citation**: "Exponential Lower Bounds for Polytopes in Combinatorial Optimization"
-**Journal**: Journal of the ACM, Vol. 62, No. 2, 2015 (conference version STOC 2012)
-**Award**: Gödel Prize 2023
+### What is a Symmetric LP?
 
-**Main Result**: The TSP polytope has no polynomial-size extended formulation, even allowing non-symmetric formulations.
+A symmetric linear program is one where:
+- The constraints and objective function respect the symmetries of the problem
+- For Hamiltonian Cycle: permuting vertices induces corresponding permutations in the LP variables/constraints
+- This captures the "natural" formulations one would typically write
 
-**Implication**: Even creative, asymmetric LP formulations cannot avoid exponential size for TSP.
+## The Error in Swart's Argument
 
-## Formal Verification
+The error is subtle but critical:
 
-This directory contains formal proofs in three proof assistants that capture the logical error in Swart's argument:
+1. **What Swart showed**: You can write *some* LP formulation for Hamiltonian Cycle
+2. **What was needed**: A polynomial-size LP formulation that correctly solves all instances
+3. **What Yannakakis proved**: Natural/symmetric LP formulations must have exponential size
 
-### Structure of Formalizations
+### The Gap
 
-Each formalization implements:
+There are two ways an LP formulation can fail to yield P=NP:
 
-1. **Definitions**:
-   - Linear Program (LP): Real-valued variables
-   - Integer Linear Program (ILP): Integer-valued variables
-   - Polynomial size: Number of variables/constraints is polynomial in input size
-   - Hamiltonian cycle problem
+1. **Exponential size**: The LP has exponentially many constraints/variables (Yannakakis's result)
+2. **Incorrectness**: The LP doesn't actually solve the problem correctly on all instances
 
-2. **Correct Statements**:
-   - LP ∈ P (polynomial-time solvable)
-   - Hamiltonian cycle ∈ NP
-   - Hamiltonian cycle is NP-hard
+Swart's formulations likely fell into one of these categories:
+- Either they were exponential-size (violating polynomial-time solvability)
+- Or they didn't correctly capture all instances of the problem
+- Or they used non-symmetric formulations that don't generalize properly
 
-3. **The Logical Gap**:
-   - Swart's claim: Hamiltonian cycle has polynomial-size *LP* formulation
-   - Reality: Hamiltonian cycle has polynomial-size *ILP* formulation (trivial)
-   - The gap: LP formulation ≠ ILP formulation for discrete problems
+## Mathematical Context
 
-4. **Yannakakis's Barrier**:
-   - Even symmetric extended formulations require exponential size
-   - Natural formulations are symmetric
-   - Therefore, Swart's approach cannot work
+### Background: Linear Programming in P
 
-### Files
+- **Khachiyan (1979)**: Ellipsoid method - LP is in P (but slow in practice)
+- **Karmarkar (1984)**: Interior point method - practical polynomial-time LP algorithm
+- **Standard form**: LP with m constraints and n variables is solvable in poly(m, n, size of coefficients)
 
-```
-proofs/attempts/ted-swart-1986-87-peqnp/
-├── README.md                          # This file
-├── coq/
-│   └── TedSwart1986.v                # Coq formalization
-├── lean/
-│   └── TedSwart1986.lean             # Lean 4 formalization
-└── isabelle/
-    └── TedSwart1986.thy              # Isabelle/HOL formalization
-```
+### The Key Insight
 
-## Why This Attempt is Important
+**Problem**: Not every computational problem can be expressed as a polynomial-size LP!
 
-### Educational Value
+**Why**: The expressive power of linear programming is limited. Many NP-complete problems require:
+- Exponentially many constraints to capture all valid solutions, OR
+- Non-linear constraints (which makes it not LP anymore), OR
+- Special structure that linear inequalities cannot express efficiently
 
-1. **Common Mistake**: Highlights the critical difference between LP and ILP
-2. **Extended Formulations**: Demonstrates the power and limits of LP relaxations
-3. **Symmetry**: Shows how symmetry constraints can impose fundamental limitations
-4. **Proof Barriers**: Illustrates that some approaches are provably doomed
+### Yannakakis's Barrier
 
-### Historical Significance
+Yannakakis's result established a **barrier** to LP-based approaches:
+- Symmetric LP formulations cannot efficiently express NP-complete problems
+- This eliminates a large class of potential P=NP proof attempts
+- The symmetry requirement is natural: it respects the problem's inherent structure
 
-1. **Motivated Deep Research**: Yannakakis's refutation led to decades of research on extended formulations
-2. **Gödel Prize**: The line of research culminated in a Gödel Prize-winning result (Fiorini et al., 2023)
-3. **Proof Technique**: Introduced non-negative rank as a tool in complexity theory
+## Formal Verification Goals
 
-### Complexity Theory Lessons
+This formalization aims to:
 
-1. **P vs NP Cannot Be Solved by LP Methods**: Fiorini et al. showed this definitively
-2. **Natural Proofs Barrier**: Related to Razborov-Rudich's natural proofs barrier
-3. **Practical Implications**: Explains why LP relaxations, while useful in practice, cannot resolve P vs NP
+1. **Model the claim**: Formalize the structure of Swart's argument
+2. **Identify the gap**: Show where the logical steps break down
+3. **Formalize Yannakakis's result**: Prove that symmetric LP formulations must be exponential
+4. **Educational value**: Demonstrate why "simple" polynomial-time algorithms don't work
+
+### What We Formalize
+
+- ✅ Definition of symmetric linear programs
+- ✅ The Hamiltonian Cycle problem as a decision problem
+- ✅ The structure of Swart's argument
+- ✅ The error: assuming polynomial-size formulation exists
+- ✅ (Partial) Yannakakis's impossibility result
+
+### What We Don't Formalize
+
+- ❌ The full technical proof of Yannakakis's theorem (requires polytope theory)
+- ❌ Specific details of Swart's actual LP formulations (papers hard to access)
+- ❌ Complete ellipsoid or interior point method algorithms
+
+## Implementation Status
+
+### Coq (`coq/TedSwartAttempt.v`)
+- ✅ Basic definitions (decision problems, LP formulations)
+- ✅ Hamiltonian Cycle problem encoding
+- ✅ Structure of the flawed argument
+- ✅ Identification of the error (assumed polynomial-size LP)
+- ✅ Reference to Yannakakis's result
+
+### Lean 4 (`lean/TedSwartAttempt.lean`)
+- ✅ Type-safe encoding of the claim
+- ✅ Dependent types for LP formulation properties
+- ✅ Clear separation of claim vs. reality
+- ✅ Documentation of the refutation
+
+### Isabelle/HOL (`isabelle/TedSwartAttempt.thy`)
+- ✅ Higher-order logic formalization
+- ✅ Record types for LP structures
+- ✅ Proof that the argument requires exponential-size LP
+- ✅ Connection to Yannakakis's theorem
+
+## Key Lessons
+
+### For Researchers
+
+1. **Not all problems have efficient encodings**: Just because a problem is "simple to state" doesn't mean it has a polynomial-size representation in a given formalism (LP, SAT, etc.)
+
+2. **Symmetry matters**: Natural problem formulations often have symmetries. Yannakakis showed these symmetries prevent efficient LP encodings.
+
+3. **Reduction direction**: Showing "problem X can be expressed in formalism Y" doesn't automatically mean X can be solved efficiently in Y - the encoding size matters!
+
+4. **Barrier results are powerful**: Yannakakis's theorem prevents an entire class of P=NP proof attempts via LP formulations.
+
+### For P vs NP
+
+This attempt illustrates:
+- Why the problem is hard: simple approaches fail
+- The importance of formal verification: subtle errors in complexity arguments
+- The role of barrier results: ruling out broad classes of techniques
 
 ## References
 
 ### Primary Sources
 
-1. **Swart, E.R.** (1986/87). *P=NP* (series of papers). University of Guelph.
+1. **Swart, T.** (1986/87). Various papers titled "P=NP" (manuscripts)
+   - Details: University of Guelph technical reports
+   - Note: Original papers are difficult to access
 
-2. **Yannakakis, M.** (1988). "Expressing Combinatorial Optimization Problems by Linear Programs." *Proceedings of STOC 1988*, pp. 223-228.
+2. **Yannakakis, M.** (1988). "Expressing combinatorial optimization problems by linear programs"
+   - Conference: *Proceedings of STOC 1988*, pp. 223-228
+   - DOI: [10.1145/62212.62232](https://doi.org/10.1145/62212.62232)
 
-3. **Yannakakis, M.** (1991). "Expressing Combinatorial Optimization Problems by Linear Programs." *Journal of Computer and System Sciences*, Vol. 43, pp. 441-466.
+3. **Yannakakis, M.** (1991). "Expressing combinatorial optimization problems by linear programs"
+   - Journal: *Journal of Computer and System Sciences* 43(3): 441-466
+   - DOI: [10.1016/0022-0000(91)90024-Y](https://doi.org/10.1016/0022-0000(91)90024-Y)
 
-4. **Fiorini, S., Massar, S., Pokutta, S., Tiwary, H. R., & de Wolf, R.** (2012). "Linear vs. Semidefinite Extended Formulations: Exponential Separation and Strong Lower Bounds." *Proceedings of STOC 2012*, pp. 95-106.
+### Background References
 
-5. **Fiorini, S., Massar, S., Pokutta, S., Tiwary, H. R., & de Wolf, R.** (2015). "Exponential Lower Bounds for Polytopes in Combinatorial Optimization." *Journal of the ACM*, Vol. 62, No. 2, Article 17.
+4. **Khachiyan, L.G.** (1979). "A polynomial algorithm in linear programming"
+   - Journal: *Soviet Mathematics Doklady* 20: 191-194
 
-### Background Reading
+5. **Karmarkar, N.** (1984). "A new polynomial-time algorithm for linear programming"
+   - Conference: *Proceedings of STOC 1984*, pp. 302-311
+   - DOI: [10.1145/800057.808695](https://doi.org/10.1145/800057.808695)
 
-6. **Khachiyan, L.G.** (1979). "A Polynomial Algorithm in Linear Programming." *Soviet Mathematics Doklady*, Vol. 20, pp. 191-194.
+6. **Garey, M.R., Johnson, D.S.** (1979). *Computers and Intractability: A Guide to the Theory of NP-Completeness*
+   - Publisher: W.H. Freeman
+   - Note: Standard reference for NP-completeness, includes Hamiltonian Cycle
 
-7. **Karmarkar, N.** (1984). "A New Polynomial-time Algorithm for Linear Programming." *Combinatorica*, Vol. 4, pp. 373-395.
+### Related Work
 
-8. **Woeginger, G.J.** "The P-versus-NP page." https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #1)
+7. **Woeginger, G.J.** "The P versus NP page"
+   - URL: [https://wscor.win.tue.nl/woeginger/P-versus-NP.htm](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm)
+   - Note: Catalog of claimed P vs NP proofs, Swart is entry #1
 
-9. **Pokutta, S.** (2012). "On linear programming formulations for the TSP polytope." Blog post. https://spokutta.wordpress.com/2012/01/05/1311/
+8. **Rothvoß, T.** (2014). "The matching polytope has exponential extension complexity"
+   - Conference: *Proceedings of STOC 2014*, pp. 263-272
+   - DOI: [10.1145/2591796.2591834](https://doi.org/10.1145/2591796.2591834)
+   - Note: Extended Yannakakis's techniques to stronger results
 
-## Verification Status
+## Verification Instructions
 
-- ✅ **Lean 4**: Definitions compile, logical gap formalized
-- ✅ **Coq**: Definitions compile, error identified formally
-- ✅ **Isabelle/HOL**: Definitions compile, refutation structure formalized
+### Coq
+```bash
+cd coq
+coqc TedSwartAttempt.v
+```
 
-## License
+### Lean 4
+```bash
+cd lean
+lake build
+```
 
-This formalization is part of the p-vs-np repository and follows the repository's [LICENSE](../../../LICENSE).
+### Isabelle/HOL
+```bash
+cd isabelle
+isabelle build -D .
+```
+
+## Contributing
+
+To extend this formalization:
+
+1. Add more details about specific LP formulations
+2. Formalize additional aspects of Yannakakis's proof
+3. Connect to extended formulation theory (Rothvoß)
+4. Add computational examples/counterexamples
+
+## Historical Significance
+
+Ted Swart's attempt is notable as:
+- **Entry #1** on Woeginger's list (chronologically one of the earliest documented attempts)
+- **Catalyzed important research**: Yannakakis's refutation became a foundational result in polyhedral combinatorics
+- **Clear refutation**: Unlike many P vs NP attempts, this one has a definitive, published mathematical refutation
+- **Educational value**: Illustrates the subtlety of complexity arguments
+
+The Yannakakis theorem that resulted from refuting this attempt has had lasting impact far beyond P vs NP, establishing fundamental limits on linear programming formulations.
 
 ---
 
-**Navigation:** [↑ Back to Repository Root](../../../README.md) | [Parent Issue #44: Test All Attempts](https://github.com/konard/p-vs-np/issues/44) | [This Issue #58](https://github.com/konard/p-vs-np/issues/58)
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [P_VS_NP_TASK_DESCRIPTION.md](../../../P_VS_NP_TASK_DESCRIPTION.md) | [TOOLS_AND_METHODOLOGIES.md](../../../TOOLS_AND_METHODOLOGIES.md)
+
+**Status**: ✅ Documented | 🚧 Formal verification in progress
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
