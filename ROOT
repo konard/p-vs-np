@@ -6,10 +6,12 @@ session "PvsNP" = "HOL" +
     "proofs/p_not_equal_np/isabelle"
     "proofs/p_eq_np/isabelle"
     "proofs/p_vs_np_decidable/isabelle"
+    "proofs/attempts/sergey_v_yakhontov_2012_peqnp/isabelle"
     "proofs/attempts/singh-anand-2005-pneqnp/isabelle"
   theories
     "proofs/basic/isabelle/Basic"
     "proofs/p_not_equal_np/isabelle/PNotEqualNP"
     "proofs/p_eq_np/isabelle/PvsNP"
     "proofs/p_vs_np_decidable/isabelle/PSubsetNP"
+    "proofs/attempts/sergey_v_yakhontov_2012_peqnp/isabelle/YakhontovProof"
     "proofs/attempts/singh-anand-2005-pneqnp/isabelle/SinghAnand2005"
