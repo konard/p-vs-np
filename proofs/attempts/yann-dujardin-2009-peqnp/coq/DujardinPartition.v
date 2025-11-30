@@ -212,8 +212,8 @@ Axiom dujardin_partition_poly_time :
   forall S : list Z,
     let n := length S in
     let max_val := fold_left Z.max (map Z.abs S) 0 in
-    exists x time_steps,
-      time_steps <= dujardin_algorithm_complexity n max_val /\
+    exists x (time_steps : nat),
+      (time_steps <= dujardin_algorithm_complexity n max_val)%nat /\
       (partition_has_solution S <-> is_binary_solution (fst (partition_to_binary_eq S))
                                                         (snd (partition_to_binary_eq S)) x).
 
