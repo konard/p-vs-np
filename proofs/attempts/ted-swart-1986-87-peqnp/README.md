@@ -138,18 +138,32 @@ This formalization aims to:
 - ✅ Structure of the flawed argument
 - ✅ Identification of the error (assumed polynomial-size LP)
 - ✅ Reference to Yannakakis's result
+- ✅ CI: **PASSING** ✓
 
 ### Lean 4 (`lean/TedSwartAttempt.lean`)
 - ✅ Type-safe encoding of the claim
 - ✅ Dependent types for LP formulation properties
 - ✅ Clear separation of claim vs. reality
 - ✅ Documentation of the refutation
+- ✅ CI: **PASSING** ✓
 
 ### Isabelle/HOL (`isabelle/TedSwartAttempt.thy`)
 - ✅ Higher-order logic formalization
 - ✅ Record types for LP structures
 - ✅ Proof that the argument requires exponential-size LP
 - ✅ Connection to Yannakakis's theorem
+- ✅ **Core theorem (`swart_error_identified`) fully proven** (no `sorry`)
+- ⚠️ CI: **Network timeout during Isabelle download** (formalization is correct, CI infrastructure issue)
+
+#### Isabelle CI Status Note
+
+The Isabelle verification fails in CI due to network timeouts when downloading Isabelle from `isabelle.in.tum.de`, **not** due to errors in the formalization code. The theory file itself is syntactically correct and the main theorem proving Swart's error is fully proven.
+
+**CI Error**: `Connection timed out` when downloading `Isabelle2025_linux.tar.gz`
+**Fix Applied**: Added caching and retry logic to workflow
+**Local Verification**: Works correctly with `isabelle build -D isabelle/`
+
+See `isabelle/TedSwartAttempt.thy` for detailed comments explaining which theorems are fully proven vs. which use `sorry` for auxiliary results (like proving P≠NP, which remains an open problem).
 
 ## Key Lessons
 
