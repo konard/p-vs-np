@@ -1,10 +1,35 @@
 # P vs NP: Educational Research Repository
 
+**Language:** [English](README.md) | [Русский (Russian)](README.ru.md)
+
+---
+
 **An Educational Resource for Researchers and Students**
 
-*Last Updated: October 2025*
+*Last Updated: November 2025*
 
 This repository contains extensive educational documentation for studying the P versus NP problem, one of the seven Clay Mathematics Institute Millennium Prize Problems.
+
+## 🎯 Key Insight: Reframing the Problem
+
+**✅ PROVEN: P ⊆ NP** — Every problem solvable in polynomial time is also verifiable in polynomial time.
+
+See formal proofs in four proof assistants:
+- [Lean 4 proof](proofs/p_vs_np_decidable/lean/PSubsetNP.lean)
+- [Coq proof](proofs/p_vs_np_decidable/coq/PSubsetNP.v)
+- [Isabelle/HOL proof](proofs/p_vs_np_decidable/isabelle/PSubsetNP.thy)
+- [Agda proof](proofs/p_vs_np_decidable/agda/PSubsetNP.agda)
+- [Detailed documentation](proofs/p_vs_np_decidable/README.md)
+
+**❓ THE QUESTION: Is NP ⊆ P true?**
+
+For P = NP to be true, we need **both**:
+1. P ⊆ NP (✅ **proven**)
+2. NP ⊆ P (❓ **unknown**)
+
+Therefore: **P vs NP is provable/unprovable if and only if NP ⊆ P is provable/unprovable.**
+
+This framing clarifies that the entire P vs NP question reduces to determining whether every polynomial-time verifiable problem is also polynomial-time solvable.
 
 ## Overview
 
@@ -110,10 +135,11 @@ The repository contains four distinct proof frameworks exploring different aspec
    - Includes four mathematically equivalent test methods
    - Available in Lean, Coq, Isabelle/HOL, and Agda
 
-3. **[Classical Tautology: (P = NP) ∨ (P ≠ NP)](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
+3. **[P ⊆ NP Formal Proof & Classical Tautology](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
+   - **Contains the formal proof that P ⊆ NP** ([detailed documentation](proofs/p_vs_np_decidable/README.md))
    - Formalizes that P vs NP has a definite answer in classical logic via law of excluded middle
-   - See [detailed documentation](proofs/p_vs_np_decidable/README.md)
-   - **Note:** This is NOT "decidability" in the algorithmic sense, but the classical tautology that (P=NP) ∨ (P≠NP) holds
+   - **Note:** "Decidable" here means the classical tautology that (P=NP) ∨ (P≠NP) holds, NOT algorithmic decidability
+   - **The key question:** Is NP ⊆ P provable/unprovable? This determines whether P vs NP is provable/unprovable.
    - Available in Lean, Coq, Isabelle/HOL, and Agda
 
 4. **[Possible Independence from ZFC](proofs/p_vs_np_undecidable/)** (`proofs/p_vs_np_undecidable/`)
