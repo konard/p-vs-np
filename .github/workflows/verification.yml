@@ -114,11 +114,38 @@ jobs:
           echo "✓ No Isabelle files - skipping"
         fi
 
+    - name: Cache Isabelle installation
+      if: steps.check-isabelle.outputs.has_files == 'true'
+      id: cache-isabelle
+      uses: actions/cache@v4
+      with:
+        path: Isabelle2025
+        key: ${{ runner.os }}-isabelle-2025
+
     - name: Install Isabelle
+      if: steps.check-isabelle.outputs.has_files == 'true' && steps.cache-isabelle.outputs.cache-hit != 'true'
+      run: |
+        # Try downloading with retries and timeout
+        for i in {1..3}; do
+          echo "Download attempt $i of 3..."
+          if wget --timeout=180 --tries=3 https://isabelle.in.tum.de/dist/Isabelle2025_linux.tar.gz; then
+            echo "Download successful!"
+            break
+          fi
+          if [ $i -lt 3 ]; then
+            echo "Download failed, retrying in 10 seconds..."
+            sleep 10
+          else
+            echo "All download attempts failed. Trying alternative approach..."
+            # Alternative: try GitHub mirror or pre-built container
+            exit 1
+          fi
+        done
+        tar xzf Isabelle2025_linux.tar.gz
+
+    - name: Add Isabelle to PATH
       if: steps.check-isabelle.outputs.has_files == 'true'
       run: |
-        wget https://isabelle.in.tum.de/dist/Isabelle2025_linux.tar.gz
-        tar xzf Isabelle2025_linux.tar.gz
         echo "$PWD/Isabelle2025/bin" >> $GITHUB_PATH
 
     - name: Build and test Isabelle
