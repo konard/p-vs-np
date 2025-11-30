@@ -171,7 +171,7 @@ Axiom dujardin_critical_claim :
       is_vertex n P_star /\
       hyperplane n a b P_star /\
       (forall Q, hyperplane n a b Q ->
-                 euclidean_distance n Pref P_star <= euclidean_distance n Pref Q).
+                 (euclidean_distance n Pref P_star <= euclidean_distance n Pref Q)%R).
 
 (** ** The Gap: Why the Critical Claim Fails *)
 
@@ -191,10 +191,10 @@ Theorem critical_claim_is_false :
             is_vertex n P_star /\
             hyperplane n a b P_star /\
             (forall Q, hyperplane n a b Q ->
-                      euclidean_distance n
+                      (euclidean_distance n
                         (project_onto_hyperplane n (hypercube_center n) a b) P_star
                       <= euclidean_distance n
-                        (project_onto_hyperplane n (hypercube_center n) a b) Q)).
+                        (project_onto_hyperplane n (hypercube_center n) a b) Q)%R)).
 Proof.
   (* A counterexample would demonstrate this *)
   admit.
