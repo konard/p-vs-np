@@ -214,12 +214,12 @@ Definition valid_P_eq_NP_proof_via_HC := {
 
 (** Liu's proof attempt cannot be completed *)
 Theorem liu_proof_invalid :
-  ~ exists (alg : Graph -> option Path),
-    (alg = alg liu_algorithm) /\
-    covers_all_cases alg.
+  ~ exists (alg_fn : Graph -> option Path),
+    (alg_fn = alg liu_algorithm) /\
+    covers_all_cases alg_fn.
 Proof.
   intro H_contra.
-  destruct H_contra as [alg [H_eq H_covers]].
+  destruct H_contra as [alg_fn [H_eq H_covers]].
   rewrite H_eq in H_covers.
   apply liu_incomplete_coverage.
   exact H_covers.
