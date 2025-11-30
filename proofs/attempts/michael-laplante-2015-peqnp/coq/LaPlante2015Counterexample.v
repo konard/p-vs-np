@@ -9,6 +9,7 @@
 
 Require Import Coq.Lists.List.
 Require Import Coq.Arith.Arith.
+Require Import Coq.micromega.Lia.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Logic.Decidable.
 Import ListNotations.
@@ -222,7 +223,7 @@ Theorem laplante_algorithm_is_incorrect :
     clique_size max > clique_size found.
 Proof.
   exists counterexample_graph, max_clique, clique_123A.
-  split; [reflexivity | split; [reflexivity | simpl; omega]].
+  split; [reflexivity | split; [reflexivity | simpl; lia]].
 Qed.
 
 (** This formalization demonstrates that LaPlante's algorithm can fail to find
