@@ -50,9 +50,9 @@ Definition partition_problem (S : list Z) : Prop :=
 
 (** A valid partition of indices *)
 Definition is_partition_indices (n : nat) (S1 S2 : list nat) : Prop :=
-  (forall i, In i S1 -> i < n) /\
-  (forall i, In i S2 -> i < n) /\
-  (forall i, i < n -> In i S1 \/ In i S2) /\
+  (forall i, In i S1 -> (i < n)%nat) /\
+  (forall i, In i S2 -> (i < n)%nat) /\
+  (forall i, (i < n)%nat -> In i S1 \/ In i S2) /\
   (forall i, In i S1 -> ~In i S2).
 
 (** PARTITION has solution *)
