@@ -149,7 +149,7 @@ Definition hypercube_center (n : nat) : Point n :=
 
 (** Hyperplane defined by aX = b *)
 (** This is where the "quadratic forms" mentioned in the error likely appear *)
-Parameter hyperplane : list Z -> Z -> Point -> Prop.
+Parameter hyperplane : forall n, list Z -> Z -> Point n -> Prop.
 
 (** Orthogonal projection onto hyperplane *)
 Parameter project_onto_hyperplane : forall n, Point n -> list Z -> Z -> Point n.
@@ -169,8 +169,8 @@ Axiom dujardin_critical_claim :
     is_binary_solution a b x <->
     exists (P_star : Point n),
       is_vertex n P_star /\
-      hyperplane a b P_star /\
-      (forall Q, hyperplane a b Q ->
+      hyperplane n a b P_star /\
+      (forall Q, hyperplane n a b Q ->
                  euclidean_distance n Pref P_star <= euclidean_distance n Pref Q).
 
 (** ** The Gap: Why the Critical Claim Fails *)
@@ -189,8 +189,8 @@ Theorem critical_claim_is_false :
     ~ (forall x, is_binary_solution a b x <->
           exists P_star,
             is_vertex n P_star /\
-            hyperplane a b P_star /\
-            (forall Q, hyperplane a b Q ->
+            hyperplane n a b P_star /\
+            (forall Q, hyperplane n a b Q ->
                       euclidean_distance n
                         (project_onto_hyperplane n (hypercube_center n) a b) P_star
                       <= euclidean_distance n
@@ -230,7 +230,7 @@ Theorem dujardin_p_equals_np_claim_invalid :
   dujardin_partition_poly_time ->
   (* The critical claim is necessary for correctness *)
   (forall n a b x, is_binary_solution a b x <->
-    exists P_star, is_vertex n P_star /\ hyperplane a b P_star) ->
+    exists P_star, is_vertex n P_star /\ hyperplane n a b P_star) ->
   (* But the critical claim is false *)
   critical_claim_is_false ->
   (* Therefore the P=NP claim is invalid *)
