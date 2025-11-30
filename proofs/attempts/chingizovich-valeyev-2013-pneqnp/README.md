@@ -4,25 +4,64 @@
 **Author**: Rustem Chingizovich Valeyev
 **Year**: 2013
 **Claim**: P ≠ NP
-**Status**: **Refuted/Contains Critical Errors**
+**Status**: **REFUTED** - Contains fundamental logical error
 
 ## Overview
 
-In August 2013, Rustem Chingizovich Valeyev published a paper claiming to prove that P ≠ NP. The paper, titled "The Lower Border of Complexity of Algorithm of the Elementary NP-Complete Task (The Most Condensed Version)", was published in Volume 8 of the World Applied Sciences Journal.
+In August 2013, Rustem Chingizovich Valeyev published a paper titled "The Lower Border of Complexity of Algorithm of the Elementary NP-Complete Task (The Most Condensed Version)" in World Applied Sciences Journal, Volume 8.
+
+The paper claims to prove that P ≠ NP by showing that the most effective algorithm for the Traveling Salesman Problem (TSP) is exhaustive search, which runs in exponential time.
 
 ## Main Argument
 
-The proof attempts to establish that:
+The proof attempts to establish P ≠ NP through the following reasoning:
 
-1. The Traveling Salesman Problem (TSP) is an NP-complete problem
-2. The most effective algorithm for TSP is exhaustive search
-3. Exhaustive search requires exponential time
-4. Therefore, TSP cannot be solved in polynomial time
-5. Therefore, P ≠ NP
+1. **Claim**: The most effective algorithm for TSP is exhaustive search
+2. **Claim**: Exhaustive search requires exponential time
+3. **Conclusion**: Therefore, TSP cannot be solved in polynomial time
+4. **Final Conclusion**: Since TSP is NP-complete, this implies P ≠ NP
 
-The core claim is that **exhaustive search is provably the best possible algorithm for TSP**, which would immediately imply an exponential lower bound for this NP-complete problem.
+## The Critical Error
 
-## Critical Errors and Gaps
+This proof contains a **fundamental logical flaw** that is common in many failed P vs NP attempts:
+
+### **Circular Reasoning / Begging the Question**
+
+The proof assumes what it is trying to prove. Specifically:
+
+- **The Assumption**: "The most effective algorithm for TSP is exhaustive search"
+- **What This Assumes**: That no polynomial-time algorithm exists for TSP
+- **The Goal**: To prove that no polynomial-time algorithm exists for TSP (i.e., P ≠ NP)
+
+This is circular reasoning. The proof assumes that no better algorithm than exhaustive search exists, but this is precisely what needs to be proven if we want to establish P ≠ NP.
+
+### Why This Fails
+
+To validly prove P ≠ NP via TSP, one would need to:
+
+1. **Rigorously prove** that *every possible algorithm* for TSP requires super-polynomial time in the worst case
+2. This requires techniques that can reason about *all possible algorithms*, not just known algorithms
+3. This is exactly what makes P vs NP so difficult - proving lower bounds for all possible algorithms
+
+Simply stating that "the most effective algorithm is exhaustive search" is not a proof unless you can:
+- Show that no polynomial-time algorithm exists (which would require proving P ≠ NP)
+- Or provide a rigorous argument that exhausts all possible algorithmic approaches
+
+### The Logical Structure of the Error
+
+```
+Premise: "No polynomial-time algorithm for TSP exists"
+         ↓
+Therefore: "The best algorithm is exhaustive search (exponential)"
+         ↓
+Conclusion: "TSP requires exponential time"
+         ↓
+Final Conclusion: "P ≠ NP"
+```
+
+This is invalid because the premise already assumes P ≠ NP, making the argument circular.
+
+## Detailed Error Analysis
 
 ### Error 1: Unjustified Assumption About Best Algorithm
 
@@ -45,19 +84,9 @@ The core claim is that **exhaustive search is provably the best possible algorit
 - Quantum or probabilistic algorithms (if applicable)
 - Approximation schemes that could be used in exact algorithms
 
-**Why This Matters**: To prove a lower bound, one must argue about **all possible algorithms**, not just the ones currently known. The proof attempts to establish a lower bound by analyzing one particular algorithm (exhaustive search) without proving that no fundamentally different approach could exist.
+**Why This Matters**: To prove a lower bound, one must argue about **all possible algorithms**, not just the ones currently known.
 
-### Error 3: Circular Reasoning
-
-**The Circularity**:
-1. Assume TSP requires exhaustive search
-2. Note that exhaustive search is exponential
-3. Conclude TSP is exponential
-4. Therefore P ≠ NP
-
-**The Problem**: Step 1 is assumed without proof. This is essentially assuming P ≠ NP to prove P ≠ NP. A valid proof would need to establish step 1 through a rigorous argument that doesn't presuppose the conclusion.
-
-### Error 4: Ignoring Known Barriers
+### Error 3: Ignoring Known Barriers
 
 The proof does not address the major barriers to proving P ≠ NP:
 
@@ -69,6 +98,13 @@ The proof does not address the major barriers to proving P ≠ NP:
 
 **Critical Point**: The proof's approach (analyzing a specific algorithm and claiming it's optimal) appears to relativize, which means it cannot possibly resolve P vs NP.
 
+## Classification of Error
+
+- **Type**: Logical fallacy (circular reasoning)
+- **Common Pattern**: Assuming no better algorithm exists without proof
+- **Severity**: Fatal - invalidates the entire proof
+- **Known Barrier**: This approach cannot overcome the fundamental barriers in complexity theory (relativization, natural proofs, algebrization)
+
 ## What Would Be Required for a Valid Proof
 
 To validly prove that exhaustive search is optimal for TSP (or any NP-complete problem), one would need:
@@ -79,6 +115,27 @@ To validly prove that exhaustive search is optimal for TSP (or any NP-complete p
 4. **Formal Model**: A precise computational model with formal proof of optimality within that model
 5. **Impossibility Proof**: A constructive demonstration that any algorithm solving TSP must perform certain operations, establishing an exponential lower bound
 
+## Formal Verification
+
+This repository contains formal proofs in three proof assistants that demonstrate the logical error:
+
+- **[Coq](coq/ValeyevAttempt.v)**: Formalization showing the circular reasoning
+- **[Lean](lean/ValeyevAttempt.lean)**: Formalization showing the circular reasoning
+- **[Isabelle/HOL](isabelle/ValeyevAttempt.thy)**: Formalization showing the circular reasoning
+
+Each formalization explicitly shows that the claim "exhaustive search is optimal" is equivalent to assuming P ≠ NP, thus revealing the circular nature of the argument.
+
+## Educational Value
+
+This attempt is valuable for understanding:
+
+1. **Common fallacies** in P vs NP proof attempts
+2. **The difficulty of proving lower bounds** - showing an algorithm is optimal requires proving no better algorithm exists for ALL possible algorithms
+3. **The importance of formal verification** - catching subtle circular reasoning
+4. **Why P vs NP is hard** - we cannot simply assert "no better algorithm exists" without rigorous proof
+5. **Common pitfalls** in complexity theory proofs
+6. **The difference** between heuristic arguments and rigorous proofs
+
 ## Historical Context
 
 This type of error is extremely common in claimed P vs NP proofs. The confusion between:
@@ -87,31 +144,26 @@ This type of error is extremely common in claimed P vs NP proofs. The confusion 
 
 is one of the most frequent mistakes in amateur attempts at this problem.
 
-## Formalization Strategy
+## Note on TSP Complexity
 
-Our formalization approach:
+Currently known facts about TSP:
 
-1. **Model the Claim**: Formalize the assumption that "exhaustive search is optimal for TSP"
-2. **Identify the Gap**: Show that this assumption is not proven within the paper
-3. **Demonstrate Circularity**: Formalize how the conclusion depends on unproven assumptions
-4. **Show Incompleteness**: Demonstrate that the proof structure leaves critical questions unanswered
+- **Best known exact algorithm**: Dynamic programming in O(n² · 2^n) time (Held-Karp, 1962)
+- **Best approximation**: 3/2-approximation for metric TSP (Christofides, 1976)
+- **Hardness**: TSP is NP-complete (reduction from Hamiltonian Cycle)
+- **Open question**: Whether a polynomial-time algorithm exists (equivalent to P = NP)
+
+The statement "exhaustive search is optimal" is not proven and would require resolving P vs NP.
 
 ## References
 
-- **Source**: Woeginger's P versus NP page, entry #94: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
-- **Publication**: "The Lower Border of Complexity of Algorithm of the Elementary NP-Complete Task (The Most Condensed Version)", World Applied Sciences Journal, Volume 8, 2013
+- **Source**: Woeginger's P vs NP page, Entry #94: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+- **Original Paper**: "The Lower Border of Complexity of Algorithm of the Elementary NP-Complete Task (The Most Condensed Version)", World Applied Sciences Journal, Volume 8 (2013)
+- **PDF**: http://www.idosi.org/wasj/wasj24(8)13/16.pdf
 - **Related Work**:
   - Baker, T., Gill, J., & Solovay, R. (1975). "Relativizations of the P =? NP Question". SIAM Journal on Computing.
   - Razborov, A. & Rudich, S. (1997). "Natural Proofs". Journal of Computer Science and Systems.
   - Aaronson, S. & Wigderson, A. (2008). "Algebrization: A New Barrier in Complexity Theory". ACM Transactions on Computation Theory.
-
-## Educational Value
-
-This attempt is valuable for understanding:
-- Common pitfalls in complexity theory proofs
-- The difference between heuristic arguments and rigorous proofs
-- Why proving lower bounds is fundamentally difficult
-- The importance of addressing known barriers in any P vs NP attempt
 
 ## Conclusion
 
@@ -119,5 +171,7 @@ The Valeyev 2013 proof attempt fails because it assumes its conclusion (that exh
 
 ---
 
-**Status**: This formalization is part of issue #310, formalizing P vs NP proof attempts to identify errors.
+**Key Lesson**: In complexity theory, claiming an algorithm is optimal requires proving no better algorithm can exist - a proof technique that remains one of the deepest open problems in mathematics and computer science.
+
+**Status**: This formalization is part of issue #101, formalizing P vs NP proof attempts to identify errors.
 **Parent Issue**: #44 - Test all P vs NP attempts formally
