@@ -1,134 +1,177 @@
-# Frank Vega's P = NP Proof Attempt (2015)
+# Formalization: Vega (2015) - P = NP via equivalent-P
+
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [All Proof Attempts](../)
+
+---
 
 **Attempt ID**: 104
 **Author**: Frank Vega
 **Year**: 2015
 **Claim**: P = NP
 **Paper**: "Solution of P versus NP Problem"
-**Source**: https://hal.science/hal-01161668
+**Source**: [HAL Archive hal-01161668](https://hal.science/hal-01161668)
+**Woeginger's List**: Entry #104
 
-## Overview
+## Summary
 
-In June 2015, Frank Vega published a paper claiming to prove P = NP by introducing a new complexity class called **equivalent-P**. The proof attempts to show that equivalent-P equals both NP and P, which would imply P = NP.
+In June 2015, Frank Vega introduced a new complexity class called **equivalent-P** (denoted ∼P), which has a close relation to the P versus NP question. The class ∼P contains languages of ordered pairs of instances where each instance belongs to a specific problem in P, such that the two instances share the same solution (certificate).
 
-## Main Argument
+Vega attempts to demonstrate that:
+1. ∼P = NP (Theorem 5.3)
+2. ∼P = P (Theorem 6.2)
 
-### Definition of equivalent-P
+From these two claims, he concludes P = NP (Theorem 6.3).
 
-The complexity class **equivalent-P** is defined as the set of languages that contain ordered pairs of instances, where:
-- Each element of the pair belongs to a specific problem in P
-- The two instances share the same solution (i.e., the same certificate)
+## The Main Argument
 
-Formally, a language L is in equivalent-P if:
+### Definition of ∼P (equivalent-P)
+
+Given two languages L₁ and L₂ in P with verifiers M₁ and M₂, a language L belongs to ∼P if:
+
 ```
-L = {(x₁, x₂) | x₁ ∈ L₁, x₂ ∈ L₂, L₁ ∈ P, L₂ ∈ P, cert(x₁) = cert(x₂)}
+L = {(x, y) : ∃z such that M₁(x,z) = "yes" and M₂(y,z) = "yes" where x ∈ L₁ and y ∈ L₂}
 ```
 
-where `cert(x)` represents the certificate (solution) for instance x.
+In other words, ∼P contains ordered pairs of problem instances from P that share the same certificate.
 
-### Claimed Theorems
+### Key Reductions
 
-The paper claims to prove two main results:
+1. **∼ONE-IN-THREE 3SAT**: Defined as {(φ,φ) : φ ∈ ONE-IN-THREE 3SAT}, claimed to be NP-complete
+2. **3XOR-2SAT**: Pairs (ψ,ϕ) where ψ ∈ XOR 3SAT and ϕ ∈ 2SAT with same satisfying assignment
+3. **∼HORNSAT**: Defined as {(φ,φ) : φ ∈ HORNSAT}, claimed to be P-complete
 
-1. **equivalent-P = NP**: Every language in equivalent-P is in NP, and vice versa
-2. **equivalent-P = P**: Every language in equivalent-P is in P, and vice versa
+### Proof Structure
 
-### Conclusion
+1. Show ∼P is closed under e-reductions (Theorem 4.2)
+2. Reduce ∼ONE-IN-THREE 3SAT to 3XOR-2SAT (Theorem 5.2)
+3. Show 3XOR-2SAT ∈ ∼P, conclude ∼P = NP (Theorem 5.3)
+4. Show ∼HORNSAT ∈ ∼P, conclude ∼P = P (Theorem 6.2)
+5. Conclude P = NP (Theorem 6.3)
 
-From these two theorems, the paper concludes:
-```
-P = equivalent-P = NP
-```
-Therefore, P = NP.
+## The Critical Error
 
-## The Error in the Proof
+### Main Flaw: Circular Definition and Category Error
 
-The fundamental flaw in this approach lies in the **definition and construction of equivalent-P**. Several critical issues emerge:
+The proof contains a fundamental logical error in the definition and application of ∼P:
 
-### 1. Certificate Ambiguity
+#### 1. Definition Inconsistency
 
-The definition assumes that there exists a unique, well-defined notion of a "certificate" for problems in P. However:
-- Problems in P don't require certificates for verification (they can be solved directly in polynomial time)
-- The concept of "same certificate" is not rigorously defined for arbitrary P problems
-- Different P problems may have incompatible certificate structures
+The definition of ∼P (Definition 3.1) states that a language L belongs to ∼P when:
+- L consists of ordered pairs (x, y)
+- There exist TWO languages L₁ and L₂ in P
+- There exists a shared certificate z
 
-### 2. Circular Reasoning in equivalent-P = NP
+However, Vega's key examples violate this definition:
 
-The claim that equivalent-P = NP contains circular logic:
-- To show equivalent-P ⊆ NP: The proof must demonstrate that verifying whether two instances share the same certificate can be done in polynomial time
-- To show NP ⊆ equivalent-P: The proof must show that any NP problem can be represented as pairs of P instances with shared certificates
-- This second direction is particularly problematic, as it assumes what needs to be proved (that NP problems can be reduced to P)
+**∼HORNSAT = {(φ,φ) : φ ∈ HORNSAT}**
 
-### 3. The equivalent-P = P Claim
+This is NOT a language of pairs from two different problems in P sharing a certificate. Rather, it's a language of identical pairs from a single problem. The definition requires L₁ and L₂ to be given first, then L is defined based on them. But ∼HORNSAT doesn't fit this pattern—it's defined by taking diagonal pairs from a single language.
 
-The claim that equivalent-P = P is highly suspect:
-- Just because individual components (x₁, x₂) come from P problems doesn't mean the pairing relation is efficiently computable
-- Determining whether two instances share the same certificate could be computationally hard
-- The proof likely conflates "membership of individual elements in P" with "membership of the pair in P"
+#### 2. The Diagonal Construction Fallacy
 
-### 4. Loss of Computational Hardness
+Vega uses diagonal constructions {(φ,φ) : φ ∈ L} for both:
+- ∼ONE-IN-THREE 3SAT (to show ∼P = NP)
+- ∼HORNSAT (to show ∼P = P)
 
-The construction fails to preserve the computational hardness of NP-complete problems:
-- NP-complete problems are characterized by the difficulty of finding solutions, not just verifying them
-- Representing NP problems as pairs of P instances with shared certificates doesn't capture the computational complexity of the original problem
-- The pairing mechanism doesn't provide a polynomial-time algorithm for solving NP-complete problems
+This creates a category error:
+- These are not examples of "two instances from different problems sharing a certificate"
+- They are trivial examples where "one instance shares a certificate with itself"
+- Any language L can be embedded as {(x,x) : x ∈ L}, which doesn't create a meaningful new complexity class
 
-### 5. Known Complexity Barriers
+#### 3. The Transitivity Trap
 
-The proof does not address known barriers to resolving P vs NP:
-- **Relativization** (Baker-Gill-Solovay, 1975): The proof technique should fail in some oracle worlds if it's to overcome relativization
-- **Natural Proofs** (Razborov-Rudich, 1997): Circuit lower bound proofs face fundamental obstacles
-- **Algebrization** (Aaronson-Wigderson, 2008): Extended limitations on proof techniques
+The proof attempts to show:
+- NP ⊆ ∼P (via ∼ONE-IN-THREE 3SAT)
+- P ⊆ ∼P (via ∼HORNSAT)
 
-The paper does not demonstrate awareness of or engagement with these fundamental obstacles.
+Even if both were true, this would only show that both P and NP are subsets of ∼P. This does NOT imply P = NP. It would only show that ∼P is a common upper bound, which could simply mean ∼P is large (potentially equal to NP or even larger).
 
-## Formal Verification Objective
+#### 4. The Verifier Confusion
 
-The formalizations in this directory aim to:
+Definition 3.1 requires that L₁ and L₂ be in P and have verifiers M₁ and M₂. However:
+- Problems in P are decision problems that can be *decided* in polynomial time
+- The use of "verifiers" suggests NP (where verification is the key concept)
+- The definition conflates "being in P" with "having a polynomial-time verifier"
 
-1. **Formalize the definitions**: Precisely encode the definition of equivalent-P in Coq, Lean, and Isabelle
-2. **Attempt the proofs**: Try to formalize the claimed theorems
-3. **Identify the gap**: The formalization process will reveal where the proof breaks down
-4. **Document the failure**: Clearly show why equivalent-P = P or equivalent-P = NP cannot be proven
+While every problem in P trivially has a polynomial-time verifier (ignore the certificate, just solve the problem), this is not the standard way to characterize P, and it obscures what ∼P actually represents.
 
-## Expected Outcome
+#### 5. Incorrect Claim: ∼P = NP
 
-We expect that formalizing this proof will reveal that:
-- The definition of "shared certificate" cannot be made rigorous for arbitrary P problems
-- The proof that equivalent-P = NP contains an unjustified step
-- The proof that equivalent-P = P requires solving an NP-hard problem
-- Therefore, the claimed equality P = NP cannot be established through this approach
+Theorem 5.3 claims ∼P = NP based on:
+- Showing ∼ONE-IN-THREE 3SAT ∈ ∼P
+- Using closure under reductions
 
-## Related Work
+**Problem**: The proof only shows NP has *some* problems that can be embedded in ∼P via the diagonal construction. It does NOT show:
+- That every problem in NP is in ∼P
+- That every problem in ∼P is in NP
 
-Frank Vega has published multiple attempts at resolving P vs NP using various approaches:
-- Some claiming P = NP
-- Others claiming P ≠ NP
-- Various papers on related complexity theory topics
+The correct conclusion would be that ∼ONE-IN-THREE 3SAT ∈ ∼P, not that all of NP equals ∼P.
 
-None of these attempts have been accepted by the complexity theory community, and several have been refuted or shown to contain errors.
+#### 6. Incorrect Claim: ∼P = P
+
+Theorem 6.2 claims ∼P = P based on:
+- Showing ∼HORNSAT ∈ ∼P
+- Using closure under reductions
+
+**Problem**: The same error as above—showing one P-complete problem can be embedded in ∼P does not prove ∼P = P.
+
+### What ∼P Actually Represents
+
+If we interpret the definition strictly, ∼P appears to be related to:
+- Languages of pairs that share solutions
+- This is similar to the complexity class of finding common satisfying assignments
+- It's unclear what the complexity of ∼P actually is without a proper analysis
+
+The diagonal examples {(x,x) : x ∈ L} are degenerate cases that don't illuminate the structure of ∼P.
+
+## Formalization Goals
+
+Our formalization will:
+
+1. **Define ∼P precisely** in each proof assistant
+2. **Formalize the diagonal construction** {(x,x) : x ∈ L}
+3. **Show the gap**: Proving L has an embedding into ∼P does NOT imply L = ∼P
+4. **Demonstrate the error**: Show that the argument structure "L₁ ⊆ ∼P and L₂ ⊆ ∼P implies L₁ = L₂" is invalid
+5. **Characterize ∼P properly**: Determine what ∼P actually is (likely ∼P = NP, but via different reasoning)
+
+## Files
+
+- `coq/VegaEquivalentP.v` - Coq formalization showing the flaw
+- `lean/VegaEquivalentP.lean` - Lean 4 formalization showing the flaw
+- `isabelle/VegaEquivalentP.thy` - Isabelle/HOL formalization showing the flaw
+
+## Known Refutation
+
+This proof has not been accepted by the complexity theory community. The main issues are:
+
+1. **Definitional problems**: The definition of ∼P and its diagonal embeddings are not properly justified
+2. **Logical gap**: The transition from "some problems in P and NP can be embedded in ∼P" to "P = ∼P = NP" is unjustified
+3. **Lack of peer review**: Published only as a preprint, not peer-reviewed
+4. **No response to barriers**: Does not address known barriers (relativization, natural proofs, algebrization)
+
+## Complexity Theory Lessons
+
+This attempt illustrates several common pitfalls in P vs NP attempts:
+
+1. **Defining new complexity classes**: Without careful analysis, new classes can be ill-defined or trivial
+2. **Diagonal constructions**: The map L → {(x,x) : x ∈ L} preserves complexity but doesn't create meaningful new structure
+3. **Subset vs. equality**: Showing L₁, L₂ ⊆ L₃ does NOT imply L₁ = L₂
+4. **Closure under reductions**: Must be applied carefully with the correct reduction type
+5. **Verifiers vs. deciders**: P is characterized by efficient decision, NP by efficient verification
 
 ## References
 
-1. Vega, F. (2015). "Solution of P versus NP Problem". HAL Archives. https://hal.science/hal-01161668
-2. Cook, S. A. (1971). "The complexity of theorem-proving procedures". STOC 1971.
-3. Baker, T., Gill, J., Solovay, R. (1975). "Relativizations of the P =? NP Question". SIAM Journal on Computing.
-4. Razborov, A. A., & Rudich, S. (1997). "Natural proofs". Journal of Computer Science and Systems.
-5. Aaronson, S., & Wigderson, A. (2008). "Algebrization: A new barrier in complexity theory". STOC 2008.
-
-## Directory Structure
-
-```
-proofs/attempts/author104-2015-peqnp/
-├── README.md                 # This file
-├── coq/
-│   └── EquivalentP.v        # Coq formalization
-├── lean/
-│   └── EquivalentP.lean     # Lean 4 formalization
-└── isabelle/
-    └── EquivalentP.thy      # Isabelle/HOL formalization
-```
+- Vega, F. (2015). "Solution of P versus NP Problem." HAL preprint hal-01161668. https://hal.science/hal-01161668
+- Woeginger, G. J. "The P-versus-NP page." https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
 
 ## Status
 
-This formalization is part of the systematic effort to formally verify all P vs NP proof attempts listed in Woeginger's catalog. By formalizing both correct and incorrect proofs, we build a comprehensive understanding of proof techniques and common pitfalls in complexity theory.
+- ✅ Paper analyzed
+- 🚧 Coq formalization: In progress
+- 🚧 Lean formalization: In progress
+- 🚧 Isabelle formalization: In progress
+- ✅ Error identified and documented
+
+---
+
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [P vs NP Documentation](../../../P_VS_NP_TASK_DESCRIPTION.md)
