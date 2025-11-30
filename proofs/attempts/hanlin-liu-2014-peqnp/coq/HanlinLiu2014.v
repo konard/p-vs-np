@@ -38,14 +38,14 @@ Definition has_edge (g : Graph) (e : Edge) : Prop :=
   In e (edges g).
 
 (** A path is valid if consecutive vertices are connected by edges *)
-Fixpoint is_valid_path (g : Graph) (p : Path) : Prop :=
+Fixpoint is_valid_path (g : Graph) (p : Path) {struct p} : Prop :=
   match p with
   | nil => True
   | v :: nil => In v (vertices g)
-  | v1 :: v2 :: rest =>
+  | v1 :: ((v2 :: rest) as tail) =>
       In v1 (vertices g) /\
       has_edge g (v1, v2) /\
-      is_valid_path g (v2 :: rest)
+      is_valid_path g tail
   end.
 
 (** A path visits a vertex if it contains that vertex *)
