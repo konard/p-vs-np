@@ -14,6 +14,14 @@ Require Import Reals.
 Import ListNotations.
 Open Scope Z_scope.
 
+(** Helper for combining two lists element-wise with an operation *)
+Fixpoint map2 {A B C : Type} (f : A -> B -> C) (la : list A) (lb : list B) : list C :=
+  match la, lb with
+  | [], _ => []
+  | _, [] => []
+  | a :: la', b :: lb' => f a b :: map2 f la' lb'
+  end.
+
 (** ** Section 1: Linear Diophantine Equations *)
 
 (** A linear Diophantine equation ax = b where x is sought in Z^n *)
