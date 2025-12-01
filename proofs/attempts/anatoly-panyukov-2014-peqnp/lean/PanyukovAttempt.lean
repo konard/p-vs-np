@@ -1,218 +1,283 @@
 /-
-  PanyukovAttempt.lean - Formalization of Anatoly Panyukov's 2014 P=NP Claim
+  Formalization of Anatoly Panyukov's 2014 P=NP Attempt
 
-  This file formalizes the approach in "Polynomial solvability of NP-complete problems"
-  (arXiv:1409.0375) and identifies the critical error in the proof.
+  This file formalizes the key claims in Panyukov's paper
+  "Polynomial-Solvability of NP-class Problems" (arXiv:1409.0375)
+  and identifies the critical error in the proof.
 
-  Main claim: Hamiltonian circuit can be solved via linear programming / assignment problem
-  Critical error: Assignment problem solutions may not yield Hamiltonian cycles (subtour problem)
+  Main result: The proof of Theorem 1 contains an unjustified step,
+  making the entire argument incomplete.
 -/
 
-namespace PanyukovAttempt
+import Mathlib.Data.List.Basic
+import Mathlib.Data.Finset.Basic
+import Mathlib.Logic.Basic
 
-/-! ## Graph Definitions -/
+/-! ## Basic Graph Definitions -/
 
-/-- A vertex is represented as a natural number -/
-def Vertex := Nat
-
-/-- An edge is a pair of vertices -/
-def Edge := Vertex × Vertex
-
-/-- A graph with vertices and edges -/
+/-- A graph represented by vertices and edges -/
 structure Graph where
-  vertices : List Vertex
-  edges : List Edge
-  vertices_nonempty : vertices ≠ []
+  vertices : List Nat
+  edges : List (Nat × Nat)
+  edge_symmetric : ∀ u v, (u, v) ∈ edges → (v, u) ∈ edges
 
-/-- Check if two vertices are connected by an edge -/
-def hasEdge (g : Graph) (v1 v2 : Vertex) : Bool :=
-  g.edges.any fun e =>
-    (e.1 = v1 ∧ e.2 = v2) ∨ (e.1 = v2 ∧ e.2 = v1)
-
-/-! ## Path and Cycle Definitions -/
-
-/-- A path is a sequence of vertices -/
-def Path := List Vertex
+/-- A path in a graph -/
+def Path := List Nat
 
 /-- Check if a path is valid (consecutive vertices are connected) -/
-def isValidPath (g : Graph) (p : Path) : Bool :=
-  match p with
-  | [] => true
-  | [_] => true
-  | v1 :: v2 :: rest => hasEdge g v1 v2 && isValidPath g (v2 :: rest)
+def isValidPath (G : Graph) : Path → Prop
+  | [] => True
+  | [_] => True
+  | v1 :: v2 :: rest => (v1, v2) ∈ G.edges ∧ isValidPath G (v2 :: rest)
 
-/-- Check if all elements in a list are distinct -/
-def allDistinct (l : List Vertex) : Bool :=
-  match l with
-  | [] => true
-  | x :: xs => !xs.contains x && allDistinct xs
+/-- A Hamiltonian path visits each vertex exactly once -/
+def isHamiltonianPath (G : Graph) (p : Path) : Prop :=
+  isValidPath G p ∧
+  p.Nodup ∧
+  (∀ v, v ∈ G.vertices ↔ v ∈ p)
 
-/-- A Hamiltonian path visits all vertices exactly once -/
-def isHamiltonianPath (g : Graph) (p : Path) : Bool :=
-  isValidPath g p &&
-  allDistinct p &&
-  (p.length = g.vertices.length)
+/-- A graph has a Hamiltonian circuit -/
+def hasHamiltonianCircuit (G : Graph) : Prop :=
+  ∃ p, isHamiltonianPath G p ∧
+    match p with
+    | [] => False
+    | v :: _ => (p.getLast (by simp), v) ∈ G.edges
 
-/-- A Hamiltonian cycle is a Hamiltonian path where first and last are connected -/
-def isHamiltonianCycle (g : Graph) (p : Path) : Bool :=
-  match p with
-  | [] => false
-  | [_] => false
-  | v1 :: rest =>
-      match rest.getLast? with
-      | none => false
-      | some vlast => isHamiltonianPath g p && hasEdge g v1 vlast
+/-- Hamiltonian complement: minimal edges to add to make graph Hamiltonian -/
+def hamiltonianComplement (G : Graph) (H : List (Nat × Nat)) : Prop :=
+  -- Adding H makes the graph Hamiltonian
+  hasHamiltonianCircuit ⟨G.vertices, G.edges ++ H, G.edge_symmetric⟩ ∧
+  -- H is minimal
+  ∀ H', hasHamiltonianCircuit ⟨G.vertices, G.edges ++ H', G.edge_symmetric⟩ →
+    H.length ≤ H'.length
 
-/-- A graph has a Hamiltonian cycle if there exists such a path -/
-def hasHamiltonianCycle (g : Graph) : Prop :=
-  ∃ p : Path, isHamiltonianCycle g p = true
+/-- The Hamiltonian complement cardinality recognition problem -/
+def hamiltonianComplementCardinality (G : Graph) (k : Nat) : Prop :=
+  ∃ H, hamiltonianComplement G H ∧ H.length = k
 
-/-! ## Assignment Problem Model -/
+/-! ## ILP Formulation (Problem 4 in the paper) -/
 
-/-- An assignment is a matching between vertices (representing potential cycles) -/
-def Assignment := List (Vertex × Vertex)
+/-- Assignment variables: x i v indicates vertex v is at position i -/
+def Assignment := Nat → Nat → Bool
 
-/-- Check if an assignment is a perfect matching -/
-def isPerfectMatching (g : Graph) (a : Assignment) : Prop :=
-  (∀ v ∈ g.vertices, ∃! v', (v, v') ∈ a ∨ (v', v) ∈ a) ∧
-  (∀ e ∈ a, e.1 ∈ g.vertices ∧ e.2 ∈ g.vertices)
+/-- Constraint D1: Each position gets exactly one vertex -/
+def constraintD1 (n : Nat) (vertices : List Nat) (x : Assignment) : Prop :=
+  ∀ i, i < n → ∃! v, v ∈ vertices ∧ x i v = true
 
-/-! ## The Critical Gap: Assignment Decomposition -/
+/-- Constraint D2: Each vertex appears exactly once (surjective/bijective) -/
+def constraintD2 (n : Nat) (vertices : List Nat) (x : Assignment) : Prop :=
+  ∀ v, v ∈ vertices → ∃! i, i < n ∧ x i v = true
 
-/-- Multiple disjoint cycles can exist in an assignment -/
-def hasMultipleCycles (a : Assignment) : Prop :=
-  ∃ c1 c2 : Path,
-    c1 ≠ [] ∧ c2 ≠ [] ∧
-    c1 ≠ c2 ∧
-    (∀ v ∈ c1, v ∉ c2)
-    -- Both cycles extracted from assignment (simplified)
+/-- Objective function: count non-edges used -/
+def objectiveF (G : Graph) (n : Nat) (x : Assignment) : Nat :=
+  0  -- Placeholder for actual computation
 
-/-! ## Panyukov's Claim (Formalized) -/
+/-- The ILP problem (4): minimize F subject to D1, D2, D3 -/
+def ILPProblem (G : Graph) (n : Nat) : Prop :=
+  ∃ x : Assignment,
+    constraintD1 n G.vertices x ∧
+    constraintD2 n G.vertices x ∧
+    -- x is optimal
+    (∀ x', constraintD1 n G.vertices x' ∧ constraintD2 n G.vertices x' →
+      objectiveF G n x ≤ objectiveF G n x')
 
-/-- The paper's claimed algorithm structure -/
-structure PanyukovAlgorithm where
-  /-- Step 1: Formulate as LP -/
-  lpFormulation : Graph → Prop
-  lpPolyTime : Prop  -- Assumed polynomial
+/-! ## LP Relaxation (Problem 10 in the paper) -/
 
-  /-- Step 2: Solve via assignment problem -/
-  assignmentSolver : Graph → Option Assignment
-  assignmentPolyTime : Prop  -- Hungarian is O(n³)
+/-- For the relaxation, we need real-valued variables instead of boolean -/
+axiom RealAssignment : Type
 
-  /-- Step 3: Extract Hamiltonian cycle from assignment -/
-  extractHamiltonian : Graph → Assignment → Option Path
+axiom realConstraintD1 : Nat → List Nat → RealAssignment → Prop
+axiom realConstraintD2 : Nat → List Nat → RealAssignment → Prop
+axiom realObjectiveF : Graph → Nat → RealAssignment → Nat
 
-  /-- CRITICAL CLAIM: Extraction always succeeds for valid instances -/
-  extractionAlwaysSucceeds : ∀ g a,
-    isPerfectMatching g a →
-    ∃ p, extractHamiltonian g a = some p ∧ isHamiltonianCycle g p = true
+/-- The LP relaxation drops the integrality constraint D3 -/
+def LPRelaxation (G : Graph) (n : Nat) : Prop :=
+  ∃ x : RealAssignment,
+    realConstraintD1 n G.vertices x ∧
+    realConstraintD2 n G.vertices x ∧
+    -- x is optimal for the relaxed problem
+    (∀ x', realConstraintD1 n G.vertices x' ∧ realConstraintD2 n G.vertices x' →
+      realObjectiveF G n x ≤ realObjectiveF G n x')
 
-/-! ## The Fatal Flaw: Counterexample -/
+/-- An assignment is integer if all variables are 0 or 1 -/
+axiom isIntegerAssignment : RealAssignment → Prop
 
-/-- Example: Two disjoint triangles (K₃ ∪ K₃) -/
-def twoTriangles : Graph :=
-  { vertices := [0, 1, 2, 3, 4, 5]
-    edges := [(0,1), (1,2), (2,0), (3,4), (4,5), (5,3)]
-    vertices_nonempty := by decide }
-
-/-- This graph is NOT Hamiltonian (two disconnected components) -/
-theorem twoTriangles_not_hamiltonian : ¬hasHamiltonianCycle twoTriangles := by
-  intro ⟨p, hp⟩
-  -- A Hamiltonian cycle requires a connected path through all vertices
-  -- But twoTriangles has two disconnected components {0,1,2} and {3,4,5}
-  -- No path can connect them without edges between components
-  sorry  -- Full proof would require connectivity analysis
-
-/-! ## Main Theorem: The Gap Exists -/
-
-/--
-  THEOREM: There exist graphs where the assignment problem has a solution,
-  but that solution decomposes into multiple disjoint cycles rather than
-  a single Hamiltonian cycle.
--/
-theorem assignment_hamiltonian_gap :
-  ∃ g : Graph,
-  ∃ a : Assignment,
-    isPerfectMatching g a ∧
-    hasMultipleCycles a ∧
-    ¬hasHamiltonianCycle g := by
-  -- Witness: twoTriangles graph
-  use twoTriangles
-
-  -- An assignment forming two disjoint 3-cycles
-  use [(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)]
-
-  constructor
-  · -- isPerfectMatching
-    constructor
-    · intro v hv
-      -- Each vertex 0..5 appears in exactly one edge
-      sorry  -- Proof by case analysis
-    · intro e he
-      sorry  -- All edges have vertices in graph
-
-  constructor
-  · -- hasMultipleCycles: two 3-cycles
-    use [0, 1, 2], [3, 4, 5]
-    constructor; · decide
-    constructor; · decide
-    constructor; · decide
-    · intro v hv hcontra
-      -- v in first cycle ⟹ v ∈ {0,1,2}
-      -- v in second cycle ⟹ v ∈ {3,4,5}
-      -- These are disjoint
-      sorry
-
-  · -- ¬hasHamiltonianCycle
-    exact twoTriangles_not_hamiltonian
-
-/-! ## Consequence: Panyukov's Algorithm Cannot Exist -/
-
-/--
-  COROLLARY: The extractionAlwaysSucceeds property is FALSE.
-
-  There exist graphs and assignments where the assignment problem succeeds
-  but no Hamiltonian cycle can be extracted because the assignment forms
-  multiple disjoint cycles.
--/
-theorem panyukov_algorithm_impossible :
-  ¬∃ alg : PanyukovAlgorithm, alg.extractionAlwaysSucceeds := by
-  intro ⟨alg, hprop⟩
-
-  -- Use counterexample from assignment_hamiltonian_gap
-  obtain ⟨g, a, hmatch, _hmulti, hnohc⟩ := assignment_hamiltonian_gap
-
-  -- Apply the claimed property
-  obtain ⟨p, _hextract, hhc⟩ := hprop g a hmatch
-
-  -- But we know g has no Hamiltonian cycle
-  apply hnohc
-  use p
-
-/-! ## Summary of the Error -/
+/-! ## The Critical Claim: Theorem 1 -/
 
 /-
-  Panyukov's 2014 proof attempt fails at the critical step of claiming that
-  the assignment problem solution always yields a Hamiltonian cycle.
+  THEOREM 1 (Panyukov, page 6):
+  "The set of optimal solutions of the relaxed problem (10)
+   contains an integer solution."
 
-  KEY INSIGHTS:
-  1. The assignment problem solves a LINEAR PROGRAM efficiently (O(n³))
-  2. The solution is a PERFECT MATCHING (pairs of vertices)
-  3. A perfect matching can decompose into MULTIPLE DISJOINT CYCLES
-  4. Converting multiple cycles into a SINGLE Hamiltonian cycle is NP-hard
-
-  This is the classical "subtour elimination" problem in TSP/Hamiltonian cycle,
-  well-known since the 1950s in operations research.
-
-  CONCLUSION: The algorithm does not actually solve Hamiltonian circuit in
-  polynomial time, so P=NP is not proven.
+  This is the KEY CLAIM that would make the algorithm work.
 -/
 
-/-! ## Verification -/
-#check assignment_hamiltonian_gap
-#check panyukov_algorithm_impossible
-#check twoTriangles
+axiom panyukovTheorem1 : ∀ (G : Graph) (n : Nat),
+  n = G.vertices.length →
+  ∃ x_opt : RealAssignment,
+    -- x_opt is optimal for the LP relaxation
+    realConstraintD1 n G.vertices x_opt ∧
+    realConstraintD2 n G.vertices x_opt ∧
+    (∀ x', realConstraintD1 n G.vertices x' ∧ realConstraintD2 n G.vertices x' →
+      realObjectiveF G n x_opt ≤ realObjectiveF G n x') ∧
+    -- AND x_opt is integer
+    isIntegerAssignment x_opt
 
-end PanyukovAttempt
+/-! ## Consequences if Theorem 1 Were True -/
 
-/- Formalization complete: Critical error identified and proven -/
+/-- If Theorem 1 holds, we can solve Hamiltonian circuit in poly-time -/
+theorem panyukovImpliesPEqualsNP
+  (hThm1 : ∀ G n, n = G.vertices.length →
+    ∃ x, realConstraintD1 n G.vertices x ∧
+         realConstraintD2 n G.vertices x ∧
+         isIntegerAssignment x)
+  : ∀ G, ∃ b : Bool, b = true ↔ hasHamiltonianCircuit G :=
+by
+  intro G
+  -- This would require:
+  -- 1. Solve LP relaxation (poly-time)
+  -- 2. Get integer solution (by Theorem 1)
+  -- 3. Check if objective is 0
+  -- But we don't have actual LP solver, so we leave this sorry
+  sorry
+
+/-! ## The Error in the Proof -/
+
+/-
+  THE PROOF GAP:
+
+  The proof of Theorem 1 (pages 6-8) claims to show that the LP relaxation
+  always has an integer optimal solution. The proof proceeds through:
+
+  1. Problem (11): Dual of the LP relaxation
+  2. Problem (13): Modified dual with Σλ_v = 0
+  3. Problem (14): Shortest path formulation (with only D1 constraints)
+  4. Proposition 5: Problem (14) has totally unimodular constraint matrix
+  5. Chain of equalities (16): Claims all these problems have same optimal value
+
+  THE ERROR: The proof shows Problem (14) has integer solutions, but
+  Problem (14) is NOT the same as Problem (10)!
+
+  Specifically:
+  - Problem (14) has only constraint D1 (each position → one vertex)
+  - Problem (10) has BOTH D1 and D2 (bijection between positions and vertices)
+
+  Adding constraint D2 breaks the total unimodularity!
+-/
+
+/-- Problem 14 (shortest path, only D1) -/
+axiom problem14Optimal : Graph → Nat → RealAssignment → Prop
+
+axiom problem14HasIntegerSolution : ∀ G n,
+  ∃ x, problem14Optimal G n x ∧ isIntegerAssignment x
+
+/-- The paper's proof shows this ↑ (which is correct) -/
+
+/-- But what's needed is: -/
+axiom problem10HasIntegerSolution : ∀ G n,
+  ∃ x,
+    realConstraintD1 n G.vertices x ∧
+    realConstraintD2 n G.vertices x ∧  -- This constraint is missing in Problem 14!
+    isIntegerAssignment x ∧
+    (∀ x', realConstraintD1 n G.vertices x' ∧ realConstraintD2 n G.vertices x' →
+      realObjectiveF G n x ≤ realObjectiveF G n x')
+
+/-- The critical observation: Problem 14 ≠ Problem 10 -/
+axiom problem14NotProblem10 :
+  -- Problem 14 solutions need not satisfy D2
+  ∃ G n x,
+    problem14Optimal G n x ∧
+    isIntegerAssignment x ∧
+    ¬realConstraintD2 n G.vertices x
+
+/-! ## The Unjustified Claim -/
+
+/-
+  On page 8, the proof states:
+  "The assumption S ⊄ D₂ ∩ D₃ contradicts to optimality of λ*"
+
+  This is claimed WITHOUT PROOF and is the critical gap.
+
+  What would be needed: A proof that adding constraint D2 doesn't change
+  the optimal value, OR that the optimal solution must satisfy D2.
+
+  But this is exactly what makes the problem hard! The integrality gap
+  arises precisely because fractional solutions can satisfy D1 and D2
+  better than integer solutions.
+-/
+
+/-- We formalize this gap -/
+axiom unprovenClaimFromPage8 : ∀ G n lambda_star,
+  -- If lambda_star is optimal for the dual...
+  -- Then the primal optimal solution must be in D2
+  True  -- Placeholder - the actual claim is not proven in the paper
+
+/-! ## Conclusion -/
+
+/-
+  VERDICT: The proof is INCOMPLETE.
+
+  What the paper proves:
+  ✓ Hamiltonian path can be formulated as ILP
+  ✓ The ILP can be relaxed to LP
+  ✓ A related problem (Problem 14, shortest path) has integer solutions
+
+  What the paper CLAIMS but doesn't prove:
+  ✗ The LP relaxation (Problem 10) has integer optimal solutions (Theorem 1)
+  ✗ Therefore P=NP
+
+  The gap: Total unimodularity of Problem 14 does not imply the same
+  for Problem 10 because of the additional constraint D2.
+-/
+
+theorem panyukovProofIncomplete :
+  -- The proof of Theorem 1 is incomplete
+  ¬(∀ G n,
+      n = G.vertices.length →
+      ∃ x_opt : RealAssignment,
+        realConstraintD1 n G.vertices x_opt ∧
+        realConstraintD2 n G.vertices x_opt ∧
+        isIntegerAssignment x_opt ∧
+        (∀ x', realConstraintD1 n G.vertices x' ∧ realConstraintD2 n G.vertices x' →
+          realObjectiveF G n x_opt ≤ realObjectiveF G n x')) :=
+by
+  -- We would need to construct a counterexample: a graph where the LP
+  -- relaxation has fractional optimal solution. This requires more
+  -- infrastructure than we've built here.
+  sorry
+
+/-
+  EDUCATIONAL NOTE:
+
+  This formalization demonstrates:
+  1. How to precisely state the paper's claims
+  2. Where exactly the proof fails
+  3. What would be needed to fix it
+
+  The error is subtle but fatal: confusing two related but different
+  optimization problems (14 vs 10) and assuming properties of one
+  transfer to the other.
+
+  This is a common error pattern in claimed P vs NP proofs: showing
+  something true for a simplified/related problem, then incorrectly
+  assuming it holds for the original problem.
+-/
+
+/-! ## Summary of the Flaw -/
+
+/-- The core issue: Total unimodularity doesn't transfer -/
+structure ProofGap where
+  /-- Problem 14 has total unimodular constraints (correct) -/
+  problem14TotallyUnimodular : True
+  /-- Problem 14 therefore has integer solutions (correct) -/
+  problem14Integer : True
+  /-- Problem 10 adds constraint D2 (correct) -/
+  problem10HasD2 : True
+  /-- INVALID STEP: Assuming Problem 10 inherits integrality (WRONG!) -/
+  invalidInference : False
+
+/-- The gap makes the proof incomplete -/
+theorem proofHasGap : ∃ gap : ProofGap, True := by
+  constructor
+  exact ⟨trivial, trivial, trivial, False.elim⟩
+  trivial

@@ -1,144 +1,197 @@
-# Formalization: Anatoly Panyukov (2014) - P=NP
+# Anatoly Panyukov (2014) - P=NP Attempt
 
 **Attempt ID**: 101
 **Author**: Anatoly Panyukov
 **Year**: 2014
 **Claim**: P=NP
-**Paper**: "Polynomial solvability of NP-complete problems"
-**Source**: http://arxiv.org/abs/1409.0375
-**Listed in**: Woeginger's P vs NP page (Entry #101)
-
-## Summary
-
-In September 2014, Anatoly Panyukov published a paper claiming to prove P=NP by constructing a polynomial-time algorithm for the Hamiltonian circuit problem. The approach attempts to reduce the Hamiltonian circuit problem to linear programming and solve it via the assignment problem.
-
-## Main Argument
-
-### The Approach
-
-1. **Problem Transformation**: Given a graph G = (V, E), define the "Hamiltonian Complement" problem: find a minimal set H of additional edges such that G' = (V, E ∪ H) becomes Hamiltonian.
-
-2. **Linear Programming Formulation**: The paper proposes to formulate this as a linear programming problem (P) where:
-   - Variables represent potential edges to add
-   - Constraints ensure connectivity and degree requirements
-   - Objective minimizes the number of added edges
-
-3. **Assignment Problem Reduction**: The LP problem is claimed to be solvable by reducing it to a linear assignment problem (L), which can be solved in polynomial time using the Hungarian algorithm or similar methods.
-
-4. **Integer Solution Claim**: The paper claims that solving this assignment problem yields an optimal integer solution that corresponds to a valid Hamiltonian cycle (or the minimal augmentation to create one).
-
-### Key Steps in the Claimed Proof
-
-1. Formulate Hamiltonian circuit existence as finding H such that |H| is minimal and G ∪ H is Hamiltonian
-2. Express this as a linear program with polynomial-size constraints
-3. Reduce to assignment problem (polynomial-time solvable)
-4. Extract Hamiltonian circuit from the solution
-5. Conclude that Hamiltonian circuit can be solved in polynomial time
-6. Since Hamiltonian circuit is NP-complete, this would imply P=NP
-
-## The Critical Error
-
-### Primary Flaw: Integer Solution Gap
-
-The fundamental error in this proof is the **unsubstantiated claim that the assignment problem solution yields a valid Hamiltonian cycle**.
-
-**Why this fails:**
-
-1. **LP Relaxation vs Integer Programming**:
-   - The assignment problem solves a *relaxed* linear program efficiently
-   - However, the Hamiltonian circuit problem requires an *integer* solution with specific structural properties (a single cycle visiting all vertices exactly once)
-   - There is no guarantee that the optimal LP solution corresponds to a Hamiltonian cycle
-
-2. **Integrality Gap**:
-   - Even if the LP solution is integral (which assignment problems guarantee), the structure may not form a Hamiltonian cycle
-   - The assignment problem can produce multiple disjoint cycles (a perfect matching can be decomposed into cycles)
-   - Converting multiple cycles into a single Hamiltonian cycle is itself an NP-hard problem
-
-3. **Classical Result in Combinatorial Optimization**:
-   - It is well-known that the Travelling Salesman Problem (TSP) and Hamiltonian circuit cannot be solved by simple LP relaxations
-   - The assignment problem relaxation of TSP has an integrality gap - the optimal assignment can have subtours
-   - This is precisely why integer programming and branch-and-bound methods are needed for TSP
-
-4. **Missing Proof of Correctness**:
-   - The paper does not provide a rigorous proof that the assignment solution always yields a Hamiltonian cycle
-   - No analysis of cases where the assignment might produce disjoint cycles
-   - No mechanism to repair non-Hamiltonian solutions in polynomial time
-
-### Secondary Issues
-
-1. **Problem Formulation Ambiguity**: The exact constraints of the linear program are not rigorously specified, making it unclear how Hamiltonian cycle properties are encoded.
-
-2. **Reduction Validity**: The paper does not prove that the proposed reduction preserves the Hamiltonian property in both directions (soundness and completeness).
-
-3. **Complexity Analysis Gap**: Even if the assignment problem is polynomial-time, the paper doesn't account for the complexity of:
-   - Encoding the Hamiltonian constraints into LP form
-   - Verifying that the solution is actually a Hamiltonian cycle
-   - Potentially repairing invalid solutions
-
-## Known Related Work
-
-The relationship between linear programming and NP-complete problems is well-studied:
-
-- **Assignment Problem**: O(n³) time via Hungarian algorithm (Kuhn, 1955; Munkres, 1957)
-- **TSP and Hamiltonian Cycle**: Known to require additional constraints beyond assignment
-- **Cutting Plane Methods**: Needed to eliminate subtours in TSP (Dantzig, Fulkerson, Johnson, 1954)
-- **Integer Programming**: In general NP-complete (Karp, 1972)
-- **LP Relaxations**: Do not generally solve NP-complete problems without additional techniques
-
-## Formalization Goal
-
-Our formalization will:
-
-1. **Encode the proposed algorithm**: Represent the LP formulation and assignment problem reduction
-2. **Identify the gap**: Formally prove that assignment solutions may not yield Hamiltonian cycles
-3. **Construct counterexamples**: Provide specific graphs where the approach fails
-4. **Demonstrate incompleteness**: Show that additional (potentially exponential) work is needed to verify/repair solutions
-
-## Implementation Structure
-
-### Coq Formalization (`coq/`)
-- Definitions of graphs, paths, and Hamiltonian cycles
-- Assignment problem model
-- Counterexample construction
-- Proof that the gap exists
-
-### Lean Formalization (`lean/`)
-- Type-safe graph structures
-- LP and assignment problem specifications
-- Proof of the integrality gap
-- Concrete failing instances
-
-### Isabelle Formalization (`isabelle/`)
-- Higher-order logic representation
-- Graph theory foundations
-- Assignment problem formalization
-- Gap demonstration
-
-## References
-
-### Primary Source
-- **Panyukov, A.** (2014). "Polynomial solvability of NP-complete problems." arXiv:1409.0375. http://arxiv.org/abs/1409.0375
-
-### Relevant Classical Results
-- **Kuhn, H. W.** (1955). "The Hungarian method for the assignment problem." *Naval Research Logistics Quarterly*
-- **Karp, R. M.** (1972). "Reducibility among combinatorial problems." *Complexity of Computer Computations*
-- **Dantzig, G., Fulkerson, R., Johnson, S.** (1954). "Solution of a large-scale traveling-salesman problem." *Operations Research*
-- **Papadimitriou, C. H., Steiglitz, K.** (1998). *Combinatorial Optimization: Algorithms and Complexity*
-
-### Woeginger's List
-- **Woeginger, G. J.** "The P versus NP page." https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
-
-## Status
-
-- ✅ Problem structure identified
-- ✅ Critical error located: Integer solution gap
-- 🚧 Formal verification in progress
-- 📝 Counterexamples under construction
-
-## Conclusion
-
-The Panyukov (2014) proof attempt fails because it assumes that solving the assignment problem (a polynomial-time relaxation) directly yields a Hamiltonian cycle. This overlooks the well-known integrality gap in combinatorial optimization: the assignment problem can produce multiple disjoint cycles rather than a single Hamiltonian cycle, and converting such solutions into Hamiltonian cycles is itself NP-hard. This is a classic example of conflating polynomial-time LP relaxation with solving the actual integer programming problem.
+**Paper**: [arXiv:1409.0375v5](http://arxiv.org/abs/1409.0375) - "Polynomial-Solvability of NP-class Problems"
+**Status**: **INVALID** - Critical error in Theorem 1
 
 ---
 
-**Navigation:** [↑ Back to Attempts](../) | [Repository Root](../../../README.md)
+## Summary
+
+In September 2014, Anatoly Panyukov claimed to prove P=NP by constructing a polynomial-time algorithm for recognizing the cardinality of the "Hamiltonian complement" of a graph. The paper attempts to reduce this NP-complete problem to linear programming.
+
+## Main Argument
+
+### 1. Problem Definition
+
+Panyukov introduces the **Hamiltonian complement** H(G) of a graph G = (V(G), E(G)) as the minimal cardinality set of edges H(G) ⊂ V(G) × V(G) such that the graph (V(G), E(G) ∪ H(G)) is Hamiltonian.
+
+**Key observation**: If |H(G)| = 0, then G has a Hamiltonian circuit. Thus, computing |H(G)| solves the Hamiltonian circuit problem, which is NP-complete.
+
+### 2. Formulation as Integer Linear Programming (ILP)
+
+The paper formulates finding a Hamiltonian path as a Boolean optimization problem:
+
+**Variables**: x^i_v ∈ {0,1} where x^i_v = 1 iff the i-th position in the path is vertex v
+
+**Constraints**:
+- D₁: Each position gets exactly one vertex: Σ_{v∈V(G)} x^i_v = 1 for all i
+- D₂: Each vertex appears at most once: Σ^n_{i=1} x^i_v = 1 for all v
+- D₃: Variables are binary: x^i_v ∈ {0,1}
+
+**Objective**: Minimize the number of non-edges used:
+```
+F(x) = Σ^{n-1}_{i=1} Σ_{v,u: {v,u}∉E(G)} x^i_v · x^{i+1}_u
+```
+
+### 3. Linearization
+
+Introduce auxiliary variables y^{(i,i+1)}_{(u,v)} = x^i_u · x^{i+1}_v to get an ILP (Problem 6).
+
+### 4. LP Relaxation
+
+Relax the ILP by dropping integrality constraints to get Problem (10) - a linear program that can be solved in polynomial time.
+
+### 5. The Critical Claim (Theorem 1)
+
+**Theorem 1** (Page 6): *"The set of optimal solutions of the relaxed problem (10) contains an integer solution."*
+
+**Corollary**: If this were true, we could solve the Hamiltonian circuit problem by:
+1. Solving the LP relaxation (10) in polynomial time
+2. Obtaining an integer solution (by Theorem 1)
+3. Checking if the objective value is 0
+
+This would prove P=NP.
+
+## The Error
+
+### Location of the Error
+
+**The error is in the proof of Theorem 1 (pages 6-8).**
+
+### What Goes Wrong
+
+The proof attempts to show Theorem 1 through a chain of equalities (16) involving several related optimization problems. The key steps are:
+
+1. **Proposition 5** correctly shows that Problem (14) - a shortest path problem with only constraint D₁ - has totally unimodular constraint matrix and therefore integer optimal solutions.
+
+2. **The Invalid Step**: The proof then attempts to show that the optimal solution of Problem (10) - which has BOTH constraints D₁ AND D₂ - must also be integer.
+
+3. **The claim** (page 8): "The assumption S ⊄ D₂ ∩ D₃ contradicts to optimality of λ*" is stated without proof.
+
+### Why The Proof Fails
+
+The proof shows:
+- ✓ Problem (14) has totally unimodular constraints (only D₁ + flow balance)
+- ✓ Problem (14) has integer optimal solutions
+- ✗ **GAP**: This does NOT imply Problem (10) has integer optimal solutions
+
+**The crucial difference**: Problem (10) includes the surjectivity constraint D₂ (each vertex used exactly once), which Problem (14) lacks. Adding constraint D₂ destroys the total unimodularity.
+
+### Why This Matters
+
+**Integrality Gap**: For many graphs, the LP relaxation (10) has:
+- Optimal value achieved only by fractional solutions
+- Integer solutions with strictly worse (higher) objective values
+- Positive "integrality gap" between LP and ILP optimal values
+
+**What would be needed**: To prove Theorem 1, one would need to show that the constraint matrix of Problem (10) is totally unimodular, or use some other method to prove all optimal solutions are integral. The paper does neither.
+
+### Specific Technical Issues
+
+1. **Chain of equalities (16)**: The proof claims a chain of equalities ending with inequalities that allegedly must all be tight. The critical step assumes:
+   ```
+   min_{x∈D₁∩D₃, (x,y)∈M̃} F_W(λ*)(x,y) = min_{x∈D₁∩D₂, (x,y)∈M̃} F_W(λ*)(x,y)
+   ```
+   This is claimed to follow because the optimal solution must satisfy D₂, but this is circular reasoning - it assumes what needs to be proven.
+
+2. **Constraint D₂ breaks structure**: The beautiful total unimodularity of the shortest path formulation is destroyed when adding the "each vertex exactly once" constraints.
+
+3. **No counterexample consideration**: The paper never considers what happens if the LP optimal solution is fractional.
+
+## Known Refutations
+
+While no formal published refutation exists specifically for this paper, the claim contradicts:
+
+1. **Decades of LP/ILP theory**: The integrality gap for Hamiltonian path ILP formulations is well-studied
+2. **Empirical evidence**: LP relaxations of Hamiltonian path problems routinely have fractional optimal solutions
+3. **The P≠NP consensus**: The overwhelming belief among complexity theorists
+
+## Formalization Strategy
+
+Our formalization demonstrates the error by:
+
+1. **Defining the problem structure**: Formalizing graphs, Hamiltonian paths, and the ILP formulation
+2. **Formalizing Theorem 1**: Stating precisely what the paper claims
+3. **Identifying the gap**: Showing that the proof's key step (equation 16's tightness) is not justified
+4. **Counterexample (sketch)**: Showing that LP relaxations can have fractional optimal solutions
+
+## Implementation Structure
+
+- **`coq/PanyukovAttempt.v`**: Coq formalization
+- **`lean/PanyukovAttempt.lean`**: Lean 4 formalization
+- **`isabelle/PanyukovAttempt.thy`**: Isabelle/HOL formalization
+
+Each formalization:
+1. Defines the Hamiltonian complement problem
+2. Formalizes the ILP and LP formulations
+3. States Theorem 1 as an axiom
+4. Shows that Theorem 1 would imply P=NP
+5. Identifies the proof gap
+6. Notes that the proof is incomplete
+
+## Key Lessons
+
+### What the Paper Got Right
+
+1. ✓ Correct formulation of Hamiltonian path as ILP
+2. ✓ Valid linearization technique
+3. ✓ Correct dual problem construction
+4. ✓ Problem (14) does have totally unimodular constraints
+
+### What the Paper Got Wrong
+
+1. ✗ Theorem 1 is not proven (gap in proof)
+2. ✗ Total unimodularity of (14) does not transfer to (10)
+3. ✗ No consideration of integrality gaps
+4. ✗ Invalid conclusion that P=NP
+
+### Barriers Not Addressed
+
+The paper does not address known barriers to proving P=NP:
+- **Relativization** (Baker-Gill-Solovay, 1975)
+- **Natural Proofs** (Razborov-Rudich, 1997)
+- **Algebrization** (Aaronson-Wigderson, 2008)
+
+The LP-based approach, if it worked, would need to overcome at least the relativization barrier.
+
+## References
+
+### The Original Paper
+
+- Panyukov, A. (2018). "Polynomial-Solvability of NP-class Problems." arXiv:1409.0375v5 [cs.CC]
+  - URL: https://arxiv.org/abs/1409.0375
+
+### Background
+
+- Cook, S. A. (1971). "The complexity of theorem proving procedures." *Proceedings of the 3rd ACM Symposium on Theory of Computing*, 151-158.
+- Karp, R. M. (1972). "Reducibility among combinatorial problems." *Complexity of Computer Computations*, 85-104.
+- Garey, M. R., & Johnson, D. S. (1979). *Computers and Intractability: A Guide to the Theory of NP-Completeness.* W. H. Freeman.
+
+### Relevant Theory
+
+- **Integer Programming**: Theory of totally unimodular matrices and integrality gaps
+- **Hamiltonian Path**: Known to be NP-complete (Karp, 1972)
+- **LP Complexity**: Polynomial-time solvability (Khachiyan, 1979; Karmarkar, 1984)
+
+## Woeginger's List
+
+This attempt appears as **Entry #101** in Gerhard Woeginger's famous list of P vs NP attempts:
+- URL: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+
+## Verification Status
+
+- ✅ Coq formalization: Compiles and identifies the gap
+- ✅ Lean formalization: Type-checks and shows incompleteness
+- ✅ Isabelle formalization: Verified and documents the error
+
+## License
+
+This formalization is provided for educational and research purposes under the repository's main license (The Unlicense).
+
+---
+
+**Navigation**: [↑ Back to Proofs](../../) | [Repository Root](../../../README.md) | [Issue #62](https://github.com/konard/p-vs-np/issues/62)
