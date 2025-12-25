@@ -128,12 +128,12 @@ jobs:
         isabelle version
         echo ""
         echo "Building Isabelle theories..."
-        # Dynamically discover all directories with ROOT files and build them
-        # This avoids the need for a central ROOT or ROOTS file that causes merge conflicts
-        find . -name "ROOT" -type f -exec dirname {} \; | sort -u | while read dir; do
-          echo "Building session in: $dir"
-          isabelle build -D "$dir"
-        done
+        # Generate ROOTS catalog file dynamically from all ROOT files
+        # This avoids needing a committed ROOTS file that would cause merge conflicts
+        find . -name "ROOT" -type f -exec dirname {} \; | sort -u > ROOTS
+        echo "Found $(wc -l < ROOTS) session directories"
+        # Build all sessions at once for efficiency
+        isabelle build -D .
         echo ""
         echo "✓ All Isabelle theories verified successfully!"
 
