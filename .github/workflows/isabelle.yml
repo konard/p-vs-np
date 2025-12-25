@@ -39,6 +39,14 @@ jobs:
         tar xzf Isabelle2025-1_linux.tar.gz
         echo "$PWD/Isabelle2025-1/bin" >> $GITHUB_PATH
 
+    - name: Generate ROOTS file
+      if: steps.check-isabelle.outputs.has_files == 'true'
+      run: |
+        echo "Generating ROOTS file from individual ROOT files..."
+        find . -name ROOT -path "*/isabelle/*" | sed 's|/ROOT||' | sed 's|^\./||' | sort > ROOTS
+        echo "Found $(wc -l < ROOTS) Isabelle sessions:"
+        cat ROOTS
+
     - name: Verify Isabelle files
       if: steps.check-isabelle.outputs.has_files == 'true'
       run: |
