@@ -8,9 +8,8 @@
   Date: 2025
 -/
 
-import Mathlib.Data.List.Basic
-import Mathlib.Data.Nat.Basic
-import Mathlib.Data.Int.Basic
+-- NOTE: Mathlib imports removed as Mathlib is not configured in this project.
+-- This file uses only standard Lean 4 library features.
 
 /-! # Part 1: Basic Definitions -/
 

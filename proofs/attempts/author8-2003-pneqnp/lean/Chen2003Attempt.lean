@@ -146,7 +146,7 @@ axiom p_equals_np_not_practical :
 -- The argument treats "find a proof of P=NP" as an NP problem
 -- But this is not properly formulated
 
-def proof_search_problem : Problem := some_problem
+noncomputable def proof_search_problem : Problem := some_problem
 -- This problem is NOT necessarily in NP!
 axiom proof_search_not_in_np :
   ¬(InNP proof_search_problem)
@@ -185,7 +185,7 @@ theorem p_vs_np_has_answer : P_equals_NP ∨ P_not_equals_NP :=
 #check proof_search_not_in_np
 
 -- Verification summary
-#print "✓ Chen 2003 attempt formalized in Lean"
-#print "✓ Multiple logical errors identified"
-#print "✓ Invalid axioms explicitly marked"
-#print "✓ Argument shown to be incomplete without invalid axioms"
+-- ✓ Chen 2003 attempt formalized in Lean
+-- ✓ Multiple logical errors identified
+-- ✓ Invalid axioms explicitly marked
+-- ✓ Argument shown to be incomplete without invalid axioms

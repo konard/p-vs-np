@@ -38,7 +38,7 @@ def InNP (prob : DecisionProblem) : Prop :=
       prob input = true ↔
       ∃ certificate, verifier input certificate = true)
 
-/-- Graph Theory Definitions for TSP -/
+/-! Graph Theory Definitions for TSP -/
 
 /-- Vertex as natural number -/
 def Vertex := Nat
@@ -72,7 +72,7 @@ def is_valid_hamiltonian_cycle (g : Graph) (cycle : HamiltonianCycle) : Prop :=
   (∀ v, v ∈ g.vertices ↔ v ∈ cycle) ∧
   cycle.length = g.vertices.length
 
-/-- Hash Function Formalization -/
+/-! Hash Function Formalization -/
 
 /-- Abstract hash function type -/
 def HashFunction := String → String

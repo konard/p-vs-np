@@ -222,14 +222,12 @@ theorem ivanov_attempt_to_prove_P_neq_NP :
     -- This is a contradiction!
 
     -- Choose a sufficiently large n
-    have h_large := h_super (max n0 1) (Nat.le_max_left n0 1)
-    have h_bound_lower := h_lower (max n0 1)
-    have h_bound_upper := h_poly_bound (max n0 1)
+    have _h_large := h_super (max n0 1) (Nat.le_max_left n0 1)
+    have _h_bound_lower := h_lower (max n0 1)
+    have _h_bound_upper := h_poly_bound (max n0 1)
 
     -- We have: (max n0 1)^k < ivanov_lower_bound (max n0 1) ≤ tm.timeComplexity (max n0 1) ≤ (max n0 1)^k
     -- This is: a < b ≤ c ≤ a, which is impossible
-
-    -- omega  -- This tactic might not be available or might not solve this goal
     sorry  -- The actual contradiction derivation is left as an exercise
 
 /-
@@ -325,4 +323,4 @@ def error_identified : Prop := True
 #check error_identified
 #check ivanov_attempt_to_prove_P_neq_NP
 
-#print "✓ Ivanov's proof attempt formalized - gap identified in universal lower bound claim"
+-- ✓ Ivanov's proof attempt formalized - gap identified in universal lower bound claim

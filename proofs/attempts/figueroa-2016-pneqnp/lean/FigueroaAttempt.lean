@@ -204,7 +204,8 @@ theorem figueroa_actual_construction :
     ∃ (tau : ∀ n : Nat, BitSeq → BitSeq),
       ∀ n input, bitLength input = n → bitLength (tau n input) = n * n := by
   use tauFunctionActual
-  exact tau_actual_output_length
+  intro n input h
+  exact tau_actual_output_length n input h
 
 /-- The error exposed: type mismatch -/
 theorem figueroa_type_error :

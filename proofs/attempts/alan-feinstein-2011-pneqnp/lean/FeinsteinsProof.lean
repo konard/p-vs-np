@@ -121,7 +121,8 @@ theorem heldKarp_exponential_upper_bound :
   unfold isExponential heldKarpComplexity
   use 1, 1
   constructor
-  · sorry  -- ε = 1 > 0
+  · -- ε = 1 > 0
+    decide
   · intro n hn
     -- 2^n * n^2 ≥ 2^n when n > 0
     sorry
@@ -267,7 +268,7 @@ theorem upper_bound_not_lower_bound :
   ¬(∀ alg : TimeComplexity, isExponential alg) := by
   intro _ h_all
   -- Counterexample: constant time algorithm exists
-  have : ∃ alg : TimeComplexity, isPolynomial alg ∧ ¬isExponential alg := by
+  have hConst : ∃ alg : TimeComplexity, isPolynomial alg ∧ ¬isExponential alg := by
     use fun _ => 1
     constructor
     · -- is polynomial
@@ -277,9 +278,10 @@ theorem upper_bound_not_lower_bound :
       sorry
     · -- not exponential
       unfold isExponential
-      intro ⟨c, ε, h_eps, h_bound⟩
+      intro h
+      obtain ⟨c, ε, h_eps, h_bound⟩ := h
       sorry
-  obtain ⟨alg, _, h_not_exp⟩ := this
+  obtain ⟨alg, _, h_not_exp⟩ := hConst
   exact h_not_exp (h_all alg)
 
 /- ## 8. Conclusion -/
@@ -319,8 +321,8 @@ theorem feinsteins_proof_incomplete :
 #check feinsteins_proof_incomplete
 
 -- This file compiles and exposes the gap in Feinstein's reasoning
-#print "✓ Feinstein's proof formalization compiled"
-#print "✓ The error has been identified: confusing upper bounds with lower bounds"
-#print "⚠ Key insight: Upper bounds (what we can do) ≠ Lower bounds (what we cannot do)"
+-- ✓ Feinstein's proof formalization compiled
+-- ✓ The error has been identified: confusing upper bounds with lower bounds
+-- ⚠ Key insight: Upper bounds (what we can do) ≠ Lower bounds (what we cannot do)
 
 end FeinsteinsProof
