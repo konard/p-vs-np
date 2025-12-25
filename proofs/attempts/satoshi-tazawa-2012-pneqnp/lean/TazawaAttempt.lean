@@ -266,4 +266,5 @@ theorem tazawa_attempt_has_gaps : True := by
 #check tazawa_error_automorphism
 #check tazawa_attempt_has_gaps
 
-#print "✓ Tazawa attempt formalization complete - gaps identified"
+-- #print "✓ Tazawa attempt formalization complete - gaps identified"
+-- Note: #print with string literal is not valid in Lean 4, commented out

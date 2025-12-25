@@ -34,7 +34,7 @@ def sumSelected : IntSet → SubsetSelection → Int
 
 /-- Check if a selection is a valid solution -/
 def isSolution (inst : SubsetSumInstance) (sel : SubsetSelection) : Bool :=
-  sumSelected inst.elements sel == inst.target
+  decide (sumSelected inst.elements sel = inst.target)
 
 /-! # Part 2: Computational Model -/
 

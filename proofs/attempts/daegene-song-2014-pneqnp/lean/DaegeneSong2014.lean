@@ -265,6 +265,7 @@ theorem conclusion :
 
 /- ## Verification -/
 
+-- Verification commands
 #check song_refutation
 #check what_song_showed
 #check representation_not_complexity

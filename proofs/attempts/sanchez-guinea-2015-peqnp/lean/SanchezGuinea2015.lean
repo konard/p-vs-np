@@ -9,10 +9,6 @@
   recursion depth in Algorithm D.
 -/
 
-import Mathlib.Data.List.Basic
-import Mathlib.Data.Nat.Basic
-import Mathlib.Logic.Basic
-
 /-- * 1. Basic Definitions -/
 
 /-- Variables are natural numbers -/

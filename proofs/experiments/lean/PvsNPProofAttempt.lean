@@ -286,8 +286,8 @@ theorem decidable_but_not_provable :
 #check knownBarriers
 
 -- This file compiles but contains 'sorry's because we don't have actual proofs!
-#print "✓ P vs NP proof attempt framework compiled"
-#print "⚠ Note: All proof attempts are incomplete (using 'sorry')"
-#print "✓ This demonstrates the difficulty of the problem"
+-- #print "✓ P vs NP proof attempt framework compiled"  -- Not valid in Lean 4
+-- #print "⚠ Note: All proof attempts are incomplete (using 'sorry')"  -- Not valid in Lean 4
+-- #print "✓ This demonstrates the difficulty of the problem"  -- Not valid in Lean 4
 
 end PvsNPProofAttempt

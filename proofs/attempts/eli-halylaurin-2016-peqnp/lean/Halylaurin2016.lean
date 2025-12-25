@@ -221,6 +221,7 @@ theorem halylaurin_TQBF_in_P :
     - The importance of rigorous proof in complexity theory
 -/
 
+-- Verification commands
 #check InP
 #check InNP
 #check InPSPACE
@@ -230,7 +231,8 @@ theorem halylaurin_TQBF_in_P :
 #check halylaurin_implies_P_eq_NP
 #check halylaurin_implies_P_eq_NP_eq_PSPACE
 
-#print "✓ Formalization of Halylaurin's flawed proof attempt compiled successfully"
-#print "  The axiom halylaurin_unproven_claim represents the GAP in the proof"
+-- #print "✓ Formalization of Halylaurin's flawed proof attempt compiled successfully"
+-- #print "  The axiom halylaurin_unproven_claim represents the GAP in the proof"
+-- Note: #print with string literals is not valid in Lean 4
 
 end Halylaurin2016

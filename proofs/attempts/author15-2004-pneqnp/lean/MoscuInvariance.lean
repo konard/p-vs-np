@@ -276,4 +276,5 @@ theorem Moscu_Proof_Has_Unjustified_Assumptions :
 #check Convergence_Does_Not_Imply_P_ne_NP
 #check Moscu_Proof_Has_Unjustified_Assumptions
 
-#print "✓ Moscu's invariance principle formalization complete (with critical gaps identified)"
+-- #print "✓ Moscu's invariance principle formalization complete (with critical gaps identified)"
+-- Note: #print with string literals is not valid Lean 4 syntax

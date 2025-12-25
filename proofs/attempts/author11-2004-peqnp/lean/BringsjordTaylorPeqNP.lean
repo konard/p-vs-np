@@ -181,6 +181,7 @@ theorem bringsjordTaylor_typeError :
 #check bringsjordTaylor_typeError
 
 -- Final verification
-#print "✓ Bringsjord-Taylor P=NP argument formalized - error identified"
+-- #print "✓ Bringsjord-Taylor P=NP argument formalized - error identified"
+-- Note: #print with string literals is not valid Lean 4 syntax
 
 end BringsjordTaylorPeqNP

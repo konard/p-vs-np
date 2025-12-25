@@ -300,4 +300,5 @@ axiom holcomb_proof_gap :
 #check ProperlyDefinedProperty
 #check holcomb_proof_gap
 
-#print "✓ Holcomb proof attempt formalization complete (with identified gaps)"
+-- #print "✓ Holcomb proof attempt formalization complete (with identified gaps)"
+-- Note: #print with string literals is not valid in Lean 4

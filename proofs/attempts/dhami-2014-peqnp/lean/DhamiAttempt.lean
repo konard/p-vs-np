@@ -214,12 +214,14 @@ The error is a failure of universal quantification, one of the most common
 errors in failed P vs NP proof attempts.
 -/
 
+-- Verification commands
 #check DhamiClaim
 #check dhami_claim_implies_P_eq_NP
 #check claim_requires_universal
 #check partial_not_sufficient
 #check dhami_error_formalized
 
-#print "✓ Dhami et al. (2014) attempt formalized - error identified"
+-- #print "✓ Dhami et al. (2014) attempt formalized - error identified"
+-- Note: #print with string literals is not valid in Lean 4
 
 end DhamiAttempt

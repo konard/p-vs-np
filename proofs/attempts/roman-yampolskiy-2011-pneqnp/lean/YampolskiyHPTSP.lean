@@ -15,24 +15,24 @@
 
 namespace YampolskiyHPTSP
 
-/-- Basic Complexity Theory Definitions -/
+/-! Basic Complexity Theory Definitions -/
 
 /-- A decision problem maps inputs to booleans -/
 def DecisionProblem := String → Bool
 
 /-- Polynomial bound on a function -/
-def PolynomialBound (f : ℕ → ℕ) : Prop :=
-  ∃ (c k : ℕ), c > 0 ∧ k > 0 ∧ ∀ n > 0, f n ≤ c * (n ^ k)
+def PolynomialBound (f : Nat → Nat) : Prop :=
+  ∃ (c k : Nat), c > 0 ∧ k > 0 ∧ ∀ n > 0, f n ≤ c * (n ^ k)
 
 /-- A problem is in P if decidable in polynomial time -/
 def InP (prob : DecisionProblem) : Prop :=
-  ∃ (algo : String → Bool) (time : ℕ → ℕ),
+  ∃ (algo : String → Bool) (time : Nat → Nat),
     PolynomialBound time ∧
     (∀ input, algo input = prob input)
 
 /-- A problem is in NP if solutions verifiable in polynomial time -/
 def InNP (prob : DecisionProblem) : Prop :=
-  ∃ (verifier : String → String → Bool) (time : ℕ → ℕ),
+  ∃ (verifier : String → String → Bool) (time : Nat → Nat),
     PolynomialBound time ∧
     (∀ input,
       prob input = true ↔
@@ -41,13 +41,13 @@ def InNP (prob : DecisionProblem) : Prop :=
 /-- Graph Theory Definitions for TSP -/
 
 /-- Vertex as natural number -/
-def Vertex := ℕ
+def Vertex := Nat
 
 /-- Edge with cost -/
 structure Edge where
-  from : Vertex
-  to : Vertex
-  cost : ℕ
+  source : Vertex
+  target : Vertex
+  cost : Nat
   deriving Repr
 
 /-- Graph as lists of vertices and edges -/
@@ -60,8 +60,8 @@ structure Graph where
 def is_complete_graph (g : Graph) : Prop :=
   ∀ v1 v2, v1 ∈ g.vertices → v2 ∈ g.vertices → v1 ≠ v2 →
   ∃ e, e ∈ g.edges ∧
-    ((e.from = v1 ∧ e.to = v2) ∨
-     (e.from = v2 ∧ e.to = v1))
+    ((e.source = v1 ∧ e.target = v2) ∨
+     (e.source = v2 ∧ e.target = v1))
 
 /-- Hamiltonian cycle -/
 def HamiltonianCycle := List Vertex
@@ -105,7 +105,7 @@ axiom hash_requires_full_input : ∀ (h : HashFunction) (s : String),
 
 /-- Property 3: Polynomial time evaluation -/
 def hash_computable_in_poly_time (h : HashFunction) : Prop :=
-  ∃ (time : ℕ → ℕ), PolynomialBound time
+  ∃ (time : Nat → Nat), PolynomialBound time
 
 /-- HPTSP Definition -/
 
@@ -150,7 +150,7 @@ def HPTSP_verifier (instance : HPTSP_Instance) (cert : HPTSP_Certificate) : Bool
 
 /-- Verification time is polynomial -/
 theorem HPTSP_verification_poly_time (instance : HPTSP_Instance) :
-  ∃ time : ℕ → ℕ, PolynomialBound time := by
+  ∃ time : Nat → Nat, PolynomialBound time := by
   -- Time is O(V) where V is number of vertices
   use fun n => n
   unfold PolynomialBound

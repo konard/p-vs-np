@@ -212,4 +212,5 @@ theorem Hauptmann_P_neq_NP :
 
 -- Verification note: This file compiles but contains 'sorry' and axioms
 -- representing unproven claims in Hauptmann's argument
-#print "✓ Hauptmann 2016 formalization completed (with identified gaps)"
+-- #print "✓ Hauptmann 2016 formalization completed (with identified gaps)"
+-- Note: #print with string literal is not valid in Lean 4, commented out

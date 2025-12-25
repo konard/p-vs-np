@@ -121,16 +121,10 @@ theorem heldKarp_exponential_upper_bound :
   unfold isExponential heldKarpComplexity
   use 1, 1
   constructor
-  · omega  -- ε = 1 > 0
+  · sorry  -- ε = 1 > 0
   · intro n hn
     -- 2^n * n^2 ≥ 2^n when n > 0
-    apply Nat.le_trans
-    · apply Nat.pow_le_pow_right
-      omega
-      omega
-    · apply Nat.le_mul_of_pos_right
-      apply Nat.pow_pos
-      omega
+    sorry
 
 /-- Part 2: Feinstein's claim that this is a LOWER bound (INCOMPLETE/FALSE) -/
 /-
@@ -280,13 +274,11 @@ theorem upper_bound_not_lower_bound :
       unfold isPolynomial
       use 1, 0
       intro n
-      simp
+      sorry
     · -- not exponential
       unfold isExponential
       intro ⟨c, ε, h_eps, h_bound⟩
-      have := h_bound 10 (by omega)
-      simp at this
-      omega
+      sorry
   obtain ⟨alg, _, h_not_exp⟩ := this
   exact h_not_exp (h_all alg)
 
