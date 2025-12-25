@@ -46,18 +46,6 @@ jobs:
         isabelle version
         echo ""
         echo "Building Isabelle theories..."
-        # Generate ROOTS catalog file dynamically from ROOT files
-        # Skip directories with theories requiring HOL-Library, HOL-Analysis, HOL-Combinatorics
-        # (those need their ROOT files updated to include these sessions as parents)
-        find . -name "ROOT" -type f -exec dirname {} \; | sort -u | while read dir; do
-          if ! grep -q "HOL-Library\|HOL-Analysis\|HOL-Combinatorics" "$dir"/*.thy 2>/dev/null; then
-            echo "$dir"
-          else
-            echo "Skipping $dir (requires additional HOL sessions)" >&2
-          fi
-        done > ROOTS
-        echo "Found $(wc -l < ROOTS) compatible session directories"
-        # Build all compatible sessions at once for efficiency
         isabelle build -D .
         echo ""
         echo "✓ All Isabelle theories verified successfully!"
