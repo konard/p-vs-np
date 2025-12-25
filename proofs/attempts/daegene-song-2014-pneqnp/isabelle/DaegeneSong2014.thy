@@ -30,7 +30,7 @@ definition dot :: "Vector3 \<Rightarrow> Vector3 \<Rightarrow> real" where
 text \<open>Rotation matrix around y-axis by angle θ\<close>
 definition rotateY :: "real \<Rightarrow> Vector3 \<Rightarrow> Vector3" where
   "rotateY theta v = \<lparr>
-    x_coord = cos theta * z_coord v + sin theta * x_coord v,
+    x_coord = cos theta * x_coord v + sin theta * z_coord v,
     y_coord = y_coord v,
     z_coord = cos theta * z_coord v - sin theta * x_coord v
   \<rparr>"

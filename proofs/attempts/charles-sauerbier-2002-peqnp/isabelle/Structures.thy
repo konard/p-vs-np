@@ -1,5 +1,5 @@
 theory Structures
-  imports Main HOL.Nat HOL.List
+  imports Main
 begin
 
 section \<open>Charles Sauerbier (2002) - Core Structures\<close>

@@ -31,8 +31,9 @@ definition is_valid_tour :: "nat \<Rightarrow> tour \<Rightarrow> bool" where
 (* Calculate tour length *)
 fun tour_length :: "'a graph \<Rightarrow> tour \<Rightarrow> real" where
   "tour_length g [] = 0"
-| "tour_length g [x] = edge_weight g x (hd [x])"
-| "tour_length g (x # y # rest) = edge_weight g x y + tour_length g (y # rest)"
+| "tour_length g [x] = 0"
+| "tour_length g (x # y # rest) = (if rest = [] then edge_weight g x y + edge_weight g y x
+                                   else edge_weight g x y + tour_length g (y # rest))"
 
 (* TSP decision problem: Is there a tour with length \<le> bound? *)
 definition TSP :: "'a graph \<Rightarrow> real \<Rightarrow> bool" where
