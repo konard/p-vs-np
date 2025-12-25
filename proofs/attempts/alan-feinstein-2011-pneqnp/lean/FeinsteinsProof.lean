@@ -122,13 +122,14 @@ theorem heldKarp_exponential_upper_bound :
   use 1, 1
   constructor
   · -- ε = 1 > 0
-    decide
-  · intro n hn
+    native_decide
+  · intro n _hn
     -- 2^n * n^2 ≥ 2^n when n > 0
     sorry
 
-/-- Part 2: Feinstein's claim that this is a LOWER bound (INCOMPLETE/FALSE) -/
-/-
+/-! Part 2: Feinstein's claim that this is a LOWER bound (INCOMPLETE/FALSE)
+
+
   The critical error: Feinstein assumes that because the Held-Karp algorithm
   examines 2^n subsets, TSP REQUIRES examining 2^n subsets.
 
@@ -279,10 +280,10 @@ theorem upper_bound_not_lower_bound :
     · -- not exponential
       unfold isExponential
       intro h
-      obtain ⟨c, ε, h_eps, h_bound⟩ := h
-      sorry
-  obtain ⟨alg, _, h_not_exp⟩ := hConst
-  exact h_not_exp (h_all alg)
+      match h with
+      | ⟨_c, _ε, _h_eps, _h_bound⟩ => sorry
+  match hConst with
+  | ⟨alg, _, h_not_exp⟩ => exact h_not_exp (h_all alg)
 
 /- ## 8. Conclusion -/
 

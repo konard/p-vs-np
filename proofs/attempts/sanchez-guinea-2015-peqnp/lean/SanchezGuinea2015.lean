@@ -12,7 +12,7 @@
 /-! ## 1. Basic Definitions -/
 
 /-- Variables are natural numbers -/
-def Variable := Nat
+abbrev Variable := Nat
 
 /-- Literals: positive or negative variables -/
 inductive Literal where
@@ -117,7 +117,7 @@ def allCStar (concepts : List Concept) : Bool :=
 /-! ## 5. Algorithms -/
 
 /-- Fuel parameter for bounded recursion (to ensure termination in Lean) -/
-def Fuel := Nat
+abbrev Fuel := Nat
 
 /-
   Algorithm D: Make a false literal free
