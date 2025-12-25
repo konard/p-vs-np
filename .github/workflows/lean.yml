@@ -41,9 +41,17 @@ jobs:
         path: |
           .lake
           ~/.elan
-        key: ${{ runner.os }}-lean-${{ hashFiles('lakefile.lean', 'lean-toolchain') }}
+        key: ${{ runner.os }}-lean-${{ hashFiles('lakefile.lean', 'lean-toolchain', '**/*.lean') }}
         restore-keys: |
           ${{ runner.os }}-lean-
+
+    - name: Clean stale build artifacts
+      run: |
+        # Clean .lake build artifacts to ensure fresh build with current sources
+        if [ -d ".lake/build" ]; then
+          echo "Cleaning stale build artifacts..."
+          rm -rf .lake/build
+        fi
 
     - name: List Lean files
       run: |

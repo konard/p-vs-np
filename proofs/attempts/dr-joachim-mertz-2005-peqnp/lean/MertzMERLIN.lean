@@ -227,9 +227,11 @@ theorem MERLIN_does_not_prove_P_equals_NP :
 
 -- #print MERLIN_does_not_prove_P_equals_NP
 
-/-- Summary: The formalization demonstrates that solving the LP relaxation
-    of TSP (MERLIN_LP) does not solve TSP itself, because the LP may have
-    fractional solutions that don't correspond to valid tours. Therefore,
-    MERLIN does not prove P=NP. -/
+/-
+  Summary: The formalization demonstrates that solving the LP relaxation
+  of TSP (MERLIN_LP) does not solve TSP itself, because the LP may have
+  fractional solutions that don't correspond to valid tours. Therefore,
+  MERLIN does not prove P=NP.
+-/
 
 end MertzMERLIN
