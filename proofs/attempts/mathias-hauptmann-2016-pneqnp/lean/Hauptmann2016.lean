@@ -69,7 +69,7 @@ def TimeConstructible (t : TimeBound) : Prop :=
 -- their union can be captured by a single time bound.
 axiom UnionTheorem :
   ∀ (seq : Nat → TimeBound),
-  (∀ i j, i < j → seq i < seq j) →  -- increasing sequence (pointwise)
+  (∀ i j n, i < j → seq i n < seq j n) →  -- increasing sequence (pointwise)
   ∃ t : TimeBound,
     ∀ L, (∃ i, DTIME (seq i) L) ↔ DTIME t L
 
@@ -82,7 +82,7 @@ axiom UnionTheorem :
 -- is non-trivial and this may not hold.
 axiom Hauptmann_Union_Theorem_Variant :
   ∀ (seq : Nat → TimeBound),
-  (∀ i j, i < j → seq i < seq j) →
+  (∀ i j n, i < j → seq i n < seq j n) →
   ∃ F : TimeBound,
     TimeConstructible F ∧
     (∀ L, (∃ i, Sigma2_Time (seq i) L) ↔ Sigma2_Time F L) ∧

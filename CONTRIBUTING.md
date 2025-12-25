@@ -103,3 +103,4 @@ feat: Add [Author] [Year] P=[NP/P≠NP] formalization
 ## Questions?
 
 Open an issue if you have questions about contributing.
+

@@ -109,7 +109,7 @@ theorem telpiz_approach_requirements_for_P_eq_NP :
     ∀ (L : DecisionProblem),
       InNP L → InP L) →
   PEqualsNP := by
-  intro h
+  intro ⟨_, h⟩
   unfold PEqualsNP
   exact h
 
@@ -137,17 +137,17 @@ theorem gap_2_no_explicit_algorithm :
 
 /-- 3. No proof of polynomial runtime -/
 theorem gap_3_no_runtime_proof :
-  ∀ (L : DecisionProblem), InNP L →
+  (∀ (L : DecisionProblem), InNP L →
     (∃ (M : TuringMachine) (time : Nat → Nat),
       IsPolynomial time ∧
-      TMTimeBounded M time) →
+      TMTimeBounded M time)) →
   False := by
   sorry  -- Cannot be proven without actual runtime analysis
 
 /-- 4. No proof of correctness -/
 theorem gap_4_no_correctness_proof :
-  ∀ (L : DecisionProblem) (M : TuringMachine),
-    (∀ x, L x ↔ True) →  -- M decides L correctly
+  (∀ (L : DecisionProblem) (M : TuringMachine),
+    (∀ x, L x ↔ True)) →  -- M decides L correctly
   False := by
   sorry  -- Cannot be proven without verification
 
@@ -175,8 +175,8 @@ theorem valid_proof_implies_P_eq_NP :
   unfold PEqualsNP
   intro L hL
   unfold InP
-  obtain ⟨M, time, hpoly, hbound, hcorrect⟩ := proof.polynomial_time L hL
-  use M, time
+  obtain ⟨time, hpoly, hbound⟩ := proof.polynomial_time L hL
+  use proof.algorithm L hL, time
   constructor
   · exact hpoly
   constructor
@@ -199,7 +199,7 @@ theorem lesson_explicit_construction :
   have := h L hL
   unfold InP at this
   obtain ⟨M, time, hpoly, hbound, _⟩ := this
-  use M, time
+  exact ⟨M, time, hpoly, hbound⟩
 
 /-- Lesson 2: Polynomial time must be proven, not assumed -/
 def RuntimeAnalysisRequired : Prop :=
@@ -227,14 +227,13 @@ structure RigorousComputationalModel where
 theorem telpiz_attempt_incomplete :
   ¬(∃ (principle : PositionalityPrinciple), True) ∧
   (∀ L, InNP L → ∃ M, True) ∧  -- Claims algorithms exist
-  (∀ M, ∃ L, ¬InP L) :=  -- But cannot prove they're in P
-by
+  (∀ M, ∃ L, ¬InP L) := by  -- But cannot prove they're in P
   constructor
   · exact telpiz_gaps_prevent_proof
   constructor
-  · intro L hL
+  · intro L _hL
     sorry  -- Algorithm not actually provided
-  · intro M
+  · intro _M
     sorry  -- No proof that any specific algorithm works
 
 /-- Therefore, the claim P = NP is not established -/
@@ -254,8 +253,9 @@ theorem telpiz_claim_not_established :
 #check valid_proof_implies_P_eq_NP
 #check telpiz_claim_not_established
 
-#print "✓ Telpiz attempt analysis compiled successfully"
-#print "✓ Gaps identified: undefined principle, missing algorithms, no runtime proofs"
-#print "✓ Framework established for valid P=NP proof requirements"
+-- #print "✓ Telpiz attempt analysis compiled successfully"
+-- #print "✓ Gaps identified: undefined principle, missing algorithms, no runtime proofs"
+-- #print "✓ Framework established for valid P=NP proof requirements"
+-- Note: #print with string literals is not valid in Lean 4
 
 end TelpizAttempt

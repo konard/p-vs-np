@@ -114,7 +114,7 @@ axiom bakerGillSolovay :
 /-- This approach CANNOT work for proving P vs NP -/
 theorem oracle_separation_insufficient :
   bakerGillSolovay →
-  ¬(∃ _ : Unit, PEqualsNP ∨ PNotEqualsNP) := by
+  (PEqualsNP ∨ PNotEqualsNP) := by
   -- Oracles show the question is "relativization-proof-immune"
   sorry  -- This strategy is proven to be insufficient
 
@@ -264,7 +264,7 @@ theorem proof_structure_expressible :
   (¬∃ _ : ProofOfPEqualsNP, True) := by
   -- We can express the structure even if we can't construct it
   right
-  apply Classical.em
+  exact Classical.em _
 
 /-- Test: Decidability doesn't give us the proof -/
 theorem decidable_but_not_provable :
