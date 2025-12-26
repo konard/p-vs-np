@@ -88,10 +88,10 @@ text \<open>
 type_synonym Oracle = Language
 
 definition OracleP :: "Oracle \<Rightarrow> ClassP \<Rightarrow> bool" where
-  "OracleP O M \<equiv> True"  \<comment> \<open>Simplified oracle computation\<close>
+  "OracleP Ora M \<equiv> True"  \<comment> \<open>Simplified oracle computation\<close>
 
 definition OracleNP :: "Oracle \<Rightarrow> ClassNP \<Rightarrow> bool" where
-  "OracleNP O M \<equiv> True"
+  "OracleNP Ora M \<equiv> True"
 
 axiomatization bakerGillSolovay :: bool where
   bgs_both_worlds: "bakerGillSolovay \<longleftrightarrow>

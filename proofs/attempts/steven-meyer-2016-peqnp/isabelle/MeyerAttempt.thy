@@ -132,13 +132,13 @@ theorem Meyer_error:
 proof -
   {
     fix problem
-    have "InP_TM problem = InP_MRAM problem"
+    have eq1: "InP_TM problem = InP_MRAM problem"
       using P_model_equivalence by simp
-    also have "... = InNP_MRAM problem"
+    have eq2: "InP_MRAM problem = InNP_MRAM problem"
       using assms by simp
-    also have "... = InNP_TM problem"
+    have eq3: "InNP_MRAM problem = InNP_TM problem"
       using NP_model_equivalence by simp
-    finally have "InP_TM problem = InNP_TM problem" .
+    from eq1 eq2 eq3 have "InP_TM problem = InNP_TM problem" by simp
   }
   thus ?thesis by simp
 qed
@@ -183,9 +183,9 @@ definition P_equals_NP_MRAM :: bool where
 theorem P_vs_NP_is_model_independent:
   shows "P_equals_NP_TM = P_equals_NP_MRAM"
 proof -
-  have "P_equals_NP_TM = (\<forall>problem. InP_TM problem = InNP_TM problem)"
+  have eq1: "P_equals_NP_TM = (\<forall>problem. InP_TM problem = InNP_TM problem)"
     unfolding P_equals_NP_TM_def by simp
-  also have "... = (\<forall>problem. InP_MRAM problem = InNP_MRAM problem)"
+  have eq2: "(\<forall>problem. InP_TM problem = InNP_TM problem) = (\<forall>problem. InP_MRAM problem = InNP_MRAM problem)"
   proof
     assume "\<forall>problem. InP_TM problem = InNP_TM problem"
     thus "\<forall>problem. InP_MRAM problem = InNP_MRAM problem"
@@ -195,9 +195,9 @@ proof -
     thus "\<forall>problem. InP_TM problem = InNP_TM problem"
       using P_model_equivalence NP_model_equivalence by metis
   qed
-  also have "... = P_equals_NP_MRAM"
+  have eq3: "(\<forall>problem. InP_MRAM problem = InNP_MRAM problem) = P_equals_NP_MRAM"
     unfolding P_equals_NP_MRAM_def by simp
-  finally show ?thesis .
+  from eq1 eq2 eq3 show ?thesis by simp
 qed
 
 (* Summary of Errors *)

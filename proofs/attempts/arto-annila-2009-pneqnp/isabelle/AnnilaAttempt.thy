@@ -140,6 +140,7 @@ text \<open>
 \<close>
 
 lemma np_has_poly_verification:
+  fixes L :: "nat \<Rightarrow> bool"
   assumes "in_NP L"
   shows "\<exists>(V::nat \<Rightarrow> nat \<Rightarrow> bool) (t::time_complexity). polynomial_time t"
   using assms unfolding in_NP_def

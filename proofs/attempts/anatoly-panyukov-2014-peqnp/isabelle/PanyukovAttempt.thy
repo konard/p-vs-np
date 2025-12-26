@@ -167,12 +167,12 @@ proof -
   proof -
     let ?c1 = "[0::nat, 1, 2]"
     let ?c2 = "[3::nat, 4, 5]"
-    have "?c1 \<noteq> []" by simp
-    moreover have "?c2 \<noteq> []" by simp
-    moreover have "?c1 \<noteq> ?c2" by simp
-    moreover have "\<forall>v \<in> set ?c1. v \<notin> set ?c2" by auto
-    ultimately show ?thesis
-      by blast
+    have h1: "?c1 \<noteq> []" by simp
+    have h2: "?c2 \<noteq> []" by simp
+    have h3: "?c1 \<noteq> ?c2" by simp
+    have h4: "\<forall>v \<in> set ?c1. v \<notin> set ?c2" by auto
+    show "\<exists>c1 c2. c1 \<noteq> [] \<and> c2 \<noteq> [] \<and> c1 \<noteq> c2 \<and> (\<forall>v\<in>set c1. v \<notin> set c2)"
+      using h1 h2 h3 h4 by blast
   qed
 
   moreover have "\<not> has_hamiltonian_cycle ?g"

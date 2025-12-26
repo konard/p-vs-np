@@ -95,7 +95,7 @@ text \<open>
 
 axiomatization where
   no_proof_found_by_2003:
-    "\<not>(\<exists>p. proof_verifiable (p :: bool Proof) \<and> p = proof_of_P_equals_NP)"
+    "\<not>(\<exists>(p::Proof). proof_verifiable p \<and> p = proof_of_P_equals_NP)"
 
 section \<open>The 2003 Argument Structure\<close>
 

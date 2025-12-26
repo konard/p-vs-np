@@ -71,8 +71,8 @@ definition is_feasible_LP :: "linear_program \<Rightarrow> lp_solution \<Rightar
 
 (* LP objective value *)
 definition objective_value :: "real list \<Rightarrow> real list \<Rightarrow> real" where
-  "objective_value coeffs sol \<equiv>
-    (\<Sum>i < length coeffs. (coeffs ! i) * (sol ! i))"
+  "objective_value obj_coeffs sol \<equiv>
+    (\<Sum>i < length obj_coeffs. (obj_coeffs ! i) * (sol ! i))"
 
 (* LP is solvable in polynomial time (axiom) *)
 axiomatization where

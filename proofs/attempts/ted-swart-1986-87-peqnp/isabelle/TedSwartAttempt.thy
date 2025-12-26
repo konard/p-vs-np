@@ -31,7 +31,7 @@ definition IsPolynomialTime :: "DecisionProblem \<Rightarrow> Polynomial \<Right
 
 text \<open>Complexity class P: problems decidable in polynomial time\<close>
 definition InP :: "DecisionProblem \<Rightarrow> bool" where
-  "InP problem \<equiv> \<exists>p. IsPolynomialTime problem p"
+  "InP problem \<equiv> \<exists>(p::Polynomial). IsPolynomialTime problem p"
 
 text \<open>A verifier for NP: takes input and certificate\<close>
 type_synonym Verifier = "bool list \<Rightarrow> bool list \<Rightarrow> bool"

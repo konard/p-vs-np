@@ -94,7 +94,7 @@ text \<open>
   for arbitrary hash functions as a mathematical theorem.
 \<close>
 axiomatization where
-  strict_avalanche_criterion: "∀h::HashFunction. True"
+  strict_avalanche_criterion: "\<forall>(h::HashFunction). True"
   (* Placeholder: cannot be properly formalized as deterministic property *)
 
 text \<open>

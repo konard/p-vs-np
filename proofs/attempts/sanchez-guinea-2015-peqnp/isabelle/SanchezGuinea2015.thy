@@ -124,7 +124,7 @@ fun algorithm_D :: "nat \<Rightarrow> sat3_instance \<Rightarrow> understanding 
   "algorithm_D 0 phi u lambda H = None" |  (* Fuel exhausted *)
   "algorithm_D (Suc fuel') phi u lambda H =
     (* Simplified model: we would need to check concepts and recurse *)
-    (* In the actual algorithm, we iterate through concepts in C̃[λ]⁻ *)
+    (* In the actual algorithm, we iterate through concepts in negative context *)
     (* For each concept, we may need to recursively call algorithm_D *)
     (* This is where exponential blowup occurs! *)
     Some u"  (* Placeholder - full implementation would show recursion *)
