@@ -42,15 +42,15 @@ and
 section \<open>Proof-Related Concepts\<close>
 
 (* Abstract representation of mathematical proofs *)
-typedecl 'a Proof
+typedecl Proof
 typedecl MathematicalStatement
 
 axiomatization
-  proof_verifiable :: "'a Proof \<Rightarrow> bool"
+  proof_verifiable :: "Proof \<Rightarrow> bool"
 and
-  proof_of_P_equals_NP :: "bool Proof"
+  proof_of_P_equals_NP :: "Proof"
 and
-  proof_of_P_not_equals_NP :: "bool Proof"
+  proof_of_P_not_equals_NP :: "Proof"
 
 section \<open>Computer Scientists as Verifiers\<close>
 
@@ -59,9 +59,9 @@ typedecl ComputerScientist
 axiomatization
   competent :: "ComputerScientist \<Rightarrow> bool"
 and
-  can_verify_proof :: "ComputerScientist \<Rightarrow> 'a Proof \<Rightarrow> bool"
+  can_verify_proof :: "ComputerScientist \<Rightarrow> Proof \<Rightarrow> bool"
 and
-  verification_is_polynomial :: "ComputerScientist \<Rightarrow> 'a Proof \<Rightarrow> Problem \<Rightarrow> bool"
+  verification_is_polynomial :: "ComputerScientist \<Rightarrow> Proof \<Rightarrow> Problem \<Rightarrow> bool"
 where
   poly_verification:
     "\<lbrakk> competent cs; can_verify_proof cs p \<rbrakk>
@@ -146,7 +146,7 @@ text \<open>
 \<close>
 
 theorem temporal_fallacy_identified:
-  "\<not>(\<forall>s p. \<not>proof_verifiable (p::'a Proof) \<longrightarrow> \<not>s)"
+  "\<not>(\<forall>s (p::Proof). \<not>proof_verifiable p \<longrightarrow> \<not>s)"
   (* Counterexample: Many theorems were true before proofs were found.
      This demonstrates the argument mixes mathematical and empirical domains! *)
   oops
@@ -185,7 +185,7 @@ definition practically_computable :: "Problem \<Rightarrow> bool" where
 axiomatization where
   p_equals_np_not_practical:
     "P_equals_NP \<Longrightarrow>
-     \<not>(\<forall>prob. InP prob \<longrightarrow> practically_computable prob)"
+     \<not>(\<forall>(prob::Problem). InP prob \<longrightarrow> practically_computable prob)"
 
 subsection \<open>Error 4: Proof-Finding is Not Obviously in NP\<close>
 

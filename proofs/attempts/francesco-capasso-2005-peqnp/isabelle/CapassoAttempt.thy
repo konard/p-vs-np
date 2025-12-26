@@ -116,14 +116,12 @@ definition PolynomialTimeCircuitSATHeuristic ::
   "PolynomialTimeCircuitSATHeuristic heuristic \<equiv>
     \<exists>time.
       is_polynomial time \<and>
-      (* May run in polynomial time on MOST inputs, not necessarily ALL *)
       (\<forall>c. True) \<and>
-      (* May be correct on many inputs, NOT guaranteed correct on ALL *)
       (\<forall>c. case heuristic c of
-             Tautology \<Rightarrow> True        (* May claim tautology incorrectly *)
-           | Contradiction \<Rightarrow> True    (* May claim contradiction incorrectly *)
-           | SatisfyingAssignment a \<Rightarrow> True     (* May give incorrect assignment *)
-           | Unknown \<Rightarrow> True)"        (* May fail on easy instances *)
+             Tautology \<Rightarrow> True
+           | Contradiction \<Rightarrow> True
+           | SatisfyingAssignment a \<Rightarrow> True
+           | Unknown \<Rightarrow> True)"
 
 section \<open>The Key Distinction\<close>
 

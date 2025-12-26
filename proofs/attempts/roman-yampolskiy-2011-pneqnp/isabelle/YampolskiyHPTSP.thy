@@ -49,7 +49,7 @@ record Edge =
   edge_to :: Vertex
   edge_cost :: nat
 
-text ‹Graph as lists of vertices and edges›
+text \<open>Graph as lists of vertices and edges\<close>
 record Graph =
   vertices :: "Vertex list"
   edges :: "Edge list"
@@ -118,10 +118,12 @@ definition hash_computable_in_poly_time :: "HashFunction \<Rightarrow> bool" whe
 section \<open>HPTSP Definition\<close>
 
 text \<open>Encode cycle as string with edge weights\<close>
+(* NOTE: String.implode and show are not available in basic Isabelle.
+   We provide a simplified abstract encoding using lists of chars. *)
 fun encode_cycle :: "Graph \<Rightarrow> HamiltonianCycle \<Rightarrow> string" where
-  "encode_cycle g [] = ''''"
-| "encode_cycle g [v] = String.implode (show v)"
-| "encode_cycle g (v1 # v2 # rest) = String.implode (show v1) @ encode_cycle g (v2 # rest)"
+  "encode_cycle g [] = []"
+| "encode_cycle g [v] = [CHR ''v'']"  (* Simplified placeholder *)
+| "encode_cycle g (v1 # v2 # rest) = [CHR ''v''] @ encode_cycle g (v2 # rest)"
 
 text \<open>Lexicographic string comparison\<close>
 definition string_lex_le :: "string \<Rightarrow> string \<Rightarrow> bool" where

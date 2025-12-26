@@ -221,7 +221,8 @@ proof -
   have impl: "nam_asserted_not_in_P \<longrightarrow> P_not_equals_NP"
   proof
     assume "nam_asserted_not_in_P"
-    then have "\<not>InP NamCountingProblem" by simp
+    then have "\<not>InP NamCountingProblem"
+      unfolding nam_asserted_not_in_P_def by simp
     moreover have "InNP NamCountingProblem" using nam_problem_in_NP by simp
     ultimately have "\<exists>problem. InNP problem \<and> \<not>InP problem" by blast
     thus "P_not_equals_NP"

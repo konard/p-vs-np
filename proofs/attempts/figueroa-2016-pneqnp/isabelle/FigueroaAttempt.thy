@@ -46,13 +46,13 @@ typedecl ppt_algorithm
 axiomatization
   class_P :: "(bit_seq \<Rightarrow> bool) \<Rightarrow> bool"
 where
-  P_exists: "∃f. class_P f"
+  P_exists: "\<exists>f. class_P f"
 
 (* Non-deterministic polynomial-time decidability (class NP) *)
 axiomatization
   class_NP :: "(bit_seq \<Rightarrow> bool) \<Rightarrow> bool"
 where
-  NP_exists: "∃f. class_NP f"
+  NP_exists: "\<exists>f. class_NP f"
 
 (* ========================================================================= *)
 (* One-Way Functions *)
@@ -67,15 +67,15 @@ where
 
 (* Negligible function: smaller than any inverse polynomial *)
 definition negligible :: "(nat \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> bool" where
-  "negligible prob ≡
-    ∀c. ∃N. ∀n. n ≥ N ⟶ (∀p. prob n p ⟶ p < n^c)"
+  "negligible prob \<equiv>
+    \<forall>c. \<exists>N. \<forall>n. n \<ge> N \<longrightarrow> (\<forall>p. prob n p \<longrightarrow> p < n^c)"
 
 (* One-way function definition *)
 definition one_way_function :: "(bit_seq \<Rightarrow> bit_seq) \<Rightarrow> bool" where
-  "one_way_function f ≡
-    polynomial_time f ∧
-    (∀A::ppt_algorithm.
-      negligible (λn prob. True))" (* Abstract probability *)
+  "one_way_function f \<equiv>
+    polynomial_time f \<and>
+    (\<forall>A::ppt_algorithm.
+      negligible (\<lambda>n prob. True))" (* Abstract probability *)
 
 (* ========================================================================= *)
 (* The Critical Error: Function Type Mismatch *)
@@ -86,8 +86,8 @@ definition one_way_function :: "(bit_seq \<Rightarrow> bit_seq) \<Rightarrow> bo
   This is what the paper claims about each τ ∈ Τ
 *)
 definition tau_function_claimed :: "nat \<Rightarrow> (bit_seq \<Rightarrow> bit_seq) \<Rightarrow> bool" where
-  "tau_function_claimed n tau ≡
-    ∀input. bit_length input = n ⟶ bit_length (tau input) = n"
+  "tau_function_claimed n tau \<equiv>
+    \<forall>input. bit_length input = n \<longrightarrow> bit_length (tau input) = n"
 
 (*
   ACTUAL: The construction produces n² bits, not n bits
@@ -203,17 +203,17 @@ lemma probability_analysis_error:
 
 (* The claimed theorem (false) *)
 theorem figueroa_attempt_claimed:
-  "∃tau.
-    (∀n input. bit_length input = n ⟶ bit_length (tau n input) = n) ∧
-    (∀n. polynomial_time (tau n)) ∧
-    (∀n. one_way_function (tau n)) ⟶
-  ¬(∀f. class_NP f ⟶ class_P f)" (* P ≠ NP *)
+  "\<exists>tau.
+    (\<forall>n input. bit_length input = n \<longrightarrow> bit_length (tau n input) = n) \<and>
+    (\<forall>n. polynomial_time (tau n)) \<and>
+    (\<forall>n. one_way_function (tau n)) \<longrightarrow>
+  \<not>(\<forall>f. class_NP f \<longrightarrow> class_P f)" (* P \<noteq> NP *)
   (* This cannot be proven because the type assumption is false *)
   oops
 
 (* What can actually be constructed *)
 theorem figueroa_actual_construction:
-  "∃tau. ∀n input. bit_length input = n ⟶
+  "\<exists>tau. \<forall>n input. bit_length input = n \<longrightarrow>
     bit_length (tau n input) = n * n"
   apply (rule exI[where x="tau_function_actual"])
   (* Would use tau_actual_output_length if proven *)
@@ -221,16 +221,16 @@ theorem figueroa_actual_construction:
 
 (* The error exposed: type mismatch *)
 theorem figueroa_type_error:
-  "¬(∃tau.
-    (∀n input. bit_length input = n ⟶ bit_length (tau n input) = n) ∧
-    (∀n input. bit_length input = n ⟶ bit_length (tau n input) = n * n))"
+  "\<not>(\<exists>tau.
+    (\<forall>n input. bit_length input = n \<longrightarrow> bit_length (tau n input) = n) \<and>
+    (\<forall>n input. bit_length input = n \<longrightarrow> bit_length (tau n input) = n * n))"
 proof -
-  (* For n ≥ 2, we have n ≠ n * n *)
-  have "2 ≠ 2 * 2" by simp
+  (* For n \<ge> 2, we have n \<noteq> n * n *)
+  have "2 \<noteq> 2 * 2" by simp
   (* But the type claims both hold for the same function *)
   (* Contradiction *)
   show ?thesis
-    oops
+    sorry
 
 (* ========================================================================= *)
 (* Conclusion *)
@@ -256,18 +256,18 @@ proof -
 
 (* Formal statement of the failure *)
 theorem figueroa_proof_invalid:
-  "¬(∃tau.
-    (∀n. polynomial_time (tau n)) ∧
-    (∀n. one_way_function (tau n)) ∧
-    (∀n input. bit_length input = n ⟶ bit_length (tau n input) = n))"
+  "\<not>(\<exists>tau.
+    (\<forall>n. polynomial_time (tau n)) \<and>
+    (\<forall>n. one_way_function (tau n)) \<and>
+    (\<forall>n input. bit_length input = n \<longrightarrow> bit_length (tau n input) = n))"
   (* The construction cannot satisfy the type requirement *)
-  (* Because actual output length is n², not n *)
+  (* Because actual output length is n\<^sup>2, not n *)
   oops
 
 (* Summary: The key insight from formalization *)
 lemma key_insight_type_safety:
-  assumes "n ≥ 2"
-  shows "n ≠ n * n"
+  assumes "n \<ge> 2"
+  shows "n \<noteq> n * n"
   using assms by auto
 
 (*

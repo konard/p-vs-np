@@ -7,7 +7,7 @@
 *)
 
 theory MertzMERLIN
-  imports Main "HOL-Library.Multiset"
+  imports Main "HOL-Library.Multiset" "HOL-Analysis.Analysis"
 begin
 
 section \<open>Graph and TSP Definitions\<close>

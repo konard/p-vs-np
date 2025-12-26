@@ -61,13 +61,15 @@ definition update_understanding :: "understanding \<Rightarrow> literal \<Righta
 section \<open>3. Concepts and Contexts\<close>
 
 (* A context is a pair of literals (the other two in a 3-clause) *)
-type_synonym context = "literal \<times> literal"
+(* NOTE: 'context' is a reserved keyword in Isabelle, so we use 'lit_context' *)
+type_synonym lit_context = "literal \<times> literal"
 
 (* A concept is a context interpreted under an understanding *)
-type_synonym concept = "understanding_value \<times> understanding_value"
+(* NOTE: 'concept' is used below and may conflict, using 'understanding_concept' *)
+type_synonym understanding_concept = "understanding_value \<times> understanding_value"
 
 (* Get the concept of a literal in a clause under an understanding *)
-fun get_concept :: "understanding \<Rightarrow> clause3 \<Rightarrow> literal \<Rightarrow> concept option" where
+fun get_concept :: "understanding \<Rightarrow> clause3 \<Rightarrow> literal \<Rightarrow> understanding_concept option" where
   "get_concept u (l1, l2, l3) l =
     (if l = l1 then Some (u l2, u l3)
      else if l = l2 then Some (u l1, u l3)
@@ -80,7 +82,7 @@ datatype concept_type =
   CStar     (* Type C*: at least one literal is true *)
 
 (* Classify a concept *)
-fun classify_concept :: "concept \<Rightarrow> concept_type" where
+fun classify_concept :: "understanding_concept \<Rightarrow> concept_type" where
   "classify_concept (UTrue, UTrue) = CStar" |
   "classify_concept (UTrue, UFalse) = CStar" |
   "classify_concept (UTrue, UFree) = CStar" |
@@ -94,11 +96,11 @@ fun classify_concept :: "concept \<Rightarrow> concept_type" where
 section \<open>4. Understanding Definition Rules\<close>
 
 (* Check if any concept in a list is of type C+ *)
-definition has_cplus :: "concept list \<Rightarrow> bool" where
+definition has_cplus :: "understanding_concept list \<Rightarrow> bool" where
   "has_cplus concepts = (\<exists>c \<in> set concepts. classify_concept c = CPlus)"
 
 (* Check if all concepts in a list are of type C* *)
-definition all_cstar :: "concept list \<Rightarrow> bool" where
+definition all_cstar :: "understanding_concept list \<Rightarrow> bool" where
   "all_cstar concepts = (\<forall>c \<in> set concepts. classify_concept c = CStar)"
 
 section \<open>5. Algorithms\<close>

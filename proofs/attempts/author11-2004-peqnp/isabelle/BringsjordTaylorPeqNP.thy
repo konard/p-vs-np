@@ -112,7 +112,7 @@ proof -
       h_lang: "phys_language P = npc_language L" and
       h_poly_time: "isPolynomial (phys_wallClockTime P)" and
       h_poly_resources: "isPolynomial (phys_resources P)"
-      by auto
+      by blast
 
     (* By our axiom, the physical process must use exponential resources *)
     have h_exp: "isExponential (phys_resources P)"

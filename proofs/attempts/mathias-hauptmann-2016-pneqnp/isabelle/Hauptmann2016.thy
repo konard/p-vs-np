@@ -33,7 +33,7 @@ definition DTIME :: "TimeBound \<Rightarrow> Language \<Rightarrow> bool" where
 
 text \<open>The class P (polynomial time)\<close>
 definition P_class :: "Language \<Rightarrow> bool" where
-  "P_class L \<equiv> \<exists>(c::nat). DTIME (\<lambda>(n::nat). n^c) L"
+  "P_class L \<equiv> \<exists>c::nat. DTIME (\<lambda>n::nat. n^c) L"
 
 section \<open>Alternating Complexity Classes\<close>
 

@@ -98,7 +98,7 @@ section \<open>Known Inclusions in Complexity Theory\<close>
 (* Known fact: P ⊆ NP *)
 (* Every polynomial-time decidable problem is also in NP *)
 axiomatization where
-  P_subseteq_NP: "\<And>(problem::DecisionProblem). InP problem \<Longrightarrow> InNP problem"
+  P_subseteq_NP: "\<And>problem::DecisionProblem. InP problem \<Longrightarrow> InNP problem"
 
 (* Known fact: NP ⊆ PSPACE *)
 (* Nondeterministic polynomial time can be simulated in polynomial space *)

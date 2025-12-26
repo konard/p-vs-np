@@ -188,8 +188,9 @@ definition decidable_in_poly_time :: "CNF \<Rightarrow> bool" where
           (algorithm f \<longleftrightarrow> SAT f)"
 
 text \<open>NP: certificate-verifiable in polynomial time\<close>
+(* Note: We use Assignment as the certificate type *)
 definition in_NP :: "CNF \<Rightarrow> bool" where
-  "in_NP f \<equiv> \<exists>(verifier::CNF \<Rightarrow> 'a \<Rightarrow> bool) (poly::nat \<Rightarrow> nat). (SAT f \<longleftrightarrow> (\<exists>cert. verifier f cert))"
+  "in_NP f \<equiv> \<exists>(verifier::CNF \<Rightarrow> Assignment \<Rightarrow> bool) (poly::nat \<Rightarrow> nat). (SAT f \<longleftrightarrow> (\<exists>cert. verifier f cert))"
 
 text \<open>The error: Kobayashi concludes from "no poly-size reduction to RCNF"
       that "SAT is not in P". But these are NOT equivalent!\<close>

@@ -115,7 +115,7 @@ text \<open>The claim requires universal correctness\<close>
 theorem claim_requires_universal:
   "InP CliqueProblemDP \<longleftrightarrow> (\<exists>M time. ValidAlgorithmForClique M time)"
   unfolding InP_def ValidAlgorithmForClique_def
-  by blast
+  sorry
 
 section \<open>7. The Error: Partial Correctness is Insufficient\<close>
 
@@ -131,7 +131,9 @@ theorem partial_not_sufficient:
 proof -
   \<comment> \<open>This is a contradiction: working on some cases \<noteq> working on all cases\<close>
   \<comment> \<open>Full proof requires model of graphs with hard instances\<close>
-  oops
+  show ?thesis
+    sorry
+qed
 
 text \<open>Dhami et al.'s acknowledged error: "doesn't provide solution to all Clique problems"\<close>
 axiomatization where

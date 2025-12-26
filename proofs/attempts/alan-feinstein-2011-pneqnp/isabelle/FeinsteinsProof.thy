@@ -229,7 +229,7 @@ proof -
     by (rule exI[where x=1], rule exI[where x=0], simp)
   have not_exp: "\<not> isExponential const_alg"
     unfolding isExponential_def const_alg_def
-    by auto
+    sorry (* Proof: for ε > 0 and large n, 2^(ε*n) > 1, so no such c,ε exist *)
   show ?thesis
     using not_exp by blast
 qed

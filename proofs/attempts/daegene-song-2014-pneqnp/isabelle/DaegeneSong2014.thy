@@ -137,7 +137,7 @@ record ClassNP =
 
 text \<open>P = NP question\<close>
 definition PEqualsNP :: bool where
-  "PEqualsNP = (\<forall>L. \<exists>L'. \<forall>s. np_language L s = p_language L' s)"
+  "PEqualsNP = (\<forall>(L::ClassNP). \<exists>(L'::ClassP). \<forall>s. np_language L s = p_language L' s)"
 
 definition PNotEqualsNP :: bool where
   "PNotEqualsNP = (\<not> PEqualsNP)"

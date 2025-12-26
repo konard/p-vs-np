@@ -208,7 +208,7 @@ proof -
       then obtain tm where
         poly: "IsPolynomialTime (timeComplexity tm)" and
         decides: "\<forall>x. ivanov_target_problem x = compute tm x"
-        unfolding InP_def by auto
+        unfolding InP_def by blast
 
       (* We need to derive a contradiction from:
          - tm decides ivanov_target_problem in polynomial time (poly)

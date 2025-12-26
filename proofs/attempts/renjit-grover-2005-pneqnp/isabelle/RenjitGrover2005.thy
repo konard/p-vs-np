@@ -176,7 +176,7 @@ proof
   then obtain tm where
     h_poly: "IsPolynomialTime (timeComplexity tm)" and
     h_decides: "\<forall>x. CLIQUE x = compute tm x"
-    unfolding InP_def by auto
+    unfolding InP_def by blast
 
   (* Apply classification claim *)
   from classification h_decides

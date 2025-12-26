@@ -41,7 +41,7 @@ record NPComplete =
 section \<open>The P vs NP Question\<close>
 
 definition PEqualsNP :: "bool" where
-  "PEqualsNP \<equiv> \<forall>L. \<exists>L'. \<forall>s. np_language L s = p_language L' s"
+  "PEqualsNP \<equiv> \<forall>(L::ClassNP). \<exists>(L'::ClassP). \<forall>s. np_language L s = p_language L' s"
 
 definition PNotEqualsNP :: "bool" where
   "PNotEqualsNP \<equiv> \<not> PEqualsNP"

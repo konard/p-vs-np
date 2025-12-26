@@ -165,8 +165,8 @@ proof -
   moreover have "has_multiple_cycles ?a"
     unfolding has_multiple_cycles_def
   proof -
-    let ?c1 = "[0, 1, 2]"
-    let ?c2 = "[3, 4, 5]"
+    let ?c1 = "[0::nat, 1, 2]"
+    let ?c2 = "[3::nat, 4, 5]"
     have "?c1 \<noteq> []" by simp
     moreover have "?c2 \<noteq> []" by simp
     moreover have "?c1 \<noteq> ?c2" by simp

@@ -8,7 +8,7 @@
 *)
 
 theory MaknickasAttempt
-  imports Main "HOL-Library.FSet"
+  imports Main "HOL-Library.FSet" "HOL-Analysis.Analysis"
 begin
 
 (* ====================================================================== *)
