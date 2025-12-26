@@ -76,7 +76,7 @@ text \<open>
 (* Nondeterministic extension of a complexity class *)
 definition NondeterministicExtension :: "ComplexityClass \<Rightarrow> ComplexityClass" where
   "NondeterministicExtension C \<equiv> \<lambda>problem.
-    \<exists>det_problem ntm tm.
+    \<exists>(det_problem::DecisionProblem) (ntm::NondetTuringMachine) (tm::TuringMachine).
       C det_problem \<and>
       (\<forall>x. det_problem x = compute tm x) \<and>
       (\<forall>x. problem x = (\<exists>cert. nd_compute ntm x cert)) \<and>

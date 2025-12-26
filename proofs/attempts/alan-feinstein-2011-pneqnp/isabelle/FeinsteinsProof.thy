@@ -226,7 +226,7 @@ proof -
   define const_alg where "const_alg = (\<lambda>n::nat. 1::nat)"
   have poly: "isPolynomial const_alg"
     unfolding isPolynomial_def const_alg_def
-    by auto
+    by (rule exI[where x=1], rule exI[where x=0], simp)
   have not_exp: "\<not> isExponential const_alg"
     unfolding isExponential_def const_alg_def
     by auto

@@ -121,11 +121,10 @@ text \<open>
   3. The classification may be incomplete or circular
 \<close>
 
+text \<open>We cannot actually define this without analyzing TM internals,
+      which is undecidable in general. This is where the proof breaks.\<close>
 definition UsesPattern :: "TuringMachine \<Rightarrow> AlgorithmPattern \<Rightarrow> bool" where
-  "UsesPattern tm pattern \<equiv>
-    (* We cannot actually define this without analyzing TM internals,
-       which is undecidable in general *)
-    True"  (* Placeholder - THIS IS WHERE THE PROOF BREAKS *)
+  "UsesPattern tm pattern \<equiv> True"
 
 text \<open>
   Grover's Claim: All algorithms solving CLIQUE must use one of the known patterns

@@ -149,7 +149,8 @@ proof -
   (* By the claim, L is in P *)
   (* But the physical process must use exponential resources *)
   (* This contradicts L being in P with polynomial resources *)
-  sorry  (* Full proof would require more detailed setup *)
+  show ?thesis
+    sorry  (* Full proof would require more detailed setup *)
 qed
 
 section \<open>6. The Core Error Formalized\<close>

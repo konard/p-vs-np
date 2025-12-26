@@ -34,7 +34,7 @@ definition bit_length :: "bit_seq \<Rightarrow> nat" where
 axiomatization
   polynomial_time :: "(bit_seq \<Rightarrow> bit_seq) \<Rightarrow> bool"
 where
-  poly_time_exists: "∃f. polynomial_time f"
+  poly_time_exists: "\<exists>f. polynomial_time f"
 
 (* Abstract notion of polynomial-time algorithm *)
 typedecl polynomial_time_algorithm

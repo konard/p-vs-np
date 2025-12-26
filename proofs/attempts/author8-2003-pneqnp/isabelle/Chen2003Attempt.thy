@@ -175,10 +175,11 @@ text \<open>
   Such algorithms would be theoretically polynomial but practically useless!
 \<close>
 
+text \<open>Practically computable requires reasonable polynomial and constant bounds\<close>
 definition practically_computable :: "Problem \<Rightarrow> bool" where
   "practically_computable prob \<equiv>
-    \<exists>algo. (\<forall>n. algo n < n * n * n) \<and>  (* reasonable polynomial *)
-           (\<forall>n. algo n < 10^10)"  (* reasonable constant *)
+    \<exists>algo. (\<forall>n. algo n < n * n * n) \<and>
+           (\<forall>n. algo n < 10^10)"
 
 (* P=NP does NOT imply practically computable! *)
 axiomatization where

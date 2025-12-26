@@ -289,14 +289,13 @@ text \<open>
   Instead of the universal claim, Ivanov likely proves something weaker:
 \<close>
 
+text \<open>If tm belongs to the analyzed class, then the lower bound holds\<close>
 definition ivanov_actual_claim :: bool where
   "ivanov_actual_claim \<equiv>
     \<exists>algorithm_class.
       \<forall>(tm::TuringMachine).
         (\<forall>x. ivanov_target_problem x = compute tm x) \<longrightarrow>
-        (* If tm belongs to the analyzed class... *)
-        True \<longrightarrow>  (* placeholder for membership check *)
-        (* ...then the lower bound holds *)
+        True \<longrightarrow>
         (\<forall>n. ivanov_lower_bound n \<le> timeComplexity tm n)"
 
 text \<open>

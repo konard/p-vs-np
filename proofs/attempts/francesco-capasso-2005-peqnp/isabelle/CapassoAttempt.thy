@@ -86,14 +86,14 @@ subsection \<open>Complete Algorithm Definition\<close>
 (* A complete polynomial-time algorithm for Circuit-SAT must:
    1. Run in polynomial time on ALL inputs
    2. Produce CORRECT answers on ALL inputs *)
+text \<open>A complete polynomial-time algorithm must run in polynomial time
+      and produce correct answers on ALL inputs\<close>
 definition PolynomialTimeCircuitSATAlgorithm ::
   "(Circuit \<Rightarrow> Assignment option) \<Rightarrow> bool" where
   "PolynomialTimeCircuitSATAlgorithm solver \<equiv>
     \<exists>time.
       is_polynomial time \<and>
-      (* Runs in polynomial time (abstracted) *)
       (\<forall>c. True) \<and>
-      (* Correctness: produces correct answer on ALL inputs *)
       (\<forall>c. case solver c of
              Some a \<Rightarrow> eval_circuit a c \<and> CircuitSAT c
            | None \<Rightarrow> \<not> CircuitSAT c)"

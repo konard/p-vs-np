@@ -68,7 +68,7 @@ definition IsNPComplete :: "DecisionProblem \<Rightarrow> bool" where
 section \<open>3. The Clique Problem is NP-Complete\<close>
 
 text \<open>Abstract encoding of graph problems as decision problems\<close>
-consts encodeClique :: "'a Graph \<Rightarrow> nat \<Rightarrow> BinaryString"
+consts encodeClique :: "nat Graph \<Rightarrow> nat \<Rightarrow> BinaryString"
 
 text \<open>The Clique decision problem as a formal decision problem\<close>
 definition CliqueProblemDP :: "DecisionProblem" where

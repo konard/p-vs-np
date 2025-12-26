@@ -140,7 +140,7 @@ text \<open>
 \<close>
 
 lemma np_has_poly_verification:
-  assumes "in_NP L"
+  assumes "in_NP (L::language)"
   shows "\<exists>V t. polynomial_time t"
   using assms unfolding in_NP_def
   by blast
