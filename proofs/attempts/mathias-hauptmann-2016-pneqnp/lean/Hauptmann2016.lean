@@ -131,24 +131,23 @@ axiom Guptas_result :
 
 theorem Hauptmann_contradiction : False := by
   -- Apply Hauptmann's padding claim
-  obtain ⟨c, H_pad⟩ := Hauptmann_padding_claim
+  match Hauptmann_padding_claim with
+  | ⟨c, H_pad⟩ =>
+    -- F^c is time-constructible (claimed)
+    -- NOTE: GAP #6 - We need to prove this from TimeConstructible(F),
+    -- but this is non-trivial.
+    have H_tc : TimeConstructible (fun n => (construct_F n)^c) := by
+      sorry
 
-  -- F^c is time-constructible (claimed)
-  -- NOTE: GAP #6 - We need to prove this from TimeConstructible(F),
-  -- but this is non-trivial.
-  have H_tc : TimeConstructible (fun n => (construct_F n)^c) := by
-    sorry
+    -- Apply Gupta's result to F^c
+    match Guptas_result (fun n => (construct_F n)^c) H_tc with
+    | ⟨L, H_in_Sigma2, H_not_in_DTIME⟩ =>
+      -- But from the padding claim, L ∈ Σ₂(F^c) implies L ∈ DTIME(F^c)
+      have : DTIME (fun n => (construct_F n)^c) L := by
+        exact (H_pad L).mpr H_in_Sigma2
 
-  -- Apply Gupta's result to F^c
-  obtain ⟨L, H_in_Sigma2, H_not_in_DTIME⟩ :=
-    Guptas_result (fun n => (construct_F n)^c) H_tc
-
-  -- But from the padding claim, L ∈ Σ₂(F^c) implies L ∈ DTIME(F^c)
-  have : DTIME (fun n => (construct_F n)^c) L := by
-    exact (H_pad L).mpr H_in_Sigma2
-
-  -- CONTRADICTION!
-  exact H_not_in_DTIME this
+      -- CONTRADICTION!
+      exact H_not_in_DTIME this
 
 -- ** The Main Result
 

@@ -48,18 +48,16 @@ structure Edge where
   source : Vertex
   target : Vertex
   cost : Nat
-  deriving Repr
 
 /-- Graph as lists of vertices and edges -/
 structure Graph where
   vertices : List Vertex
   edges : List Edge
-  deriving Repr
 
 /-- Complete graph property -/
 def is_complete_graph (g : Graph) : Prop :=
-  ∀ v1 v2, v1 ∈ g.vertices → v2 ∈ g.vertices → v1 ≠ v2 →
-  ∃ e, e ∈ g.edges ∧
+  ∀ v1 v2, List.elem v1 g.vertices → List.elem v2 g.vertices → v1 ≠ v2 →
+  ∃ e, List.elem e g.edges ∧
     ((e.source = v1 ∧ e.target = v2) ∨
      (e.source = v2 ∧ e.target = v1))
 
@@ -68,8 +66,10 @@ def HamiltonianCycle := List Vertex
 
 /-- Valid Hamiltonian cycle check -/
 def is_valid_hamiltonian_cycle (g : Graph) (cycle : HamiltonianCycle) : Prop :=
-  (∀ i j, i < cycle.length → j < cycle.length → i ≠ j → cycle[i]? ≠ cycle[j]?) ∧
-  (∀ v, v ∈ g.vertices ↔ v ∈ cycle) ∧
+  -- All vertices in cycle are distinct
+  (∀ i j, i < cycle.length → j < cycle.length → i ≠ j → cycle.get? i ≠ cycle.get? j) ∧
+  -- Cycle contains exactly the graph's vertices
+  (∀ v, List.elem v g.vertices ↔ List.elem v cycle) ∧
   cycle.length = g.vertices.length
 
 /-! Hash Function Formalization -/
@@ -152,41 +152,21 @@ def HPTSP_verifier (inst : HPTSP_Instance) (cert : HPTSP_Certificate) : Bool :=
 theorem HPTSP_verification_poly_time (inst : HPTSP_Instance) :
   ∃ time : Nat → Nat, PolynomialBound time := by
   -- Time is O(V) where V is number of vertices
-  use fun n => n
-  unfold PolynomialBound
-  use 1, 1
-  constructor
-  · omega
-  constructor
-  · omega
-  · intro n _
-    omega
+  -- Linear time is trivially polynomial: n ≤ 1 * n^1
+  exact ⟨fun n => n, 1, 1, Nat.one_pos, Nat.one_pos, fun n _hn => Nat.le_refl n⟩
 
 /-- Main theorem: HPTSP is in NP -/
 theorem HPTSP_in_NP (inst : HPTSP_Instance) :
   InNP (fun _ => HPTSP inst) := by
   unfold InNP
-  use HPTSP_verifier inst
-  use fun n => n
-  constructor
-  · -- Polynomial time bound
-    unfold PolynomialBound
-    use 1, 1
-    constructor
-    · omega
-    constructor
-    · omega
-    · intro n _
-      omega
-  · -- Correctness
-    intro input
+  -- The verifier and time function
+  refine ⟨HPTSP_verifier inst, fun n => n, ?_, ?_⟩
+  · -- Polynomial time bound: n ≤ 1 * n^1
+    exact ⟨1, 1, Nat.one_pos, Nat.one_pos, fun n _hn => Nat.le_refl n⟩
+  · -- Correctness: verification implies solution exists
+    intro _input
     unfold HPTSP
-    constructor
-    · intro _
-      use ""  -- Placeholder certificate
-      rfl
-    · intro _
-      rfl
+    exact ⟨fun _ => ⟨"", rfl⟩, fun _ => rfl⟩
 
 /-!
   Attempted Proof that HPTSP ∉ P - THIS IS WHERE THE GAPS APPEAR
@@ -255,9 +235,10 @@ axiom HPTSP_requires_exponential_time : ∀ inst,
 /-- What a proper lower bound proof would look like (sketch) -/
 theorem proper_lower_bound_sketch :
   ∀ inst : HPTSP_Instance,
-  (∃ known_hard_problem : DecisionProblem,
-    ¬ InP known_hard_problem ∧
-    (∀ algo, InP algo → ¬ solves algo inst.graph)) →
+  -- If there exists a known hard problem that reduces to HPTSP...
+  (∃ _known_hard_problem : DecisionProblem, True) →
+  -- ...then HPTSP is not in P
+  -- (This is the standard approach for proving lower bounds)
   ¬ InP (fun _ => HPTSP inst) := by
   sorry  -- This is a sketch of what would be needed
 

@@ -119,9 +119,11 @@ def PhysicalDissipation := Nat → Nat
 def ComputationalTime := Nat → Nat
 
 -- Annila claims these are related, but provides no proof
+-- Note: This axiom expresses an unproven relationship between
+-- physical dissipation and computational time complexity
 axiom dissipation_time_relation :
-  ∃ (dissip : PhysicalDissipation) (time : ComputationalTime),
-    ∀ n, time n = dissip n
+  ∃ (dissip : PhysicalDissipation), ∃ (time : ComputationalTime),
+    ∀ n : Nat, time n = dissip n
 
 -- "State space evolution due to computation" - what does this mean formally?
 -- axiom state_space_evolves_in_np :

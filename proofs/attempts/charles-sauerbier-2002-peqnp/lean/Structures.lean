@@ -6,11 +6,6 @@ polynomial-time 3SAT algorithms.
 Reference: arXiv:cs/0205064v3
 -/
 
-import Mathlib.Data.Finset.Basic
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Data.Nat.Bits
-import Mathlib.Logic.Basic
-
 /-- Basic Definitions -/
 
 /-- Boolean variables are represented as natural numbers -/

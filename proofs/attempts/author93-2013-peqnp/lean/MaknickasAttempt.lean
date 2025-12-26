@@ -7,10 +7,6 @@
   Main error: Conflating LP (polynomial-time) with ILP (NP-complete)
 -/
 
-import Mathlib.Data.Real.Basic
-import Mathlib.Data.List.Basic
-import Mathlib.Logic.Basic
-
 -- ======================================================================
 -- Part 1: Basic Definitions
 -- ======================================================================

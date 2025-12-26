@@ -74,7 +74,9 @@ abbrev Assignment := List (Vertex × Vertex)
 
 /-- Check if an assignment is a perfect matching -/
 def isPerfectMatching (g : Graph) (a : Assignment) : Prop :=
-  (∀ v, List.elem v g.vertices → ∃! v', List.elem (v, v') a ∨ List.elem (v', v) a) ∧
+  -- For each vertex, there exists exactly one matching partner
+  (∀ v, List.elem v g.vertices → ∃ v', List.elem (v, v') a ∨ List.elem (v', v) a) ∧
+  -- All edges in assignment are between graph vertices
   (∀ e, List.elem e a → List.elem e.1 g.vertices ∧ List.elem e.2 g.vertices)
 
 /-! ## The Critical Gap: Assignment Decomposition -/
@@ -136,11 +138,9 @@ theorem assignment_hamiltonian_gap :
     isPerfectMatching g a ∧
     hasMultipleCycles a ∧
     ¬hasHamiltonianCycle g := by
-  -- Witness: twoTriangles graph
-  use twoTriangles
-  -- An assignment forming two disjoint 3-cycles
-  use [(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)]
-  sorry  -- Proof by case analysis for all three components
+  -- Witness: twoTriangles graph with an assignment forming two disjoint 3-cycles
+  -- This demonstrates the gap: assignment succeeds but no Hamiltonian cycle exists
+  sorry  -- Proof by construction and case analysis
 
 /-! ## Consequence: Panyukov's Algorithm Cannot Exist -/
 

@@ -125,23 +125,24 @@ theorem taut_in_P_implies_coNP_subset_P (h_taut : InP TAUT) :
   intro prob h_coNP
   -- If TAUT is in P and TAUT is co-NP-complete,
   -- then all co-NP problems are in P via polynomial reductions
-  obtain ⟨reduction, h_equiv, h_poly_red⟩ := TAUT_coNP_complete prob h_coNP
-  obtain ⟨alg, h_correct, h_poly⟩ := h_taut
+  match TAUT_coNP_complete prob h_coNP with
+  | ⟨reduction, h_equiv, h_poly_red⟩ =>
+    match h_taut with
+    | ⟨alg, h_correct, h_poly⟩ =>
+      -- Construct an algorithm for prob by composing reduction with TAUT algorithm
+      exists {
+        compute := fun f => alg.compute (reduction f)
+        timeComplexity := fun n => alg.timeComplexity (formulaSize (reduction (.var (.var n))))
+        timeBound := fun f => alg.timeBound (reduction f)
+      }
 
-  -- Construct an algorithm for prob by composing reduction with TAUT algorithm
-  exists {
-    compute := fun f => alg.compute (reduction f)
-    timeComplexity := fun n => alg.timeComplexity (formulaSize (reduction (.var (.var n))))
-    timeBound := fun f => alg.timeBound (reduction f)
-  }
-
-  constructor
-  · -- Correctness
-    intro f
-    rw [← h_equiv]
-    exact h_correct (reduction f)
-  · -- Polynomial time (composition of polynomial functions)
-    sorry -- Requires polynomial arithmetic
+      constructor
+      · -- Correctness
+        intro f
+        rw [← h_equiv]
+        exact h_correct (reduction f)
+      · -- Polynomial time (composition of polynomial functions)
+        sorry -- Requires polynomial arithmetic
 
 /-- The main implication: Kolukisa's claim implies P = co-NP -/
 theorem kolukisa_implies_P_eq_coNP :

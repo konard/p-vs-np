@@ -110,15 +110,10 @@ theorem tangClaimRefuted :
   -- Specializing to a large n
   have hPoly := h 100
   have hExp := hewnExponentialWhenJEqualsN
-
-  unfold polynomialTime at hPoly
-  unfold exponentialTime at hExp
-
-  obtain ⟨c, d, hPoly⟩ := hPoly
-  have ⟨x₀, hExp⟩ := hExp c d
-
-  -- For x = max(x₀, 100), we have a contradiction
-  -- This would require showing that the polynomial bound is violated
+  -- The proof shows contradiction between polynomial bound and exponential growth
+  -- For x = max(x₀, 100), we have a contradiction since:
+  -- - hPoly claims x * 2^100 ≤ c * x^d + c for some c, d
+  -- - hExp shows x * 2^x > c * x^d + c for large x when n = x
   sorry -- Full proof would require more lemmas about exponential growth
 
 -- Implications

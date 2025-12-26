@@ -22,30 +22,30 @@ structure Vector3 where
   z : Float
 
 /-- Dot product -/
-def dot (v1 v2 : Vector3) : Float :=
+noncomputable def dot (v1 v2 : Vector3) : Float :=
   v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
 
 /-- Rotation around y-axis by angle θ (simplified with Real abstraction) -/
 axiom cos : Float → Float
 axiom sin : Float → Float
 
-def rotateY (theta : Float) (v : Vector3) : Vector3 :=
+noncomputable def rotateY (theta : Float) (v : Vector3) : Vector3 :=
   { x := cos theta * v.z + sin theta * v.x
     y := v.y
     z := cos theta * v.z - sin theta * v.x }
 
 /-- Inverse rotation -/
-def rotateYInverse (theta : Float) (v : Vector3) : Vector3 :=
+noncomputable def rotateYInverse (theta : Float) (v : Vector3) : Vector3 :=
   rotateY (-theta) v
 
 /- ## 2. The Two Quantum Pictures -/
 
 /-- Schrödinger picture: state evolves, observable fixed -/
-def schrodingerEvolution (theta : Float) (state observable : Vector3) : Float :=
+noncomputable def schrodingerEvolution (theta : Float) (state observable : Vector3) : Float :=
   dot observable (rotateY theta state)
 
 /-- Heisenberg picture: observable evolves, state fixed -/
-def heisenbergEvolution (theta : Float) (state observable : Vector3) : Float :=
+noncomputable def heisenbergEvolution (theta : Float) (state observable : Vector3) : Float :=
   dot (rotateYInverse theta observable) state
 
 /- ## 3. Key Equivalence: Both Pictures Yield Same Physics -/
@@ -68,12 +68,12 @@ def song_state : Vector3 := initial_frame
 def song_observable : Vector3 := initial_frame
 
 /-- Schrödinger result for self-reference -/
-def schrodinger_self_reference (theta : Float) : Vector3 :=
+noncomputable def schrodinger_self_reference (theta : Float) : Vector3 :=
   rotateY theta initial_frame
   -- Result: (sin θ, 0, cos θ)
 
 /-- Heisenberg result for self-reference -/
-def heisenberg_self_reference (theta : Float) : Vector3 :=
+noncomputable def heisenberg_self_reference (theta : Float) : Vector3 :=
   rotateYInverse theta initial_frame
   -- Result: (−sin θ, 0, cos θ)
 

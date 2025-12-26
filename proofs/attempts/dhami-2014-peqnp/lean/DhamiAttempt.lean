@@ -11,6 +11,15 @@ namespace DhamiAttempt
 
 /- ## 1. Graph Theory Foundations -/
 
+/-- Set type as a predicate -/
+def Set (α : Type) := α → Prop
+
+/-- Membership in a set -/
+def Set.mem {α : Type} (x : α) (S : Set α) : Prop := S x
+
+instance {α : Type} : Membership α (Set α) where
+  mem := Set.mem
+
 /-- A graph is represented by a set of vertices and edges -/
 structure Graph where
   vertices : Type
@@ -144,13 +153,14 @@ theorem dhami_error_formalized :
     (∃ (G : Graph) (k : Nat), RunsInTime M time (fun s => s = encodeClique G k ∧ CliqueProblem G k)) ∧
     ¬(∀ (G : Graph) (k : Nat), RunsInTime M time (fun s => s = encodeClique G k ∧ CliqueProblem G k)) :=
 by
-  obtain ⟨M, time, hpartial, hnot_valid⟩ := dhami_algorithm_partial
-  use M, time
-  constructor
-  · exact hpartial.2
-  · intro h
-    apply hnot_valid
-    exact ⟨hpartial.1, h⟩
+  match dhami_algorithm_partial with
+  | ⟨M, time, hpartial, hnot_valid⟩ =>
+    use M, time
+    constructor
+    · exact hpartial.2
+    · intro h
+      apply hnot_valid
+      exact ⟨hpartial.1, h⟩
 
 /- ## 8. Lessons and Implications -/
 

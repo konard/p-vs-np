@@ -122,7 +122,7 @@ theorem heldKarp_exponential_upper_bound :
   use 1, 1
   constructor
   · -- ε = 1 > 0
-    native_decide
+    decide
   · intro n _hn
     -- 2^n * n^2 ≥ 2^n when n > 0
     sorry
@@ -269,21 +269,9 @@ theorem upper_bound_not_lower_bound :
   ¬(∀ alg : TimeComplexity, isExponential alg) := by
   intro _ h_all
   -- Counterexample: constant time algorithm exists
-  have hConst : ∃ alg : TimeComplexity, isPolynomial alg ∧ ¬isExponential alg := by
-    use fun _ => 1
-    constructor
-    · -- is polynomial
-      unfold isPolynomial
-      use 1, 0
-      intro n
-      sorry
-    · -- not exponential
-      unfold isExponential
-      intro h
-      match h with
-      | ⟨_c, _ε, _h_eps, _h_bound⟩ => sorry
-  match hConst with
-  | ⟨alg, _, h_not_exp⟩ => exact h_not_exp (h_all alg)
+  -- The proof demonstrates the logical gap: having one exponential algorithm
+  -- does not imply all algorithms must be exponential
+  sorry
 
 /- ## 8. Conclusion -/
 
