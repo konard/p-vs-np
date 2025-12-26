@@ -98,17 +98,17 @@ section \<open>Known Inclusions in Complexity Theory\<close>
 (* Known fact: P ⊆ NP *)
 (* Every polynomial-time decidable problem is also in NP *)
 axiomatization where
-  P_subseteq_NP: "InP problem \<Longrightarrow> InNP problem"
+  P_subseteq_NP: "\<And>problem. InP problem \<Longrightarrow> InNP problem"
 
 (* Known fact: NP ⊆ PSPACE *)
 (* Nondeterministic polynomial time can be simulated in polynomial space *)
 axiomatization where
-  NP_subseteq_PSPACE: "InNP problem \<Longrightarrow> InPSPACE problem"
+  NP_subseteq_PSPACE: "\<And>problem. InNP problem \<Longrightarrow> InPSPACE problem"
 
 (* Known fact: PSPACE ⊆ EXPTIME *)
 (* Polynomial space bounds allow at most exponentially many configurations *)
 axiomatization where
-  PSPACE_subseteq_EXPTIME: "InPSPACE problem \<Longrightarrow> True"
+  PSPACE_subseteq_EXPTIME: "\<And>problem. InPSPACE problem \<Longrightarrow> True"
 
 section \<open>Halylaurin's Claim: PSPACE ⊆ P\<close>
 
@@ -121,7 +121,7 @@ text \<open>
 \<close>
 
 axiomatization where
-  halylaurin_unproven_claim: "InPSPACE problem \<Longrightarrow> InP problem"
+  halylaurin_unproven_claim: "\<And>problem. InPSPACE problem \<Longrightarrow> InP problem"
 
 section \<open>Consequences of Halylaurin's Claim\<close>
 

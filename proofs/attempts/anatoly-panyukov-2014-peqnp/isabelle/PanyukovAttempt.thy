@@ -82,7 +82,7 @@ section \<open>The Critical Gap: Assignment Decomposition\<close>
 text \<open>An assignment can decompose into multiple disjoint cycles\<close>
 definition has_multiple_cycles :: "Assignment \<Rightarrow> bool" where
   "has_multiple_cycles a \<equiv>
-    \<exists>c1 c2.
+    \<exists>(c1::Vertex list) (c2::Vertex list).
       c1 \<noteq> [] \<and> c2 \<noteq> [] \<and>
       c1 \<noteq> c2 \<and>
       (\<forall>v \<in> set c1. v \<notin> set c2)"

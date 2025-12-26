@@ -23,7 +23,7 @@ begin
 type_synonym bit_seq = "bool list"
 
 (* Length of a bit sequence *)
-definition bit_length :: "bit_seq ⇒ nat" where
+definition bit_length :: "bit_seq \<Rightarrow> nat" where
   "bit_length s = length s"
 
 (* ========================================================================= *)
@@ -32,7 +32,7 @@ definition bit_length :: "bit_seq ⇒ nat" where
 
 (* Abstract notion of polynomial time *)
 axiomatization
-  polynomial_time :: "(bit_seq ⇒ bit_seq) ⇒ bool"
+  polynomial_time :: "(bit_seq \<Rightarrow> bit_seq) \<Rightarrow> bool"
 where
   poly_time_exists: "∃f. polynomial_time f"
 
@@ -44,13 +44,13 @@ typedecl ppt_algorithm
 
 (* Polynomial-time decidability (class P) *)
 axiomatization
-  class_P :: "(bit_seq ⇒ bool) ⇒ bool"
+  class_P :: "(bit_seq \<Rightarrow> bool) \<Rightarrow> bool"
 where
   P_exists: "∃f. class_P f"
 
 (* Non-deterministic polynomial-time decidability (class NP) *)
 axiomatization
-  class_NP :: "(bit_seq ⇒ bool) ⇒ bool"
+  class_NP :: "(bit_seq \<Rightarrow> bool) \<Rightarrow> bool"
 where
   NP_exists: "∃f. class_NP f"
 
@@ -66,12 +66,12 @@ where
 *)
 
 (* Negligible function: smaller than any inverse polynomial *)
-definition negligible :: "(nat ⇒ nat ⇒ bool) ⇒ bool" where
+definition negligible :: "(nat \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> bool" where
   "negligible prob ≡
     ∀c. ∃N. ∀n. n ≥ N ⟶ (∀p. prob n p ⟶ p < n^c)"
 
 (* One-way function definition *)
-definition one_way_function :: "(bit_seq ⇒ bit_seq) ⇒ bool" where
+definition one_way_function :: "(bit_seq \<Rightarrow> bit_seq) \<Rightarrow> bool" where
   "one_way_function f ≡
     polynomial_time f ∧
     (∀A::ppt_algorithm.
@@ -85,7 +85,7 @@ definition one_way_function :: "(bit_seq ⇒ bit_seq) ⇒ bool" where
   CLAIMED: The Tau function maps n bits to n bits
   This is what the paper claims about each τ ∈ Τ
 *)
-definition tau_function_claimed :: "nat ⇒ (bit_seq ⇒ bit_seq) ⇒ bool" where
+definition tau_function_claimed :: "nat \<Rightarrow> (bit_seq \<Rightarrow> bit_seq) \<Rightarrow> bool" where
   "tau_function_claimed n tau ≡
     ∀input. bit_length input = n ⟶ bit_length (tau input) = n"
 
@@ -93,7 +93,7 @@ definition tau_function_claimed :: "nat ⇒ (bit_seq ⇒ bit_seq) ⇒ bool" wher
   ACTUAL: The construction produces n² bits, not n bits
   This is what the algorithm actually computes
 *)
-fun tau_function_actual :: "nat ⇒ bit_seq ⇒ bit_seq" where
+fun tau_function_actual :: "nat \<Rightarrow> bit_seq \<Rightarrow> bit_seq" where
   "tau_function_actual n [] = []" |
   "tau_function_actual n (b # rest) =
     (replicate n b) @ (tau_function_actual n rest)"
@@ -120,7 +120,7 @@ next
 
 (* Hash function (abstracted) *)
 axiomatization
-  hash_function :: "nat ⇒ bit_seq ⇒ bit_seq"
+  hash_function :: "nat \<Rightarrow> bit_seq \<Rightarrow> bit_seq"
 
 (* Universal hash function family *)
 typedecl universal_hash_family
@@ -130,7 +130,7 @@ typedecl random_bit_matrix
 
 (* The Tau construction (simplified model) *)
 definition tau_construction ::
-  "nat ⇒ universal_hash_family ⇒ random_bit_matrix list ⇒ bit_seq ⇒ bit_seq"
+  "nat \<Rightarrow> universal_hash_family \<Rightarrow> random_bit_matrix list \<Rightarrow> bit_seq \<Rightarrow> bit_seq"
 where
   "tau_construction n hash_fns matrices input = tau_function_actual n input"
 
@@ -145,11 +145,11 @@ where
 *)
 
 (* Preimage size for n-bit outputs (what the paper claims) *)
-definition preimage_size_claimed :: "nat ⇒ nat" where
+definition preimage_size_claimed :: "nat \<Rightarrow> nat" where
   "preimage_size_claimed n = 2^n"
 
 (* Preimage size for n²-bit outputs (what actually happens) *)
-definition preimage_size_actual :: "nat ⇒ nat" where
+definition preimage_size_actual :: "nat \<Rightarrow> nat" where
   "preimage_size_actual n = 2^(n * n)"
 
 (* The error: these are vastly different! *)
@@ -166,14 +166,14 @@ lemma preimage_size_error:
   Probability of inverting (what the paper claims)
   For n-bit outputs: roughly 1/2^n
 *)
-definition inversion_probability_claimed :: "nat ⇒ nat" where
+definition inversion_probability_claimed :: "nat \<Rightarrow> nat" where
   "inversion_probability_claimed n = 2^n"
 
 (*
   Probability of inverting (what actually happens)
   For n²-bit outputs: roughly 1/2^(n²)
 *)
-definition inversion_probability_actual :: "nat ⇒ nat" where
+definition inversion_probability_actual :: "nat \<Rightarrow> nat" where
   "inversion_probability_actual n = 2^(n * n)"
 
 (*

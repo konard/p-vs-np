@@ -163,7 +163,7 @@ record ValidPEqNPProofViaClique =
 
 text \<open>Such a proof would establish P = NP\<close>
 theorem valid_proof_sufficient:
-  assumes "\<exists>p. polynomial p \<and> universal_correctness p"
+  assumes "\<exists>p::ValidPEqNPProofViaClique. polynomial p \<and> universal_correctness p"
   shows "PEqualsNP"
   oops
 

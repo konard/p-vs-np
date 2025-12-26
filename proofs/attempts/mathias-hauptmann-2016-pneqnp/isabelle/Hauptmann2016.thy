@@ -33,7 +33,7 @@ definition DTIME :: "TimeBound \<Rightarrow> Language \<Rightarrow> bool" where
 
 text \<open>The class P (polynomial time)\<close>
 definition P_class :: "Language \<Rightarrow> bool" where
-  "P_class L \<equiv> \<exists>c. DTIME (\<lambda>n. n^c) L"
+  "P_class L \<equiv> \<exists>(c::nat). DTIME (\<lambda>n. n^c) L"
 
 section \<open>Alternating Complexity Classes\<close>
 
@@ -49,7 +49,7 @@ definition Sigma2_Time :: "TimeBound \<Rightarrow> Language \<Rightarrow> bool" 
 
 text \<open>The class Σ₂ᵖ (second level of polynomial hierarchy)\<close>
 definition Sigma2P :: "Language \<Rightarrow> bool" where
-  "Sigma2P L \<equiv> \<exists>c. Sigma2_Time (\<lambda>n. n^c) L"
+  "Sigma2P L \<equiv> \<exists>(c::nat). Sigma2_Time (\<lambda>n. n^c) L"
 
 section \<open>Assumption: P = Σ₂ᵖ\<close>
 

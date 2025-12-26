@@ -153,7 +153,7 @@ text \<open>
 \<close>
 
 theorem Goedel_Not_Decision_Problem:
-  "\<forall>(_interpretation::bool \<Rightarrow> DecisionProblem). True"
+  "\<forall>(interpretation::bool \<Rightarrow> DecisionProblem). True"
   by simp
 
 text \<open>

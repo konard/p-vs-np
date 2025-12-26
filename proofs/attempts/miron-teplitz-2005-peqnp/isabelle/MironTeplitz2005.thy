@@ -31,7 +31,7 @@ text \<open>
   we can speculate that the approach may have involved:
 
   - Sigma (\<Sigma>) notation from complexity theory (polynomial hierarchy)
-  - Properties of \<Sigma>\<^sub>i\<^sup>p complexity classes (where \<Sigma>\<^sub>1\<^sup>p = NP)
+  - Properties of \<Sigma>ᵢᵖ complexity classes (where \<Sigma>₁ᵖ = NP)
   - Possible attempted proof via polynomial hierarchy collapse
   - Relationships between existential and universal quantification
 
@@ -71,10 +71,10 @@ axiomatization P :: ComplexityClass
 (* The NP complexity class *)
 axiomatization NP :: ComplexityClass
 
-(* Polynomial hierarchy level i (\<Sigma>\<^sub>i\<^sup>p) *)
+(* Polynomial hierarchy level i (\<Sigma>ᵢᵖ) *)
 axiomatization Sigma_i :: "nat \<Rightarrow> ComplexityClass"
 
-(* By definition, \<Sigma>\<^sub>1\<^sup>p = NP *)
+(* By definition, \<Sigma>₁ᵖ = NP *)
 axiomatization where
   Sigma_1_eq_NP: "Sigma_i 1 = NP"
 

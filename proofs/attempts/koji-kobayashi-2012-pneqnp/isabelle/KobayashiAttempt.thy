@@ -183,13 +183,13 @@ text \<open>This is where the proof fails! Even if RCNF(F) is super-polynomial,
 text \<open>Decision complexity: decidable in polynomial time\<close>
 definition decidable_in_poly_time :: "CNF \<Rightarrow> bool" where
   "decidable_in_poly_time f \<equiv>
-    \<exists>algorithm poly time_function.
+    \<exists>(algorithm::CNF \<Rightarrow> bool) (poly::nat \<Rightarrow> nat) (time_function::nat \<Rightarrow> nat).
       \<forall>n. time_function n \<le> poly n \<and>
           (algorithm f \<longleftrightarrow> SAT f)"
 
 text \<open>NP: certificate-verifiable in polynomial time\<close>
 definition in_NP :: "CNF \<Rightarrow> bool" where
-  "in_NP f \<equiv> \<exists>verifier poly. (SAT f \<longleftrightarrow> (\<exists>cert. verifier f cert))"
+  "in_NP f \<equiv> \<exists>(verifier::CNF \<Rightarrow> 'a \<Rightarrow> bool) (poly::nat \<Rightarrow> nat). (SAT f \<longleftrightarrow> (\<exists>cert. verifier f cert))"
 
 text \<open>The error: Kobayashi concludes from "no poly-size reduction to RCNF"
       that "SAT is not in P". But these are NOT equivalent!\<close>

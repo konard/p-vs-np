@@ -89,7 +89,7 @@ text \<open>
 
 definition ClosedUnderNDExtension :: "ComplexityClass \<Rightarrow> bool" where
   "ClosedUnderNDExtension C \<equiv>
-    \<forall>problem. NondeterministicExtension C problem \<longrightarrow> C problem"
+    \<forall>(problem::DecisionProblem). NondeterministicExtension C problem \<longrightarrow> C problem"
 
 text \<open>
   A complexity class is "open" under nondeterministic extension if
@@ -98,7 +98,7 @@ text \<open>
 
 definition OpenUnderNDExtension :: "ComplexityClass \<Rightarrow> bool" where
   "OpenUnderNDExtension C \<equiv>
-    \<exists>problem. NondeterministicExtension C problem \<and> \<not>C problem"
+    \<exists>(problem::DecisionProblem). NondeterministicExtension C problem \<and> \<not>C problem"
 
 text \<open>
   Moscu's claim: This property (being closed or open) is an "invariant"

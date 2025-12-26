@@ -20,20 +20,20 @@ begin
 section ‹Basic Complexity Theory Definitions›
 
 text ‹A decision problem maps inputs to booleans›
-type_synonym DecisionProblem = "string ⇒ bool"
+type_synonym DecisionProblem = "string \<Rightarrow> bool"
 
 text ‹Polynomial bound on a function›
-definition PolynomialBound :: "(nat ⇒ nat) ⇒ bool" where
+definition PolynomialBound :: "(nat \<Rightarrow> nat) \<Rightarrow> bool" where
   "PolynomialBound f ≡ ∃c k. c > 0 ∧ k > 0 ∧ (∀n>0. f n ≤ c * (n ^ k))"
 
 text ‹A problem is in P if decidable in polynomial time›
-definition InP :: "DecisionProblem ⇒ bool" where
+definition InP :: "DecisionProblem \<Rightarrow> bool" where
   "InP prob ≡ ∃algo time.
     PolynomialBound time ∧
     (∀input. algo input = prob input)"
 
 text ‹A problem is in NP if solutions verifiable in polynomial time›
-definition InNP :: "DecisionProblem ⇒ bool" where
+definition InNP :: "DecisionProblem \<Rightarrow> bool" where
   "InNP prob ≡ ∃verifier time.
     PolynomialBound time ∧
     (∀input. prob input = True ⟷ (∃certificate. verifier input certificate = True))"
@@ -55,7 +55,7 @@ record Graph =
   edges :: "Edge list"
 
 text ‹Complete graph property›
-definition is_complete_graph :: "Graph ⇒ bool" where
+definition is_complete_graph :: "Graph \<Rightarrow> bool" where
   "is_complete_graph g ≡
     ∀v1 v2. v1 ∈ set (vertices g) ⟶ v2 ∈ set (vertices g) ⟶ v1 ≠ v2 ⟶
       (∃e ∈ set (edges g).
@@ -66,7 +66,7 @@ text ‹Hamiltonian cycle›
 type_synonym HamiltonianCycle = "Vertex list"
 
 text ‹Valid Hamiltonian cycle check›
-definition is_valid_hamiltonian_cycle :: "Graph ⇒ HamiltonianCycle ⇒ bool" where
+definition is_valid_hamiltonian_cycle :: "Graph \<Rightarrow> HamiltonianCycle \<Rightarrow> bool" where
   "is_valid_hamiltonian_cycle g cycle ≡
     distinct cycle ∧
     (∀v. v ∈ set (vertices g) ⟷ v ∈ set cycle) ∧
@@ -75,7 +75,7 @@ definition is_valid_hamiltonian_cycle :: "Graph ⇒ HamiltonianCycle ⇒ bool" w
 section ‹Hash Function Formalization›
 
 text ‹Abstract hash function type›
-type_synonym HashFunction = "string ⇒ string"
+type_synonym HashFunction = "string \<Rightarrow> string"
 
 text ‹
   Properties that Yampolskiy claims hash functions have
@@ -112,19 +112,19 @@ axiomatization where
   (* Placeholder: THIS IS THE KEY UNJUSTIFIED ASSUMPTION *)
 
 text ‹Property 3: Polynomial time evaluation›
-definition hash_computable_in_poly_time :: "HashFunction ⇒ bool" where
+definition hash_computable_in_poly_time :: "HashFunction \<Rightarrow> bool" where
   "hash_computable_in_poly_time h ≡ ∃time. PolynomialBound time"
 
 section ‹HPTSP Definition›
 
 text ‹Encode cycle as string with edge weights›
-fun encode_cycle :: "Graph ⇒ HamiltonianCycle ⇒ string" where
+fun encode_cycle :: "Graph \<Rightarrow> HamiltonianCycle \<Rightarrow> string" where
   "encode_cycle g [] = ''''"
 | "encode_cycle g [v] = String.implode (show v)"
 | "encode_cycle g (v1 # v2 # rest) = String.implode (show v1) @ encode_cycle g (v2 # rest)"
 
 text ‹Lexicographic string comparison›
-definition string_lex_le :: "string ⇒ string ⇒ bool" where
+definition string_lex_le :: "string \<Rightarrow> string \<Rightarrow> bool" where
   "string_lex_le s1 s2 ≡ s1 ≤ s2"
 
 text ‹HPTSP Problem Instance›
@@ -135,7 +135,7 @@ record HPTSP_Instance =
   (* We assume the graph is complete *)
 
 text ‹HPTSP Decision Problem›
-definition HPTSP :: "HPTSP_Instance ⇒ bool" where
+definition HPTSP :: "HPTSP_Instance \<Rightarrow> bool" where
   "HPTSP instance ≡ True"
   (* Placeholder: actual implementation would enumerate cycles *)
 
@@ -145,7 +145,7 @@ text ‹Certificate: an encoded cycle›
 type_synonym HPTSP_Certificate = string
 
 text ‹Verification algorithm›
-definition HPTSP_verifier :: "HPTSP_Instance ⇒ HPTSP_Certificate ⇒ bool" where
+definition HPTSP_verifier :: "HPTSP_Instance \<Rightarrow> HPTSP_Certificate \<Rightarrow> bool" where
   "HPTSP_verifier instance cert ≡
     (* Verification steps:
        1. Parse certificate to extract cycle: O(V)

@@ -104,7 +104,7 @@ subsection \<open>Heuristic Definition\<close>
 datatype HeuristicOutcome =
   Tautology
   | Contradiction
-  | Satisfying Assignment
+  | SatisfyingAssignment "Assignment"
   | Unknown  (* Heuristic gives up or fails *)
 
 (* A heuristic may:
@@ -122,7 +122,7 @@ definition PolynomialTimeCircuitSATHeuristic ::
       (\<forall>c. case heuristic c of
              Tautology \<Rightarrow> True        (* May claim tautology incorrectly *)
            | Contradiction \<Rightarrow> True    (* May claim contradiction incorrectly *)
-           | Satisfying a \<Rightarrow> True     (* May give incorrect assignment *)
+           | SatisfyingAssignment a \<Rightarrow> True     (* May give incorrect assignment *)
            | Unknown \<Rightarrow> True)"        (* May fail on easy instances *)
 
 section \<open>The Key Distinction\<close>
@@ -149,7 +149,7 @@ axiomatization where
       \<not>(\<forall>c. case heuristic c of
               Tautology \<Rightarrow> is_tautology c
             | Contradiction \<Rightarrow> is_contradiction c
-            | Satisfying a \<Rightarrow> eval_circuit a c
+            | SatisfyingAssignment a \<Rightarrow> eval_circuit a c
             | Unknown \<Rightarrow> True)"
 
 section \<open>Capasso's Claim and Its Error\<close>
@@ -233,7 +233,7 @@ section \<open>Concrete Example of the Distinction\<close>
 definition toy_heuristic :: "Circuit \<Rightarrow> HeuristicOutcome" where
   "toy_heuristic c \<equiv>
     if circuit_size c \<le> 100
-    then Satisfying (\<lambda>_. True)  (* Trivial assignment (may be wrong) *)
+    then SatisfyingAssignment (\<lambda>_. True)  (* Trivial assignment (may be wrong) *)
     else Unknown"                    (* Give up on large circuits *)
 
 (* This is a heuristic (fast on small inputs) *)
@@ -245,7 +245,7 @@ axiomatization where
   toy_heuristic_not_algorithm:
     "\<not> PolynomialTimeCircuitSATAlgorithm
         (\<lambda>c. case toy_heuristic c of
-               Satisfying a \<Rightarrow> Some a
+               SatisfyingAssignment a \<Rightarrow> Some a
              | _ \<Rightarrow> None)"
 
 section \<open>Summary and Lessons\<close>

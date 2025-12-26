@@ -169,7 +169,7 @@ text \<open>
 type_synonym Oracle = "string \<Rightarrow> bool"
 
 definition relativized_problem :: "Oracle \<Rightarrow> DecisionProblem \<Rightarrow> DecisionProblem" where
-  "relativized_problem O P \<equiv> P"  (* Simplified *)
+  "relativized_problem oracle prob \<equiv> prob"  (* Simplified *)
 
 text \<open>
   If ivanov_universal_lower_bound_claim holds in all relativized worlds,
