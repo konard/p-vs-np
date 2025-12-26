@@ -224,9 +224,11 @@ proof -
     then have "\<not>InP NamCountingProblem" by simp
     moreover have "InNP NamCountingProblem" using nam_problem_in_NP by simp
     ultimately have "\<exists>problem. InNP problem \<and> \<not>InP problem" by blast
-    thus "P_not_equals_NP" unfolding P_not_equals_NP_def by simp
+    thus "P_not_equals_NP"
+      unfolding P_not_equals_NP_def by simp
   qed
-  thus ?thesis by simp
+  thus ?thesis
+    by simp
 qed
 
 section \<open>Summary and Lessons\<close>

@@ -66,8 +66,8 @@ definition LP_size :: "LinearProgram \<Rightarrow> nat" where
 
 text \<open>Linear programming is in P (Khachiyan 1979, Karmarkar 1984)\<close>
 axiomatization where
-  LP_in_P: "\<forall>lp. \<exists>solution_time.
-    \<forall>size. size = LP_size lp \<longrightarrow> (\<exists>steps. steps \<le> solution_time size)"
+  LP_in_P: "\<forall>(lp::LinearProgram). \<exists>(solution_time::nat \<Rightarrow> nat).
+    \<forall>(size::nat). size = LP_size lp \<longrightarrow> (\<exists>(steps::nat). steps \<le> solution_time size)"
 
 section \<open>Hamiltonian Cycle Problem\<close>
 

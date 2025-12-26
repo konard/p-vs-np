@@ -196,13 +196,11 @@ definition runtime_analysis_required :: "bool" where
        (\<forall>time. is_polynomial time \<longrightarrow> \<not>TM_time_bounded M time))"
 
 (* Lesson 3: Novel computational models need rigorous definitions *)
-record RigorousComputationalModel =
-  model_type :: "'a itself"
-  (* In a full formalization, would include:
-     - computation function
-     - runtime function
-     - proof that runtime is either polynomial or not
-   *)
+(* In a full formalization, a rigorous computational model would include:
+   - computation function
+   - runtime function
+   - proof that runtime is either polynomial or not
+ *)
 
 section \<open>Summary\<close>
 

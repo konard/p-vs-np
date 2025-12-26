@@ -122,7 +122,8 @@ proof -
     then obtain tm where "IsPolynomialTime (timeComplexity tm)"
                      and "\<forall>x. TSP x = compute tm x"
       unfolding InP_def by auto
-    with optimal show False by auto
+    with optimal show False
+      by auto
   qed
 qed
 

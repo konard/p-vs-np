@@ -93,7 +93,7 @@ fun classify_concept :: "concept \<Rightarrow> concept_type" where
 
 section \<open>4. Understanding Definition Rules\<close>
 
-(* Check if any concept in a list is of type C⁺ *)
+(* Check if any concept in a list is of type C+ *)
 definition has_cplus :: "concept list \<Rightarrow> bool" where
   "has_cplus concepts = (\<exists>c \<in> set concepts. classify_concept c = CPlus)"
 

@@ -171,7 +171,8 @@ proof -
     moreover have "?c2 \<noteq> []" by simp
     moreover have "?c1 \<noteq> ?c2" by simp
     moreover have "\<forall>v \<in> set ?c1. v \<notin> set ?c2" by auto
-    ultimately show ?thesis by blast
+    ultimately show ?thesis
+      by blast
   qed
 
   moreover have "\<not> has_hamiltonian_cycle ?g"

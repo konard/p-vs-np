@@ -29,19 +29,14 @@ record ClassP =
   p_language :: Language
   p_decider :: "string \<Rightarrow> nat"
   p_timeComplexity :: TimeComplexity
-  p_isPoly :: "isPolynomial p_timeComplexity"
-  p_correct :: "\<forall>s. p_language s = (p_decider s > 0)"
 
 record ClassNP =
   np_language :: Language
   np_verifier :: "string \<Rightarrow> string \<Rightarrow> bool"
   np_timeComplexity :: TimeComplexity
-  np_isPoly :: "isPolynomial np_timeComplexity"
-  np_correct :: "\<forall>s. np_language s = (\<exists>cert. np_verifier s cert)"
 
 record NPComplete =
   npc_problem :: ClassNP
-  npc_hardest :: "\<forall>L. \<exists>reduction. \<forall>s. np_language L s = np_language npc_problem (reduction s)"
 
 section \<open>The P vs NP Question\<close>
 
@@ -188,15 +183,10 @@ section \<open>What Would a Proof Require?\<close>
 
 record ProofOfPEqualsNP =
   poeq_algorithm :: "string \<Rightarrow> string \<Rightarrow> bool"
-  poeq_correctness :: "\<forall>sat s cert. np_verifier (npc_problem sat) s cert = poeq_algorithm s cert"
-  poeq_polynomialTime :: "\<exists>T. isPolynomial T"
-  poeq_impliesEquality :: "PEqualsNP"
 
 record ProofOfPNotEqualsNP =
   poneq_hardProblem :: ClassNP
   poneq_isComplete :: NPComplete
-  poneq_impossibility :: "\<forall>alg. \<exists>s. np_language poneq_hardProblem s \<noteq> p_language alg s"
-  poneq_impliesInequality :: "PNotEqualsNP"
 
 axiomatization noProofYet :: bool where
   no_proof: "noProofYet \<longleftrightarrow> (\<nexists>p. (p :: ProofOfPEqualsNP option) \<noteq> None) \<and> (\<nexists>p. (p :: ProofOfPNotEqualsNP option) \<noteq> None)"

@@ -45,7 +45,7 @@ represented as numbers 0-7.
 
 text \<open>Check if a specific bit is set in a number\<close>
 definition bit_set :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
-  "bit_set a i \<equiv> odd (a div (2^i))"
+  "bit_set a i \<equiv> odd (a div (2 ^ i))"
 
 subsection \<open>Byte Representation\<close>
 
@@ -80,11 +80,11 @@ definition valid_byte :: "Byte \<Rightarrow> bool" where
 
 text \<open>Set a bit in a byte (add an assignment/constraint)\<close>
 definition set_bit :: "Byte \<Rightarrow> nat \<Rightarrow> Byte" where
-  "set_bit b i = (b OR (2^i)) mod 256"
+  "set_bit b i = (b OR (2 ^ i)) mod 256"
 
 text \<open>Clear a bit in a byte (remove an assignment)\<close>
 definition clear_bit :: "Byte \<Rightarrow> nat \<Rightarrow> Byte" where
-  "clear_bit b i = (b AND (NOT (2^i))) mod 256"
+  "clear_bit b i = (b AND (NOT (2 ^ i))) mod 256"
 
 subsection \<open>Variable Subsets\<close>
 

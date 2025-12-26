@@ -244,17 +244,15 @@ text \<open>
 
 (* Documentation of the gap in the original version *)
 definition tazawa_error_original :: "bool" where
-  "tazawa_error_original \<equiv>
-    (* Circular reasoning: Using 'factorization not NP-complete' to prove P≠NP
-       requires already knowing P≠NP *)
-    True"  (* Placeholder representing the identified error *)
+  "tazawa_error_original \<equiv> True"
+  (* Circular reasoning: Using 'factorization not NP-complete' to prove P not equals NP
+     requires already knowing P not equals NP *)
 
 (* Documentation of the gap in the automorphism version *)
 definition tazawa_error_automorphism :: "bool" where
-  "tazawa_error_automorphism \<equiv>
-    (* Missing link: No rigorous proof that automorphism constraints
-       force exponential circuit size *)
-    True"  (* Placeholder representing the identified error *)
+  "tazawa_error_automorphism \<equiv> True"
+  (* Missing link: No rigorous proof that automorphism constraints
+     force exponential circuit size *)
 
 (* The formalization reveals that both versions have critical gaps *)
 lemma tazawa_attempt_has_gaps:

@@ -104,7 +104,7 @@ type_synonym CoordinateSystem = "Vector3 \<Rightarrow> Vector3"
 text \<open>The "difference" is coordinate-dependent, not physical\<close>
 axiomatization where
   coordinate_dependent_difference:
-    "\<forall>theta. \<exists>transform::CoordinateSystem.
+    "\<forall>(theta::real). \<exists>(transform::CoordinateSystem).
       transform (schrodinger_self_reference theta) = heisenberg_self_reference theta"
 
 subsection \<open>Error 2: Physical predictions are identical\<close>
@@ -129,15 +129,11 @@ record ClassP =
   p_language :: Language
   p_decider :: "string \<Rightarrow> nat"
   p_timeComplexity :: TimeComplexity
-  p_isPoly :: bool
-  (* correctness omitted for simplicity *)
 
 record ClassNP =
   np_language :: Language
   np_verifier :: "string \<Rightarrow> string \<Rightarrow> bool"
   np_timeComplexity :: TimeComplexity
-  np_isPoly :: bool
-  (* correctness omitted for simplicity *)
 
 text \<open>P = NP question\<close>
 definition PEqualsNP :: bool where

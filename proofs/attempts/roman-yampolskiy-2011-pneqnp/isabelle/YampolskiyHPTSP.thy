@@ -17,33 +17,33 @@ theory YampolskiyHPTSP
   imports Main
 begin
 
-section ‹Basic Complexity Theory Definitions›
+section \<open>Basic Complexity Theory Definitions\<close>
 
-text ‹A decision problem maps inputs to booleans›
+text \<open>A decision problem maps inputs to booleans\<close>
 type_synonym DecisionProblem = "string \<Rightarrow> bool"
 
-text ‹Polynomial bound on a function›
+text \<open>Polynomial bound on a function\<close>
 definition PolynomialBound :: "(nat \<Rightarrow> nat) \<Rightarrow> bool" where
-  "PolynomialBound f ≡ ∃c k. c > 0 ∧ k > 0 ∧ (∀n>0. f n ≤ c * (n ^ k))"
+  "PolynomialBound f \<equiv> \<exists>c k. c > 0 \<and> k > 0 \<and> (\<forall>n>0. f n \<le> c * (n ^ k))"
 
-text ‹A problem is in P if decidable in polynomial time›
+text \<open>A problem is in P if decidable in polynomial time\<close>
 definition InP :: "DecisionProblem \<Rightarrow> bool" where
-  "InP prob ≡ ∃algo time.
-    PolynomialBound time ∧
-    (∀input. algo input = prob input)"
+  "InP prob \<equiv> \<exists>algo time.
+    PolynomialBound time \<and>
+    (\<forall>input. algo input = prob input)"
 
-text ‹A problem is in NP if solutions verifiable in polynomial time›
+text \<open>A problem is in NP if solutions verifiable in polynomial time\<close>
 definition InNP :: "DecisionProblem \<Rightarrow> bool" where
-  "InNP prob ≡ ∃verifier time.
-    PolynomialBound time ∧
-    (∀input. prob input = True ⟷ (∃certificate. verifier input certificate = True))"
+  "InNP prob \<equiv> \<exists>verifier time.
+    PolynomialBound time \<and>
+    (\<forall>input. prob input = True \<longleftrightarrow> (\<exists>certificate. verifier input certificate = True))"
 
-section ‹Graph Theory Definitions for TSP›
+section \<open>Graph Theory Definitions for TSP\<close>
 
-text ‹Vertex as natural number›
+text \<open>Vertex as natural number\<close>
 type_synonym Vertex = nat
 
-text ‹Edge with cost›
+text \<open>Edge with cost\<close>
 record Edge =
   edge_from :: Vertex
   edge_to :: Vertex
@@ -54,50 +54,50 @@ record Graph =
   vertices :: "Vertex list"
   edges :: "Edge list"
 
-text ‹Complete graph property›
+text \<open>Complete graph property\<close>
 definition is_complete_graph :: "Graph \<Rightarrow> bool" where
-  "is_complete_graph g ≡
-    ∀v1 v2. v1 ∈ set (vertices g) ⟶ v2 ∈ set (vertices g) ⟶ v1 ≠ v2 ⟶
-      (∃e ∈ set (edges g).
-        (edge_from e = v1 ∧ edge_to e = v2) ∨
-        (edge_from e = v2 ∧ edge_to e = v1))"
+  "is_complete_graph g \<equiv>
+    \<forall>v1 v2. v1 \<in> set (vertices g) \<longrightarrow> v2 \<in> set (vertices g) \<longrightarrow> v1 \<noteq> v2 \<longrightarrow>
+      (\<exists>e \<in> set (edges g).
+        (edge_from e = v1 \<and> edge_to e = v2) \<or>
+        (edge_from e = v2 \<and> edge_to e = v1))"
 
-text ‹Hamiltonian cycle›
+text \<open>Hamiltonian cycle\<close>
 type_synonym HamiltonianCycle = "Vertex list"
 
-text ‹Valid Hamiltonian cycle check›
+text \<open>Valid Hamiltonian cycle check\<close>
 definition is_valid_hamiltonian_cycle :: "Graph \<Rightarrow> HamiltonianCycle \<Rightarrow> bool" where
-  "is_valid_hamiltonian_cycle g cycle ≡
-    distinct cycle ∧
-    (∀v. v ∈ set (vertices g) ⟷ v ∈ set cycle) ∧
+  "is_valid_hamiltonian_cycle g cycle \<equiv>
+    distinct cycle \<and>
+    (\<forall>v. v \<in> set (vertices g) \<longleftrightarrow> v \<in> set (cycle)) \<and>
     length cycle = length (vertices g)"
 
-section ‹Hash Function Formalization›
+section \<open>Hash Function Formalization\<close>
 
-text ‹Abstract hash function type›
+text \<open>Abstract hash function type\<close>
 type_synonym HashFunction = "string \<Rightarrow> string"
 
-text ‹
+text \<open>
   Properties that Yampolskiy claims hash functions have
 
   CRITICAL ISSUE: These are not proven properties of all hash functions.
   They are empirical observations about specific functions like SHA-1.
   Using them as axioms in a complexity-theoretic proof is unjustified.
-›
+\<close>
 
-text ‹
+text \<open>
   Property 1: Strict Avalanche Criterion
   Yampolskiy claims: "whenever a single input bit is flipped, each of the
   output bits changes with a probability of 50%"
 
   NOTE: This is statistical, not deterministic. Cannot be formally proven
   for arbitrary hash functions as a mathematical theorem.
-›
+\<close>
 axiomatization where
   strict_avalanche_criterion: "∀h::HashFunction. True"
   (* Placeholder: cannot be properly formalized as deterministic property *)
 
-text ‹
+text \<open>
   Property 2: Computational Irreducibility
   Yampolskiy claims: must compute full input to get hash output
 
@@ -106,47 +106,47 @@ text ‹
 
   Even for specific functions like SHA-1, this is not proven - only
   conjectured based on lack of known attacks.
-›
+\<close>
 axiomatization where
-  hash_requires_full_input: "∀h::HashFunction. ∀s::string. True"
+  hash_requires_full_input: "\<forall>h::HashFunction. \<forall>s::string. True"
   (* Placeholder: THIS IS THE KEY UNJUSTIFIED ASSUMPTION *)
 
-text ‹Property 3: Polynomial time evaluation›
+text \<open>Property 3: Polynomial time evaluation\<close>
 definition hash_computable_in_poly_time :: "HashFunction \<Rightarrow> bool" where
-  "hash_computable_in_poly_time h ≡ ∃time. PolynomialBound time"
+  "hash_computable_in_poly_time h \<equiv> \<exists>time. PolynomialBound time"
 
-section ‹HPTSP Definition›
+section \<open>HPTSP Definition\<close>
 
-text ‹Encode cycle as string with edge weights›
+text \<open>Encode cycle as string with edge weights\<close>
 fun encode_cycle :: "Graph \<Rightarrow> HamiltonianCycle \<Rightarrow> string" where
   "encode_cycle g [] = ''''"
 | "encode_cycle g [v] = String.implode (show v)"
 | "encode_cycle g (v1 # v2 # rest) = String.implode (show v1) @ encode_cycle g (v2 # rest)"
 
-text ‹Lexicographic string comparison›
+text \<open>Lexicographic string comparison\<close>
 definition string_lex_le :: "string \<Rightarrow> string \<Rightarrow> bool" where
-  "string_lex_le s1 s2 ≡ s1 ≤ s2"
+  "string_lex_le s1 s2 \<equiv> s1 \<le> s2"
 
-text ‹HPTSP Problem Instance›
+text \<open>HPTSP Problem Instance\<close>
 record HPTSP_Instance =
   hptsp_graph :: Graph
   hptsp_hash :: HashFunction
   hptsp_bound :: string
   (* We assume the graph is complete *)
 
-text ‹HPTSP Decision Problem›
+text \<open>HPTSP Decision Problem\<close>
 definition HPTSP :: "HPTSP_Instance \<Rightarrow> bool" where
-  "HPTSP instance ≡ True"
+  "HPTSP instance \<equiv> True"
   (* Placeholder: actual implementation would enumerate cycles *)
 
-section ‹Proof that HPTSP ∈ NP›
+section \<open>Proof that HPTSP is in NP\<close>
 
-text ‹Certificate: an encoded cycle›
+text \<open>Certificate: an encoded cycle\<close>
 type_synonym HPTSP_Certificate = string
 
-text ‹Verification algorithm›
+text \<open>Verification algorithm\<close>
 definition HPTSP_verifier :: "HPTSP_Instance \<Rightarrow> HPTSP_Certificate \<Rightarrow> bool" where
-  "HPTSP_verifier instance cert ≡
+  "HPTSP_verifier instance cert \<equiv>
     (* Verification steps:
        1. Parse certificate to extract cycle: O(V)
        2. Check it's a valid Hamiltonian cycle: O(V)
@@ -158,36 +158,36 @@ definition HPTSP_verifier :: "HPTSP_Instance \<Rightarrow> HPTSP_Certificate \<R
     let hashed = (hptsp_hash instance) cert in
     string_lex_le hashed (hptsp_bound instance)"
 
-text ‹Verification time is polynomial›
+text \<open>Verification time is polynomial\<close>
 theorem HPTSP_verification_poly_time:
-  "∃time. PolynomialBound time"
+  "\<exists>time. PolynomialBound time"
 proof -
   (* Time is O(V) where V is number of vertices *)
-  have "PolynomialBound (λn. n)"
+  have "PolynomialBound (\<lambda>n. n)"
     unfolding PolynomialBound_def
     by (auto intro: exI[where x=1])
   thus ?thesis by blast
 qed
 
-text ‹Main theorem: HPTSP is in NP›
+text \<open>Main theorem: HPTSP is in NP\<close>
 theorem HPTSP_in_NP:
-  "InNP (λ_. HPTSP instance)"
+  "InNP (\<lambda>_. HPTSP instance)"
 proof -
-  have "∃verifier time.
-    PolynomialBound time ∧
-    (∀input. (λ_. HPTSP instance) input = True ⟷
-      (∃certificate. verifier input certificate = True))"
+  have "\<exists>verifier time.
+    PolynomialBound time \<and>
+    (\<forall>input. (\<lambda>_. HPTSP instance) input = True \<longleftrightarrow>
+      (\<exists>certificate. verifier input certificate = True))"
   proof -
     (* Use HPTSP_verifier as the verifier *)
-    let ?verifier = "λinput cert. HPTSP_verifier instance cert"
-    let ?time = "λn. n"
+    let ?verifier = "\<lambda>input cert. HPTSP_verifier instance cert"
+    let ?time = "\<lambda>n. n"
 
     have "PolynomialBound ?time"
       unfolding PolynomialBound_def
       by (auto intro: exI[where x=1])
 
-    moreover have "∀input. (λ_. HPTSP instance) input = True ⟷
-      (∃certificate. ?verifier input certificate = True)"
+    moreover have "\<forall>input. (\<lambda>_. HPTSP instance) input = True \<longleftrightarrow>
+      (\<exists>certificate. ?verifier input certificate = True)"
       unfolding HPTSP_def by auto
 
     ultimately show ?thesis by blast
@@ -195,24 +195,24 @@ proof -
   thus ?thesis unfolding InNP_def by simp
 qed
 
-section ‹Attempted Proof that HPTSP ∉ P - THIS IS WHERE THE GAPS APPEAR›
+section \<open>Attempted Proof that HPTSP is not in P - THIS IS WHERE THE GAPS APPEAR\<close>
 
-text ‹
+text \<open>
   The following axioms represent Yampolskiy's unjustified claims.
   We use axioms to make explicit what cannot be proven.
-›
+\<close>
 
-text ‹
+text \<open>
   Yampolskiy's claim: no local information about sub-paths
 
   CRITICAL ISSUE: This is informal intuition, not a mathematical theorem.
   Even if true, it doesn't immediately imply exponential time.
-›
+\<close>
 axiomatization where
-  no_local_information: "∀h::HashFunction. ∀s1 s2::string. True"
+  no_local_information: "\<forall>h::HashFunction. \<forall>s1 s2::string. True"
   (* Cannot formalize this precisely *)
 
-text ‹
+text \<open>
   Yampolskiy's claim: "no pruning is possible"
 
   LOGICAL GAP: Even if we can't prune based on hash values, there might be
@@ -223,12 +223,12 @@ text ‹
   - Greedy algorithms
   - Linear programming
   - Algorithms exploiting problem structure
-›
+\<close>
 axiomatization where
-  no_pruning_possible: "∀instance::HPTSP_Instance. True"
+  no_pruning_possible: "\<forall>instance::HPTSP_Instance. True"
   (* This is an unjustified assumption *)
 
-text ‹
+text \<open>
   Yampolskiy's conclusion: must examine all paths
 
   MAJOR GAP: This is a non sequitur! The absence of one approach (pruning)
@@ -236,12 +236,12 @@ text ‹
 
   This is like saying: "We can't solve this problem with a hammer,
   therefore it's impossible to solve."
-›
+\<close>
 axiomatization where
-  must_check_all_paths: "∀instance::HPTSP_Instance. True"
+  must_check_all_paths: "\<forall>instance::HPTSP_Instance. True"
   (* THIS IS THE CENTRAL UNJUSTIFIED LEAP IN LOGIC *)
 
-text ‹
+text \<open>
   Final claim: exponential lower bound
 
   CONCLUSION: This cannot be proven from the above because:
@@ -250,48 +250,48 @@ text ‹
   3. Even if true, they don't imply exponential time
 
   This is where Yampolskiy's argument fails completely.
-›
+\<close>
 axiomatization where
   HPTSP_requires_exponential_time:
-    "∀instance. ¬ InP (λ_. HPTSP instance)"
+    "\<forall>instance. \<not> InP (\<lambda>_. HPTSP instance)"
   (* Cannot be proven - requires unjustified axioms *)
 
-section ‹Alternative Approach: What WOULD be needed›
+section \<open>Alternative Approach: What WOULD be needed\<close>
 
-text ‹
-  To properly prove HPTSP ∉ P, we would need:
+text \<open>
+  To properly prove HPTSP is not in P, we would need:
   1. A reduction from a known hard problem, OR
   2. A diagonalization argument, OR
   3. A circuit lower bound, OR
   4. Some other rigorous complexity-theoretic technique
 
   Yampolskiy provides none of these.
-›
+\<close>
 
 theorem proper_lower_bound_sketch:
-  assumes "∃known_hard_problem::DecisionProblem.
-    ¬ InP known_hard_problem ∧
-    (∀algo. InP algo ⟶ ¬ (∀input. algo input = known_hard_problem input))"
-  shows "¬ InP (λ_. HPTSP instance)"
+  assumes "\<exists>known_hard_problem::DecisionProblem.
+    \<not> InP known_hard_problem \<and>
+    (\<forall>algo. InP algo \<longrightarrow> \<not> (\<forall>input. algo input = known_hard_problem input))"
+  shows "\<not> InP (\<lambda>_. HPTSP instance)"
 oops (* This is a sketch - would require actual reduction proof *)
 
-section ‹Summary of Formalization›
+section \<open>Summary of Formalization\<close>
 
-text ‹
+text \<open>
   What we successfully proved:
-  ✓ HPTSP is well-defined
-  ✓ HPTSP ∈ NP (verification is polynomial time)
+  - HPTSP is well-defined
+  - HPTSP is in NP (verification is polynomial time)
 
   What we could not prove (required axioms):
-  ✗ Hash functions have the claimed cryptographic properties
-  ✗ No pruning is possible
-  ✗ Must check all paths
-  ✗ HPTSP ∉ P
+  - Hash functions have the claimed cryptographic properties
+  - No pruning is possible
+  - Must check all paths
+  - HPTSP is not in P
 
   Key Insights:
   1. The formalization makes explicit the logical gaps in Yampolskiy's argument
   2. Properties of specific hash functions are not mathematical theorems
-  3. "No obvious approach" ≠ "no polynomial-time algorithm exists"
+  3. "No obvious approach" does not mean "no polynomial-time algorithm exists"
   4. The leap from local unpredictability to global hardness is unjustified
 
   Educational Value:
@@ -303,10 +303,10 @@ text ‹
   Yampolskiy confuses "I can't think of a polynomial algorithm" with
   "no polynomial algorithm exists." The former is a statement about
   human ingenuity; the latter requires mathematical proof.
-›
+\<close>
 
-text ‹Helper: marker for the gap›
+text \<open>Helper: marker for the gap\<close>
 definition incomplete_proof_marker :: string where
-  "incomplete_proof_marker ≡ ''This proof requires unjustified axioms''"
+  "incomplete_proof_marker \<equiv> ''This proof requires unjustified axioms''"
 
 end

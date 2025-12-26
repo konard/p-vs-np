@@ -91,7 +91,7 @@ record integer_linear_program =
 (* Integer solution: all variables are integers *)
 definition is_integer_solution :: "lp_solution \<Rightarrow> bool" where
   "is_integer_solution sol \<equiv>
-    \<forall>x \<in> set sol. \<exists>n::int. x = real_of_int n"
+    \<forall>x \<in> set sol. \<exists>(n::int). x = real_of_int n"
 
 (* ILP solution must be both feasible and integer *)
 definition is_feasible_ILP :: "integer_linear_program \<Rightarrow> lp_solution \<Rightarrow> bool" where

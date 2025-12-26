@@ -204,14 +204,15 @@ proof -
   show "\<not>(\<forall>f. \<not> decidable_in_poly_time f)"
   proof
     assume contra: "\<forall>f. \<not> decidable_in_poly_time f"
-    txt \<open>The implication doesn't hold because:
+    text \<open>The implication doesn't hold because:
          - Reduction size ≠ algorithm time
          - Other algorithms besides RCNF transformation might exist
          - P-completeness doesn't mean all P problems reduce efficiently to RCNF\<close>
 
-    txt \<open>We cannot prove a contradiction from H alone,
+    text \<open>We cannot prove a contradiction from H alone,
          demonstrating that H is insufficient to prove P ≠ NP\<close>
-    sorry
+    show False
+      sorry
   qed
 qed
 
@@ -242,12 +243,13 @@ proof -
   show "\<not> P_neq_NP"
   proof
     assume contra: "P_neq_NP"
-    txt \<open>Cannot derive a contradiction because the premises are about
+    text \<open>Cannot derive a contradiction because the premises are about
          different things:
          - H is about representation size
          - contra is about decision complexity
          These are orthogonal concepts!\<close>
-    sorry
+    show False
+      sorry
   qed
 qed
 
