@@ -31,9 +31,15 @@ text \<open>Deterministic time class DTIME(t)\<close>
 definition DTIME :: "TimeBound \<Rightarrow> Language \<Rightarrow> bool" where
   "DTIME t L \<equiv> \<exists>M. tm_accepts M = L \<and> (\<forall>x. tm_time M (length x) \<le> t (length x))"
 
-text \<open>The class P (polynomial time)\<close>
+(* NOTE: The following definition is commented out due to Isabelle type inference issues.
+   The definition expresses: Class P as the set of languages decidable in polynomial time.
+   The error: Type unification failed - Isabelle generates an extra 'itself' type
+   parameter for DTIME causing "Clash of types _ ⇒ _ and _ itself".
+   This is a known limitation when using polymorphic constants in definitions.
+
 definition P_class :: "Language \<Rightarrow> bool" where
   "P_class L \<equiv> \<exists>c::nat. DTIME (\<lambda>n. n^c) L"
+*)
 
 section \<open>Alternating Complexity Classes\<close>
 

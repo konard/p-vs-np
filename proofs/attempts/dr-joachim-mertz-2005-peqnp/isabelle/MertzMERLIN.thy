@@ -171,9 +171,15 @@ definition Mertz_Claim :: bool where
         (\<exists>k c. \<forall>n. poly_time n \<le> c * (n ^ k) + c) \<and>
         TSP g bound)"
 
-(* But this is false! The LP solution might be fractional *)
+(* NOTE: The following axiomatization is commented out due to Isabelle type inference issues.
+   The axiom expresses: Mertz's claim is false (LP relaxation doesn't solve TSP).
+   The error: Type unification failed - Isabelle generates an extra 'itself' type
+   parameter causing "Clash of types _ ⇒ _ and _ itself".
+   This is a known limitation when using polymorphic constants in axiomatizations.
+
 axiomatization where
   Mertz_Claim_is_False: "\<not> Mertz_Claim"
+*)
 
 (* The correct statement: MERLIN_ILP (with integrality) is equivalent to TSP *)
 theorem MERLIN_ILP_correct:

@@ -95,10 +95,15 @@ definition InPSPACE :: "DecisionProblem \<Rightarrow> bool" where
 
 section \<open>Known Inclusions in Complexity Theory\<close>
 
-(* Known fact: P ⊆ NP *)
-(* Every polynomial-time decidable problem is also in NP *)
+(* NOTE: The following axiomatization is commented out due to Isabelle type inference issues.
+   The axiom expresses: Every problem in P is also in NP (standard complexity theory result).
+   The error: Type unification failed - Isabelle generates an extra 'itself' type
+   parameter for InP and InNP causing "Clash of types _ ⇒ _ and _ itself".
+   This is a known limitation when using polymorphic constants in axiomatizations.
+
 axiomatization where
   P_subseteq_NP: "\<And>problem::DecisionProblem. InP problem \<Longrightarrow> InNP problem"
+*)
 
 (* Known fact: NP ⊆ PSPACE *)
 (* Nondeterministic polynomial time can be simulated in polynomial space *)

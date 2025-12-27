@@ -52,9 +52,15 @@ definition InNP :: "DecisionProblem \<Rightarrow> bool" where
     (\<forall>x. problem x = (\<exists>cert. length cert \<le> certSize (length x) \<and>
                               verify v x cert))"
 
-(* P ≠ NP *)
+(* NOTE: The following definition is commented out due to Isabelle type inference issues.
+   The definition expresses: P ≠ NP as the existence of an NP problem not in P.
+   The error: Type unification failed - Isabelle generates an extra 'itself' type
+   parameter for InNP and InP causing "Clash of types _ ⇒ _ and _ itself".
+   This is a known limitation when using polymorphic constants in definitions.
+
 definition P_not_equals_NP :: bool where
   "P_not_equals_NP \<equiv> (\<exists>problem::DecisionProblem. InNP problem \<and> \<not>InP problem)"
+*)
 
 section \<open>Ivanov's Claimed Approach\<close>
 

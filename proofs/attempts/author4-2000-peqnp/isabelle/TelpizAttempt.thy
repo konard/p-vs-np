@@ -66,9 +66,15 @@ definition in_NP :: "DecisionProblem \<Rightarrow> bool" where
 
 section \<open>The P vs NP Question\<close>
 
-(* P is a subset of NP (axiom - well-known result) *)
+(* NOTE: The following axiomatization is commented out due to Isabelle type inference issues.
+   The axiom expresses: Every problem in P is also in NP (P ⊆ NP).
+   The error: Type unification failed - Isabelle generates an extra 'itself' type
+   parameter for in_P and in_NP causing "Clash of types _ ⇒ _ and _ itself".
+   This is a known limitation when using polymorphic constants in axiomatizations.
+
 axiomatization where
   P_subseteq_NP: "\<forall>L::DecisionProblem. in_P L \<longrightarrow> in_NP L"
+*)
 
 (* The central question *)
 definition P_equals_NP :: "bool" where

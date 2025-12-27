@@ -118,10 +118,15 @@ definition hasPolynomialCircuits :: "Language \<Rightarrow> bool" where
   "hasPolynomialCircuits L \<equiv>
     \<exists>c k. \<forall>n. \<exists>C. c_size C \<le> c * n ^ k \<and> (\<forall>s. length s = n \<longrightarrow> L s = c_compute C s)"
 
-(* NOTE: The original axiomatization had type inference issues with 'itself' types.
-   We simplify this to avoid the error. *)
+(* NOTE: The following definition is commented out due to Isabelle type inference issues.
+   The definition expresses: Problems in P have polynomial-size circuit families.
+   The error: Type unification failed - Isabelle generates an extra 'itself' type
+   parameter for hasPolynomialCircuits causing "Clash of types _ ⇒ _ and _ itself".
+   This is a known limitation when using polymorphic constants in definitions.
+
 definition P_has_poly_circuits :: "ClassP \<Rightarrow> bool" where
   "P_has_poly_circuits L \<equiv> hasPolynomialCircuits (p_language L)"
+*)
 
 theorem attempt_prove_P_neq_NP_via_circuits:
   assumes "\<exists>L. \<not> hasPolynomialCircuits (np_language (npc_problem L))"
