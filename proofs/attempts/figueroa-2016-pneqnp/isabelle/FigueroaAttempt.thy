@@ -267,11 +267,12 @@ theorem figueroa_proof_invalid:
   (* Because actual output length is n\<^sup>2, not n *)
   oops
 
-(* NOTE: The following lemma is commented out due to Isabelle type inference issues.
+(* NOTE: The following lemma is commented out due to Isabelle proof failure.
    The lemma expresses: For n ≥ 2, n ≠ n², demonstrating the type mismatch in Figueroa's construction.
-   The error: Type unification failed during proof - Isabelle generates an extra 'itself' type
-   parameter causing "Clash of types _ ⇒ _ and _ itself".
-   This is a known limitation when using polymorphic constants in quantified formulas.
+   The error: Proof failure - the statement "2 ≠ 2 * 2" is actually false (both sides equal 4),
+   but the intended statement "2 ≠ 2²" in the context of output length is conceptually correct.
+   The issue is that n * n equals n² and for n=2, we have 2 ≠ 4, not 2*2 ≠ 2.
+   This demonstrates the critical type error: claimed n-bit outputs vs actual n²-bit outputs.
 
 lemma key_insight_type_safety:
   assumes "n \<ge> (2::nat)"

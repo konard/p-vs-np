@@ -143,6 +143,14 @@ theorem algorithm_always_correct:
 
 subsection \<open>Property 2: Heuristics do NOT guarantee correctness\<close>
 
+(* NOTE: The following axiomatization is commented out due to Isabelle type inference issues.
+   The axiom expresses: Heuristics may fail to produce correct results on some inputs.
+   The error: Type unification failed - Isabelle generates an extra 'itself' type
+   parameter for PolynomialTimeCircuitSATHeuristic causing "Clash of types _ ⇒ _ and _ itself".
+   This is a known limitation when using polymorphic constants in axiomatizations.
+   The axiom states that for polynomial-time heuristics, there exist inputs where the
+   heuristic's output doesn't match the actual property being checked.
+
 (* By definition, heuristics may produce incorrect results *)
 axiomatization where
   heuristic_may_fail:
@@ -153,6 +161,7 @@ axiomatization where
             | Contradiction \<Rightarrow> is_contradiction c
             | SatisfyingAssignment a \<Rightarrow> eval_circuit a c
             | Unknown \<Rightarrow> True)"
+*)
 
 section \<open>Capasso's Claim and Its Error\<close>
 

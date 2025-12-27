@@ -128,10 +128,17 @@ definition P_has_poly_circuits :: "ClassP \<Rightarrow> bool" where
   "P_has_poly_circuits L \<equiv> hasPolynomialCircuits (p_language L)"
 *)
 
+(* NOTE: The following theorem is commented out due to type error with hasPolynomialCircuits.
+   The theorem expresses: If an NP-complete problem lacks polynomial circuits, then P ≠ NP.
+   The error: Type unification failed - Isabelle generates an extra 'itself' type
+   parameter for hasPolynomialCircuits causing "Clash of types _ ⇒ _ and _ itself".
+   This represents the circuit complexity approach to proving P ≠ NP.
+
 theorem attempt_prove_P_neq_NP_via_circuits:
   assumes "\<exists>L. \<not> hasPolynomialCircuits (np_language (npc_problem L))"
   shows "PNotEqualsNP"
   oops  \<comment> \<open>Proof incomplete: requires exponential circuit lower bound\<close>
+*)
 
 subsection \<open>Strategy 5: Algebraic Approach (GCT)\<close>
 
