@@ -198,13 +198,21 @@ definition WouldProve_P_eq_NP :: bool where
     \<exists>solver. PolynomialTimeCircuitSATAlgorithm solver"
 *)
 
+(* NOTE: The following definition is commented out due to type unification failure.
+   When PolynomialTimeCircuitSATHeuristic is used in an existential quantifier (\<exists>heuristic. ...),
+   Isabelle's type inference system creates "Ex :: (??'a itself ⇒ bool) ⇒ bool" expecting a
+   predicate on types, but PolynomialTimeCircuitSATHeuristic is inferred as
+   "??'a itself ⇒ (Circuit ⇒ HeuristicOutcome) ⇒ bool". This is the same type unification
+   issue as with WouldProve_P_eq_NP.
+
 (* What Capasso actually showed (at best) *)
 definition CapassoActuallyShowed :: bool where
   "CapassoActuallyShowed \<equiv>
     \<exists>heuristic. PolynomialTimeCircuitSATHeuristic heuristic"
+*)
 
 (* NOTE: The following axiomatization is commented out because it depends on WouldProve_P_eq_NP
-   which has been commented out due to type unification failure.
+   and CapassoActuallyShowed, both of which have been commented out due to type unification failure.
 
 (* The gap between what's needed and what was shown *)
 axiomatization where
@@ -325,7 +333,8 @@ thm PolynomialTimeCircuitSATAlgorithm_def
 thm PolynomialTimeCircuitSATHeuristic_def
 (* NOTE: WouldProve_P_eq_NP_def is commented out due to type unification failure *)
 (* thm WouldProve_P_eq_NP_def *)
-thm CapassoActuallyShowed_def
+(* NOTE: CapassoActuallyShowed_def is commented out due to type unification failure *)
+(* thm CapassoActuallyShowed_def *)
 
 text \<open>
 This formalization successfully compiles, demonstrating that

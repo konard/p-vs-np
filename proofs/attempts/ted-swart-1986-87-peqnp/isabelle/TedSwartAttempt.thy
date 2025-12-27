@@ -269,13 +269,14 @@ theorem LP_formulation_limitation:
 proof -
   \<comment> \<open>Follows from Yannakakis's theorem and existence of NP-complete problems\<close>
   sorry
+qed
 
 text \<open>Lesson 2: Encoding size matters critically in complexity theory\<close>
 lemma encoding_size_matters:
   "\<forall>problem encoding. \<exists>input. \<forall>poly.
     LP_size (encoding input) > poly (length input)"
   \<comment> \<open>This is the key insight that invalidates many P=NP attempts\<close>
-  sorry
+  by sorry
 
 section \<open>Verification Summary\<close>
 

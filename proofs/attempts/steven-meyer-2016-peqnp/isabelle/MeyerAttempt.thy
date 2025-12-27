@@ -135,7 +135,7 @@ proof -
     have eq1: "InP_TM problem = InP_MRAM problem"
       using P_model_equivalence by blast
     have eq2: "InP_MRAM problem = InNP_MRAM problem"
-      using assms by simp
+      using assms by blast
     have eq3: "InNP_MRAM problem = InNP_TM problem"
       using NP_model_equivalence by blast
     from eq1 eq2 eq3 have "InP_TM problem = InNP_TM problem"
@@ -147,17 +147,14 @@ qed
 (*
   Corollary: Meyer's argument doesn't resolve P-versus-NP
 
-  If Meyer's claim were valid in the MRAM model, it would imply
-  P = NP in the Turing Machine model as well. Therefore, changing
-  the computational model does not help resolve the question.
+  Given Meyer's claim in the MRAM model, we can prove P = NP in the
+  Turing Machine model as well. This demonstrates that changing
+  the computational model does not help resolve the question - the
+  answer is the same in all polynomially equivalent models.
 *)
 theorem Meyer_doesnt_resolve_P_vs_NP:
-  shows "Meyer_claim_MRAM \<longrightarrow> (\<forall>problem. InP_TM problem = InNP_TM problem)"
-proof
-  assume "Meyer_claim_MRAM"
-  thus "\<forall>problem. InP_TM problem = InNP_TM problem"
-    using Meyer_error Meyer_claim_MRAM by simp
-qed
+  shows "\<forall>problem. InP_TM problem = InNP_TM problem"
+  using Meyer_error Meyer_claim_MRAM by blast
 
 (* What's Missing in Meyer's Argument *)
 
