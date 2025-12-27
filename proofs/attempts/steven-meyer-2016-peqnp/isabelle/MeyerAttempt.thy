@@ -138,7 +138,8 @@ proof -
       using assms by simp
     have eq3: "InNP_MRAM problem = InNP_TM problem"
       using NP_model_equivalence by simp
-    from eq1 eq2 eq3 have "InP_TM problem = InNP_TM problem" by simp
+    from eq1 eq2 eq3 have "InP_TM problem = InNP_TM problem"
+      by (metis (no_types, opaque_lifting))
   }
   thus ?thesis by simp
 qed

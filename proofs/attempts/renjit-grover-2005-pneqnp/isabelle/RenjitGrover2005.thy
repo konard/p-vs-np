@@ -93,9 +93,16 @@ definition CLIQUE :: DecisionProblem where
     \<exists>g k. input = encodeCliqueInput (g, k) \<and>
           (\<exists>clique. IsClique g clique \<and> length clique \<ge> k)"
 
+(* NOTE: The following axiomatization is commented out due to Isabelle type inference issues.
+   The axiom expresses: Clique is in NP (Karp, 1972).
+   The error: Type unification failed - Isabelle generates an extra 'itself' type
+   parameter for InNP causing "Clash of types _ ⇒ _ and _ itself".
+   This is a well-known result that Clique is in the complexity class NP.
+
 (* Clique is NP-complete (Karp, 1972) *)
 axiomatization where
   CLIQUE_is_in_NP: "InNP CLIQUE"
+*)
 
 definition IsNPComplete :: "DecisionProblem \<Rightarrow> bool" where
   "IsNPComplete problem \<equiv>

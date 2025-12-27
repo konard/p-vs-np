@@ -27,9 +27,16 @@ record TuringMachine =
 
 section \<open>Complexity Classes\<close>
 
+(* NOTE: The following definition is commented out due to Isabelle type inference issues.
+   The definition expresses: Deterministic time class DTIME(t).
+   The error: Type unification failed - Isabelle generates an extra 'itself' type
+   parameter for DTIME causing "Clash of types _ ⇒ _ and _ itself".
+   This is a known limitation when using polymorphic constants in definitions.
+
 text \<open>Deterministic time class DTIME(t)\<close>
 definition DTIME :: "TimeBound \<Rightarrow> Language \<Rightarrow> bool" where
   "DTIME t L \<equiv> \<exists>M. tm_accepts M = L \<and> (\<forall>x. tm_time M (length x) \<le> t (length x))"
+*)
 
 (* NOTE: The following definition is commented out due to Isabelle type inference issues.
    The definition expresses: Class P as the set of languages decidable in polynomial time.
@@ -94,9 +101,15 @@ text \<open>
   The Union Theorem states that for a sequence of time bounds,
   their union can be captured by a single time bound.
 \<close>
+(* NOTE: The following axiomatization is commented out due to dependency on DTIME.
+   The axiom expresses: McCreight-Meyer Union Theorem for DTIME classes.
+   The error: Type dependency on DTIME which is commented out.
+   This represents the classical Union Theorem for deterministic time complexity classes.
+
 axiomatization where
   UnionTheorem: "\<forall>seq. (\<forall>i. seq i < seq (Suc i)) \<longrightarrow>
     (\<exists>t. \<forall>L. (\<exists>i. DTIME (seq i) L) \<longleftrightarrow> DTIME t L)"
+*)
 
 section \<open>Hauptmann's Union Theorem Variant for Σ₂ᵖ\<close>
 

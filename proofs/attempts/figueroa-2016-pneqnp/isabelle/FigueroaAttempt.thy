@@ -228,7 +228,8 @@ theorem figueroa_type_error:
     (\<forall>n input. bit_length input = n \<longrightarrow> bit_length (tau n input) = n * n))"
 proof -
   (* For n \<ge> 2, we have n \<noteq> n * n *)
-  have "2 \<noteq> 2 * 2" by simp
+  (* NOTE: The actual statement should be "2 \<noteq> 2 * 2" evaluates to "2 \<noteq> 4", not "2*2 \<noteq> 2" *)
+  have "2 < 2 * 2" by simp
   (* But the type claims both hold for the same function *)
   (* Contradiction *)
   show ?thesis

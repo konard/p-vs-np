@@ -218,7 +218,7 @@ section \<open>Summary and Conclusion\<close>
 text \<open>
   Mertz's MERLIN approach fails because:
 
-  1. \<checkmark> MERLIN correctly formulates TSP as an ILP with O(n\<^sup>5) variables and O(n\<^sup>4) constraints
+  1. \<checkmark> MERLIN correctly formulates TSP as an ILP with O(n^5) variables and O(n^4) constraints
   2. \<checkmark> The LP relaxation (dropping integrality) can be solved in polynomial time
   3. \<times> BUT: The LP relaxation may produce fractional solutions
   4. \<times> Fractional solutions don't represent valid TSP tours
