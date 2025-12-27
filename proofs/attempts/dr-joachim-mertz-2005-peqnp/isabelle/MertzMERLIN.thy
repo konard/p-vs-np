@@ -147,13 +147,12 @@ axiomatization where
       is_feasible_LP (LP_relaxation ilp) sol \<and>
       \<not> is_integer_solution sol"
 
-(* Fractional solutions don't represent valid tours *)
+(* Fractional solutions don't represent valid tours
+   If x_{i,j,k} = 1, then edge (i,j) is used at position k in tour
+   If x_{i,j,k} = 0, then edge (i,j) is not used at position k *)
 definition solution_represents_tour ::
   "'a graph \<Rightarrow> lp_solution \<Rightarrow> tour \<Rightarrow> bool" where
-  "solution_represents_tour g sol t \<equiv>
-    (* If x_{i,j,k} = 1, then edge (i,j) is used at position k in tour *)
-    (* If x_{i,j,k} = 0, then edge (i,j) is not used at position k *)
-    True"  (* Simplified *)
+  "solution_represents_tour g sol t \<equiv> True"  (* Simplified *)
 
 axiomatization where
   fractional_solution_no_tour:

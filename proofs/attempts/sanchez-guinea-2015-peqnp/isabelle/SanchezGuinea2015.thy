@@ -137,14 +137,16 @@ fun algorithm_D :: "nat \<Rightarrow> sat3_instance \<Rightarrow> understanding 
   runs in O(m) time, which is FALSE.
 *)
 
-(* Algorithm U with fuel parameter *)
+(* Algorithm U with fuel parameter
+   - Case 0: fuel exhausted, return None
+   - Case Suc with empty list: all clauses processed, return understanding
+   - Case Suc with remaining clauses: process clause and continue
+     (In full implementation: check clause satisfaction, call Algorithm D if needed)
+*)
 fun algorithm_U :: "nat \<Rightarrow> sat3_instance \<Rightarrow> sat3_instance \<Rightarrow> understanding \<Rightarrow> understanding option" where
   "algorithm_U 0 Phi phi u = None" |
-  "algorithm_U (Suc fuel') [] phi u = Some u" |  (* All clauses processed *)
+  "algorithm_U (Suc fuel') [] phi u = Some u" |
   "algorithm_U (Suc fuel') (clause # rest) phi u =
-    (* Check if clause is satisfied under u *)
-    (* If all literals are false, call Algorithm D *)
-    (* Add clause to phi and continue *)
     algorithm_U fuel' rest (clause # phi) u"
 
 section \<open>6. The Complexity Error\<close>

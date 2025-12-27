@@ -156,7 +156,7 @@ definition preimage_size_actual :: "nat \<Rightarrow> nat" where
 
 (* The error: these are vastly different! *)
 lemma preimage_size_error:
-  assumes "n ≥ 2"
+  assumes "n \<ge> 2"
   shows "preimage_size_actual n > preimage_size_claimed n"
   unfolding preimage_size_actual_def preimage_size_claimed_def
   (* 2^(n²) >> 2^n for n ≥ 2 *)
@@ -182,7 +182,7 @@ definition inversion_probability_actual :: "nat \<Rightarrow> nat" where
   The consequence: the probability analysis is completely wrong
 *)
 lemma probability_analysis_error:
-  assumes "n ≥ 2"
+  assumes "n \<ge> 2"
   shows "inversion_probability_actual n > inversion_probability_claimed n"
   unfolding inversion_probability_actual_def inversion_probability_claimed_def
   (* The actual probability is exponentially smaller than claimed *)
@@ -269,7 +269,7 @@ theorem figueroa_proof_invalid:
 
 (* Summary: The key insight from formalization *)
 lemma key_insight_type_safety:
-  assumes "n \<ge> 2"
+  assumes "n \<ge> (2::nat)"
   shows "n \<noteq> n * n"
   using assms by auto
 

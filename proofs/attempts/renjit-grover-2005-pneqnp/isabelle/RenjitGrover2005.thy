@@ -47,7 +47,7 @@ definition InNP :: "DecisionProblem \<Rightarrow> bool" where
                               verify v x cert))"
 
 definition P_not_equals_NP :: bool where
-  "P_not_equals_NP \<equiv> \<not>(\<forall>problem. InP problem \<longleftrightarrow> InNP problem)"
+  "P_not_equals_NP \<equiv> \<not>(\<forall>problem::DecisionProblem. InP problem \<longleftrightarrow> InNP problem)"
 
 lemma P_subset_NP:
   "InP problem \<Longrightarrow> InNP problem"

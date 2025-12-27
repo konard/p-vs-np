@@ -201,7 +201,7 @@ text \<open>
   to unjustified axioms and circular reasoning.
 \<close>
 
-theorem annila_p_neq_np: "\<not>(\<forall>L. in_P L \<longleftrightarrow> in_NP L)"
+theorem annila_p_neq_np: "\<not>(\<forall>L::language. in_P L \<longleftrightarrow> in_NP L)"
 proof -
   text \<open>
     We cannot prove this from Annila's approach because:

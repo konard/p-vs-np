@@ -54,7 +54,7 @@ definition InNP :: "DecisionProblem \<Rightarrow> bool" where
 
 (* P ≠ NP *)
 definition P_not_equals_NP :: bool where
-  "P_not_equals_NP \<equiv> (\<exists>problem. InNP problem \<and> \<not>InP problem)"
+  "P_not_equals_NP \<equiv> (\<exists>problem::DecisionProblem. InNP problem \<and> \<not>InP problem)"
 
 section \<open>Ivanov's Claimed Approach\<close>
 

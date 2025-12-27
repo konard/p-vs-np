@@ -46,7 +46,8 @@ definition InNP :: "DecisionProblem \<Rightarrow> bool" where
 
 lemma P_subset_NP:
   fixes problem :: "string \<Rightarrow> bool"
-  shows "InP problem \<Longrightarrow> InNP problem"
+  assumes "InP (problem::DecisionProblem)"
+  shows "InNP problem"
   sorry
 
 definition P_not_equals_NP :: bool where

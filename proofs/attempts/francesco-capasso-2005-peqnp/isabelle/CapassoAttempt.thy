@@ -127,14 +127,16 @@ section \<open>The Key Distinction\<close>
 
 subsection \<open>Property 1: Algorithms guarantee correctness on ALL inputs\<close>
 
+(* NOTE: This theorem demonstrates what an algorithm must satisfy.
+   However, the proof is incomplete because the definition of
+   PolynomialTimeCircuitSATAlgorithm does not directly encode
+   enough information to derive this property automatically.
+   We use sorry to mark this as an unproven assertion. *)
 theorem algorithm_always_correct:
-  fixes solver :: "Circuit \<Rightarrow> Assignment option"
-  assumes h: "PolynomialTimeCircuitSATAlgorithm solver"
+  assumes h: "PolynomialTimeCircuitSATAlgorithm (solver :: Circuit \<Rightarrow> Assignment option)"
   shows "\<forall>c.
     (\<exists>a. solver c = Some a \<and> eval_circuit a c) \<or>
     (solver c = None \<and> \<not> CircuitSAT c)"
-  using h
-  unfolding PolynomialTimeCircuitSATAlgorithm_def CircuitSAT_def
   sorry (* Proof requires detailed case analysis *)
 
 subsection \<open>Property 2: Heuristics do NOT guarantee correctness\<close>

@@ -146,19 +146,19 @@ section \<open>Proof that HPTSP is in NP\<close>
 text \<open>Certificate: an encoded cycle\<close>
 type_synonym HPTSP_Certificate = string
 
-text \<open>Verification algorithm\<close>
+text \<open>Verification algorithm
+  Verification steps:
+  1. Parse certificate to extract cycle: O(V)
+  2. Check it's a valid Hamiltonian cycle: O(V)
+  3. Check edge costs are correct: O(V)
+  4. Hash the certificate: O(V)
+  5. Check lexicographic bound: O(1)
+  Total: O(V) - polynomial!
+\<close>
 definition HPTSP_verifier :: "HPTSP_Instance \<Rightarrow> HPTSP_Certificate \<Rightarrow> bool" where
   "HPTSP_verifier instance cert \<equiv>
-    (* Verification steps:
-       1. Parse certificate to extract cycle: O(V)
-       2. Check it's a valid Hamiltonian cycle: O(V)
-       3. Check edge costs are correct: O(V)
-       4. Hash the certificate: O(V)
-       5. Check lexicographic bound: O(1)
-       Total: O(V) - polynomial!
-    *)
-    let hashed = (hptsp_hash instance) cert in
-    string_lex_le hashed (hptsp_bound instance)"
+    (let hashed = (hptsp_hash instance) cert in
+    string_lex_le hashed (hptsp_bound instance))"
 
 text \<open>Verification time is polynomial\<close>
 theorem HPTSP_verification_poly_time:
