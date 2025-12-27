@@ -158,10 +158,10 @@ text \<open>
 \<close>
 
 definition mathematical_existence :: bool where
-  "mathematical_existence \<equiv> \<exists>p. proof_verifiable (p :: bool Proof)"
+  "mathematical_existence \<equiv> \<exists>p. proof_verifiable p"
 
 definition human_discovery :: bool where
-  "human_discovery \<equiv> \<exists>cs p. competent cs \<and> can_verify_proof cs (p :: bool Proof)"
+  "human_discovery \<equiv> \<exists>cs p. competent cs \<and> can_verify_proof cs p"
 
 (* These are NOT equivalent! *)
 axiomatization where

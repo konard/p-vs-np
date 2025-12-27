@@ -127,7 +127,7 @@ fun encode_cycle :: "Graph \<Rightarrow> HamiltonianCycle \<Rightarrow> string" 
 
 text \<open>Lexicographic string comparison\<close>
 definition string_lex_le :: "string \<Rightarrow> string \<Rightarrow> bool" where
-  "string_lex_le s1 s2 \<equiv> s1 \<le> s2"
+  "string_lex_le s1 s2 \<equiv> length s1 < length s2 \<or> (length s1 = length s2 \<and> s1 \<le> s2)"
 
 text \<open>HPTSP Problem Instance\<close>
 record HPTSP_Instance =

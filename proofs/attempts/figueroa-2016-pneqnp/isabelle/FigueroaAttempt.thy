@@ -233,6 +233,7 @@ proof -
   (* Contradiction *)
   show ?thesis
     sorry
+qed
 
 (* ========================================================================= *)
 (* Conclusion *)
