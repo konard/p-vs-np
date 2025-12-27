@@ -185,7 +185,7 @@ definition practically_computable :: "Problem \<Rightarrow> bool" where
 axiomatization where
   p_equals_np_not_practical:
     "P_equals_NP \<Longrightarrow>
-     \<not>(\<forall>(prob::Problem). InP prob \<longrightarrow> practically_computable prob)"
+     \<not>(\<forall>prob. InP prob \<longrightarrow> practically_computable prob)"
 
 subsection \<open>Error 4: Proof-Finding is Not Obviously in NP\<close>
 

@@ -119,7 +119,7 @@ definition hasPolynomialCircuits :: "Language \<Rightarrow> bool" where
     \<exists>c k. \<forall>n. \<exists>C. c_size C \<le> c * n ^ k \<and> (\<forall>s. length s = n \<longrightarrow> L s = c_compute C s)"
 
 axiomatization P_has_poly_circuits :: "ClassP \<Rightarrow> bool" where
-  p_poly_circuits: "\<forall>L. P_has_poly_circuits L \<longleftrightarrow> hasPolynomialCircuits (p_language L)"
+  p_poly_circuits: "P_has_poly_circuits L \<longleftrightarrow> hasPolynomialCircuits (p_language L)"
 
 theorem attempt_prove_P_neq_NP_via_circuits:
   assumes "\<exists>L. \<not> hasPolynomialCircuits (np_language (npc_problem L))"

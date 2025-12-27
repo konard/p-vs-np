@@ -68,7 +68,7 @@ section \<open>The P vs NP Question\<close>
 
 (* P is a subset of NP (axiom - well-known result) *)
 axiomatization where
-  P_subseteq_NP: "\<forall>(L::DecisionProblem). in_P L \<longrightarrow> in_NP L"
+  P_subseteq_NP: "\<forall>L. in_P L \<longrightarrow> in_NP L"
 
 (* The central question *)
 definition P_equals_NP :: "bool" where

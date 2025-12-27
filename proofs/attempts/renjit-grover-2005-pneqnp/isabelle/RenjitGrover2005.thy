@@ -31,7 +31,7 @@ record TuringMachine =
   timeComplexity :: TimeComplexity
 
 definition InP :: "DecisionProblem \<Rightarrow> bool" where
-  "InP problem \<equiv> \<exists>(tm::TuringMachine).
+  "InP problem \<equiv> \<exists>tm.
     IsPolynomialTime (timeComplexity tm) \<and>
     (\<forall>x. problem x = compute tm x)"
 
@@ -40,7 +40,7 @@ record Verifier =
   verifier_timeComplexity :: TimeComplexity
 
 definition InNP :: "DecisionProblem \<Rightarrow> bool" where
-  "InNP problem \<equiv> \<exists>(v::Verifier) (certSize::TimeComplexity).
+  "InNP problem \<equiv> \<exists>v certSize.
     IsPolynomialTime (verifier_timeComplexity v) \<and>
     IsPolynomialTime certSize \<and>
     (\<forall>x. problem x = (\<exists>cert. length cert \<le> certSize (length x) \<and>

@@ -35,7 +35,7 @@ record TuringMachine =
 
 (* A problem is in P if it can be decided by a polynomial-time TM *)
 definition InP :: "DecisionProblem \<Rightarrow> bool" where
-  "InP problem \<equiv> \<exists>(tm::TuringMachine).
+  "InP problem \<equiv> \<exists>tm.
     IsPolynomialTime (timeComplexity tm) \<and>
     (\<forall>x. problem x = compute tm x)"
 
@@ -46,7 +46,7 @@ record Verifier =
 
 (* A problem is in NP if solutions can be verified in polynomial time *)
 definition InNP :: "DecisionProblem \<Rightarrow> bool" where
-  "InNP problem \<equiv> \<exists>(v::Verifier) (certSize::TimeComplexity).
+  "InNP problem \<equiv> \<exists>v certSize.
     IsPolynomialTime (verifier_timeComplexity v) \<and>
     IsPolynomialTime certSize \<and>
     (\<forall>x. problem x = (\<exists>cert. length cert \<le> certSize (length x) \<and>
@@ -89,7 +89,7 @@ text \<open>
 
 axiomatization where
   ivanov_universal_lower_bound_claim:
-    "\<forall>(tm::TuringMachine).
+    "\<forall>tm.
       (\<forall>x. ivanov_target_problem x = compute tm x) \<longrightarrow>
       (\<forall>n. ivanov_lower_bound n \<le> timeComplexity tm n)"
 
@@ -114,7 +114,7 @@ text \<open>
 
 definition some_algorithms_are_slow :: bool where
   "some_algorithms_are_slow \<equiv>
-    \<exists>(tm::TuringMachine).
+    \<exists>tm.
       (\<forall>x. ivanov_target_problem x = compute tm x) \<and>
       (\<forall>n. ivanov_lower_bound n \<le> timeComplexity tm n)"
 
@@ -293,7 +293,7 @@ text \<open>If tm belongs to the analyzed class, then the lower bound holds\<clo
 definition ivanov_actual_claim :: bool where
   "ivanov_actual_claim \<equiv>
     \<exists>algorithm_class.
-      \<forall>(tm::TuringMachine).
+      \<forall>tm.
         (\<forall>x. ivanov_target_problem x = compute tm x) \<longrightarrow>
         True \<longrightarrow>
         (\<forall>n. ivanov_lower_bound n \<le> timeComplexity tm n)"
@@ -308,7 +308,7 @@ text \<open>
 
 definition missing_completeness_proof :: bool where
   "missing_completeness_proof \<equiv>
-    \<forall>(tm::TuringMachine).
+    \<forall>tm.
       (\<forall>x. ivanov_target_problem x = compute tm x) \<longrightarrow>
       True"  (* Every algorithm must be in the analyzed class *)
 

@@ -173,11 +173,11 @@ qed
 
 (* P = NP in TM model *)
 definition P_equals_NP_TM :: bool where
-  "P_equals_NP_TM \<equiv> \<forall>problem::DecisionProblem. InP_TM problem = InNP_TM problem"
+  "P_equals_NP_TM \<equiv> \<forall>problem. InP_TM problem = InNP_TM problem"
 
 (* P = NP in MRAM model *)
 definition P_equals_NP_MRAM :: bool where
-  "P_equals_NP_MRAM \<equiv> \<forall>problem::DecisionProblem. InP_MRAM problem = InNP_MRAM problem"
+  "P_equals_NP_MRAM \<equiv> \<forall>problem. InP_MRAM problem = InNP_MRAM problem"
 
 (* The key insight: these are equivalent due to model equivalence *)
 theorem P_vs_NP_is_model_independent:

@@ -124,8 +124,8 @@ definition MERLIN_num_constraints :: "nat \<Rightarrow> nat" where
 definition MERLIN_LP :: "'a graph \<Rightarrow> linear_program" where
   "MERLIN_LP g = \<lparr>
     num_vars = MERLIN_num_vars (num_vertices g),
-    objective_coeffs = [],  (* Simplified: minimize tour length *)
-    constraints = []        (* Simplified: MERLIN constraints *)
+    objective_coeffs = [],
+    constraints = []
   \<rparr>"
 
 (* MERLIN as ILP: requires x_{i,j,k} \<in> {0, 1} *)

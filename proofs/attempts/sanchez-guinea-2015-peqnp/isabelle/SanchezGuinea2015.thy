@@ -119,15 +119,16 @@ section \<open>5. Algorithms\<close>
   number of variables, and with branching, this leads to exponential complexity.
 *)
 
-(* Algorithm D with fuel parameter *)
+(* Algorithm D with fuel parameter
+   - Returns None when fuel exhausted (case 0)
+   - Simplified model: we would need to check concepts and recurse
+   - In the actual algorithm, we iterate through concepts in negative context
+   - For each concept, we may need to recursively call algorithm_D
+   - This is where exponential blowup occurs!
+   - Placeholder: returns Some u - full implementation would show recursion *)
 fun algorithm_D :: "nat \<Rightarrow> sat3_instance \<Rightarrow> understanding \<Rightarrow> literal \<Rightarrow> literal list \<Rightarrow> understanding option" where
-  "algorithm_D 0 phi u lambda H = None" |  (* Fuel exhausted *)
-  "algorithm_D (Suc fuel') phi u lambda H =
-    (* Simplified model: we would need to check concepts and recurse *)
-    (* In the actual algorithm, we iterate through concepts in negative context *)
-    (* For each concept, we may need to recursively call algorithm_D *)
-    (* This is where exponential blowup occurs! *)
-    Some u"  (* Placeholder - full implementation would show recursion *)
+  "algorithm_D 0 phi u lambda H = None" |
+  "algorithm_D (Suc fuel') phi u lambda H = Some u"
 
 (*
   Algorithm U: Main algorithm to find an understanding for a 3-SAT instance

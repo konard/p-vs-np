@@ -29,7 +29,7 @@ record TuringMachine =
   timeComplexity :: TimeComplexity
 
 definition InP :: "DecisionProblem \<Rightarrow> bool" where
-  "InP problem \<equiv> \<exists>(tm::TuringMachine).
+  "InP problem \<equiv> \<exists>tm.
     IsPolynomialTime (timeComplexity tm) \<and>
     (\<forall>x. problem x = compute tm x)"
 
@@ -38,7 +38,7 @@ record Verifier =
   verifier_timeComplexity :: TimeComplexity
 
 definition InNP :: "DecisionProblem \<Rightarrow> bool" where
-  "InNP problem \<equiv> \<exists>(v::Verifier) (certSize::TimeComplexity).
+  "InNP problem \<equiv> \<exists>v certSize.
     IsPolynomialTime (verifier_timeComplexity v) \<and>
     IsPolynomialTime certSize \<and>
     (\<forall>x. problem x = (\<exists>cert. length cert \<le> certSize (length x) \<and>
@@ -99,7 +99,7 @@ text \<open>
 
 definition ExhaustiveSearchIsOptimal :: bool where
   "ExhaustiveSearchIsOptimal \<equiv>
-    \<forall>(tm::TuringMachine). (\<forall>x. TSP x = compute tm x) \<longrightarrow>
+    \<forall>tm. (\<forall>x. TSP x = compute tm x) \<longrightarrow>
          \<not>IsPolynomialTime (timeComplexity tm)"
 
 text \<open>
@@ -112,7 +112,7 @@ theorem if_exhaustive_optimal_then_TSP_not_in_P:
   "ExhaustiveSearchIsOptimal \<Longrightarrow> \<not>InP TSP"
 proof -
   assume "ExhaustiveSearchIsOptimal"
-  then have optimal: "\<forall>(tm::TuringMachine). (\<forall>x. TSP x = compute tm x) \<longrightarrow>
+  then have optimal: "\<forall>tm. (\<forall>x. TSP x = compute tm x) \<longrightarrow>
                        \<not>IsPolynomialTime (timeComplexity tm)"
     unfolding ExhaustiveSearchIsOptimal_def by simp
 
@@ -200,7 +200,7 @@ text \<open>
 
 definition HasExponentialLowerBound :: "DecisionProblem \<Rightarrow> bool" where
   "HasExponentialLowerBound problem \<equiv>
-    \<forall>(tm::TuringMachine). (\<forall>x. problem x = compute tm x) \<longrightarrow>
+    \<forall>tm. (\<forall>x. problem x = compute tm x) \<longrightarrow>
          IsExponentialTime (timeComplexity tm)"
 
 text \<open>

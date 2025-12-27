@@ -140,10 +140,10 @@ text \<open>
 \<close>
 
 lemma bringsjordTaylor_invalid:
-  assumes physical: "\<forall>L::NPComplete. \<exists>P::PhysicalProcess.
+  assumes physical: "\<forall>L. \<exists>P.
                       phys_language P = npc_language L \<and>
                       isPolynomial (phys_wallClockTime P)"
-  shows "\<not>(\<forall>L::NPComplete. \<exists>P::ClassP. p_language P = npc_language L)"
+  shows "\<not>(\<forall>L. \<exists>P. p_language P = npc_language L)"
 proof -
   (* Pick an arbitrary NP-complete problem *)
   (* By the claim, L is in P *)
