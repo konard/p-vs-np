@@ -70,8 +70,6 @@ theorem hewnPolynomialWhenJConstant (j : Nat) :
   unfold polynomialTime HEWNActualTime
   -- Exists c and d such that n * 2^j ≤ c * n^d + c
   -- With j fixed, 2^j is a constant
-  use 2^j, 1
-  intro _x
   -- x * 2^j ≤ 2^j * x^1 + 2^j holds since 2^j ≥ 0
   sorry -- Proof requires lemmas about Nat arithmetic
 

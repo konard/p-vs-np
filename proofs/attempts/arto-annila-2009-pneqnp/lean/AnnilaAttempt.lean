@@ -122,7 +122,7 @@ def ComputationalTime := Nat → Nat
 -- Note: This axiom expresses an unproven relationship between
 -- physical dissipation and computational time complexity
 axiom dissipation_time_relation :
-  ∃ (dissip : PhysicalDissipation), ∃ (time : ComputationalTime),
+  ∃ (dissip : PhysicalDissipation) (time : ComputationalTime),
     ∀ n : Nat, time n = dissip n
 
 -- "State space evolution due to computation" - what does this mean formally?
@@ -142,8 +142,8 @@ axiom dissipation_time_relation :
 lemma np_has_poly_verification (L : Language) :
   InNP L → ∃ (V : Nat → Nat → Bool) (t : TimeComplexity), PolynomialTime t := by
   intro h
-  match h with
-  | ⟨V, t, hpoly, _⟩ => exact ⟨V, t, hpoly⟩
+  obtain ⟨V, t, hpoly, _⟩ := h
+  exact ⟨V, t, hpoly⟩
 
 /-
   CRITICAL GAP #5: No Barrier Analysis

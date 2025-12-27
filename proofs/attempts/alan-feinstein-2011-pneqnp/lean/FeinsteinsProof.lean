@@ -119,13 +119,9 @@ def heldKarpComplexity (n : Nat) : Nat :=
 theorem heldKarp_exponential_upper_bound :
   isExponential heldKarpComplexity := by
   unfold isExponential heldKarpComplexity
-  use 1, 1
-  constructor
-  · -- ε = 1 > 0
-    decide
-  · intro n _hn
-    -- 2^n * n^2 ≥ 2^n when n > 0
-    sorry
+  -- Exists c=1, ε=1 such that for all n>0: 2^n * n^2 ≥ 1 * 2^(1*n)
+  -- This is equivalent to showing n^2 ≥ 1 which is true for n > 0
+  sorry
 
 /-! Part 2: Feinstein's claim that this is a LOWER bound (INCOMPLETE/FALSE)
 
