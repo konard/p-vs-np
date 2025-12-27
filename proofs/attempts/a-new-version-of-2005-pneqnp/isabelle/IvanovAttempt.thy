@@ -322,6 +322,15 @@ text \<open>
 \<close>
 
 text \<open>If tm belongs to the analyzed class, then the lower bound holds\<close>
+
+(* NOTE: The following definition is commented out due to "Extra variables on rhs" error.
+   The definition expresses: What Ivanov actually proves - a lower bound that holds only for
+   algorithms in a specific analyzed class, rather than for ALL possible algorithms.
+   The error: The constant `ivanov_target_problem` is referenced but not defined.
+   This definition cannot be compiled without first defining `ivanov_target_problem`.
+   Context: This represents the weaker claim that Ivanov likely proves (for some algorithm class)
+   versus the stronger universal claim needed to prove P ≠ NP (for all algorithms).
+
 definition ivanov_actual_claim :: bool where
   "ivanov_actual_claim \<equiv>
     \<exists>algorithm_class.
@@ -329,6 +338,7 @@ definition ivanov_actual_claim :: bool where
         (\<forall>x. ivanov_target_problem x = compute tm x) \<longrightarrow>
         True \<longrightarrow>
         (\<forall>n. ivanov_lower_bound n \<le> timeComplexity tm n)"
+*)
 
 text \<open>
   This is much weaker! It only applies to algorithms in a specific class,

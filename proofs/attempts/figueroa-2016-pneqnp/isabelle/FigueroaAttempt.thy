@@ -229,7 +229,7 @@ theorem figueroa_type_error:
 proof -
   (* For n \<ge> 2, we have n \<noteq> n * n *)
   (* NOTE: The actual statement should be "2 \<noteq> 2 * 2" evaluates to "2 \<noteq> 4", not "2*2 \<noteq> 2" *)
-  have "2 < 2 * 2" by simp
+  have "(2::nat) < (2::nat) * (2::nat)" by simp
   (* But the type claims both hold for the same function *)
   (* Contradiction *)
   show ?thesis

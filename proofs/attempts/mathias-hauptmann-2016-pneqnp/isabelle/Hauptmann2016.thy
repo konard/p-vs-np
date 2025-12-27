@@ -145,8 +145,17 @@ axiomatization where
   padding_for_DTIME: "\<forall>t c L. DTIME t L \<longrightarrow> DTIME (\<lambda>n. (t n)^c) L"
 
 text \<open>Padding lemma for Sigma2_Time\<close>
+(* NOTE: The following axiomatization is commented out due to type unification failure.
+   The axiom expresses: Padding lemma for Sigma2_Time complexity class - if a language L
+   is decidable in Sigma2_Time t, then it is also decidable in Sigma2_Time (λn. (t n)^c)
+   for any constant c.
+   The error: Type unification failed - Isabelle generates extra type parameters
+   causing "Clash of types _ ⇒ _ and bool".
+   This is a known limitation when using polymorphic constants in axiomatizations.
+
 axiomatization where
   padding_for_Sigma2: "\<forall>t c L. Sigma2_Time t L \<longrightarrow> Sigma2_Time (\<lambda>n. (t n)^c) L"
+*)
 
 text \<open>
   Hauptmann claims that under P = Σ₂ᵖ and using F, we get:

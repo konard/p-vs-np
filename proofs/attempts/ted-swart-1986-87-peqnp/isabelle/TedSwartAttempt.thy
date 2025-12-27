@@ -269,7 +269,6 @@ theorem LP_formulation_limitation:
 proof -
   \<comment> \<open>Follows from Yannakakis's theorem and existence of NP-complete problems\<close>
   sorry
-qed
 
 text \<open>Lesson 2: Encoding size matters critically in complexity theory\<close>
 lemma encoding_size_matters:

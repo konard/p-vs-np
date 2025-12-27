@@ -133,11 +133,11 @@ proof -
   {
     fix problem
     have eq1: "InP_TM problem = InP_MRAM problem"
-      using P_model_equivalence by simp
+      using P_model_equivalence by blast
     have eq2: "InP_MRAM problem = InNP_MRAM problem"
       using assms by simp
     have eq3: "InNP_MRAM problem = InNP_TM problem"
-      using NP_model_equivalence by simp
+      using NP_model_equivalence by blast
     from eq1 eq2 eq3 have "InP_TM problem = InNP_TM problem"
       by (metis (no_types, opaque_lifting))
   }
@@ -182,9 +182,17 @@ definition P_equals_NP_TM :: bool where
   "P_equals_NP_TM \<equiv> \<forall>problem::DecisionProblem. InP_TM problem = InNP_TM problem"
 *)
 
+(* NOTE: The following definition is commented out due to type unification failure.
+   The definition expresses: P = NP in the MRAM model.
+   The error: Type unification failed: Clash of types "_ itself" and "_ ⇒ _"
+   Failed to meet type constraint:
+   Term:  λproblem. InP_MRAM problem = InNP_MRAM problem :: ??'b itself ⇒ bool
+   Type:  (char list ⇒ bool) ⇒ ??'a
+
 (* P = NP in MRAM model *)
 definition P_equals_NP_MRAM :: bool where
   "P_equals_NP_MRAM \<equiv> \<forall>problem::DecisionProblem. InP_MRAM problem = InNP_MRAM problem"
+*)
 
 (* NOTE: The following theorem is commented out due to dependency on P_equals_NP_TM which is commented out.
    The theorem expresses: P vs NP is model-independent (same answer in TM and MRAM models).

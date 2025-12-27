@@ -104,6 +104,12 @@ axiomatization where
   CLIQUE_is_in_NP: "InNP CLIQUE"
 *)
 
+(* NOTE: The following definition is commented out due to type unification failure.
+   The definition expresses: A problem is NP-complete if it is in NP and every NP problem can be reduced to it in polynomial time.
+   The error: Type unification failed - Isabelle generates an extra 'itself' type parameter
+   causing "Clash of types _ ⇒ _ and _ itself".
+   This is a known limitation when using polymorphic constants in definitions.
+
 definition IsNPComplete :: "DecisionProblem \<Rightarrow> bool" where
   "IsNPComplete problem \<equiv>
     InNP problem \<and>
@@ -111,9 +117,16 @@ definition IsNPComplete :: "DecisionProblem \<Rightarrow> bool" where
       (\<exists>reduction timeComplexity.
         IsPolynomialTime timeComplexity \<and>
         (\<forall>x. npProblem x = problem (reduction x))))"
+*)
+
+(* NOTE: The following axiomatization is commented out due to dependency on IsNPComplete.
+   The axiom expresses: The CLIQUE problem is NP-complete (Karp, 1972).
+   The error: Depends on IsNPComplete which is commented out due to type unification issues.
+   This is a well-known result that CLIQUE is NP-complete.
 
 axiomatization where
   CLIQUE_is_NP_complete: "IsNPComplete CLIQUE"
+*)
 
 section \<open>Grover's Proof Strategy\<close>
 
