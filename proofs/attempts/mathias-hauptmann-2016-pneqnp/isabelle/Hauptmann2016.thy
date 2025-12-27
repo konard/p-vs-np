@@ -140,9 +140,17 @@ definition construct_F :: TimeBound where
 
 section \<open>Padding Arguments\<close>
 
+(* NOTE: The following axiomatization is commented out due to dependency on DTIME which is commented out.
+   The axiom expresses: Padding lemma for DTIME complexity class - if a language L
+   is decidable in DTIME t, then it is also decidable in DTIME (λn. (t n)^c)
+   for any constant c.
+   The error: Type dependency on DTIME which was commented out earlier due to type issues.
+   This is a standard padding argument for deterministic time complexity classes.
+
 text \<open>Padding lemma for DTIME\<close>
 axiomatization where
   padding_for_DTIME: "\<forall>t c L. DTIME t L \<longrightarrow> DTIME (\<lambda>n. (t n)^c) L"
+*)
 
 text \<open>Padding lemma for Sigma2_Time\<close>
 (* NOTE: The following axiomatization is commented out due to type unification failure.
@@ -180,6 +188,15 @@ axiomatization where
 
 section \<open>Gupta's Result (claimed)\<close>
 
+(* NOTE: The following axiomatization is commented out due to type unification failure.
+   The axiom expresses: Hauptmann invokes a result showing strict separation between
+   DTIME and Σ₂ for time-constructible functions - for any time-constructible function t,
+   there exists a language L that is decidable in Sigma2_Time t but not in DTIME t.
+   The error: Type unification failed - Isabelle generates extra type parameters when
+   TimeConstructible is used in the axiom, causing "Clash of types _ ⇒ _ and bool".
+   This is GAP #5 - We cannot find this result in the literature. Standard hierarchy
+   theorems have specific requirements and may not apply in this generality.
+
 text \<open>
   Hauptmann invokes a result showing strict separation between
   DTIME and Σ₂ for time-constructible functions.
@@ -190,6 +207,7 @@ text \<open>
 axiomatization where
   Guptas_result: "\<forall>t. TimeConstructible t \<longrightarrow>
     (\<exists>L. Sigma2_Time t L \<and> \<not> DTIME t L)"
+*)
 
 section \<open>The Contradiction\<close>
 

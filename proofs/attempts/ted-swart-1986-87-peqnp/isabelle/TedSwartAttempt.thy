@@ -237,14 +237,12 @@ text \<open>If Swart's claim were true, we would have P = NP\<close>
 theorem swart_claim_implies_P_equals_NP:
   assumes "SwartClaim"
   shows "\<forall>problem. InNP problem \<longrightarrow> InP problem"
-proof -
   \<comment> \<open>Since Hamiltonian Cycle is NP-complete, all NP problems reduce to it\<close>
   \<comment> \<open>By Swart's claim, Hamiltonian Cycle has polynomial-size LP\<close>
   \<comment> \<open>LP is solvable in polynomial time\<close>
   \<comment> \<open>Combined with polynomial reduction, this puts all NP problems in P\<close>
   \<comment> \<open>Proof sketch only - full proof would require more detailed complexity theory\<close>
   sorry
-qed
 
 text \<open>But we proved Swart's claim is false\<close>
 theorem swart_attempt_fails:
@@ -266,10 +264,8 @@ theorem LP_formulation_limitation:
   shows "\<exists>problem. InNP problem \<and>
          (\<forall>lp_formulation. \<exists>input. \<forall>poly.
            LP_size (lp_formulation input) > poly (length input))"
-proof -
   \<comment> \<open>Follows from Yannakakis's theorem and existence of NP-complete problems\<close>
   sorry
-qed
 
 text \<open>Lesson 2: Encoding size matters critically in complexity theory\<close>
 lemma encoding_size_matters:
