@@ -272,7 +272,7 @@ lemma encoding_size_matters:
   "\<forall>problem encoding. \<exists>input. \<forall>poly.
     LP_size (encoding input) > poly (length input)"
   \<comment> \<open>This is the key insight that invalidates many P=NP attempts\<close>
-  by sorry
+  sorry
 
 section \<open>Verification Summary\<close>
 

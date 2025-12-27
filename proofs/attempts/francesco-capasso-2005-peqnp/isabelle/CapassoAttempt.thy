@@ -316,8 +316,10 @@ section \<open>Concrete Example of the Distinction\<close>
 definition toy_heuristic :: "Circuit \<Rightarrow> HeuristicOutcome" where
   "toy_heuristic c \<equiv>
     if circuit_size c \<le> 100
-    then SatisfyingAssignment (\<lambda>_. True)  (* Trivial assignment (may be wrong) *)
-    else Unknown"                    (* Give up on large circuits *)
+    then SatisfyingAssignment (\<lambda>_. True)
+    else Unknown"
+(* The toy heuristic returns a trivial assignment for small circuits
+   and gives up (returns Unknown) on large circuits *)
 
 (* This is a heuristic (fast on small inputs) *)
 axiomatization where
