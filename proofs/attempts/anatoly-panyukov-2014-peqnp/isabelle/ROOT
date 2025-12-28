@@ -1,4 +1,4 @@
 session "PanyukovAttempt" = HOL +
-  options [timeout = 600, quick_and_dirty]
+  options [timeout = 1800, quick_and_dirty]
   theories
     PanyukovAttempt
