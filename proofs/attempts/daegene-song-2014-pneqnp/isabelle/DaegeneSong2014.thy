@@ -192,10 +192,14 @@ theorem what_song_showed:
   shows "\<exists>process process'. \<forall>theta.
     theta \<noteq> 0 \<longrightarrow> theta \<noteq> pi \<longrightarrow> process theta \<noteq> process' theta"
 proof -
-  have "\<forall>theta. theta \<noteq> 0 \<longrightarrow> theta \<noteq> pi \<longrightarrow>
+  have main: "\<forall>theta. theta \<noteq> 0 \<longrightarrow> theta \<noteq> pi \<longrightarrow>
     schrodinger_self_reference theta \<noteq> heisenberg_self_reference theta"
     using vectors_appear_different by auto
-  thus ?thesis by blast
+  (* Explicitly provide witnesses for the existential *)
+  show ?thesis
+    by (rule exI[of _ schrodinger_self_reference],
+        rule exI[of _ heisenberg_self_reference],
+        rule main)
 qed
 
 text \<open>But this is not about computational complexity\<close>
