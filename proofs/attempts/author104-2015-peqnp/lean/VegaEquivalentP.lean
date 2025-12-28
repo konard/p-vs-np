@@ -112,7 +112,9 @@ def InEquivalentP (pairLang : PairLanguage) : Prop :=
   This is Vega's key construction used for ∼HORNSAT and ∼ONE-IN-THREE 3SAT
 -/
 def DiagonalEmbedding (L : DecisionProblem) : PairLanguage :=
-  fun pair => match pair with (x, y) => x = y ∧ L x
+  fun pair =>
+    let (x, y) := pair
+    x = y ∧ L x
 
 /-
   LEMMA: The diagonal embedding of any problem in P is in ∼P

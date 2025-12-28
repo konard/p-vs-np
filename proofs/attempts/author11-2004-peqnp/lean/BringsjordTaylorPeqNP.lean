@@ -156,10 +156,10 @@ def isValidPAlgorithm : ComputationalModel → Prop
 theorem bringsjordTaylor_typeError :
     ∀ (P : PhysicalProcess),
       ¬ isValidPAlgorithm (ComputationalModel.PhysicalDevice P.wallClockTime P.resources) := by
-  intro P
+  intro _P
   unfold isValidPAlgorithm
   -- Physical devices are definitionally not valid P algorithms
-  trivial
+  simp
 
 /- ## 7. Summary -/
 

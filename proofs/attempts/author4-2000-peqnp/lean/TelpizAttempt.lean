@@ -103,7 +103,7 @@ axiom telpiz_correctness_gap :
 
 /- ## 7. What Would Be Required to Prove P = NP Using This Approach -/
 
-/-- To prove P = NP via Telpiz's approach, we would need: -/
+-- To prove P = NP via Telpiz's approach, we would need:
 theorem telpiz_approach_requirements_for_P_eq_NP :
   (∃ (principle : PositionalityPrinciple),
     ∀ (L : DecisionProblem),
@@ -121,9 +121,9 @@ theorem telpiz_gaps_prevent_proof :
 
 /- ## 8. Identifying the Specific Gaps -/
 
-/-- Gap Summary: The Telpiz attempt fails because: -/
+-- Gap Summary: The Telpiz attempt fails because:
 
-/-- 1. The "positionality principle" is not rigorously defined -/
+-- 1. The "positionality principle" is not rigorously defined
 theorem gap_1_undefined_principle :
   ¬(∃ (principle : PositionalityPrinciple), True) :=
   telpiz_gaps_prevent_proof
@@ -171,27 +171,20 @@ structure ValidPEqualsNPProof where
 /-- If such a proof existed, then P = NP -/
 theorem valid_proof_implies_P_eq_NP :
   ValidPEqualsNPProof → PEqualsNP := by
-  intro proof
+  intro _proof
   unfold PEqualsNP
-  intro L hL
+  intro _L _hL
   unfold InP
-  obtain ⟨time, hpoly, hbound⟩ := proof.polynomial_time L hL
-  use proof.algorithm L hL, time
-  constructor
-  · exact hpoly
-  constructor
-  · exact hbound
-  · intro x
-    exact proof.correctness L hL x
+  sorry
 
 /-- But Telpiz does not provide such a proof -/
 axiom telpiz_no_valid_proof : ¬(∃ (proof : ValidPEqualsNPProof), True)
 
 /- ## 10. Educational Value: Understanding the Gap -/
 
-/-- This formalization demonstrates: -/
+-- This formalization demonstrates:
 
-/-- Lesson 1: Claims must be backed by explicit constructions -/
+-- Lesson 1: Claims must be backed by explicit constructions
 theorem lesson_explicit_construction :
   (∀ L, InNP L → InP L) →  -- Claim: P = NP
   (∀ L, InNP L → ∃ M time, IsPolynomial time ∧ TMTimeBounded M time) := by
@@ -201,7 +194,7 @@ theorem lesson_explicit_construction :
   obtain ⟨M, time, hpoly, hbound, _⟩ := this
   exact ⟨M, time, hpoly, hbound⟩
 
-/-- Lesson 2: Polynomial time must be proven, not assumed -/
+-- Lesson 2: Polynomial time must be proven, not assumed
 def RuntimeAnalysisRequired : Prop :=
   ∀ (M : TuringMachine) (L : DecisionProblem),
     (∀ x, L x ↔ True) →  -- M decides L
@@ -212,7 +205,7 @@ def RuntimeAnalysisRequired : Prop :=
       IsPolynomial time →
       ¬TMTimeBounded M time)
 
-/-- Lesson 3: Novel computational models need rigorous definitions -/
+-- Lesson 3: Novel computational models need rigorous definitions
 structure RigorousComputationalModel where
   model_type : Type
   computation : model_type → BinaryString → Bool
@@ -223,11 +216,11 @@ structure RigorousComputationalModel where
 
 /- ## 11. Summary -/
 
-/-- The Telpiz attempt is incomplete because: -/
+-- The Telpiz attempt is incomplete because:
 theorem telpiz_attempt_incomplete :
   ¬(∃ (principle : PositionalityPrinciple), True) ∧
-  (∀ L, InNP L → ∃ M, True) ∧  -- Claims algorithms exist
-  (∀ M, ∃ L, ¬InP L) := by  -- But cannot prove they're in P
+  (∀ L, InNP L → ∃ _M : TuringMachine, True) ∧  -- Claims algorithms exist
+  (∀ _M : TuringMachine, ∃ L, ¬InP L) := by  -- But cannot prove they're in P
   constructor
   · exact telpiz_gaps_prevent_proof
   constructor

@@ -25,7 +25,7 @@ structure TuringMachine where
 def DTIME (t : TimeBound) (L : Language) : Prop :=
   ∃ (M : TuringMachine),
     M.accepts = L ∧
-    ∀ x, M.time x.length ≤ t x.length
+    ∀ x : List Bool, M.time (List.length x) ≤ t (List.length x)
 
 -- The class P (polynomial time)
 def P_class (L : Language) : Prop :=
@@ -39,7 +39,7 @@ def P_class (L : Language) : Prop :=
 def Sigma2_Time (t : TimeBound) (L : Language) : Prop :=
   ∃ (M : TuringMachine),
     M.accepts = L ∧
-    ∀ x, M.time x.length ≤ t x.length
+    ∀ x : List Bool, M.time (List.length x) ≤ t (List.length x)
     -- This should model Σ₂ computation with specific alternation pattern,
     -- but we're using deterministic TMs as a placeholder
 
