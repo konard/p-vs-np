@@ -137,8 +137,8 @@ def EnumeratesAllMaximalCliques (alg : TriangleBasedAlgorithm) : Prop :=
 /-- Number of maximal cliques in a graph -/
 axiom NumberOfMaximalCliques : Graph → Nat
 
-/-- Moon-Moser (1965): Some graphs have exponentially many maximal cliques -/
-/-- Specifically, the number can be 3^(n/3) for n vertices -/
+/-- Moon-Moser (1965): Some graphs have exponentially many maximal cliques.
+    Specifically, the number can be 3^(n/3) for n vertices -/
 axiom moon_moser_theorem :
   ∃ (family : Nat → Graph),
     ∀ n,
