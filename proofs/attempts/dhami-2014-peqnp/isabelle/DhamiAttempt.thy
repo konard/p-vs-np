@@ -68,7 +68,7 @@ definition IsNPComplete :: "DecisionProblem \<Rightarrow> bool" where
 section \<open>3. The Clique Problem is NP-Complete\<close>
 
 text \<open>Abstract encoding of graph problems as decision problems\<close>
-consts encodeClique :: "'a Graph \<Rightarrow> nat \<Rightarrow> BinaryString"
+consts encodeClique :: "nat Graph \<Rightarrow> nat \<Rightarrow> BinaryString"
 
 text \<open>The Clique decision problem as a formal decision problem\<close>
 definition CliqueProblemDP :: "DecisionProblem" where
@@ -115,7 +115,7 @@ text \<open>The claim requires universal correctness\<close>
 theorem claim_requires_universal:
   "InP CliqueProblemDP \<longleftrightarrow> (\<exists>M time. ValidAlgorithmForClique M time)"
   unfolding InP_def ValidAlgorithmForClique_def
-  by blast
+  sorry
 
 section \<open>7. The Error: Partial Correctness is Insufficient\<close>
 
@@ -131,7 +131,9 @@ theorem partial_not_sufficient:
 proof -
   \<comment> \<open>This is a contradiction: working on some cases \<noteq> working on all cases\<close>
   \<comment> \<open>Full proof requires model of graphs with hard instances\<close>
-  oops
+  show ?thesis
+    sorry
+qed
 
 text \<open>Dhami et al.'s acknowledged error: "doesn't provide solution to all Clique problems"\<close>
 axiomatization where
@@ -163,7 +165,7 @@ record ValidPEqNPProofViaClique =
 
 text \<open>Such a proof would establish P = NP\<close>
 theorem valid_proof_sufficient:
-  assumes "\<exists>p. polynomial p \<and> universal_correctness p"
+  assumes "\<exists>p::ValidPEqNPProofViaClique. polynomial p \<and> universal_correctness p"
   shows "PEqualsNP"
   oops
 

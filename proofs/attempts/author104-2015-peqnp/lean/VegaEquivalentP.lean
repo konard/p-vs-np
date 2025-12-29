@@ -112,7 +112,9 @@ def InEquivalentP (pairLang : PairLanguage) : Prop :=
   This is Vega's key construction used for ∼HORNSAT and ∼ONE-IN-THREE 3SAT
 -/
 def DiagonalEmbedding (L : DecisionProblem) : PairLanguage :=
-  fun pair => match pair with (x, y) => x = y ∧ L x
+  fun pair =>
+    let (x, y) := pair
+    x = y ∧ L x
 
 /-
   LEMMA: The diagonal embedding of any problem in P is in ∼P
@@ -163,14 +165,14 @@ theorem diagonal_embedding_not_equality :
 
   This is the core logical error in Vega's proof.
 -/
-example : ∀ (A B C : α → Prop),
+example : ∀ {α : Type} (A B C : α → Prop),
   -- If A ⊆ C
   (∀ x, A x → C x) →
   -- And B ⊆ C
   (∀ x, B x → C x) →
   -- This does NOT automatically imply A = B
   True := by
-  intro _A _B _C _h_A_sub_C _h_B_sub_C
+  intro _α _A _B _C _h_A_sub_C _h_B_sub_C
   /-
     Counterexample: Let A = {1}, B = {2}, C = {1,2}
     Then A ⊆ C and B ⊆ C, but A ≠ B.
@@ -250,4 +252,5 @@ theorem vega_error_formalized :
 #check diagonal_embedding_not_equality
 #check vega_error_formalized
 
-#print "✓ Vega's equivalent-P error analysis verified successfully"
+-- #print "✓ Vega's equivalent-P error analysis verified successfully"
+-- Note: #print with string literals is not valid Lean 4 syntax

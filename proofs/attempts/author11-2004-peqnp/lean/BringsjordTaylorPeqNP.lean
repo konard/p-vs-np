@@ -156,10 +156,10 @@ def isValidPAlgorithm : ComputationalModel → Prop
 theorem bringsjordTaylor_typeError :
     ∀ (P : PhysicalProcess),
       ¬ isValidPAlgorithm (ComputationalModel.PhysicalDevice P.wallClockTime P.resources) := by
-  intro P
+  intro _P
   unfold isValidPAlgorithm
   -- Physical devices are definitionally not valid P algorithms
-  trivial
+  simp
 
 /- ## 7. Summary -/
 
@@ -181,6 +181,7 @@ theorem bringsjordTaylor_typeError :
 #check bringsjordTaylor_typeError
 
 -- Final verification
-#print "✓ Bringsjord-Taylor P=NP argument formalized - error identified"
+-- #print "✓ Bringsjord-Taylor P=NP argument formalized - error identified"
+-- Note: #print with string literals is not valid Lean 4 syntax
 
 end BringsjordTaylorPeqNP
