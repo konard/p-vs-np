@@ -14,12 +14,13 @@
 -- Graph Theory Definitions
 
 /-- Vertices are natural numbers -/
-def Vertex := Nat
+abbrev Vertex := Nat
 
 /-- An edge is a pair of vertices -/
 structure Edge where
   src : Vertex
   dst : Vertex
+deriving DecidableEq
 
 /-- A graph consists of vertices and edges -/
 structure Graph where
@@ -27,7 +28,7 @@ structure Graph where
   edges : List Edge
 
 /-- A path in a graph is a sequence of vertices -/
-def Path := List Vertex
+abbrev Path := List Vertex
 
 /-- Check if an edge exists in a graph -/
 def hasEdge (g : Graph) (e : Edge) : Prop :=
