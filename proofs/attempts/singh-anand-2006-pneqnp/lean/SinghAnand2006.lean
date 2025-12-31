@@ -28,7 +28,7 @@ axiom NonStandardModel : Model
 /-- Non-standard model differs from standard model -/
 axiom nonstandard_differs : NonStandardModel ≠ StandardModel
 
-/-- * PA Formulas and Provability -/
+-- PA Formulas and Provability
 
 /-- Abstract representation of PA formulas -/
 axiom PAFormula : Type
@@ -45,18 +45,18 @@ axiom formulaG : PAFormula
 /-- The universal quantification ∀x.G(x) -/
 axiom forallG : PAFormula
 
-/-- * Gödel's Completeness Theorem -/
+-- Gödel's Completeness Theorem
 
 /-- If a formula is provable in PA, it holds in ALL models -/
 axiom goedel_completeness :
   ∀ (φ : PAFormula), provableInPA φ → ∀ (M : Model), satisfies M φ
 
-/-- * Key Provability Facts from PA -/
+-- Key Provability Facts from PA
 
 /-- The formula ∀x.G(x) is provable via induction -/
 axiom provable_forallG : provableInPA forallG
 
-/-- * Singh Anand's Argument (FORMALIZED) -/
+-- Singh Anand's Argument (FORMALIZED)
 
 /-- Step 1: (∀x)G(x) is provable in PA -/
 theorem singh_anand_step1 : provableInPA forallG :=
@@ -67,13 +67,13 @@ theorem singh_anand_step2 : ∀ (M : Model), satisfies M forallG := by
   intro M
   exact goedel_completeness forallG provable_forallG M
 
-/-- Step 3: THE ERROR - Singh Anand claims this eliminates non-standard models -/
+-- Step 3: THE ERROR - Singh Anand claims this eliminates non-standard models
 
 /-- Singh Anand's incorrect claim -/
 axiom singh_anand_incorrect_claim :
   provableInPA forallG → ¬∃ (M : Model), M ≠ StandardModel
 
-/-- * REFUTATION: The Error Exposed -/
+-- REFUTATION: The Error Exposed
 
 /-- Theorem: Singh Anand's claim leads to contradiction -/
 theorem singh_anand_argument_is_wrong : False := by
@@ -88,7 +88,7 @@ theorem singh_anand_argument_is_wrong : False := by
   -- Contradiction!
   exact h_singh_claim h_nonstandard_exists
 
-/-- * The Core Mistake Explained -/
+-- The Core Mistake Explained
 
 /-
   CRITICAL ERROR: Singh Anand confuses "provable in PA" with
@@ -109,7 +109,7 @@ theorem singh_anand_argument_is_wrong : False := by
     First-order PA MUST have non-standard models. This is a deep theorem.
 -/
 
-/-- * The Formula Works in Non-Standard Models -/
+-- The Formula Works in Non-Standard Models
 
 /-- The formula ∀x.G(x) is satisfied even in non-standard models -/
 theorem G_holds_in_nonstandard_model : satisfies NonStandardModel forallG := by
@@ -122,7 +122,7 @@ theorem proving_G_does_not_eliminate_nonstandard_models :
   · exact provable_forallG
   · exact ⟨NonStandardModel, nonstandard_differs⟩
 
-/-- * Connection to P vs NP -/
+-- Connection to P vs NP
 
 /-- P vs NP proposition -/
 axiom P_equals_NP : Prop
@@ -146,7 +146,7 @@ theorem singh_anand_proves_nothing_about_P_vs_NP :
   intros _ _ _
   trivial
 
-/-- * Detailed Error Analysis -/
+-- Detailed Error Analysis
 
 /-- The key misunderstanding: provability vs model elimination -/
 structure ErrorAnalysis where
