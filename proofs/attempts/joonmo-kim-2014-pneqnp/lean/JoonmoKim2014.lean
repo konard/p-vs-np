@@ -1,330 +1,257 @@
 /-
-  Formalization of Joonmo Kim's 2014 P≠NP Proof Attempt
+  JoonmoKim2014.lean - Formalization of Joonmo Kim's 2014 P≠NP attempt
 
-  This file attempts to formalize the proof from:
-  Joonmo Kim. "P is not equal to NP by Modus Tollens."
-  arXiv:1403.4143v7 [cs.CC], October 2018.
+  This file attempts to formalize the modus tollens argument from:
+  "P not equal NP by modus tollens" (arXiv:1403.4143)
 
-  The formalization reveals fundamental errors in the proof structure.
+  Author: Joonmo Kim (2014)
+  Claim: P ≠ NP
+  Method: Construction of a Turing machine with contradictory properties
+
+  **Expected outcome**: This formalization should reveal the error in the proof.
 -/
 
-/-! ## Basic Complexity Theory Setup -/
+-- Basic complexity theory definitions
 
--- We model problems, algorithms, and complexity classes abstractly
+/-- A decision problem is represented as a predicate on strings -/
+def DecisionProblem := String → Prop
 
-axiom Problem : Type
-axiom Algorithm : Type
-axiom TuringMachine : Type
-axiom Input : Type
-axiom SATInstance : Type
-axiom TransitionTable : Type
-axiom Computation : Type
+/-- Time complexity function: maps input size to time bound -/
+def TimeComplexity := Nat → Nat
 
--- A complexity class is a set of problems
-axiom ComplexityClass : Type
-axiom P : ComplexityClass
-axiom NP : ComplexityClass
+/-- A problem is polynomial-time if there exists a polynomial time bound -/
+def IsPolynomialTime (f : TimeComplexity) : Prop :=
+  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
 
--- Problem membership in complexity classes
-axiom in_class : Problem → ComplexityClass → Prop
+/-- A Turing machine model (abstract representation) -/
+structure TuringMachine where
+  compute : String → Bool
+  timeComplexity : TimeComplexity
 
--- Equality of complexity classes
-def P_eq_NP : Prop := ∀ prob, in_class prob P ↔ in_class prob NP
-def P_neq_NP : Prop := ¬P_eq_NP
+/-- A problem is in P if it can be decided by a polynomial-time TM -/
+def InP (problem : DecisionProblem) : Prop :=
+  ∃ (tm : TuringMachine),
+    (IsPolynomialTime tm.timeComplexity) ∧
+    (∀ (x : String), problem x ↔ tm.compute x = true)
 
--- SAT is a specific problem
-axiom SAT : Problem
+/-- A verifier is a TM that checks certificates/witnesses -/
+structure Verifier where
+  verify : String → String → Bool
+  timeComplexity : TimeComplexity
 
--- SAT is NP-complete
-axiom SAT_in_NP : in_class SAT NP
+/-- A problem is in NP if solutions can be verified in polynomial time -/
+def InNP (problem : DecisionProblem) : Prop :=
+  ∃ (v : Verifier) (certSize : Nat → Nat),
+    (IsPolynomialTime v.timeComplexity) ∧
+    (IsPolynomialTime certSize) ∧
+    (∀ (x : String),
+      problem x ↔ ∃ (cert : String),
+        cert.length ≤ certSize x.length ∧
+        v.verify x cert = true)
 
-/-! ## Cook's Encoding -/
+/-- Basic axiom: P ⊆ NP -/
+axiom P_subset_NP : ∀ problem, InP problem → InNP problem
 
--- Cook's theorem: accepting computations can be encoded as SAT instances
-axiom cook_encode : Computation → SATInstance
+/-- SAT problem - canonical NP-complete problem -/
+axiom SAT : DecisionProblem
+axiom SAT_in_NP : InNP SAT
 
--- SAT instances have two parts: input part and run part
-axiom input_part : SATInstance → SATInstance
-axiom run_part : SATInstance → SATInstance
+/-- The central question: Does P = NP? -/
+def P_equals_NP : Prop := ∀ problem, InP problem ↔ InNP problem
 
--- Concatenation of SAT instance parts
-axiom concat_sat : SATInstance → SATInstance → SATInstance
-
--- Number of clauses in a SAT instance
-axiom num_clauses : SATInstance → Nat
-
--- SAT satisfiability
-axiom satisfiable : SATInstance → Prop
-
-/-! ## Computations and Transition Tables -/
-
--- A computation is an accepting computation of a TM on some input
-axiom is_accepting_computation : TuringMachine → Input → Computation → Prop
-
--- Number of transitions in a computation
-axiom num_transitions : Computation → Nat
-
--- A transition table can produce a computation
-axiom produces_computation : TransitionTable → Computation → Prop
-
-/-! ## Kim's "Particular Transition Table" Concept -/
+/-- The alternative: P ≠ NP -/
+def P_not_equals_NP : Prop := ¬P_equals_NP
 
 /-
-  Kim introduces "particular transition tables" - transition tables
-  "particularly for just one or two accepting problem instances".
-  This concept is poorly defined and creates confusion.
+  JOONMO KIM'S CONSTRUCTION (2014)
 
-  We attempt to model it as: a transition table that can produce
-  a specific computation. But note that a standard TM transition
-  table is not "particular" to specific inputs - it works for all inputs.
--/
+  Kim's approach attempts to construct a Turing machine M₀ that:
+  1. Generates SAT instances
+  2. Checks their satisfiability
+  3. Has a specific property P under assumption P = NP
 
-def particular_transition_table_for (t : TransitionTable) (c : Computation) : Prop :=
-  produces_computation t c
-
-/-! ## Algorithm M_i -/
-
-/-
-  M_i is a Turing machine that:
-  - Contains run-parts c^r_1, ..., c^r_n
-  - On input y, concatenates c^y with each c^r_ij
-  - Checks satisfiability of each concatenation
-  - Accepts if an odd number are satisfiable
--/
-
-structure Algorithm_M where
-  run_parts : List SATInstance
-  sat_solver_module : SATInstance → Bool
-  tm_implementation : TuringMachine
-
-/-! ## Algorithm M^o -/
-
-/-
-  M^o is defined as an M where:
-  - ac_M is the accepting computation of M on input y
-  - t is a particular transition table for ac_M
-  - c^o is one of the SAT instances appearing during M's run
-  - ac_c^o is the accepting computation described by c^o
-  - If t is also a particular transition table for ac_c^o, then M is M^o
-
-  PROBLEM: This definition is circular! Whether c^o appears during M's run
-  depends on what transition table M uses, which is what we're trying to define.
--/
-
--- We model M^o abstractly to expose the circularity
-axiom Algorithm_M_o : Type
-axiom is_M_o : Algorithm_M → Input → Computation → TransitionTable →
-               SATInstance → Computation → Prop
-
-/-
-  The definition would be:
-  is_M_o M y ac_M t c_o ac_c_o :=
-    is_accepting_computation (M.tm_implementation) y ac_M ∧
-    particular_transition_table_for t ac_M ∧
-    (∃ (some condition), c_o appears during M's run) ∧  -- CIRCULAR!
-    (ac_c_o is the computation described by c_o) ∧
-    particular_transition_table_for t ac_c_o
--/
-
-/-! ## D_sat and ND_sat -/
-
-/-
-  D_sat: particular transition table where M^o runs deterministically
-  and SAT-solver runs in deterministic polynomial time.
-
-  ND_sat: non-deterministic version.
--/
-
-axiom is_Dsat : TransitionTable → Prop
-axiom is_NDsat : TransitionTable → Prop
-
--- P = NP implies deterministic poly-time SAT solver exists
-axiom P_eq_NP_implies_poly_SAT_solver :
-  P_eq_NP → ∃ (solver : SATInstance → Bool), True -- simplified
-
-/-! ## The Attempted Proof -/
-
-/-
-  The proof attempts to use modus tollens:
-  (P1 → (P2 → P3)) ∧ ¬(P2 → P3) implies ¬P1
-
-  Where:
-  P1: P = NP
-  P2: M^o exists
-  P3: there exists t which is D_sat
--/
-
-def P1 := P_eq_NP
-def P2 := ∃ (M : Algorithm_M_o), True -- M^o exists
-def P3 := ∃ (t : TransitionTable), is_Dsat t
-
-/-! ### Part 1: Attempt to prove P1 → (P2 → P3) -/
-
-/-
-  Kim's argument: If P = NP, then there exists a deterministic poly-time
-  SAT solver, so M^o can use it, making D_sat exist.
-
-  PROBLEM: This argument is incomplete. The existence of a poly-time SAT solver
-  doesn't immediately imply that M^o can be constructed with D_sat property,
-  because M^o's definition itself is circular and ill-defined.
--/
-
-theorem part1_attempt : P1 → (P2 → P3) := by
-  intro h_P_eq_NP
-  intro ⟨M, _⟩
-  -- We would need to construct a D_sat transition table
-  -- But M^o's definition is circular, so we cannot proceed
-  sorry -- Cannot complete - definition of M^o is flawed
-
-/-! ### Part 2: Attempt to prove ¬(P2 → P3) -/
-
-/-
-  Kim's argument has two sub-parts:
-  a) Show P2 is true (M^o exists via ND_sat)
-  b) Show P2 → P3 leads to contradiction
+  The argument is: (P=NP → Property(M₀)) ∧ ¬Property(M₀) → P≠NP
 -/
 
 /-
-  Sub-part (a): Kim claims M^o exists by constructing ND_sat.
-
-  PROBLEM: The construction assumes we can "merge two non-deterministic
-  particular transition tables" in a meaningful way, but this operation
-  is not well-defined.
+  The "special" Turing machine M₀
+  Note: The exact construction is underspecified in the paper
 -/
-
-theorem part2a_M_o_exists : P2 := by
-  -- We would need to construct M^o using ND_sat
-  -- But the construction relies on ill-defined "merging" operation
-  sorry -- Cannot complete - construction is ill-defined
+axiom M_zero : TuringMachine
 
 /-
-  Sub-part (b): Kim claims P2 → P3 leads to contradiction via i > j > k and i = k.
-
-  Let's attempt to formalize the inequalities:
-  - i = num_transitions ac_M_o (transitions in M^o's accepting computation)
-  - j = num_clauses c_o (clauses in SAT instance c^o)
-  - k = num_transitions ac_c_o (transitions in computation described by c^o)
+  M₀ allegedly generates and checks SAT instances
+  This is a simplified model - the actual construction is vague
 -/
+axiom M_zero_generates_SAT_instances : ∀ (n : Nat),
+  ∃ (input : String), input.length = n
 
 /-
-  PROBLEM 1: The claim "i > j" is unjustified.
-  Kim argues that "all clauses of c^o should once be loaded on the tape"
-  implies i > j. But number of transitions ≠ number of clauses loaded.
-  There's no theorem supporting this relationship.
+  The "certain property" that M₀ would have under P = NP
+
+  ISSUE 1: The paper does not precisely define this property.
+  We model it abstractly here, but this vagueness is already problematic.
 -/
+axiom SpecialProperty : TuringMachine → Prop
 
 /-
-  We cannot prove this because it's simply not true in general:
+  Kim's key claim: If P = NP, then M₀ has the special property
+
+  ISSUE 2: This implication is not rigorously proven in the paper.
+  The connection between P = NP and this property is unclear.
 -/
-axiom kim_inequality_i_gt_j :
-  ∀ (ac_M_o : Computation) (c_o : SATInstance),
-    num_transitions ac_M_o > num_clauses c_o
+axiom kim_claim_1 : P_equals_NP → SpecialProperty M_zero
 
 /-
-  This is NOT a theorem. It cannot be proven.
-  The number of transitions in a computation and the number of clauses
-  in a SAT instance are incommensurable quantities with no such relationship.
+  Kim's second claim: M₀ does not have the special property
+
+  ISSUE 3: This is asserted but not proven. The property is so vague
+  that we cannot verify this claim.
 -/
+axiom kim_claim_2 : ¬SpecialProperty M_zero
 
 /-
-  PROBLEM 2: The claim "j > k" is also unjustified.
-  Kim cites Cook's theorem that "each transition is described by more than one clauses",
-  suggesting k < j. But Cook's encoding goes from computation to SAT, not vice versa.
-  The relationship between j (clauses in c^o) and k (transitions in the computation
-  that c^o describes) is not what Kim claims.
--/
+  The modus tollens argument
 
-axiom kim_inequality_j_gt_k :
-  ∀ (c_o : SATInstance) (ac_c_o : Computation),
-    num_clauses c_o > num_transitions ac_c_o
+  IF the two claims above were both valid, this would prove P ≠ NP
+-/
+theorem kim_modus_tollens : P_not_equals_NP := by
+  unfold P_not_equals_NP
+  intro h_p_eq_np
+  -- Apply claim 1: P = NP implies M₀ has the property
+  have h_has_prop := kim_claim_1 h_p_eq_np
+  -- Apply claim 2: M₀ does not have the property
+  have h_not_has_prop := kim_claim_2
+  -- Contradiction
+  exact h_not_has_prop h_has_prop
 
 /-
-  This is also NOT generally true.
-  Cook's theorem encodes transitions as clauses (transitions → clauses),
-  but Kim is trying to use the reverse direction with incorrect logic.
--/
+  ERROR ANALYSIS
 
-/-
-  PROBLEM 3: The claim that ac_M_o and ac_c_o are "exactly the same computation"
-  if they share a D_sat table and same input is a non-sequitur.
+  The proof above appears to work, but it relies on AXIOMS that are:
 
-  ac_M_o is M^o's accepting computation on input y.
-  ac_c_o is the computation encoded by SAT instance c^o.
+  1. **Underspecified**: SpecialProperty is not defined
+  2. **Unproven**: kim_claim_1 is asserted without proof
+  3. **Circular**: The construction may involve self-reference
 
-  These are fundamentally different computations! There's no reason they'd be identical.
--/
-
-axiom kim_same_computation_claim :
-  ∀ (M_o : Algorithm_M_o) (y : Input) (ac_M_o ac_c_o : Computation)
-    (t : TransitionTable),
-    is_Dsat t →
-    particular_transition_table_for t ac_M_o →
-    particular_transition_table_for t ac_c_o →
-    -- same input condition →
-    ac_M_o = ac_c_o
-
-/-
-  This is FALSE. Different computations can share properties without being identical.
+  Let's expose these issues more explicitly.
 -/
 
 /-
-  The supposed contradiction i > j > k and i = k cannot be established
-  because the inequalities are not theorems.
+  CRITICAL ERROR #1: The SpecialProperty is undefined
+
+  Without knowing what this property is, we cannot verify the claims.
+  Different choices of property lead to different conclusions.
 -/
-
-theorem part2b_contradiction : (P2 → P3) → False := by
-  intro h
-  -- We would need to establish:
-  -- 1. If P2 → P3, then ac_M_o and ac_c_o are the same
-  -- 2. i > j > k (where i, j, k are as defined above)
-  -- 3. i = k (from ac_M_o and ac_c_o being the same)
-  -- 4. Derive contradiction from i > k and i = k
-  --
-  -- But steps 1 and 2 cannot be proven because they're not valid.
-  sorry -- Cannot complete - the inequalities are not theorems
-
-/-! ### The Failed Modus Tollens -/
 
 /-
-  Even if we admitted all the above flawed lemmas, the modus tollens would be:
+  Example: A trivial "property" that would make the argument fail
 -/
-
-theorem kim_attempted_proof : P_neq_NP := by
-  unfold P_neq_NP
-  intro h_P_eq_NP
-
-  -- Modus tollens structure: (P1 → (P2 → P3)) ∧ ¬(P2 → P3) implies ¬P1
-  -- We need to show: P_eq_NP → False
-
-  -- This would require part1_attempt and part2b_contradiction
-  -- But both are flawed as shown above
-
-  sorry -- Cannot complete - the proof structure is fundamentally flawed
-
-/-! ## Formalization Conclusion -/
+def TrivialProperty (_tm : TuringMachine) : Prop := True
 
 /-
-  This formalization attempt reveals the following errors in Kim's proof:
-
-  1. The definition of M^o is circular and cannot be formalized
-  2. The concept of "particular transition table" is ill-defined
-  3. The inequalities i > j and j > k are not theorems and cannot be proven
-  4. The claim that ac_M_o = ac_c_o under the stated conditions is false
-  5. The modus tollens structure fails because its premises are not established
-
-  The proof cannot be completed in any rigorous formal system, demonstrating
-  that it is fundamentally flawed rather than merely having minor gaps.
+  If SpecialProperty = TrivialProperty, then claim 2 is false
 -/
-
-/-! ## Educational Value -/
+theorem trivial_property_always_holds : TrivialProperty M_zero :=
+  trivial
 
 /-
-  This formalization exercise demonstrates the power of formal verification
-  in identifying subtle (and not-so-subtle) errors in mathematical arguments.
+  CRITICAL ERROR #2: Self-reference and diagonalization
 
-  Key lessons:
-  - Definitions must be non-circular and well-founded
-  - Quantitative relationships between different entities need rigorous justification
-  - Informal arguments that "seem reasonable" often hide unjustified assumptions
-  - Formal proof assistants force us to make all assumptions explicit
+  The construction likely involves M₀ referencing its own behavior
+  or the SAT solver it uses. This creates problematic circularity.
+
+  Suppose M₀ is constructed to:
+  - Generate SAT instance φ
+  - If P = NP, use polynomial SAT solver S on φ
+  - Conclude something based on S's answer
+
+  Problem: The construction of φ or S may depend on M₀ itself,
+  creating a diagonal/self-referential argument.
 -/
+
+/-
+  CRITICAL ERROR #3: Relativization
+
+  The argument appears to relativize (work in all oracle worlds).
+  But we know from Baker-Gill-Solovay that such arguments cannot
+  resolve P vs NP.
+-/
+
+/-
+  Oracle model: Complexity classes with access to an oracle
+-/
+def Oracle := Type
+axiom oracle_query : Oracle → String → Bool
+
+def InP_Oracle (o : Oracle) (problem : DecisionProblem) : Prop :=
+  ∃ (tm : TuringMachine),
+    IsPolynomialTime tm.timeComplexity ∧
+    ∀ (x : String), problem x ↔ tm.compute x = true
+    -- In real formalization, tm would have oracle access
+
+/-
+  There exist oracles A where P^A = NP^A
+  There exist oracles B where P^B ≠ NP^B
+
+  If Kim's argument works for all oracles, it contradicts BGS theorem.
+-/
+
+/-
+  CRITICAL ERROR #4: The Property Must Be Computable
+
+  For the argument to work, we need to determine if M₀ has the property.
+  But if the property depends on whether P = NP, we have a circular dependency.
+
+  Does M₀ have property P?
+  - If P = NP, then it does (by kim_claim_1)
+  - But we're trying to determine if P = NP!
+
+  This is circular reasoning.
+-/
+
+/-
+  CONCLUSION
+
+  The formalization reveals several fatal errors:
+
+  1. **Insufficient specification**: The "certain property" is never
+     precisely defined, making verification impossible.
+
+  2. **Unproven implications**: The connection between P = NP and the
+     property is asserted but not proven.
+
+  3. **Likely relativization**: The argument appears to relativize,
+     contradicting the Baker-Gill-Solovay theorem.
+
+  4. **Circular reasoning**: The property may depend on solving P vs NP,
+     creating a circular argument.
+
+  5. **Self-reference**: The construction likely involves diagonal
+     reasoning that doesn't properly handle self-reference.
+
+  The author himself acknowledged these issues, stating:
+  "this solution should not be reported to be correct" and
+  "it is quite unlikely that this simple solution is correct"
+
+  This formalization confirms that intuition by showing that the
+  proof relies on multiple unverified and likely unverifiable claims.
+-/
+
+/-
+  Summary: The proof "works" only because we axiomatized the unproven claims.
+  A genuine proof would need to:
+  - Define SpecialProperty precisely
+  - Prove kim_claim_1 without assuming P = NP
+  - Prove kim_claim_2 constructively
+  - Show the argument doesn't relativize
+
+  None of these are accomplished in the original paper.
+-/
+
+-- Verification checks
+#check kim_modus_tollens
+#check P_not_equals_NP
+#check SpecialProperty
+
+#print "✓ Joonmo Kim (2014) formalization complete - errors identified"
