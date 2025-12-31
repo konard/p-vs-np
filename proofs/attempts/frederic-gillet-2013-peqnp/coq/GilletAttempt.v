@@ -161,7 +161,7 @@ Definition gate_locally_correct
     Gates compose correctly when embedded in larger networks *)
 Axiom gates_compose_correctly : forall (net : FlowNetwork),
   (** If all gates in the network are locally correct... *)
-  (forall gate_subnet, (* some notion of subnetwork *) True) ->
+  (forall (gate_subnet : FlowNetwork), (* some notion of subnetwork *) True) ->
   (** Then the entire network evaluates correctly as a logic circuit *)
   is_minimum_cost_flow net ->
   (** ??? This does not follow! ??? *)
