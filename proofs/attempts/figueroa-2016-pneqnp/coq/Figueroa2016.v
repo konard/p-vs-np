@@ -108,7 +108,7 @@ Section FigueroaConstruction_WithTypeError.
     | [] => []
     | bit :: rest =>
         (* For each bit, append n bits (hash output) *)
-        let hash_output := hash_function H bit [] in  (* Simplified *)
+        let hash_output := hash_function H [bit] [] in  (* Simplified: wrap bit in a list *)
         hash_output ++ tau_actual_construction rest
     end.
 
