@@ -26,7 +26,7 @@ Inductive DecisionTree : Type :=
 Fixpoint tree_depth (t : DecisionTree) : nat :=
   match t with
   | Leaf _ => 0
-  | Node _ left right => 1 + max (tree_depth left) (tree_depth right)
+  | Node _ l r => 1 + max (tree_depth l) (tree_depth r)
   end.
 
 (** * Graph and Clique Definitions *)
