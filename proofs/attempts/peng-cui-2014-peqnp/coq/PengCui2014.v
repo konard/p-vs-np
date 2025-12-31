@@ -110,7 +110,7 @@ Axiom XOR3_is_NP_complete : NP_complete XOR3_SAT_lifted.
 (** Maximum fraction of clauses satisfiable *)
 Definition max_satisfiable_fraction (inst : XOR3_Instance) : Prop :=
   exists (frac : nat), (* simplified as natural number ratio *)
-    forall a, (* for all assignments *)
+    forall (a : Assignment), (* for all assignments *)
       True. (* abstract: fraction of satisfied clauses *)
 
 (** Gap 3-XOR decision problem on XOR3_Instance *)
