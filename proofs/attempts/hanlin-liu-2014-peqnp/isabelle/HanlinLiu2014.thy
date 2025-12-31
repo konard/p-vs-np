@@ -97,13 +97,13 @@ record ClaimedHCAlgorithm =
   claimedTime :: bool  (* represents the O(|V|^9) claim *)
   claimedCorrectness :: bool  (* represents the correctness claim *)
 
-(* Definition: An algorithm covers all cases *)
+(* Definition: An algorithm covers all cases
+   - Soundness: returned path is valid
+   - Completeness: finds HC when it exists *)
 definition coversAllCases :: "(Graph \<Rightarrow> Path option) \<Rightarrow> bool" where
   "coversAllCases algFn \<equiv>
      \<forall>g.
-       (* Soundness: returned path is valid *)
        (\<forall>p. algFn g = Some p \<longrightarrow> isHamiltonianCircuit g p) \<and>
-       (* Completeness: finds HC when it exists *)
        (HamiltonianCircuit g \<longrightarrow> (\<exists>p. algFn g = Some p))"
 
 section \<open>The Failure Mode: Incomplete Coverage\<close>
@@ -118,13 +118,12 @@ axiomatization
 where
   liu_incomplete_coverage: "\<not>coversAllCases (alg liuAlgorithm)"
 
-(* There exists a counterexample graph *)
+(* There exists a counterexample graph:
+   Either algorithm gives wrong answer, or misses existing HC *)
 theorem exists_counterexample_graph:
   "\<exists>g.
-     (* Either wrong answer *)
      ((\<exists>p. alg liuAlgorithm g = Some p \<and>
            \<not>isHamiltonianCircuit g p) \<or>
-     (* Or misses existing HC *)
      (HamiltonianCircuit g \<and>
       (\<forall>p. alg liuAlgorithm g \<noteq> Some p)))"
 proof -
@@ -147,13 +146,13 @@ qed
 
 section \<open>Why This Invalidates the P=NP Claim\<close>
 
-(* A valid P=NP proof via HC algorithm requires universal correctness *)
+(* A valid P=NP proof via HC algorithm requires:
+   - Universal correctness
+   - Polynomial time *)
 definition ValidPEqNPProofViaHC :: "bool" where
   "ValidPEqNPProofViaHC \<equiv>
      \<exists>algFn k.
-       (* Universal correctness *)
        coversAllCases algFn \<and>
-       (* Polynomial time *)
        (\<forall>g. \<exists>time. time \<le> (length (vertices g)) ^ k)"
 
 (* Liu's proof attempt is invalid *)
@@ -179,12 +178,11 @@ section \<open>Educational Lesson\<close>
   Key: Universal quantification over ALL inputs is required!
 *)
 
-(* Partial solutions are insufficient *)
+(* Partial solutions are insufficient:
+   Works on SOME graphs but not all *)
 theorem partial_solution_insufficient:
   "\<forall>algFn.
-     (* Works on SOME graphs *)
      (\<exists>g. \<forall>p. algFn g = Some p \<longrightarrow> isHamiltonianCircuit g p) \<longrightarrow>
-     (* But not all *)
      (\<not>coversAllCases algFn \<longrightarrow>
       \<not>(\<forall>g. HamiltonianCircuit g \<longleftrightarrow>
            (\<exists>p. algFn g = Some p \<and> isHamiltonianCircuit g p)))"
