@@ -1,16 +1,31 @@
 # The P versus NP Problem: Comprehensive Task Description
 
+**Language:** [English](P_VS_NP_TASK_DESCRIPTION.md) | [Русский (Russian)](P_VS_NP_TASK_DESCRIPTION.ru.md)
+
 **Navigation:** [↑ Back to Repository Root](README.md) | [Tools & Methodologies](TOOLS_AND_METHODOLOGIES.md) | [Solution Plan](DETAILED_SOLUTION_PLAN.md) | [Formal Proofs](README.md#-formal-verification)
 
 ---
 
 ## Executive Summary
 
-The P versus NP problem is one of the seven Millennium Prize Problems established by the Clay Mathematics Institute, offering a $1 million prize for its resolution. It asks whether every problem whose solution can be quickly verified (NP) can also be quickly solved (P).
+The P versus NP problem is one of the seven Millennium Prize Problems established by the Clay Mathematics Institute, offering a $1 million prize for its resolution.
 
-**Central Question:** Does P = NP?
+### The Key Framing
 
-**Practical Meaning:** If P = NP, then any problem for which we can verify a solution quickly can also be solved quickly. If P ≠ NP, then there exist problems for which solutions can be verified quickly but cannot be found quickly.
+**✅ PROVEN: P ⊆ NP** — Every problem solvable in polynomial time is also verifiable in polynomial time.
+[See formal proofs](proofs/p_vs_np_decidable/README.md) in Lean, Coq, Isabelle/HOL, and Agda.
+
+**❓ THE QUESTION: Is NP ⊆ P true?**
+
+For P = NP to be true, we need **both**:
+1. P ⊆ NP (✅ **proven** — [see proof](proofs/p_vs_np_decidable/README.md))
+2. NP ⊆ P (❓ **unknown**)
+
+**Central Question:** Does NP ⊆ P?
+
+**Implication:** P vs NP is provable/unprovable if and only if NP ⊆ P is provable/unprovable.
+
+**Practical Meaning:** If NP ⊆ P (equivalently, P = NP), then every problem whose solution can be quickly verified can also be quickly solved. If NP ⊄ P (equivalently, P ≠ NP), then there exist problems for which solutions can be verified quickly but cannot be found quickly.
 
 ---
 
@@ -31,8 +46,9 @@ The P versus NP problem is one of the seven Millennium Prize Problems establishe
 - Examples: SAT, 3-SAT, Hamiltonian cycle, graph coloring, traveling salesman
 
 **Key Relationship:**
-- It is trivially true that P ⊆ NP
-- The question is whether P = NP or P ⊊ NP (proper subset)
+- P ⊆ NP is **proven** ([see formal proofs](proofs/p_vs_np_decidable/README.md))
+- Since P ⊆ NP is proven, P = NP if and only if NP ⊆ P
+- The question is whether NP ⊆ P (equivalently, whether P = NP or P ⊊ NP)
 
 ### 1.2 The Problem Statement
 
