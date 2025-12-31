@@ -1,5 +1,5 @@
 theory OWFConstruction
-  imports Main
+  imports Complex_Main
 begin
 
 section \<open>OWF Construction and One-Wayness Argument\<close>
