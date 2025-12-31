@@ -14,7 +14,10 @@
 /-! ## Flow Networks -/
 
 /-- A vertex in the flow network -/
-def Vertex := Nat
+abbrev Vertex := Nat
+
+-- Vertex is Nat, so it inherits DecidableEq from Nat
+instance : DecidableEq Vertex := inferInstance
 
 /-- An edge with capacity, cost, lower bound, and realized flow -/
 structure Edge where
@@ -24,14 +27,12 @@ structure Edge where
   cost : Int            -- cost per unit c(e)
   lowerBound : Nat      -- lower bound l(e)
   flow : Nat            -- realized flow f(e)
-  deriving Repr
 
 /-- Flow network with supply/demand at vertices -/
 structure FlowNetwork where
   vertices : List Vertex
   edges : List Edge
   supply : Vertex → Int  -- b(v): positive = source, negative = sink, 0 = conservation
-  deriving Repr
 
 /-! ## Valid Flow Constraints -/
 
@@ -151,7 +152,7 @@ def gateLocallyCorrect
 
 axiom gatesComposeCorrectly : ∀ (net : FlowNetwork),
   /- If all gates in the network are locally correct... -/
-  (∀ gateSubnet, True) →
+  (∀ (gateSubnet : FlowNetwork), True) →
   /- Then the entire network evaluates correctly as a logic circuit -/
   isMinimumCostFlow net →
   /- ??? This does not follow! ??? -/
