@@ -190,18 +190,19 @@ Definition cost_interference_example : Prop :=
 (** What would be needed for the approach to work *)
 Record ComposabilityRequirement := {
   (** 1. Local correctness of each gate *)
-  local_correctness : forall gate, Prop;
+  local_correctness : FlowNetwork -> Prop;
 
   (** 2. Costs must be "isolated" - no interference *)
-  cost_isolation : forall net gate1 gate2, Prop;
+  cost_isolation : FlowNetwork -> FlowNetwork -> FlowNetwork -> Prop;
 
   (** 3. Minimum-cost flow must respect logical structure *)
-  respects_logic : forall net, is_minimum_cost_flow net -> Prop;
+  respects_logic : FlowNetwork -> Prop;
 
   (** 4. These must compose: local + isolation -> global correctness *)
-  composition_theorem : forall net,
-    (forall gate, local_correctness gate) ->
-    (forall g1 g2, cost_isolation net g1 g2) ->
+  composition_theorem : forall (net : FlowNetwork),
+    (forall (gate : FlowNetwork), local_correctness gate) ->
+    (forall (g1 g2 : FlowNetwork), cost_isolation net g1 g2) ->
+    is_minimum_cost_flow net ->
     respects_logic net
 }.
 
