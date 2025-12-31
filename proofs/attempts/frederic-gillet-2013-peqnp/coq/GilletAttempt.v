@@ -44,10 +44,10 @@ Definition edge_valid (e : Edge) : Prop :=
 (** Flow conservation at a vertex *)
 Definition flow_conservation (net : FlowNetwork) (v : Vertex) : Prop :=
   let incoming := fold_right (fun e acc => if Nat.eqb (target e) v
-                                           then acc + Z.of_nat (flow e)
+                                           then (acc + Z.of_nat (flow e))%Z
                                            else acc) 0%Z (edges net) in
   let outgoing := fold_right (fun e acc => if Nat.eqb (source e) v
-                                           then acc + Z.of_nat (flow e)
+                                           then (acc + Z.of_nat (flow e))%Z
                                            else acc) 0%Z (edges net) in
   (supply net v + incoming = outgoing)%Z.
 
