@@ -85,8 +85,21 @@ Definition satisfies_XOR3 (a : Assignment) (inst : XOR3_Instance) : bool :=
 Definition XOR3_SAT (inst : XOR3_Instance) : Prop :=
   exists a, satisfies_XOR3 a inst = true.
 
+(** Encoding/decoding between XOR3_Instance and BinaryString *)
+(** This abstracts the encoding details while preserving the formal structure *)
+Axiom encode_XOR3 : XOR3_Instance -> BinaryString.
+Axiom decode_XOR3 : BinaryString -> option XOR3_Instance.
+Axiom encode_decode_XOR3 : forall inst, decode_XOR3 (encode_XOR3 inst) = Some inst.
+
+(** Lifted XOR3_SAT to work on BinaryString (as DecisionProblem requires) *)
+Definition XOR3_SAT_lifted (s : BinaryString) : Prop :=
+  match decode_XOR3 s with
+  | Some inst => XOR3_SAT inst
+  | None => False
+  end.
+
 (** 3-XOR is NP-complete (stated as axiom, well-known result) *)
-Axiom XOR3_is_NP_complete : NP_complete XOR3_SAT.
+Axiom XOR3_is_NP_complete : NP_complete XOR3_SAT_lifted.
 
 (** * 3. Gap Problems *)
 
@@ -100,11 +113,18 @@ Definition max_satisfiable_fraction (inst : XOR3_Instance) : Prop :=
     forall a, (* for all assignments *)
       True. (* abstract: fraction of satisfied clauses *)
 
-(** Gap 3-XOR decision problem *)
-Definition Gap_XOR3 (epsilon : nat) (inst : XOR3_Instance) : Prop :=
+(** Gap 3-XOR decision problem on XOR3_Instance *)
+Definition Gap_XOR3_inst (epsilon : nat) (inst : XOR3_Instance) : Prop :=
   (* Either almost all clauses are satisfiable, or almost none are *)
   (* This is a promise problem - only defined on instances meeting the gap *)
   True. (* Abstract gap property *)
+
+(** Lifted Gap 3-XOR to work on BinaryString (as DecisionProblem requires) *)
+Definition Gap_XOR3 (epsilon : nat) (s : BinaryString) : Prop :=
+  match decode_XOR3 s with
+  | Some inst => Gap_XOR3_inst epsilon inst
+  | None => False
+  end.
 
 (** Gap 3-XOR is NP-hard (for appropriate epsilon) *)
 Axiom Gap_XOR3_is_NP_hard : forall epsilon, NP_hard (Gap_XOR3 epsilon).
@@ -162,7 +182,7 @@ Axiom Cui_Claim_SDP_solves_GapXOR3 :
   forall (inst : XOR3_Instance) (epsilon : nat),
     exists (solution : nat),
       CharikarWirth_SDP_rounds 2 inst = Some solution /\
-      (Gap_XOR3 epsilon inst <-> solution > 0). (* Abstract correctness *)
+      (Gap_XOR3_inst epsilon inst <-> solution > 0). (* Abstract correctness *)
 
 (** * 7. The Claimed Proof of P=NP *)
 
@@ -222,7 +242,7 @@ Theorem Cui_P_equals_NP_claim :
   (** Assuming the SDP claim is correct *)
   (forall inst epsilon solution,
     CharikarWirth_SDP_rounds 2 inst = Some solution ->
-    (Gap_XOR3 epsilon inst <-> solution > 0)) ->
+    (Gap_XOR3_inst epsilon inst <-> solution > 0)) ->
   (** Then P = NP *)
   forall L, in_NP L -> in_P L.
 Proof.
@@ -240,9 +260,13 @@ Proof.
     exists time.
     split.
     - exact Hpoly.
-    - exists (fun inst_enc =>
-        match CharikarWirth_SDP_rounds 2 inst_enc with
-        | Some s => if Nat.ltb 0 s then true else false
+    - exists (fun s =>
+        match decode_XOR3 s with
+        | Some inst =>
+            match CharikarWirth_SDP_rounds 2 inst with
+            | Some sol => if Nat.ltb 0 sol then true else false
+            | None => false
+            end
         | None => false
         end).
       intro x.
