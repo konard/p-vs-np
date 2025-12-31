@@ -194,9 +194,9 @@ axiomatization
   well_defined_tau :: "BitFunction"
 
 (* What Figueroa provides: Structural arguments about the construction *)
-axiomatization where
-  construction_has_nice_structure:
-    "True"  (* The function is built from hash functions in a specific way *)
+(* The function is built from hash functions in a specific way - placeholder *)
+definition construction_has_nice_structure :: "bool" where
+  "construction_has_nice_structure = True"
 
 (* What's needed: A proof that NO efficient algorithm can invert it *)
 definition needed_for_one_wayness :: bool where
