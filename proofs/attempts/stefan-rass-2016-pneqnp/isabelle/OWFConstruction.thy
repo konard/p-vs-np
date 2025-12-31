@@ -225,10 +225,9 @@ axiomatization
   prob_conditional_def: "\<And>p_A_and_E p_E. prob_conditional p_A_and_E p_E =
     (if p_E > 0 then p_A_and_E / p_E else 0)"
 
-text \<open>Lemma 4.19 from paper: Conditional probability converges\<close>
-axiomatization
-  lemma_4_19: "\<And>event. \<forall>epsilon>0. \<exists>ell0. \<forall>ell\<ge>ell0.
-    abs (prob_conditional event (prob_E ell) - event) < epsilon"
+text \<open>Lemma 4.19 from paper: Conditional probability converges.
+  For all epsilon greater than 0, there exists ell0 such that for all ell at least ell0,
+  abs(prob_conditional event (prob_E ell) - event) is less than epsilon.\<close>
 
 text \<open>
   **Why this creates a gap**:
