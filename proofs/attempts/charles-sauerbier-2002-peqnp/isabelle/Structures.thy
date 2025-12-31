@@ -1,5 +1,5 @@
 theory Structures
-  imports Main HOL.Nat HOL.List
+  imports Main
 begin
 
 section \<open>Charles Sauerbier (2002) - Core Structures\<close>
@@ -45,7 +45,7 @@ represented as numbers 0-7.
 
 text \<open>Check if a specific bit is set in a number\<close>
 definition bit_set :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
-  "bit_set a i \<equiv> odd (a div (2^i))"
+  "bit_set a i \<equiv> odd (a div (2 ^ i))"
 
 subsection \<open>Byte Representation\<close>
 
@@ -79,12 +79,14 @@ definition valid_byte :: "Byte \<Rightarrow> bool" where
   "valid_byte b \<equiv> b < 256"
 
 text \<open>Set a bit in a byte (add an assignment/constraint)\<close>
-definition set_bit :: "Byte \<Rightarrow> nat \<Rightarrow> Byte" where
-  "set_bit b i = (b OR (2^i)) mod 256"
+(* NOTE: Isabelle's bitwise operations require specific imports.
+   We provide simplified definitions that avoid bitwise operators. *)
+definition set_bit_byte :: "Byte \<Rightarrow> nat \<Rightarrow> Byte" where
+  "set_bit_byte b i = (if bit_set b i then b else (b + 2 ^ i) mod 256)"
 
 text \<open>Clear a bit in a byte (remove an assignment)\<close>
-definition clear_bit :: "Byte \<Rightarrow> nat \<Rightarrow> Byte" where
-  "clear_bit b i = (b AND (NOT (2^i))) mod 256"
+definition clear_bit_byte :: "Byte \<Rightarrow> nat \<Rightarrow> Byte" where
+  "clear_bit_byte b i = (if bit_set b i then (b - 2 ^ i) mod 256 else b)"
 
 subsection \<open>Variable Subsets\<close>
 
@@ -152,8 +154,9 @@ If A has assignment '100' (bit 4 set), then D should NOT have constraint
 \<close>
 
 text \<open>Negate a byte (flip all bits in range 0-7)\<close>
+(* NOTE: XOR with 255 is equivalent to 255 - b for bytes in range 0-255 *)
 definition negate_byte :: "Byte \<Rightarrow> Byte" where
-  "negate_byte b = (b XOR 255) mod 256"
+  "negate_byte b = (255 - b)"
 
 text \<open>Transform D element to A element\<close>
 definition d_to_a :: "D_element \<Rightarrow> A_element" where

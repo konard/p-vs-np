@@ -152,8 +152,10 @@ text \<open>
   Gödel's sentence is a single sentence about PA, not a set of instances.
 \<close>
 
+(* NOTE: The theorem below shows that any interpretation function can exist,
+   but this is vacuously true and doesn't prove anything substantial. *)
 theorem Goedel_Not_Decision_Problem:
-  "\<forall>(_interpretation::bool \<Rightarrow> DecisionProblem). True"
+  "\<forall>(interpretation::bool \<Rightarrow> DecisionProblem). True"
   by simp
 
 text \<open>

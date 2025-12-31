@@ -29,10 +29,14 @@ def IsClique (G : Graph) (S : Subset G.vertices) : Prop :=
 /-- A partition of vertices into disjoint subsets -/
 def Partition (n : Nat) := List (Subset n)
 
+-- Helper: subset membership in partition
+def subsetInPartition {n : Nat} (S : Subset n) (P : Partition n) : Prop :=
+  ∃ T : Subset n, List.Mem T P ∧ ∀ i : Fin n, S i = T i
+
 /-- Check if a partition covers all vertices exactly once -/
 def IsPartition (G : Graph) (P : Partition G.vertices) : Prop :=
-  (∀ v : Fin G.vertices, ∃ S : Subset G.vertices, S ∈ P ∧ S v = true) ∧
-  (∀ S : Subset G.vertices, S ∈ P → IsClique G S)
+  (∀ v : Fin G.vertices, ∃ S : Subset G.vertices, subsetInPartition S P ∧ S v = true) ∧
+  (∀ S : Subset G.vertices, subsetInPartition S P → IsClique G S)
 
 /-- The size of a partition is the number of cliques -/
 def partitionSize {n : Nat} (P : Partition n) : Nat := P.length

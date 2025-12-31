@@ -25,11 +25,16 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          .lake
           ~/.elan
-        key: ${{ runner.os }}-lean-${{ hashFiles('lakefile.lean', 'lean-toolchain') }}
-        restore-keys: |
-          ${{ runner.os }}-lean-
+        key: ${{ runner.os }}-lean-toolchain-${{ hashFiles('lean-toolchain') }}
+
+    - name: Clean stale build artifacts
+      run: |
+        # Clean .lake build artifacts to ensure fresh build with current sources
+        if [ -d ".lake/build" ]; then
+          echo "Cleaning stale build artifacts..."
+          rm -rf .lake/build
+        fi
 
     - name: Build and test Lean
       run: |
@@ -119,34 +124,56 @@ jobs:
       id: cache-isabelle
       uses: actions/cache@v4
       with:
-        path: Isabelle2025
-        key: ${{ runner.os }}-isabelle-2025
+        path: Isabelle2025-1
+        key: ${{ runner.os }}-isabelle-2025-1
 
     - name: Install Isabelle
       if: steps.check-isabelle.outputs.has_files == 'true' && steps.cache-isabelle.outputs.cache-hit != 'true'
       run: |
-        # Try downloading with retries and timeout
-        for i in {1..3}; do
-          echo "Download attempt $i of 3..."
-          if wget --timeout=180 --tries=3 https://isabelle.in.tum.de/dist/Isabelle2025_linux.tar.gz; then
-            echo "Download successful!"
-            break
-          fi
-          if [ $i -lt 3 ]; then
-            echo "Download failed, retrying in 10 seconds..."
-            sleep 10
-          else
-            echo "All download attempts failed. Trying alternative approach..."
-            # Alternative: try GitHub mirror or pre-built container
-            exit 1
-          fi
+        # Retry logic with multiple mirrors and attempts
+        ISABELLE_VERSION="Isabelle2025-1"
+        MIRRORS=(
+          "https://isabelle.in.tum.de/dist/${ISABELLE_VERSION}_linux.tar.gz"
+          "https://mirror.ctan.org/systems/isabelle/${ISABELLE_VERSION}_linux.tar.gz"
+          "https://isabelle.sketis.net/dist/${ISABELLE_VERSION}_linux.tar.gz"
+        )
+        MAX_RETRIES=3
+        DOWNLOAD_SUCCESS=false
+
+        for mirror in "${MIRRORS[@]}"; do
+          echo "Trying mirror: $mirror"
+          for attempt in $(seq 1 $MAX_RETRIES); do
+            echo "  Attempt $attempt of $MAX_RETRIES..."
+            if wget --timeout=120 --tries=1 -q "$mirror" -O "${ISABELLE_VERSION}_linux.tar.gz"; then
+              echo "  Download successful!"
+              DOWNLOAD_SUCCESS=true
+              break 2
+            else
+              echo "  Failed, waiting 10 seconds before retry..."
+              sleep 10
+            fi
+          done
         done
-        tar xzf Isabelle2025_linux.tar.gz
+
+        if [ "$DOWNLOAD_SUCCESS" = false ]; then
+          echo "ERROR: All download attempts failed"
+          exit 1
+        fi
+
+        tar xzf ${ISABELLE_VERSION}_linux.tar.gz
 
     - name: Add Isabelle to PATH
       if: steps.check-isabelle.outputs.has_files == 'true'
       run: |
-        echo "$PWD/Isabelle2025/bin" >> $GITHUB_PATH
+        echo "$PWD/Isabelle2025-1/bin" >> $GITHUB_PATH
+
+    - name: Generate ROOTS file
+      if: steps.check-isabelle.outputs.has_files == 'true'
+      run: |
+        echo "Generating ROOTS file from individual ROOT files..."
+        find . -name ROOT -path "*/isabelle/*" | sed 's|/ROOT||' | sed 's|^\./||' | sort > ROOTS
+        echo "Found $(wc -l < ROOTS) Isabelle sessions:"
+        cat ROOTS
 
     - name: Build and test Isabelle
       if: steps.check-isabelle.outputs.has_files == 'true'

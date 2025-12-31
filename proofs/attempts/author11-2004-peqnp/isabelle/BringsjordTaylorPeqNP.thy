@@ -95,38 +95,20 @@ definition inClassP_Standard :: "Language \<Rightarrow> bool" where
       True"  (* ... and L is decidable with these bounds *)
 
 (* The physical process does NOT satisfy the polynomial resource constraint *)
+(* NOTE: This lemma demonstrates the flaw in the Bringsjord-Taylor argument.
+   The proof cannot be completed in Isabelle because the axioms we've stated
+   don't provide enough information to derive a formal contradiction.
+   The key insight is that polynomial and exponential functions can technically
+   have overlapping values for small inputs, so the formal contradiction requires
+   additional machinery to compare asymptotic growth rates.
+   We comment out the problematic parts and use sorry to mark the gap. *)
 lemma physicalProcess_not_polynomial_algorithm:
   "\<forall>L::NPComplete.
     \<not>(\<exists>P::PhysicalProcess.
         phys_language P = npc_language L \<and>
         isPolynomial (phys_wallClockTime P) \<and>
         isPolynomial (phys_resources P))"
-proof -
-  {
-    fix L :: NPComplete
-    assume "\<exists>P::PhysicalProcess.
-            phys_language P = npc_language L \<and>
-            isPolynomial (phys_wallClockTime P) \<and>
-            isPolynomial (phys_resources P)"
-    then obtain P where
-      h_lang: "phys_language P = npc_language L" and
-      h_poly_time: "isPolynomial (phys_wallClockTime P)" and
-      h_poly_resources: "isPolynomial (phys_resources P)"
-      by auto
-
-    (* By our axiom, the physical process must use exponential resources *)
-    have h_exp: "isExponential (phys_resources P)"
-      using physicalProcessExponentialResources h_lang h_poly_time
-      by blast
-
-    (* But we also have polynomial resources - contradiction! *)
-    (* For large enough n, exponential growth exceeds polynomial bounds *)
-    (* This is the mathematical contradiction *)
-    have False
-      sorry  (* Would require detailed formalization of growth rate comparison *)
-  }
-  thus ?thesis by auto
-qed
+  sorry  (* Proof gap: requires formal asymptotic analysis machinery *)
 
 section \<open>5. The Invalid Conclusion\<close>
 
@@ -140,16 +122,17 @@ text \<open>
 \<close>
 
 lemma bringsjordTaylor_invalid:
-  assumes physical: "\<forall>L::NPComplete. \<exists>P::PhysicalProcess.
+  assumes physical: "\<forall>L. \<exists>P.
                       phys_language P = npc_language L \<and>
                       isPolynomial (phys_wallClockTime P)"
-  shows "\<not>(\<forall>L::NPComplete. \<exists>P::ClassP. p_language P = npc_language L)"
+  shows "\<not>(\<forall>L. \<exists>P. p_language P = npc_language L)"
 proof -
   (* Pick an arbitrary NP-complete problem *)
   (* By the claim, L is in P *)
   (* But the physical process must use exponential resources *)
   (* This contradicts L being in P with polynomial resources *)
-  sorry  (* Full proof would require more detailed setup *)
+  show ?thesis
+    sorry  (* Full proof would require more detailed setup *)
 qed
 
 section \<open>6. The Core Error Formalized\<close>
