@@ -183,13 +183,14 @@ text \<open>This is where the proof fails! Even if RCNF(F) is super-polynomial,
 text \<open>Decision complexity: decidable in polynomial time\<close>
 definition decidable_in_poly_time :: "CNF \<Rightarrow> bool" where
   "decidable_in_poly_time f \<equiv>
-    \<exists>algorithm poly time_function.
+    \<exists>(algorithm::CNF \<Rightarrow> bool) (poly::nat \<Rightarrow> nat) (time_function::nat \<Rightarrow> nat).
       \<forall>n. time_function n \<le> poly n \<and>
           (algorithm f \<longleftrightarrow> SAT f)"
 
 text \<open>NP: certificate-verifiable in polynomial time\<close>
+(* Note: We use Assignment as the certificate type *)
 definition in_NP :: "CNF \<Rightarrow> bool" where
-  "in_NP f \<equiv> \<exists>verifier poly. (SAT f \<longleftrightarrow> (\<exists>cert. verifier f cert))"
+  "in_NP f \<equiv> \<exists>(verifier::CNF \<Rightarrow> Assignment \<Rightarrow> bool) (poly::nat \<Rightarrow> nat). (SAT f \<longleftrightarrow> (\<exists>cert. verifier f cert))"
 
 text \<open>The error: Kobayashi concludes from "no poly-size reduction to RCNF"
       that "SAT is not in P". But these are NOT equivalent!\<close>
@@ -204,14 +205,15 @@ proof -
   show "\<not>(\<forall>f. \<not> decidable_in_poly_time f)"
   proof
     assume contra: "\<forall>f. \<not> decidable_in_poly_time f"
-    txt \<open>The implication doesn't hold because:
+    text \<open>The implication doesn't hold because:
          - Reduction size ≠ algorithm time
          - Other algorithms besides RCNF transformation might exist
          - P-completeness doesn't mean all P problems reduce efficiently to RCNF\<close>
 
-    txt \<open>We cannot prove a contradiction from H alone,
+    text \<open>We cannot prove a contradiction from H alone,
          demonstrating that H is insufficient to prove P ≠ NP\<close>
-    sorry
+    show False
+      sorry
   qed
 qed
 
@@ -242,12 +244,13 @@ proof -
   show "\<not> P_neq_NP"
   proof
     assume contra: "P_neq_NP"
-    txt \<open>Cannot derive a contradiction because the premises are about
+    text \<open>Cannot derive a contradiction because the premises are about
          different things:
          - H is about representation size
          - contra is about decision complexity
          These are orthogonal concepts!\<close>
-    sorry
+    show False
+      sorry
   qed
 qed
 

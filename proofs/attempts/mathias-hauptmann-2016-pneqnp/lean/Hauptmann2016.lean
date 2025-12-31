@@ -25,7 +25,7 @@ structure TuringMachine where
 def DTIME (t : TimeBound) (L : Language) : Prop :=
   ∃ (M : TuringMachine),
     M.accepts = L ∧
-    ∀ x, M.time x.length ≤ t x.length
+    ∀ x : List Bool, M.time (List.length x) ≤ t (List.length x)
 
 -- The class P (polynomial time)
 def P_class (L : Language) : Prop :=
@@ -39,7 +39,7 @@ def P_class (L : Language) : Prop :=
 def Sigma2_Time (t : TimeBound) (L : Language) : Prop :=
   ∃ (M : TuringMachine),
     M.accepts = L ∧
-    ∀ x, M.time x.length ≤ t x.length
+    ∀ x : List Bool, M.time (List.length x) ≤ t (List.length x)
     -- This should model Σ₂ computation with specific alternation pattern,
     -- but we're using deterministic TMs as a placeholder
 
@@ -69,7 +69,7 @@ def TimeConstructible (t : TimeBound) : Prop :=
 -- their union can be captured by a single time bound.
 axiom UnionTheorem :
   ∀ (seq : Nat → TimeBound),
-  (∀ i j, i < j → seq i < seq j) →  -- increasing sequence (pointwise)
+  (∀ i j n, i < j → seq i n < seq j n) →  -- increasing sequence (pointwise)
   ∃ t : TimeBound,
     ∀ L, (∃ i, DTIME (seq i) L) ↔ DTIME t L
 
@@ -82,7 +82,7 @@ axiom UnionTheorem :
 -- is non-trivial and this may not hold.
 axiom Hauptmann_Union_Theorem_Variant :
   ∀ (seq : Nat → TimeBound),
-  (∀ i j, i < j → seq i < seq j) →
+  (∀ i j n, i < j → seq i n < seq j n) →
   ∃ F : TimeBound,
     TimeConstructible F ∧
     (∀ L, (∃ i, Sigma2_Time (seq i) L) ↔ Sigma2_Time F L) ∧
@@ -131,24 +131,23 @@ axiom Guptas_result :
 
 theorem Hauptmann_contradiction : False := by
   -- Apply Hauptmann's padding claim
-  obtain ⟨c, H_pad⟩ := Hauptmann_padding_claim
+  match Hauptmann_padding_claim with
+  | ⟨c, H_pad⟩ =>
+    -- F^c is time-constructible (claimed)
+    -- NOTE: GAP #6 - We need to prove this from TimeConstructible(F),
+    -- but this is non-trivial.
+    have H_tc : TimeConstructible (fun n => (construct_F n)^c) := by
+      sorry
 
-  -- F^c is time-constructible (claimed)
-  -- NOTE: GAP #6 - We need to prove this from TimeConstructible(F),
-  -- but this is non-trivial.
-  have H_tc : TimeConstructible (fun n => (construct_F n)^c) := by
-    sorry
+    -- Apply Gupta's result to F^c
+    match Guptas_result (fun n => (construct_F n)^c) H_tc with
+    | ⟨L, H_in_Sigma2, H_not_in_DTIME⟩ =>
+      -- But from the padding claim, L ∈ Σ₂(F^c) implies L ∈ DTIME(F^c)
+      have : DTIME (fun n => (construct_F n)^c) L := by
+        exact (H_pad L).mpr H_in_Sigma2
 
-  -- Apply Gupta's result to F^c
-  obtain ⟨L, H_in_Sigma2, H_not_in_DTIME⟩ :=
-    Guptas_result (fun n => (construct_F n)^c) H_tc
-
-  -- But from the padding claim, L ∈ Σ₂(F^c) implies L ∈ DTIME(F^c)
-  have : DTIME (fun n => (construct_F n)^c) L := by
-    exact (H_pad L).mpr H_in_Sigma2
-
-  -- CONTRADICTION!
-  exact H_not_in_DTIME this
+      -- CONTRADICTION!
+      exact H_not_in_DTIME this
 
 -- ** The Main Result
 
@@ -212,4 +211,5 @@ theorem Hauptmann_P_neq_NP :
 
 -- Verification note: This file compiles but contains 'sorry' and axioms
 -- representing unproven claims in Hauptmann's argument
-#print "✓ Hauptmann 2016 formalization completed (with identified gaps)"
+-- #print "✓ Hauptmann 2016 formalization completed (with identified gaps)"
+-- Note: #print with string literal is not valid in Lean 4, commented out

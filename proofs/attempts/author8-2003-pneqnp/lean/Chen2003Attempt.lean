@@ -25,6 +25,9 @@ axiom PolynomialTime : Problem → Prop
 axiom InP : Problem → Prop
 axiom InNP : Problem → Prop
 
+-- Placeholder problem instance (since Problem is an axiomatic type, not a structure)
+axiom some_problem : Problem
+
 -- Proof-related concepts
 axiom Proof : Prop → Type
 axiom MathematicalStatement : Type
@@ -36,7 +39,7 @@ axiom competent : ComputerScientist → Prop
 axiom can_verify_proof : (cs : ComputerScientist) → (s : Prop) → Proof s → Prop
 axiom verification_is_polynomial :
   ∀ (cs : ComputerScientist) (s : Prop) (p : Proof s),
-    competent cs → can_verify_proof cs s p → PolynomialTime (Problem.mk)
+    competent cs → can_verify_proof cs s p → PolynomialTime some_problem
 
 -- The INVALID axiom that the 2003 argument requires
 -- This is the error: confusing "exists" with "has been discovered by humans in finite time"
@@ -78,7 +81,7 @@ axiom proof_verification_polynomial :
     ∃ (cs : ComputerScientist),
       competent cs ∧
       can_verify_proof cs P_equals_NP p ∧
-      PolynomialTime (Problem.mk)
+      PolynomialTime some_problem
 
 -- Step 4: The INVALID claim that P=NP implies proof generation is polynomial
 -- This is where the argument breaks down!
@@ -87,7 +90,7 @@ axiom invalid_generation_claim :
   ∀ (s : Prop),
     (∃ (p : Proof s), True) →  -- if a proof exists mathematically
     (∃ (algo : Nat → Option (Proof s)), -- then there's a polynomial algorithm to find it
-      PolynomialTime (Problem.mk))
+      PolynomialTime some_problem)
 
 -- Step 5: The empirical observation (not a mathematical statement!)
 def no_proof_discovered : Prop :=
@@ -143,7 +146,7 @@ axiom p_equals_np_not_practical :
 -- The argument treats "find a proof of P=NP" as an NP problem
 -- But this is not properly formulated
 
-def proof_search_problem : Problem := Problem.mk
+noncomputable def proof_search_problem : Problem := some_problem
 -- This problem is NOT necessarily in NP!
 axiom proof_search_not_in_np :
   ¬(InNP proof_search_problem)
@@ -182,7 +185,7 @@ theorem p_vs_np_has_answer : P_equals_NP ∨ P_not_equals_NP :=
 #check proof_search_not_in_np
 
 -- Verification summary
-#print "✓ Chen 2003 attempt formalized in Lean"
-#print "✓ Multiple logical errors identified"
-#print "✓ Invalid axioms explicitly marked"
-#print "✓ Argument shown to be incomplete without invalid axioms"
+-- ✓ Chen 2003 attempt formalized in Lean
+-- ✓ Multiple logical errors identified
+-- ✓ Invalid axioms explicitly marked
+-- ✓ Argument shown to be incomplete without invalid axioms
