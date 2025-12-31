@@ -82,28 +82,25 @@ text \<open>Preimage: f^(-1)(y) = {x : f(x) = y}\<close>
 definition preimage :: "(string \<Rightarrow> string) \<Rightarrow> string \<Rightarrow> string set" where
   "preimage f y = {x. f x = y}"
 
-text \<open>Circuit inverts f with probability at least p on inputs of length ell\<close>
+text \<open>Circuit inverts f with probability at least p on inputs of length ell.
+  Probability that C(f(w)) is in f inverse of f(w) when w is random from strings of length ell.
+  We axiomatize the probability measure with a placeholder definition.\<close>
 definition circuit_inverts :: "circuit \<Rightarrow> (string \<Rightarrow> string) \<Rightarrow> nat \<Rightarrow> real \<Rightarrow> bool" where
-  "circuit_inverts C f ell prob \<equiv>
-    (* Probability that C(f(w)) ∈ f^(-1)(f(w)) when w is random from {0,1}^ell *)
-    (* We axiomatize the probability measure *)
-    True" (* Placeholder *)
+  "circuit_inverts C f ell prob \<equiv> True"
 
-text \<open>Definition 2.3: Weak One-Way Function\<close>
+text \<open>Definition 2.3: Weak One-Way Function
+  1. f is computable in polynomial time
+  2. f is length-regular
+  3. Hardness: exists polynomial q such that for all polynomials p and circuit families C,
+     for all sufficiently large L, the inversion probability is bounded\<close>
 definition weak_one_way_function :: "(string \<Rightarrow> string) \<Rightarrow> bool" where
   "weak_one_way_function f \<equiv>
-    (* 1. f is computable in polynomial time *)
     (\<exists>p_time. is_polynomial p_time) \<and>
-    (* 2. f is length-regular *)
     length_regular f \<and>
-    (* 3. Hardness: exists polynomial q such that... *)
     (\<exists>q. poly_nonneg q \<and>
-      (* ...for all polynomials p and circuit families C... *)
       (\<forall>p C. is_polynomial p \<longrightarrow>
         size_bounded_circuit_family C p \<longrightarrow>
-        (* ...for all sufficiently large ℓ... *)
         (\<exists>ell0. \<forall>ell\<ge>ell0.
-          (* ...the inversion probability is bounded *)
           \<not>(circuit_inverts (C ell) f ell (1 - 1 / real (q ell))))))"
 
 subsection \<open>The Language L_N and Threshold Sampling\<close>
@@ -116,14 +113,15 @@ text \<open>
   A set W is a "no-instance" if W ∩ L_N = ∅.
 \<close>
 
+text \<open>L_N is parameterized by security parameter\<close>
 axiomatization
-  L_N :: "nat \<Rightarrow> language" (* Parameterized by security parameter *)
+  L_N :: "nat \<Rightarrow> language"
 
-text \<open>The PTSAMP algorithm samples yes-instances or no-instances\<close>
+text \<open>The PTSAMP algorithm samples yes-instances or no-instances.
+  PTSAMP bit n randomness = sampled set. This is axiomatized.\<close>
 axiomatization
   PTSAMP :: "bool \<Rightarrow> nat \<Rightarrow> string \<Rightarrow> (string set)" where
-  (* PTSAMP bit n randomness = sampled set *)
-  PTSAMP_yes: "\<And>n omega. True" (* Axiomatized; actual implementation omitted *)
+  PTSAMP_yes: "\<And>n omega. True"
 
 subsection \<open>Construction of f_ℓ (Section 4.7)\<close>
 
@@ -141,13 +139,12 @@ text \<open>
 text \<open>The output type: a sequence of sets\<close>
 type_synonym owf_output = "(string set) list"
 
-text \<open>Construction of f_ℓ (equation 42 in paper)\<close>
+text \<open>Construction of f_L (equation 42 in paper).
+  Split input into bits b_1, ..., b_n and randomness into omega_1, ..., omega_n,
+  then return [PTSAMP b_1 ell omega_1, ..., PTSAMP b_n ell omega_n].
+  This is a placeholder definition.\<close>
 definition f_ell :: "nat \<Rightarrow> string \<Rightarrow> string \<Rightarrow> owf_output" where
-  "f_ell ell input randomness =
-    (* Split input into bits b_1, ..., b_n *)
-    (* Split randomness into ω_1, ..., ω_n *)
-    (* Return [PTSAMP b_1 ell ω_1, ..., PTSAMP b_n ell ω_n] *)
-    []" (* Placeholder *)
+  "f_ell ell input randomness = []"
 
 subsection \<open>Event E_ℓ: Correct Sampling\<close>
 
@@ -159,12 +156,11 @@ text \<open>
   but this conditioning removes exactly the cases where inversion might be easy!
 \<close>
 
+text \<open>For each bit b_i in input and corresponding set W_i in output:
+  - If b_i = 1, then W_i intersects L_N (nonempty)
+  - If b_i = 0, then W_i does not intersect L_N (empty intersection)\<close>
 definition event_E :: "nat \<Rightarrow> string \<Rightarrow> owf_output \<Rightarrow> bool" where
-  "event_E ell input output \<equiv>
-    (* For each bit b_i in input and corresponding set W_i in output: *)
-    (* - If b_i = 1, then W_i ∩ L_N ≠ ∅ *)
-    (* - If b_i = 0, then W_i ∩ L_N = ∅ *)
-    True" (* Placeholder *)
+  "event_E ell input output \<equiv> True"
 
 text \<open>Probability that event E_ℓ occurs\<close>
 axiomatization
@@ -185,11 +181,12 @@ text \<open>
   5. Therefore, f_ℓ is hard to invert
 \<close>
 
-text \<open>Lemma 4.18: Inverting f_ℓ requires deciding L_N\<close>
+text \<open>Lemma 4.18: Inverting f_L requires deciding L_N.
+  decide_L_N C n = True if C can decide membership in L_N for universe size n.
+  This is axiomatized.\<close>
 axiomatization
   decide_L_N :: "circuit \<Rightarrow> nat \<Rightarrow> bool" where
-  (* decide_L_N C n = True if C can decide membership in L_N for universe size n *)
-  decide_L_N_def: "\<And>C n. True" (* Axiomatized *)
+  decide_L_N_def: "\<And>C n. True"
 
 lemma inversion_requires_decision:
   assumes "circuit_inverts C (f_ell ell undefined) ell prob"
@@ -254,7 +251,7 @@ theorem conditional_probability_gap:
   assumes epsilon_small: "\<And>ell. epsilon ell > 0"
   assumes hard_conditioned: "\<And>C ell. circuit_inverts (C ell) (f_ell ell undefined) ell p \<Longrightarrow>
     prob_conditional p (prob_E ell) < 1/2"
-  shows "False" (* We cannot conclude overall hardness without analyzing ¬E_ℓ case *)
+  shows "False"
 proof -
   text \<open>
     The problem: We have hardness conditioned on E_ℓ, but:
@@ -271,12 +268,12 @@ proof -
   sorry
 qed
 
-text \<open>To fix this gap, the paper would need:\<close>
+text \<open>To fix this gap, the paper would need to show that even when the negation
+  of E_L occurs, inversion remains hard. This analysis is MISSING from the paper.\<close>
 lemma missing_analysis_for_not_E:
   assumes "\<And>C ell. size_bounded_circuit_family C p \<Longrightarrow>
     \<not> circuit_inverts (C ell) (f_ell ell undefined) ell prob"
-  shows "\<And>C ell. (* Even when ¬E_ℓ occurs, inversion remains hard *)
-    True" (* This is MISSING from the paper *)
+  shows "\<And>C ell. True"
   sorry
 
 subsection \<open>Additional Issues\<close>
