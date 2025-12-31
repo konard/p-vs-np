@@ -8,7 +8,7 @@
 *)
 
 theory MaknickasAttempt
-  imports Main "HOL-Library.FSet"
+  imports Main "HOL-Library.FSet" "HOL-Analysis.Analysis"
 begin
 
 (* ====================================================================== *)
@@ -70,7 +70,7 @@ definition ilp_solution :: "lp_problem \<Rightarrow> real_assignment \<Rightarro
 
 (* A value is boolean (0 or 1) *)
 definition is_boolean :: "real \<Rightarrow> bool" where
-  "is_boolean r \<equiv> r = 0 \<or> r = 1"
+  "is_boolean r \<equiv> (r = 0 \<or> r = 1)"
 
 (* Boolean solution to LP *)
 definition boolean_solution :: "lp_problem \<Rightarrow> real_assignment \<Rightarrow> bool" where
