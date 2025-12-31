@@ -19,70 +19,66 @@ namespace Dujardin2009
 /-! ## Basic Type Definitions -/
 
 /-- Real numbers (opaque type for this formalization) -/
-opaque Real : Type
+axiom Real : Type
 
-notation "ℝ" => Real
+/-- Basic real number operations (as axioms) -/
+axiom Real.zero : Real
+axiom Real.one : Real
+axiom Real.half : Real
+axiom Real.add : Real → Real → Real
+axiom Real.mul : Real → Real → Real
+axiom Real.sub : Real → Real → Real
+axiom Real.le : Real → Real → Prop
+axiom Real.sqrt : Real → Real
+axiom Real.ofInt : Int → Real
 
-/-- Basic real number axioms -/
-axiom Real.zero : ℝ
-axiom Real.one : ℝ
-axiom Real.half : ℝ
-axiom Real.add : ℝ → ℝ → ℝ
-axiom Real.mul : ℝ → ℝ → ℝ
-axiom Real.sub : ℝ → ℝ → ℝ
-axiom Real.le : ℝ → ℝ → Prop
-axiom Real.sqrt : ℝ → ℝ
-axiom Real.ofInt : Int → ℝ
-
-instance : OfNat ℝ 0 := ⟨Real.zero⟩
-instance : OfNat ℝ 1 := ⟨Real.one⟩
-instance : Add ℝ := ⟨Real.add⟩
-instance : Mul ℝ := ⟨Real.mul⟩
-instance : Sub ℝ := ⟨Real.sub⟩
-instance : LE ℝ := ⟨Real.le⟩
+instance : OfNat Real 0 := ⟨Real.zero⟩
+instance : OfNat Real 1 := ⟨Real.one⟩
+instance : Add Real := ⟨Real.add⟩
+instance : Mul Real := ⟨Real.mul⟩
+instance : Sub Real := ⟨Real.sub⟩
+instance : LE Real := ⟨Real.le⟩
 
 /-- Summation over finite range (simplified) -/
-axiom finSum {n : ℕ} (f : Fin n → Int) : Int
-
-notation "∑'" => finSum
+axiom finSum {n : Nat} (f : Fin n → Int) : Int
 
 /-- Summation over finite range (real version) -/
-axiom finSumReal {n : ℕ} (f : Fin n → ℝ) : ℝ
+axiom finSumReal {n : Nat} (f : Fin n → Real) : Real
 
 /-! ## Section 1: Linear Diophantine Equations -/
 
 /-- A linear Diophantine equation ax = b where x is sought in ℤⁿ -/
-structure LinearDiophantineEq (n : ℕ) where
+structure LinearDiophantineEq (n : Nat) where
   coeffs : Fin n → Int
   rhs : Int
 
 /-- Solution to linear Diophantine equation -/
-def isDiophSolution {n : ℕ} (eq : LinearDiophantineEq n) (x : Fin n → Int) : Prop :=
-  ∑' (fun i => eq.coeffs i * x i) = eq.rhs
+def isDiophSolution {n : Nat} (eq : LinearDiophantineEq n) (x : Fin n → Int) : Prop :=
+  finSum (fun i => eq.coeffs i * x i) = eq.rhs
 
 /-! ## Section 2: Binary Linear Equations -/
 
 /-- Check if a function takes only binary values -/
-def isBinary {n : ℕ} (x : Fin n → Int) : Prop :=
+def isBinary {n : Nat} (x : Fin n → Int) : Prop :=
   ∀ i, x i = 0 ∨ x i = 1
 
 /-- Solution to binary linear equation -/
-def isBinarySolution {n : ℕ} (eq : LinearDiophantineEq n) (x : Fin n → Int) : Prop :=
+def isBinarySolution {n : Nat} (eq : LinearDiophantineEq n) (x : Fin n → Int) : Prop :=
   isDiophSolution eq x ∧ isBinary x
 
 /-! ## Section 3: The PARTITION Problem -/
 
 /-- PARTITION problem instance -/
 structure PartitionInstance where
-  n : ℕ
+  n : Nat
   elements : Fin n → Int
   n_pos : 0 < n
 
 /-- A partition of indices into two disjoint sets -/
 structure PartitionSolution (inst : PartitionInstance) where
   inFirstSet : Fin inst.n → Bool
-  sum_equal : ∑' (fun i => if inFirstSet i then inst.elements i else 0) =
-              ∑' (fun i => if inFirstSet i then 0 else inst.elements i)
+  sum_equal : finSum (fun i => if inFirstSet i then inst.elements i else 0) =
+              finSum (fun i => if inFirstSet i then 0 else inst.elements i)
 
 /-- PARTITION has a solution -/
 def partitionHasSolution (inst : PartitionInstance) : Prop :=
@@ -93,7 +89,7 @@ def partitionHasSolution (inst : PartitionInstance) : Prop :=
 /-- Convert PARTITION to binary linear equation (E_PP) -/
 def partitionToBinaryEq (inst : PartitionInstance) : LinearDiophantineEq inst.n :=
   { coeffs := fun i => 2 * inst.elements i
-    rhs := ∑' inst.elements }
+    rhs := finSum inst.elements }
 
 /-- Theorem 2.2: PARTITION reduces to binary linear equation -/
 theorem partition_reduces_to_binary (inst : PartitionInstance) :
@@ -111,57 +107,57 @@ theorem partition_reduces_to_binary (inst : PartitionInstance) :
 /-! ## Section 4: GCD and Extended Euclidean Algorithm -/
 
 /-- Compute GCD sequence P_k = gcd(a_1, ..., a_k) -/
-def gcdSequence {n : ℕ} (a : Fin n → Int) : Fin n → Int :=
-  fun _ => sorry -- Would compute fold of GCD up to index k
+noncomputable def gcdSequence {n : Nat} (_ : Fin n → Int) : Fin n → Int :=
+  fun _ => 0 -- Placeholder
 
 /-- Resolution matrix M for Diophantine equation (placeholder) -/
-def resolutionMatrix {n : ℕ} (_ : LinearDiophantineEq n) : Fin n → Fin (n-1) → Int :=
-  sorry
+noncomputable def resolutionMatrix {n : Nat} (_ : LinearDiophantineEq n) : Fin n → Fin (n-1) → Int :=
+  fun _ _ => 0 -- Placeholder
 
 /-- Particular solution to Diophantine equation (if it exists) -/
-def particularSolution {n : ℕ} (_ : LinearDiophantineEq n) : Option (Fin n → Int) :=
-  sorry
+noncomputable def particularSolution {n : Nat} (_ : LinearDiophantineEq n) : Option (Fin n → Int) :=
+  none -- Placeholder
 
 /-! ## Theorem 1: Structure of Diophantine Solutions -/
 
-theorem dioph_solution_structure {n : ℕ} (eq : LinearDiophantineEq n) (hn : 0 < n) :
+theorem dioph_solution_structure {n : Nat} (eq : LinearDiophantineEq n) (hn : 0 < n) :
     let Pn := gcdSequence eq.coeffs ⟨n-1, Nat.sub_lt hn (Nat.one_pos)⟩
     (Pn ∣ eq.rhs) →
     ∃ (xp : Fin n → Int) (M : Fin n → Fin (n-1) → Int),
       isDiophSolution eq xp ∧
       ∀ x, isDiophSolution eq x ↔
-           ∃ k : Fin (n-1) → Int, x = fun i => xp i + ∑' (fun j => M i j * k j) := by
+           ∃ k : Fin (n-1) → Int, x = fun i => xp i + finSum (fun j => M i j * k j) := by
   sorry
 
 /-! ## Section 5: Geometric Approach -/
 
 /-- Point in n-dimensional affine space -/
-def Point (n : ℕ) := Fin n → ℝ
+def Point (n : Nat) := Fin n → Real
 
 /-- Hypercube vertex (point with coordinates in {0,1}) -/
-def isVertex {n : ℕ} (p : Point n) : Prop :=
+def isVertex {n : Nat} (p : Point n) : Prop :=
   ∀ i, p i = 0 ∨ p i = 1
 
 /-- Center of hypercube -/
-def hypercubeCenter (n : ℕ) : Point n :=
+noncomputable def hypercubeCenter (n : Nat) : Point n :=
   fun _ => Real.half
 
 /-- Hyperplane defined by aX = b -/
-def onHyperplane {n : ℕ} (a : Fin n → Int) (b : Int) (p : Point n) : Prop :=
+def onHyperplane {n : Nat} (a : Fin n → Int) (b : Int) (p : Point n) : Prop :=
   finSumReal (fun i => Real.ofInt (a i) * p i) = Real.ofInt b
 
 /-- Euclidean distance -/
-def euclideanDistance {n : ℕ} (p q : Point n) : ℝ :=
+noncomputable def euclideanDistance {n : Nat} (p q : Point n) : Real :=
   Real.sqrt (finSumReal (fun i => (p i - q i) * (p i - q i)))
 
 /-- Orthogonal projection onto hyperplane (placeholder) -/
-noncomputable def projectOntoHyperplane {n : ℕ} (_ : Point n) (_ : Fin n → Int) (_ : Int) : Point n :=
-  sorry
+noncomputable def projectOntoHyperplane {n : Nat} (_ : Point n) (_ : Fin n → Int) (_ : Int) : Point n :=
+  fun _ => Real.zero -- Placeholder
 
 /-! ## The Critical Claim (Theorem-Definition 3) -/
 
 /-- This is the heart of Dujardin's approach and likely where the error occurs -/
-axiom dujardin_critical_claim {n : ℕ} (a : Fin n → Int) (b : Int) (x : Fin n → Int) :
+axiom dujardin_critical_claim {n : Nat} (a : Fin n → Int) (b : Int) (x : Fin n → Int) :
     let O := hypercubeCenter n
     let Pref := projectOntoHyperplane O a b
     let eq : LinearDiophantineEq n := ⟨a, b⟩
@@ -178,7 +174,7 @@ axiom dujardin_critical_claim {n : ℕ} (a : Fin n → Int) (b : Int) (x : Fin n
     does NOT preserve the property that the nearest lattice point corresponds
     to a hypercube vertex. -/
 def critical_claim_is_false : Prop :=
-    ∃ (n : ℕ) (a : Fin n → Int) (b : Int),
+    ∃ (n : Nat) (a : Fin n → Int) (b : Int),
       ¬ (∀ x, isBinarySolution ⟨a, b⟩ x ↔
           ∃ P_star,
             isVertex P_star ∧
@@ -193,20 +189,23 @@ theorem critical_claim_is_false_witness : critical_claim_is_false := by
 /-! ## Complexity Claims -/
 
 /-- Natural log approximation -/
-axiom natLog2 : ℕ → ℕ
+axiom natLog2 : Nat → Nat
+
+/-- Power of natural numbers -/
+def natPow (base exp : Nat) : Nat := base ^ exp
 
 /-- The algorithm complexity as claimed: O(n⁴ * (log max_val)²) -/
-def dujardinAlgorithmComplexity (n : ℕ) (maxVal : ℕ) : ℕ :=
-  n^4 * (natLog2 maxVal)^2
+def dujardinAlgorithmComplexity (n : Nat) (maxVal : Nat) : Nat :=
+  natPow n 4 * natPow (natLog2 maxVal) 2
 
 /-- Maximum absolute value in list (placeholder) -/
-axiom maxAbsValue {n : ℕ} : (Fin n → Int) → ℕ
+axiom maxAbsValue {n : Nat} : (Fin n → Int) → Nat
 
 /-- Claimed: PARTITION can be solved in polynomial time -/
 axiom dujardin_partition_poly_time (inst : PartitionInstance) :
     let n := inst.n
     let maxVal := maxAbsValue inst.elements
-    ∃ (x : Fin n → Int) (timeSteps : ℕ),
+    ∃ (x : Fin n → Int) (timeSteps : Nat),
       timeSteps ≤ dujardinAlgorithmComplexity n maxVal ∧
       (partitionHasSolution inst ↔ isBinarySolution (partitionToBinaryEq inst) x)
 
