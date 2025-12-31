@@ -207,11 +207,22 @@ Record ComposabilityRequirement := {
 }.
 
 (** THEOREM: The composability requirement is NOT satisfied by Gillet's construction *)
+(**
+    This states that there is no composability requirement under which
+    all circuits would satisfy the composition theorem's conclusion.
+*)
 Theorem gillet_composability_fails :
   ~exists (req : ComposabilityRequirement),
     (** The requirement would need to be satisfied for arbitrary circuits *)
     forall (circuit : FlowNetwork),
-      req.(composition_theorem) circuit.
+      (** Given local correctness of gates *)
+      (forall (gate : FlowNetwork), req.(local_correctness) gate) ->
+      (** Given cost isolation between gates *)
+      (forall (g1 g2 : FlowNetwork), req.(cost_isolation) circuit g1 g2) ->
+      (** Given a minimum-cost flow exists *)
+      is_minimum_cost_flow circuit ->
+      (** The circuit respects the required logic *)
+      req.(respects_logic) circuit.
 Proof.
   (** This would require showing a counterexample where:
       1. All gates are locally correct
