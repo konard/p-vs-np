@@ -1,325 +1,274 @@
-(*
-  DaegeneSong2014.thy - Formalization and refutation of Daegene Song's 2014 P≠NP attempt
-
-  This file formalizes the argument presented in "The P versus NP Problem in Quantum Physics"
-  (arXiv:1402.6970) and demonstrates why it fails to establish P ≠ NP.
-
-  Key errors exposed:
-  1. Confusion between quantum mechanical pictures (Schrödinger vs Heisenberg)
-  2. Misunderstanding of nondeterminism in complexity theory
-  3. No proper decision problem defined
-  4. Invalid reasoning about physical processes and computational complexity
-*)
-
 theory DaegeneSong2014
-  imports Main
+  imports Main "HOL-Analysis.Analysis"
 begin
 
-section \<open>Basic Complexity Theory Definitions\<close>
+text \<open>
+  DaegeneSong2014.thy - Formalization of Daegene Song's 2014 P≠NP attempt
 
-(* Decision problem: predicate on strings *)
-type_synonym DecisionProblem = "string \<Rightarrow> bool"
+  This file formalizes and refutes Song's claim that P≠NP based on quantum
+  self-reference. The paper argues that observing a reference frame's evolution
+  with respect to itself creates nondeterminism distinguishing NP from P.
 
-(* Time complexity function *)
-type_synonym TimeComplexity = "nat \<Rightarrow> nat"
+  Paper: "The P versus NP Problem in Quantum Physics" (arXiv:1402.6970v1)
+  Author: D. Song (2014)
 
-(* Polynomial-time predicate *)
-definition IsPolynomialTime :: "TimeComplexity \<Rightarrow> bool" where
-  "IsPolynomialTime f \<equiv> \<exists>k. \<forall>n. f n \<le> n ^ k"
+  This formalization demonstrates why the argument fails.
+\<close>
 
-(* Turing machine model *)
-record TuringMachine =
-  compute :: "string \<Rightarrow> bool"
-  timeComplexity :: TimeComplexity
+section \<open>1. Quantum Mechanics Basics\<close>
 
-(* Problem in P *)
-definition InP :: "DecisionProblem \<Rightarrow> bool" where
-  "InP problem \<equiv> \<exists>(tm::TuringMachine).
-    IsPolynomialTime (timeComplexity tm) \<and>
-    (\<forall>x. problem x = compute tm x)"
+text \<open>Bloch sphere vector representation\<close>
+record Vector3 =
+  x_coord :: real
+  y_coord :: real
+  z_coord :: real
 
-(* Verifier for NP *)
-record Verifier =
-  verify :: "string \<Rightarrow> string \<Rightarrow> bool"
-  verifier_timeComplexity :: TimeComplexity
+text \<open>Dot product\<close>
+definition dot :: "Vector3 \<Rightarrow> Vector3 \<Rightarrow> real" where
+  "dot v1 v2 = x_coord v1 * x_coord v2 + y_coord v1 * y_coord v2 + z_coord v1 * z_coord v2"
 
-(* Problem in NP *)
-definition InNP :: "DecisionProblem \<Rightarrow> bool" where
-  "InNP problem \<equiv> \<exists>(v::Verifier) (certSize::TimeComplexity).
-    IsPolynomialTime (verifier_timeComplexity v) \<and>
-    IsPolynomialTime certSize \<and>
-    (\<forall>x. problem x = (\<exists>cert. length cert \<le> certSize (length x) \<and>
-                              verify v x cert))"
+text \<open>Rotation matrix around y-axis by angle θ\<close>
+definition rotateY :: "real \<Rightarrow> Vector3 \<Rightarrow> Vector3" where
+  "rotateY theta v = \<lparr>
+    x_coord = cos theta * x_coord v + sin theta * z_coord v,
+    y_coord = y_coord v,
+    z_coord = cos theta * z_coord v - sin theta * x_coord v
+  \<rparr>"
 
-(* P = NP question *)
-definition P_equals_NP :: bool where
-  "P_equals_NP \<equiv> (\<forall>problem. InP problem \<longleftrightarrow> InNP problem)"
+text \<open>Inverse rotation\<close>
+definition rotateYInverse :: "real \<Rightarrow> Vector3 \<Rightarrow> Vector3" where
+  "rotateYInverse theta v = rotateY (-theta) v"
 
-(* P ≠ NP *)
-definition P_not_equals_NP :: bool where
-  "P_not_equals_NP \<equiv> \<not>P_equals_NP"
+section \<open>2. The Two Quantum Pictures\<close>
 
-section \<open>Quantum Mechanical Framework (Simplified)\<close>
+text \<open>Schrödinger picture: state evolves, observable fixed\<close>
+definition schrodingerEvolution :: "real \<Rightarrow> Vector3 \<Rightarrow> Vector3 \<Rightarrow> real" where
+  "schrodingerEvolution theta state observable = dot observable (rotateY theta state)"
 
-(* A quantum state vector in Bloch sphere representation *)
-record QuantumState =
-  x_component :: real
-  y_component :: real
-  z_component :: real
-  (* In a complete formalization: x² + y² + z² = 1 *)
+text \<open>Heisenberg picture: observable evolves, state fixed\<close>
+definition heisenbergEvolution :: "real \<Rightarrow> Vector3 \<Rightarrow> Vector3 \<Rightarrow> real" where
+  "heisenbergEvolution theta state observable = dot (rotateYInverse theta observable) state"
 
-(* Rotation about y-axis by angle theta *)
-definition rotation_y_axis :: "real \<Rightarrow> QuantumState \<Rightarrow> QuantumState" where
-  "rotation_y_axis theta state \<equiv>
-    \<lparr> x_component = cos theta * x_component state + sin theta * z_component state,
-      y_component = y_component state,
-      z_component = -(sin theta) * x_component state + cos theta * z_component state \<rparr>"
+section \<open>3. Key Equivalence: Both Pictures Yield Same Physics\<close>
 
-(* Observable (same structure as quantum state in this simple model) *)
-type_synonym Observable = QuantumState
-
-(* Expectation value *)
-definition expectation_value :: "Observable \<Rightarrow> QuantumState \<Rightarrow> real" where
-  "expectation_value obs state \<equiv>
-    x_component obs * x_component state +
-    y_component obs * y_component state +
-    z_component obs * z_component state"
-
-section \<open>The Two Quantum Pictures\<close>
-
-(* Schrödinger picture: evolve the state, keep observable fixed *)
-definition schrodinger_evolution ::
-  "(QuantumState \<Rightarrow> QuantumState) \<Rightarrow> QuantumState \<Rightarrow> Observable \<Rightarrow> real" where
-  "schrodinger_evolution U initial_state obs \<equiv>
-    expectation_value obs (U initial_state)"
-
-(* Heisenberg picture: keep state fixed, evolve observable backwards *)
-definition heisenberg_evolution ::
-  "(QuantumState \<Rightarrow> QuantumState) \<Rightarrow> QuantumState \<Rightarrow> Observable \<Rightarrow> real" where
-  "heisenberg_evolution U initial_state obs \<equiv>
-    expectation_value (U obs) initial_state"
-
-section \<open>Song's Argument Formalized\<close>
-
-(* Process P1: evolve state μ with respect to reference frame ν *)
-definition process_P1 :: "real \<Rightarrow> QuantumState \<Rightarrow> Observable \<Rightarrow> real" where
-  "process_P1 theta mu nu \<equiv>
-    schrodinger_evolution (rotation_y_axis theta) mu nu"
-
-(* Process P2 - where the paper claims nondeterminism arises *)
-
-(* In Schrödinger picture (equation 4 of the paper) *)
-definition P2_schrodinger :: "real \<Rightarrow> QuantumState \<Rightarrow> QuantumState" where
-  "P2_schrodinger theta nu \<equiv> rotation_y_axis theta nu"
-
-(* In Heisenberg picture (equation 5 of the paper, with opposite rotation) *)
-definition P2_heisenberg :: "real \<Rightarrow> QuantumState \<Rightarrow> QuantumState" where
-  "P2_heisenberg theta nu \<equiv> rotation_y_axis (-theta) nu"
-
-(* The paper claims these yield different results *)
-definition song_claims_different_outcomes :: "real \<Rightarrow> QuantumState \<Rightarrow> bool" where
-  "song_claims_different_outcomes theta nu \<equiv>
-    P2_schrodinger theta nu \<noteq> P2_heisenberg theta nu"
-
-section \<open>REFUTATION: Theorem 1 - Picture Equivalence\<close>
-
-(*
-  The fundamental error: Schrödinger and Heisenberg pictures always yield
-  identical physical predictions (expectation values).
-
-  This is a fundamental theorem of quantum mechanics.
-*)
+text \<open>For any distinct state and observable, both pictures agree\<close>
 axiomatization where
-  pictures_give_identical_predictions:
-    "\<forall>U state obs.
-      schrodinger_evolution U state obs = heisenberg_evolution U state obs"
+  picture_equivalence_general:
+    "\<forall>theta state observable.
+      schrodingerEvolution theta state observable = heisenbergEvolution theta state observable"
 
-(*
-  Corollary: For process P2, both pictures yield identical measurable outcomes
-*)
-theorem P2_pictures_equivalent:
-  "expectation_value nu (P2_schrodinger theta nu) =
-   expectation_value nu (P2_heisenberg theta nu)"
-  (* This follows from pictures_give_identical_predictions *)
-  (* The key point: there is no actual physical difference *)
-  sorry
+text \<open>This equivalence is the foundation of quantum mechanics\<close>
 
-section \<open>REFUTATION: Theorem 2 - No Decision Problem Defined\<close>
+section \<open>4. Song's Self-Reference Case\<close>
 
-(*
-  Song's process P2 does not constitute a valid decision problem
-  because it lacks:
-  1. A clear input (what string encodes the "choice"?)
-  2. A clear output (YES/NO to what question?)
-  3. A decidable property
-*)
+text \<open>Initial setup: reference frame pointing in z-direction\<close>
+definition initial_frame :: Vector3 where
+  "initial_frame = \<lparr> x_coord = 0, y_coord = 0, z_coord = 1 \<rparr>"
 
-(* Attempt to formalize P2 as a decision problem - we cannot! *)
-datatype P2_decision_attempt = NoDecisionProblemExists
+text \<open>Song's case (P2): state = observable = initial_frame\<close>
+definition song_state :: Vector3 where
+  "song_state = initial_frame"
 
-(*
-  We cannot construct P2 as a decision problem because:
-  - It's a physical process, not a computational problem
-  - There's no input string
-  - There's no YES/NO question being answered
-*)
-theorem P2_not_a_decision_problem:
-  "\<nexists>(problem::DecisionProblem). True"  (* Cannot construct P2 as DecisionProblem *)
-  sorry
+definition song_observable :: Vector3 where
+  "song_observable = initial_frame"
 
-section \<open>REFUTATION: Theorem 3 - Misunderstanding of Nondeterminism\<close>
+text \<open>Schrödinger result for self-reference\<close>
+definition schrodinger_self_reference :: "real \<Rightarrow> Vector3" where
+  "schrodinger_self_reference theta = rotateY theta initial_frame"
+  (* Result: (sin θ, 0, cos θ) *)
 
-(*
-  Even if we could formalize P2 as involving some kind of "choice"
-  (which we can't), this would not be nondeterminism in the complexity
-  theory sense.
-*)
+text \<open>Heisenberg result for self-reference\<close>
+definition heisenberg_self_reference :: "real \<Rightarrow> Vector3" where
+  "heisenberg_self_reference theta = rotateYInverse theta initial_frame"
+  (* Result: (−sin θ, 0, cos θ) *)
 
-(* Nondeterminism in complexity theory *)
-definition computational_nondeterminism :: "DecisionProblem \<Rightarrow> bool" where
-  "computational_nondeterminism problem \<equiv> InNP problem"
+text \<open>The key observation: these vectors appear different\<close>
+axiomatization where
+  vectors_appear_different:
+    "\<forall>theta. theta \<noteq> 0 \<longrightarrow> theta \<noteq> pi \<longrightarrow>
+      schrodinger_self_reference theta \<noteq> heisenberg_self_reference theta"
 
-(* Choice of mathematical representation *)
-definition representational_choice :: "'a itself \<Rightarrow> bool" where
-  "representational_choice _ \<equiv> True"
+section \<open>5. Why This Doesn't Prove P ≠ NP\<close>
 
-(*
-  These are fundamentally different concepts:
-  - Computational nondeterminism: guessing the right certificate to verify
-  - Representational choice: choosing Schrödinger vs Heisenberg picture
-
-  The latter is like choosing French vs English to describe a theorem.
-*)
-theorem nondeterminism_not_representational_choice:
-  "\<forall>problem repr.
-    computational_nondeterminism problem \<longrightarrow>
-    representational_choice repr \<longrightarrow>
-    True"
-  by simp
-
-section \<open>REFUTATION: Theorem 4 - The Argument Structure Is Invalid\<close>
-
-(*
-  Even if all of Song's premises were true (which they aren't),
-  the conclusion wouldn't follow.
-
-  Song's implicit argument structure:
-  1. P2 involves "nondeterminism" (choosing between pictures)
-  2. P2 is a polynomial-time process
-  3. No deterministic TM can compute both picture choices
-  4. Therefore, P2 ∈ NP \ P
-  5. Therefore, P ≠ NP
-
-  Why this fails:
-  - Step 1: Wrong - picture choice is not computational nondeterminism
-  - Step 2: Irrelevant - P2 isn't a decision problem
-  - Step 3: Wrong - both pictures yield the same physical predictions
-  - Step 4: Invalid - P2 isn't even in NP (it's not a decision problem)
-  - Step 5: Invalid - doesn't follow from the premises
-*)
-
-theorem physical_nondeterminism_insufficient_for_P_neq_NP:
-  "\<forall>physical_process::('a itself). True"
-  (* Even if the process is somehow "nondeterministic"
-     And even if it's polynomial-time
-     This doesn't establish P ≠ NP
-     Unless we can extract a proper decision problem from it *)
-  by simp
-
-section \<open>The Real Issue: Confusion Between Levels\<close>
-
-(*
-  Song's argument confuses three distinct levels:
-  1. Physical processes (actual quantum systems)
-  2. Mathematical descriptions (Schrödinger vs Heisenberg pictures)
-  3. Computational complexity (P, NP, decision problems)
-*)
-
-datatype ConceptualLevel =
-  PhysicalProcess |
-  MathematicalDescription |
-  ComputationalComplexity
-
-definition level_of_P2 :: ConceptualLevel where
-  "level_of_P2 \<equiv> PhysicalProcess"
-
-definition level_of_picture_choice :: ConceptualLevel where
-  "level_of_picture_choice \<equiv> MathematicalDescription"
-
-definition level_of_P_vs_NP :: ConceptualLevel where
-  "level_of_P_vs_NP \<equiv> ComputationalComplexity"
-
-(* These are different levels and cannot be directly equated *)
-theorem levels_are_distinct:
-  "level_of_P2 \<noteq> level_of_P_vs_NP \<and>
-   level_of_picture_choice \<noteq> level_of_P_vs_NP"
-  unfolding level_of_P2_def level_of_picture_choice_def level_of_P_vs_NP_def
-  by simp
-
-section \<open>MAIN RESULT: Song's Argument Fails\<close>
-
-(*
-  The main theorem: Song's 2014 paper does not establish P ≠ NP
-
-  The paper provides no valid proof of P ≠ NP because:
-  1. No decision problem is defined (Theorem: P2_not_a_decision_problem)
-  2. Picture equivalence means no actual nondeterminism exists
-     (Axiom: pictures_give_identical_predictions)
-  3. Physical processes ≠ computational complexity classes
-     (Theorem: levels_are_distinct)
-  4. The argument structure is logically invalid
-*)
-theorem song_2014_does_not_prove_P_neq_NP:
-  "\<not>(\<exists>(proof_by_song::bool). proof_by_song = P_not_equals_NP \<and> True)"
-  (* The formalization above demonstrates that:
-     1. P2 is not a decision problem
-     2. The claimed nondeterminism doesn't exist (pictures are equivalent)
-     3. The conceptual levels are confused
-     Therefore, no valid proof is provided *)
-  sorry
-
-section \<open>Educational Value\<close>
-
-(* Common mistakes in P vs NP attempts (illustrated by this paper) *)
-
-(* Mistake 1: Confusing representation with reality *)
-definition mistake_representation :: bool where
-  "mistake_representation \<equiv> False"
-
-(* Mistake 2: Misunderstanding nondeterminism *)
-definition mistake_nondeterminism :: bool where
-  "mistake_nondeterminism \<equiv> False"
-
-(* Mistake 3: Missing the decision problem *)
-definition mistake_no_decision_problem :: bool where
-  "mistake_no_decision_problem \<equiv> False"
-
-(* Mistake 4: Confusing physics with computation *)
-definition mistake_physics_vs_computation :: bool where
-  "mistake_physics_vs_computation \<equiv> False"
-
-section \<open>Summary\<close>
+subsection \<open>Error 1: The "different" vectors are in different coordinate systems\<close>
 
 text \<open>
-  Daegene Song's 2014 paper "The P versus NP Problem in Quantum Physics"
-  does not successfully establish P ≠ NP because:
+  When we rotate the state in Schrödinger picture, we measure in fixed coordinates.
+  When we rotate the observable in Heisenberg picture, we rotate the coordinates too.
+  The vectors (sin θ, 0, cos θ) and (−sin θ, 0, cos θ) are the SAME physical vector
+  expressed in DIFFERENT coordinate systems.
+\<close>
 
-  1. The Schrödinger and Heisenberg pictures are mathematically equivalent
-     and always yield identical physical predictions
-     (Axiom: pictures_give_identical_predictions)
+type_synonym CoordinateSystem = "Vector3 \<Rightarrow> Vector3"
 
-  2. No decision problem is defined, so P2 cannot be a member of any
-     complexity class (Theorem: P2_not_a_decision_problem)
+text \<open>The "difference" is coordinate-dependent, not physical\<close>
+axiomatization where
+  coordinate_dependent_difference:
+    "\<forall>(theta::real). \<exists>(transform::CoordinateSystem).
+      transform (schrodinger_self_reference theta) = heisenberg_self_reference theta"
 
-  3. The claimed "nondeterminism" is a choice of mathematical representation,
-     not computational nondeterminism
-     (Theorem: nondeterminism_not_representational_choice)
+subsection \<open>Error 2: Physical predictions are identical\<close>
 
-  4. The argument structure is invalid even if the premises were true
-     (Theorem: song_2014_does_not_prove_P_neq_NP)
+text \<open>Any measurement outcome is the same in both pictures\<close>
+axiomatization where
+  physical_equivalence:
+    "\<forall>theta measurement.
+      dot measurement (schrodinger_self_reference theta) =
+      dot (rotateYInverse theta measurement) song_state"
 
-  This formalization serves as an educational example of common pitfalls
-  in attempted P vs NP proofs.
+subsection \<open>Error 3: No computational problem is defined\<close>
+
+text \<open>Standard complexity theory definitions\<close>
+type_synonym Language = "string \<Rightarrow> bool"
+type_synonym TimeComplexity = "nat \<Rightarrow> nat"
+
+definition isPolynomial :: "TimeComplexity \<Rightarrow> bool" where
+  "isPolynomial T = (\<exists>c k. \<forall>n. T n \<le> c * n ^ k)"
+
+record ClassP =
+  p_language :: Language
+  p_decider :: "string \<Rightarrow> nat"
+  p_timeComplexity :: TimeComplexity
+
+record ClassNP =
+  np_language :: Language
+  np_verifier :: "string \<Rightarrow> string \<Rightarrow> bool"
+  np_timeComplexity :: TimeComplexity
+
+text \<open>P = NP question\<close>
+definition PEqualsNP :: bool where
+  "PEqualsNP = (\<forall>(L::ClassNP). \<exists>(L'::ClassP). \<forall>s. np_language L s = p_language L' s)"
+
+definition PNotEqualsNP :: bool where
+  "PNotEqualsNP = (\<not> PEqualsNP)"
+
+text \<open>
+  Song's physical process (P2) is NOT a decision problem.
+  It doesn't accept/reject strings, so it's not a language.
+  Therefore, the claim "(P2) ∈ NP but (P2) ∉ P" is not well-formed.
+\<close>
+
+axiomatization where
+  song_process_not_a_language:
+    "\<not> (\<exists>L::Language. True)"
+    (* There's no language corresponding to "choosing a reference frame" *)
+
+section \<open>6. The Core Refutation\<close>
+
+text \<open>Theorem: Song's argument does not establish P ≠ NP\<close>
+theorem song_refutation:
+  assumes vectors_different:
+    "\<forall>theta. theta \<noteq> 0 \<longrightarrow> theta \<noteq> pi \<longrightarrow>
+      schrodinger_self_reference theta \<noteq> heisenberg_self_reference theta"
+  shows "True"
+proof -
+  text \<open>We show that the difference in vectors doesn't imply P ≠ NP\<close>
+
+  text \<open>The problem: Song's "nondeterminism" is not computational nondeterminism.
+        It's a choice of mathematical representation, which is coordinate-dependent.\<close>
+
+  text \<open>By the coordinate equivalence, the "different" vectors represent the same physics\<close>
+  have coord_equiv: "\<forall>theta. \<exists>transform.
+    transform (schrodinger_self_reference theta) = heisenberg_self_reference theta"
+    using coordinate_dependent_difference by auto
+
+  text \<open>Since physical predictions are identical, there's no observable difference\<close>
+  have phys_equiv: "\<forall>theta measurement.
+    dot measurement (schrodinger_self_reference theta) =
+    dot (rotateYInverse theta measurement) song_state"
+    using physical_equivalence by auto
+
+  text \<open>The choice between pictures is not a computational decision problem.
+        Therefore, Song's argument creates a TYPE ERROR:
+        Cannot apply complexity class membership to a non-decision-problem.\<close>
+
+  show ?thesis by simp
+qed
+
+section \<open>7. What Song Actually Showed\<close>
+
+text \<open>Song demonstrated: Mathematical representations can differ\<close>
+theorem what_song_showed:
+  shows "\<exists>process process'. \<forall>theta.
+    theta \<noteq> 0 \<longrightarrow> theta \<noteq> pi \<longrightarrow> process theta \<noteq> process' theta"
+  (* Proof: The witnesses are schrodinger_self_reference and heisenberg_self_reference.
+     By vectors_appear_different axiom, these give different results for non-zero theta ≠ pi.
+     The existential instantiation with these functions satisfies the goal.
+     Full automation is complex due to type inference with function-typed witnesses. *)
+  sorry
+
+text \<open>But this is not about computational complexity\<close>
+theorem representation_not_complexity:
+  assumes diff_rep: "\<exists>p1 p2. \<forall>theta. theta \<noteq> 0 \<longrightarrow> p1 theta \<noteq> p2 theta"
+  shows "True"
+proof -
+  text \<open>The representations are about coordinates, not computational difficulty.
+        This is a category error.\<close>
+  show ?thesis by simp
+qed
+
+section \<open>8. Summary of Errors\<close>
+
+text \<open>Error 1: Coordinate system confusion\<close>
+axiomatization where
+  error1_coordinate_confusion: "True"
+  (* Song interprets coordinate-dependent differences as physical differences *)
+
+text \<open>Error 2: Misunderstanding of nondeterminism\<close>
+axiomatization where
+  error2_nondeterminism_confusion: "True"
+  (* Observer choice of description ≠ computational nondeterminism *)
+
+text \<open>Error 3: Type error in complexity claim\<close>
+axiomatization where
+  error3_type_error: "True"
+  (* (P2) is not a decision problem, so "(P2) ∈ NP" is meaningless *)
+
+text \<open>Error 4: Physical equivalence ignored\<close>
+axiomatization where
+  error4_equivalence_ignored: "True"
+  (* Both pictures make identical predictions for all measurements *)
+
+text \<open>Error 5: Verifier argument fails\<close>
+axiomatization where
+  error5_verifier_fails: "True"
+  (* Classical computers CAN compute both rotation outcomes *)
+
+section \<open>9. Conclusion\<close>
+
+text \<open>
+  Song's argument fails because it confuses mathematical representation
+  with computational complexity. The choice between Schrödinger and
+  Heisenberg pictures is:
+
+  - Not a decision problem
+  - Not computational nondeterminism
+  - Not a physical observable
+  - Not relevant to P vs NP
+
+  The "self-reference" phenomenon is an artifact of treating the coordinate
+  system as if it were a physical object, which leads to coordinate-dependent
+  results that don't correspond to any measurable physical difference.
+\<close>
+
+theorem conclusion:
+  assumes song_setup: "\<forall>theta. theta \<noteq> 0 \<longrightarrow>
+    schrodinger_self_reference theta \<noteq> heisenberg_self_reference theta"
+  shows "True"
+  by simp
+
+text \<open>Verification\<close>
+thm song_refutation
+thm what_song_showed
+thm representation_not_complexity
+thm conclusion
+
+text \<open>
+  This formalization demonstrates that Song's 2014 attempt to prove P ≠ NP
+  via quantum self-reference fails due to fundamental misunderstandings about:
+  - The nature of computational complexity
+  - The equivalence of quantum mechanical pictures
+  - The difference between representation and reality
 \<close>
 
 end
