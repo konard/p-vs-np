@@ -57,13 +57,13 @@ Definition NP_complete (L : DecisionProblem) : Prop :=
 (** * 2. 3-XOR Problem Definition *)
 
 (** A variable in a boolean formula *)
-Definition Variable := nat.
+Definition Var := nat.
 
 (** A 3-XOR clause: x_i XOR x_j XOR x_k = b *)
 Record XOR3_Clause := {
-  var1 : Variable;
-  var2 : Variable;
-  var3 : Variable;
+  var1 : Var;
+  var2 : Var;
+  var3 : Var;
   target : bool;
 }.
 
@@ -71,7 +71,7 @@ Record XOR3_Clause := {
 Definition XOR3_Instance := list XOR3_Clause.
 
 (** Variable assignment *)
-Definition Assignment := Variable -> bool.
+Definition Assignment := Var -> bool.
 
 (** Evaluate a 3-XOR clause under an assignment *)
 Definition eval_XOR3_clause (a : Assignment) (c : XOR3_Clause) : bool :=
