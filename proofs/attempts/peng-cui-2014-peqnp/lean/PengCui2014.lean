@@ -154,7 +154,7 @@ theorem step2SDPSolvesGapXOR3PolyTime :
   · intro _inst
     -- The gap is here: we need to show the SDP algorithm is correct
     -- But this requires the assumption cuiClaimSDPSolvesGapXOR3
-    constructor <;> intro _ <;> trivial  -- placeholder
+    sorry  -- This is where Cui's proof has a gap
 
 -- Step 3: If an NP-hard problem is in P, then P=NP
 theorem step3NPHardInPImpliesPEqNP :
@@ -169,13 +169,7 @@ theorem step3NPHardInPImpliesPEqNP :
   use fun n => time n + timeL (time n)
   constructor
   · -- Composition of polynomials is polynomial
-    -- This would require proving closure under composition
-    obtain ⟨k1, c1, h1⟩ := hPoly
-    obtain ⟨k2, c2, h2⟩ := hPolyL
-    -- The sum is also polynomial (simplified proof)
-    use max k1 k2, c1 + c2
-    intro n
-    sorry  -- detailed arithmetic proof omitted
+    sorry  -- detailed polynomial composition proof omitted
   · use fun x => decideL (reduction x)
     intro x
     rw [hReduction]
@@ -200,13 +194,8 @@ theorem cuiPEqualsNPClaim :
     use time
     constructor
     · exact hPoly
-    · use fun _instEnc =>
-        match charikarWirthSDPRounds 2 _instEnc with
-        | some s => if 0 < s then true else false
-        | none => false
-      intro _x
-      -- Need to connect x to GapXOR3 - this requires encoding
-      constructor <;> intro _ <;> trivial  -- placeholder
+    · -- This is where the key gap is - need to show SDP solves Gap XOR3
+      sorry  -- Cui's claim that SDP solves Gap 3-XOR is unproven
   -- Apply Step 3
   exact step3NPHardInPImpliesPEqNP (GapXOR3_problem epsilon) hNPHard hInP L hInNP
 
