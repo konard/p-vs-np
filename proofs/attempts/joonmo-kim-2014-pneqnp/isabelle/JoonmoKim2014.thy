@@ -207,7 +207,7 @@ typedecl Oracle
 axiomatization oracle_query :: "Oracle \<Rightarrow> string \<Rightarrow> bool"
 
 definition InP_Oracle :: "Oracle \<Rightarrow> DecisionProblem \<Rightarrow> bool" where
-  "InP_Oracle o problem \<equiv> \<exists>(tm::TuringMachine).
+  "InP_Oracle oracle problem \<equiv> \<exists>(tm::TuringMachine).
     IsPolynomialTime (timeComplexity tm) \<and>
     (\<forall>x. problem x = compute tm x)"
     (* In real formalization, tm would have oracle access *)

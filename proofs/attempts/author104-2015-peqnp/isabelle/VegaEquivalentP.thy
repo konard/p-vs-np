@@ -98,15 +98,14 @@ text \<open>
   but Vega's key examples use the SAME problem twice (diagonal construction).
 \<close>
 
+text \<open>L1 and L2 must be in P with polynomial-time verifiers,
+      and the pair language consists of pairs sharing a certificate\<close>
 definition InEquivalentP :: "PairLanguage \<Rightarrow> bool" where
   "InEquivalentP pairLang \<equiv>
     \<exists>(L1::DecisionProblem) (L2::DecisionProblem) (v1::Verifier) (v2::Verifier).
-      (* L1 and L2 must be in P *)
       InP L1 \<and> InP L2 \<and>
-      (* v1 and v2 are polynomial-time verifiers *)
       IsPolynomialTime (verifier_timeComplexity v1) \<and>
       IsPolynomialTime (verifier_timeComplexity v2) \<and>
-      (* The pair language consists of pairs sharing a certificate *)
       (\<forall>x y.
         pairLang (x, y) \<longleftrightarrow>
         (L1 x \<and> L2 y \<and>

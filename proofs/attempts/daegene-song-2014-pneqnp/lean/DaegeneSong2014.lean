@@ -22,30 +22,30 @@ structure Vector3 where
   z : Float
 
 /-- Dot product -/
-def dot (v1 v2 : Vector3) : Float :=
+noncomputable def dot (v1 v2 : Vector3) : Float :=
   v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
 
 /-- Rotation around y-axis by angle θ (simplified with Real abstraction) -/
 axiom cos : Float → Float
 axiom sin : Float → Float
 
-def rotateY (theta : Float) (v : Vector3) : Vector3 :=
+noncomputable def rotateY (theta : Float) (v : Vector3) : Vector3 :=
   { x := cos theta * v.z + sin theta * v.x
     y := v.y
     z := cos theta * v.z - sin theta * v.x }
 
 /-- Inverse rotation -/
-def rotateYInverse (theta : Float) (v : Vector3) : Vector3 :=
+noncomputable def rotateYInverse (theta : Float) (v : Vector3) : Vector3 :=
   rotateY (-theta) v
 
 /- ## 2. The Two Quantum Pictures -/
 
 /-- Schrödinger picture: state evolves, observable fixed -/
-def schrodingerEvolution (theta : Float) (state observable : Vector3) : Float :=
+noncomputable def schrodingerEvolution (theta : Float) (state observable : Vector3) : Float :=
   dot observable (rotateY theta state)
 
 /-- Heisenberg picture: observable evolves, state fixed -/
-def heisenbergEvolution (theta : Float) (state observable : Vector3) : Float :=
+noncomputable def heisenbergEvolution (theta : Float) (state observable : Vector3) : Float :=
   dot (rotateYInverse theta observable) state
 
 /- ## 3. Key Equivalence: Both Pictures Yield Same Physics -/
@@ -56,7 +56,7 @@ axiom picture_equivalence_general :
     schrodingerEvolution theta state observable =
     heisenbergEvolution theta state observable
 
-/-- This equivalence is the foundation of quantum mechanics -/
+-- This equivalence is the foundation of quantum mechanics
 
 /- ## 4. Song's Self-Reference Case -/
 
@@ -68,12 +68,12 @@ def song_state : Vector3 := initial_frame
 def song_observable : Vector3 := initial_frame
 
 /-- Schrödinger result for self-reference -/
-def schrodinger_self_reference (theta : Float) : Vector3 :=
+noncomputable def schrodinger_self_reference (theta : Float) : Vector3 :=
   rotateY theta initial_frame
   -- Result: (sin θ, 0, cos θ)
 
 /-- Heisenberg result for self-reference -/
-def heisenberg_self_reference (theta : Float) : Vector3 :=
+noncomputable def heisenberg_self_reference (theta : Float) : Vector3 :=
   rotateYInverse theta initial_frame
   -- Result: (−sin θ, 0, cos θ)
 
@@ -84,37 +84,37 @@ axiom vectors_appear_different :
     theta ≠ 3.14159 →  -- π approximation
     schrodinger_self_reference theta ≠ heisenberg_self_reference theta
 
-/- ## 5. Why This Doesn't Prove P ≠ NP -/
+/- ## 5. Why This Doesn't Prove P != NP -/
 
-/-- Error 1: The "different" vectors are in different coordinate systems -/
+-- Error 1: The "different" vectors are in different coordinate systems
 
-/-- When we rotate the state in Schrödinger picture, we measure in fixed coordinates.
-    When we rotate the observable in Heisenberg picture, we rotate the coordinates too.
-    The vectors (sin θ, 0, cos θ) and (−sin θ, 0, cos θ) are the SAME physical vector
-    expressed in DIFFERENT coordinate systems. -/
+-- When we rotate the state in Schrodinger picture, we measure in fixed coordinates.
+-- When we rotate the observable in Heisenberg picture, we rotate the coordinates too.
+-- The vectors (sin theta, 0, cos theta) and (-sin theta, 0, cos theta) are the SAME physical vector
+-- expressed in DIFFERENT coordinate systems.
 
 def CoordinateSystem := Vector3 → Vector3  -- transformation
 
-/-- The "difference" is coordinate-dependent, not physical -/
+-- The "difference" is coordinate-dependent, not physical
 axiom coordinate_dependent_difference :
   ∀ theta : Float,
     ∃ (transform : CoordinateSystem),
       transform (schrodinger_self_reference theta) =
       heisenberg_self_reference theta
 
-/-- Error 2: Physical predictions are identical -/
+-- Error 2: Physical predictions are identical
 
-/-- Any measurement outcome is the same in both pictures -/
+-- Any measurement outcome is the same in both pictures
 axiom physical_equivalence :
   ∀ (theta : Float) (measurement : Vector3),
     dot measurement (schrodinger_self_reference theta) =
     dot (rotateYInverse theta measurement) song_state
 
-/-- This is just the general equivalence applied to the self-reference case -/
+-- This is just the general equivalence applied to the self-reference case
 
-/-- Error 3: No computational problem is defined -/
+-- Error 3: No computational problem is defined
 
-/-- Standard complexity theory definitions -/
+-- Standard complexity theory definitions
 def Language := String → Bool
 def TimeComplexity := Nat → Nat
 
@@ -135,15 +135,15 @@ structure ClassNP where
   isPoly : isPolynomial timeComplexity
   correct : ∀ s : String, language s ↔ ∃ cert : String, verifier s cert
 
-/-- P = NP question -/
+-- P = NP question
 def PEqualsNP : Prop :=
   ∀ L : ClassNP, ∃ L' : ClassP, ∀ s : String, L.language s = L'.language s
 
 def PNotEqualsNP : Prop := ¬PEqualsNP
 
-/-- Song's physical process (P2) is NOT a decision problem -/
-/-- It doesn't accept/reject strings, so it's not a language -/
-/-- Therefore, the claim "(P2) ∈ NP but (P2) ∉ P" is not well-formed -/
+-- Song's physical process (P2) is NOT a decision problem
+-- It doesn't accept/reject strings, so it's not a language
+-- Therefore, the claim "(P2) in NP but (P2) not in P" is not well-formed
 
 axiom song_process_not_a_language :
   ¬ ∃ (L : Language),
@@ -265,16 +265,16 @@ theorem conclusion :
 
 /- ## Verification -/
 
+-- Verification commands
 #check song_refutation
 #check what_song_showed
 #check representation_not_complexity
 #check conclusion
 
-/-- This formalization demonstrates that Song's 2014 attempt to prove P ≠ NP
-    via quantum self-reference fails due to fundamental misunderstandings about:
-    - The nature of computational complexity
-    - The equivalence of quantum mechanical pictures
-    - The difference between representation and reality
--/
+-- This formalization demonstrates that Song's 2014 attempt to prove P != NP
+-- via quantum self-reference fails due to fundamental misunderstandings about:
+-- - The nature of computational complexity
+-- - The equivalence of quantum mechanical pictures
+-- - The difference between representation and reality
 
 end DaegeneSong2014
