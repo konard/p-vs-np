@@ -242,12 +242,15 @@ Proof.
   admit. (* Construction as described in paper *)
 Admitted.
 
+(** An assignment maps variable indices to boolean values *)
+Definition Assignment := nat -> bool.
+
 (** THE CLAIM: If minimum-cost flow has a solution, 3SAT is satisfiable *)
 Axiom gillet_reduction_claim : forall formula,
   (exists net,
     net = ThreeSAT_to_FlowNetwork formula /\
     is_minimum_cost_flow net) ->
-  (exists assignment, (* formula is satisfied by assignment *) True).
+  (exists (assignment : Assignment), (* formula is satisfied by assignment *) True).
 
 (** THE ERROR: This claim is UNPROVEN because:
     1. The flow network gates don't compose correctly
@@ -260,7 +263,7 @@ Theorem gillet_reduction_unsound :
     (exists net,
       net = ThreeSAT_to_FlowNetwork formula /\
       is_minimum_cost_flow net) <->
-    (exists assignment, (* formula is satisfied by assignment *) True)).
+    (exists (assignment : Assignment), (* formula is satisfied by assignment *) True)).
 Proof.
   (** The bidirectional correspondence does not hold due to:
       - Forward direction: flow might not correspond to valid assignment
