@@ -48,9 +48,9 @@ section \<open>Hash Functions\<close>
   A family H of hash functions where each h : {0,1}^n -> {0,1}^m
 *)
 record UniversalHashFamily =
-  hash_input_size :: nat
-  hash_output_size :: nat
-  hash_function :: "BitString \<Rightarrow> BitString \<Rightarrow> BitString"
+  uhf_input_size :: nat
+  uhf_output_size :: nat
+  uhf_hash :: "BitString \<Rightarrow> BitString \<Rightarrow> BitString"
   (* Universal property simplified *)
 
 section \<open>Figueroa's Tau Construction - Exposing the Type Error\<close>
