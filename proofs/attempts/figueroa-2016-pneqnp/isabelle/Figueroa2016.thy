@@ -76,10 +76,11 @@ where
 (* Figueroa's actual algorithm: appends n bits for each input bit
 
    This means it should map {0,1}^n to {0,1}^(n^2), not {0,1}^n to {0,1}^n! *)
+(* Simplified version - actual construction uses more complex hash composition *)
 fun tau_actual_construction :: "nat \<Rightarrow> UniversalHashFamily \<Rightarrow> BitString \<Rightarrow> BitString" where
   "tau_actual_construction n H [] = []" |
   "tau_actual_construction n H (bit # rest) =
-    (let hash_output = hash_function H [bit] []  (* Simplified *)
+    (let hash_output = hash_function H [bit] []
      in hash_output @ tau_actual_construction n H rest)"
 
 (* The actual output has length n * n = n^2 *)
