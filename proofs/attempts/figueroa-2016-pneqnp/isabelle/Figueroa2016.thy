@@ -111,9 +111,11 @@ where
   tau_polytime: "polynomial_time tau"
 
 (* The claim that tau is one-way requires proving negligibility *)
+(* This uses sorry because the negligibility condition requires detailed analysis *)
 theorem tau_is_one_way: "is_one_way tau"
   unfolding is_one_way_def negligible_def
-  using tau_polytime by auto
+  using tau_polytime
+  sorry  (* Negligibility requires more detailed probability analysis *)
 
 section \<open>The Gap: From Construction to One-Wayness\<close>
 
@@ -130,7 +132,8 @@ theorem the_gap:
   assumes "has_nice_structure"
   shows "is_one_way well_defined_tau"
   unfolding is_one_way_def negligible_def
-  using well_defined_polytime by auto
+  using well_defined_polytime
+  sorry  (* Negligibility requires lower bound techniques we don't have *)
 
 section \<open>Summary\<close>
 
