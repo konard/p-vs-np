@@ -9,7 +9,7 @@
   minimum-cost flow network.
 -/
 
-import Std.Data.List.Basic
+-- No external imports needed - List.foldl is in core Lean
 
 /-! ## Flow Networks -/
 
