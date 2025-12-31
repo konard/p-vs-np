@@ -84,11 +84,9 @@ theorem partition_reduces_to_binary:
                (partition_to_binary_rhs (part_n inst) (part_elements inst))
                (part_n inst)
                x)"
-proof -
-  text \<open>Forward direction: construct binary solution from partition\<close>
-  text \<open>Backward direction: extract partition from binary solution\<close>
+  \<comment> \<open>Forward direction: construct binary solution from partition\<close>
+  \<comment> \<open>Backward direction: extract partition from binary solution\<close>
   sorry
-qed
 
 section \<open>GCD and Extended Euclidean Algorithm\<close>
 
@@ -114,10 +112,8 @@ theorem dioph_solution_structure:
   shows "\<exists>xp M. is_dioph_solution a b n xp \<and>
                 (\<forall>x. is_dioph_solution a b n x \<longleftrightarrow>
                      (\<exists>k. \<forall>i<n. x i = xp i + (\<Sum>j<n-1. M i j * k j)))"
-proof -
-  text \<open>This requires formalizing the matrix M construction\<close>
+  \<comment> \<open>This requires formalizing the matrix M construction\<close>
   sorry
-qed
 
 section \<open>Geometric Approach\<close>
 
@@ -181,10 +177,8 @@ theorem critical_claim_is_false:
                                      (project_onto_hyperplane n (hypercube_center n) a b) P_star \<le>
                                    euclidean_distance n
                                      (project_onto_hyperplane n (hypercube_center n) a b) Q)))"
-proof -
-  text \<open>A counterexample would demonstrate this\<close>
+  \<comment> \<open>A counterexample would demonstrate this\<close>
   sorry
-qed
 
 section \<open>Complexity Claims\<close>
 
@@ -220,13 +214,10 @@ theorem dujardin_p_equals_np_claim_invalid:
                             (\<exists>P_star. is_vertex n P_star \<and> on_hyperplane a b n P_star)"
   assumes false_claim: "critical_claim_is_false"
   shows "False"
-proof -
-  text \<open>The contradiction arises from critical and false_claim\<close>
-  obtain n a b where "\<not>(\<forall>x. is_binary_solution a b n x \<longleftrightarrow>
-                              (\<exists>P_star. is_vertex n P_star \<and> on_hyperplane a b n P_star \<and> undefined))"
-    using false_claim critical_claim_is_false_def sorry
-  then show False using critical sorry
-qed
+  \<comment> \<open>The contradiction arises from critical and false_claim\<close>
+  \<comment> \<open>A complete proof would obtain a counterexample from critical_claim_is_false\<close>
+  \<comment> \<open>and show it contradicts the critical claim assumption\<close>
+  sorry
 
 section \<open>Summary\<close>
 
