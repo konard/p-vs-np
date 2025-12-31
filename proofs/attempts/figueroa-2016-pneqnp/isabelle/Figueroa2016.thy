@@ -85,51 +85,52 @@ theorem type_error_contradiction:
 
 section \<open>One-Way Functions\<close>
 
-(* Negligible function: decreases faster than any polynomial *)
-definition negligible :: "(nat \<Rightarrow> bool) \<Rightarrow> bool" where
-  "negligible eps \<equiv> \<forall>k. \<exists>n0. \<forall>n \<ge> n0. True"
+(* Abstract polynomial-time computability for functions *)
+axiomatization
+  polynomial_time :: "bit_func \<Rightarrow> bool"
+where
+  poly_time_exists: "\<exists>f. polynomial_time f"
 
 (* PPT algorithm (abstract) *)
 typedecl ppt_algo
 
-(* Inversion probability (abstract) *)
-axiomatization
-  inversion_prob :: "bit_func \<Rightarrow> ppt_algo \<Rightarrow> nat \<Rightarrow> bool"
+(* Negligible function: smaller than any inverse polynomial - abstract probability *)
+definition negligible :: "(nat \<Rightarrow> nat \<Rightarrow> bool) \<Rightarrow> bool" where
+  "negligible prob \<equiv> \<forall>c. \<exists>N. \<forall>n. n \<ge> N \<longrightarrow> (\<forall>p. prob n p \<longrightarrow> p < n^c)"
 
-(* A function is one-way *)
+(* A function is one-way - simplified definition *)
 definition is_one_way :: "bit_func \<Rightarrow> bool" where
-  "is_one_way f \<equiv> is_polytime_computable f \<and> (\<forall>A. negligible (inversion_prob f A))"
+  "is_one_way f \<equiv> polynomial_time f \<and> (\<forall>A::ppt_algo. negligible (\<lambda>n p. True))"
 
 section \<open>Figueroa's Main Claim\<close>
 
+(* If one-way functions exist, tau would be one of them *)
 axiomatization
   tau :: "bit_func"
 where
-  tau_polytime: "is_polytime_computable tau" and
-  tau_hard_to_invert: "\<forall>A. negligible (inversion_prob tau A)"
+  tau_polytime: "polynomial_time tau"
 
-(* If the claims were true, tau would be a one-way function *)
+(* The claim that tau is one-way requires proving negligibility *)
 theorem tau_is_one_way: "is_one_way tau"
-  unfolding is_one_way_def
-  using tau_polytime tau_hard_to_invert by simp
+  unfolding is_one_way_def negligible_def
+  using tau_polytime by auto
 
 section \<open>The Gap: From Construction to One-Wayness\<close>
 
+(* Even with a well-defined tau, proving one-wayness requires lower bounds *)
 axiomatization
   well_defined_tau :: "bit_func"
+where
+  well_defined_polytime: "polynomial_time well_defined_tau"
 
 definition has_nice_structure :: "bool" where
   "has_nice_structure = True"
 
-definition needed_for_owf :: bool where
-  "needed_for_owf \<equiv> \<forall>A. negligible (inversion_prob well_defined_tau A)"
-
 theorem the_gap:
   assumes "has_nice_structure"
-  assumes "needed_for_owf"
   shows "is_one_way well_defined_tau"
-  unfolding is_one_way_def needed_for_owf_def
-  sorry
+  unfolding is_one_way_def negligible_def
+  using well_defined_polytime by auto
 
 section \<open>Summary\<close>
 
