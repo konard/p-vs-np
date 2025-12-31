@@ -11,24 +11,24 @@
   Uses 'sorry' for proofs where necessary, as documenting the error is the goal.
 -/
 
--- Graph Definitions
+-- Graph Definitions (using abbrev for proper type class instance propagation)
 
 /-- A vertex is represented as a natural number -/
-def Vertex := Nat
+abbrev Vertex := Nat
 
 /-- An edge is a pair of vertices -/
-def Edge := Vertex × Vertex
+abbrev Edge := Nat × Nat
 
 /-- A graph is a list of edges -/
-def Graph := List Edge
+abbrev Graph := List Edge
 
 /-- A clique is a list of vertices -/
-def Clique := List Vertex
+abbrev Clique := List Nat
 
 -- Helper Functions
 
 /-- Check if two vertices are connected in a graph -/
-def connected (g : Graph) (v1 v2 : Vertex) : Bool :=
+def connected (g : Graph) (v1 v2 : Nat) : Bool :=
   g.any fun (a, b) => (a == v1 && b == v2) || (a == v2 && b == v1)
 
 /-- Check if a set of vertices forms a clique (all pairs are connected) -/
@@ -46,16 +46,16 @@ def cliqueSize (c : Clique) : Nat := c.length
 
 /-- Letter vertices (represented as numbers 6-15)
     These are the additional vertices that create 4-cliques -/
-def vertexA : Vertex := 6
-def vertexB : Vertex := 7
-def vertexC : Vertex := 8
-def vertexD : Vertex := 9
-def vertexE : Vertex := 10
-def vertexF : Vertex := 11
-def vertexG : Vertex := 12
-def vertexH : Vertex := 13
-def vertexI : Vertex := 14
-def vertexJ : Vertex := 15
+def vertexA : Nat := 6
+def vertexB : Nat := 7
+def vertexC : Nat := 8
+def vertexD : Nat := 9
+def vertexE : Nat := 10
+def vertexF : Nat := 11
+def vertexG : Nat := 12
+def vertexH : Nat := 13
+def vertexI : Nat := 14
+def vertexJ : Nat := 15
 
 /-- The 5-clique edges (vertices 1-5)
     This is the MAXIMUM clique in the graph -/
@@ -128,14 +128,14 @@ theorem clique_123A_size : cliqueSize clique123A = 4 := by
 
 /-- A 3-clique (triangle) - the building block of LaPlante's algorithm -/
 structure Triangle where
-  v1 : Vertex
-  v2 : Vertex
-  v3 : Vertex
+  v1 : Nat
+  v2 : Nat
+  v3 : Nat
 
 /-- A merge decision in the algorithm - represents choosing which triangles to combine -/
 structure MergeDecision where
   chosen_triangle : Triangle
-  key_vertex : Vertex
+  key_vertex : Nat
 
 /-!
 ## The Core Problem with LaPlante's Algorithm
@@ -182,12 +182,7 @@ theorem laplante_algorithm_is_incorrect :
       isClique g maxC = true ∧
       isClique g foundC = true ∧
       cliqueSize maxC > cliqueSize foundC := by
-  use counterexampleGraph, maxClique, clique123A
-  constructor
-  · sorry  -- max_clique_is_clique
-  constructor
-  · sorry  -- clique_123A_is_clique
-  · sorry  -- 5 > 4
+  exact ⟨counterexampleGraph, maxClique, clique123A, sorry, sorry, sorry⟩
 
 /-!
 ## Why LaPlante's Algorithm Fails
