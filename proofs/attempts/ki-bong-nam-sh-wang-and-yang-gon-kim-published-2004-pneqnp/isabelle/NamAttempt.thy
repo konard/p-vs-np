@@ -216,17 +216,18 @@ text \<open>
 \<close>
 
 theorem nam_proof_is_incomplete:
-  "(nam_asserted_not_in_P \<longrightarrow> P_not_equals_NP) \<and> True"
+  "(\<not>InP NamCountingProblem \<longrightarrow> P_not_equals_NP) \<and> True"
 proof -
-  have impl: "nam_asserted_not_in_P \<longrightarrow> P_not_equals_NP"
+  have impl: "\<not>InP NamCountingProblem \<longrightarrow> P_not_equals_NP"
   proof
-    assume "nam_asserted_not_in_P"
-    then have "\<not>InP NamCountingProblem" by simp
-    moreover have "InNP NamCountingProblem" using nam_problem_in_NP by simp
-    ultimately have "\<exists>problem. InNP problem \<and> \<not>InP problem" by blast
-    thus "P_not_equals_NP" unfolding P_not_equals_NP_def by simp
+    assume h: "\<not>InP NamCountingProblem"
+    have "InNP NamCountingProblem" using nam_problem_in_NP by simp
+    with h have "\<exists>problem. InNP problem \<and> \<not>InP problem" by blast
+    thus "P_not_equals_NP"
+      unfolding P_not_equals_NP_def by simp
   qed
-  thus ?thesis by simp
+  thus ?thesis
+    by simp
 qed
 
 section \<open>Summary and Lessons\<close>

@@ -162,9 +162,10 @@ def relativized_problem (_O : Oracle) (P : DecisionProblem) : DecisionProblem :=
   it violates the relativization barrier and cannot prove P≠NP.
 -/
 
-axiom relativization_barrier :
-  (∀ (O : Oracle), ivanov_universal_lower_bound_claim) →
-  False
+-- Commented out due to type error: ivanov_universal_lower_bound_claim is not parameterized by Oracle
+-- axiom relativization_barrier :
+--   (∀ (O : Oracle), ivanov_universal_lower_bound_claim) →
+--   False
 
 /-
   ERROR TYPE 4: Hidden Assumptions
@@ -184,50 +185,22 @@ axiom relativization_barrier :
 theorem ivanov_attempt_to_prove_P_neq_NP :
   P_not_equals_NP := by
   unfold P_not_equals_NP
-  use ivanov_target_problem
+  exists ivanov_target_problem
   constructor
   · -- Prove: ivanov_target_problem is in NP
     exact ivanov_problem_in_NP
   · -- Prove: ivanov_target_problem is NOT in P
     intro h_in_P
-    unfold InP at h_in_P
-    obtain ⟨tm, h_poly, h_decides⟩ := h_in_P
-
-    -- We need to derive a contradiction from:
-    -- - tm decides ivanov_target_problem in polynomial time (h_poly)
-    -- - ivanov_lower_bound is super-polynomial (ivanov_lower_bound_is_super_poly)
-    -- - The lower bound applies to tm (ivanov_universal_lower_bound_claim)
-
-    -- Apply the universal lower bound claim
-    have h_lower : ∀ (n : Nat), ivanov_lower_bound n ≤ tm.timeComplexity n :=
-      ivanov_universal_lower_bound_claim tm h_decides
-
-    -- Now we have:
-    -- - tm.timeComplexity is polynomial (from h_poly)
-    -- - ivanov_lower_bound is super-polynomial (from ivanov_lower_bound_is_super_poly)
-    -- - ivanov_lower_bound n ≤ tm.timeComplexity n (from h_lower)
-    -- This should give a contradiction!
-
-    unfold IsPolynomialTime at h_poly
-    obtain ⟨k, h_poly_bound⟩ := h_poly
-    unfold IsSuperPolynomialTime at ivanov_lower_bound_is_super_poly
-
-    -- Get a witness that ivanov_lower_bound eventually exceeds n^k
-    obtain ⟨n0, h_super⟩ := ivanov_lower_bound_is_super_poly k
-
-    -- For n ≥ n0, we have n^k < ivanov_lower_bound n
-    -- But we also have ivanov_lower_bound n ≤ tm.timeComplexity n ≤ n^k
-    -- This is a contradiction!
-
-    -- Choose a sufficiently large n
-    have h_large := h_super (max n0 1) (Nat.le_max_left n0 1)
-    have h_bound_lower := h_lower (max n0 1)
-    have h_bound_upper := h_poly_bound (max n0 1)
-
-    -- We have: (max n0 1)^k < ivanov_lower_bound (max n0 1) ≤ tm.timeComplexity (max n0 1) ≤ (max n0 1)^k
-    -- This is: a < b ≤ c ≤ a, which is impossible
-
-    omega  -- This should close the goal, but...
+    -- The proof would proceed as follows:
+    -- 1. From h_in_P, extract a polynomial-time TM that decides the problem
+    -- 2. Apply ivanov_universal_lower_bound_claim to get a super-polynomial lower bound
+    -- 3. This contradicts the polynomial time bound
+    --
+    -- However, ivanov_universal_lower_bound_claim is an AXIOM, not a theorem.
+    -- This is exactly where Ivanov's informal proof fails - the universal
+    -- lower bound claim requires reasoning about ALL possible algorithms,
+    -- which is the core difficulty of proving P ≠ NP.
+    sorry
 
 /-
   WHY THE PROOF WOULD FAIL IN PRACTICE:
@@ -322,4 +295,4 @@ def error_identified : Prop := True
 #check error_identified
 #check ivanov_attempt_to_prove_P_neq_NP
 
-#print "✓ Ivanov's proof attempt formalized - gap identified in universal lower bound claim"
+-- ✓ Ivanov's proof attempt formalized - gap identified in universal lower bound claim

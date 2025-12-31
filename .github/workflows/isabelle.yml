@@ -35,9 +35,46 @@ jobs:
     - name: Install Isabelle
       if: steps.check-isabelle.outputs.has_files == 'true'
       run: |
-        wget https://isabelle.in.tum.de/dist/Isabelle2025_linux.tar.gz
-        tar xzf Isabelle2025_linux.tar.gz
-        echo "$PWD/Isabelle2025/bin" >> $GITHUB_PATH
+        # Retry logic with multiple mirrors and attempts
+        ISABELLE_VERSION="Isabelle2025-1"
+        MIRRORS=(
+          "https://isabelle.in.tum.de/dist/${ISABELLE_VERSION}_linux.tar.gz"
+          "https://mirror.ctan.org/systems/isabelle/${ISABELLE_VERSION}_linux.tar.gz"
+          "https://isabelle.sketis.net/dist/${ISABELLE_VERSION}_linux.tar.gz"
+        )
+        MAX_RETRIES=3
+        DOWNLOAD_SUCCESS=false
+
+        for mirror in "${MIRRORS[@]}"; do
+          echo "Trying mirror: $mirror"
+          for attempt in $(seq 1 $MAX_RETRIES); do
+            echo "  Attempt $attempt of $MAX_RETRIES..."
+            if wget --timeout=120 --tries=1 -q "$mirror" -O "${ISABELLE_VERSION}_linux.tar.gz"; then
+              echo "  Download successful!"
+              DOWNLOAD_SUCCESS=true
+              break 2
+            else
+              echo "  Failed, waiting 10 seconds before retry..."
+              sleep 10
+            fi
+          done
+        done
+
+        if [ "$DOWNLOAD_SUCCESS" = false ]; then
+          echo "ERROR: All download attempts failed"
+          exit 1
+        fi
+
+        tar xzf ${ISABELLE_VERSION}_linux.tar.gz
+        echo "$PWD/${ISABELLE_VERSION}/bin" >> $GITHUB_PATH
+
+    - name: Generate ROOTS file
+      if: steps.check-isabelle.outputs.has_files == 'true'
+      run: |
+        echo "Generating ROOTS file from individual ROOT files..."
+        find . -name ROOT -path "*/isabelle/*" | sed 's|/ROOT||' | sed 's|^\./||' | sort > ROOTS
+        echo "Found $(wc -l < ROOTS) Isabelle sessions:"
+        cat ROOTS
 
     - name: Verify Isabelle files
       if: steps.check-isabelle.outputs.has_files == 'true'

@@ -237,7 +237,9 @@ def ProperlyDefinedProperty (P : DecisionProblem → Prop) : Prop :=
   -- Must be well-defined for all problems (decidable)
   (∀ problem, P problem ∨ ¬P problem) ∧
   -- Must be preserved under polynomial-time reductions
-  (∀ problem1 problem2 reduction tc,
+  (∀ problem1 problem2 : DecisionProblem,
+   ∀ reduction : String → String,
+   ∀ tc : TimeComplexity,
     IsPolynomialTime tc →
     (∀ x, problem1 x ↔ problem2 (reduction x)) →
     P problem1 → P problem2)
@@ -300,4 +302,5 @@ axiom holcomb_proof_gap :
 #check ProperlyDefinedProperty
 #check holcomb_proof_gap
 
-#print "✓ Holcomb proof attempt formalization complete (with identified gaps)"
+-- #print "✓ Holcomb proof attempt formalization complete (with identified gaps)"
+-- Note: #print with string literals is not valid in Lean 4

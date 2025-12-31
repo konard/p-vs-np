@@ -194,13 +194,12 @@ text \<open>
 \<close>
 
 (* We can formalize the gap by showing what would be needed *)
+text \<open>Either the algorithm is incorrect or it takes super-polynomial time\<close>
 definition algorithm_gap :: "algorithm \<Rightarrow> bool" where
   "algorithm_gap alg \<equiv>
-    (* Either the algorithm is incorrect... *)
     (\<exists>f. (compute alg f \<and> \<not> is_tautology f) \<or>
          (\<not> compute alg f \<and> is_tautology f))
     \<or>
-    (* ...or it takes super-polynomial time *)
     (\<not> is_polynomial_time (time_complexity alg))"
 
 (* Under standard assumptions (P \<noteq> NP), any claimed TAUT algorithm has a gap *)
