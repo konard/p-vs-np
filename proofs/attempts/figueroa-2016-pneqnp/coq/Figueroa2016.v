@@ -273,7 +273,8 @@ Section TheGap.
   (**
     What Figueroa provides: Structural arguments about the construction
   *)
-  Axiom construction_has_nice_structure :
+  (** Placeholder proposition representing that the construction has nice structure *)
+  Definition construction_has_nice_structure : Prop :=
     (* The function is built from hash functions in a specific way *)
     True.
 
