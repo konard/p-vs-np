@@ -42,9 +42,14 @@ def isValidPath (g : Graph) : Path → Prop
       hasEdge g ⟨v1, v2⟩ ∧
       isValidPath g (v2 :: rest)
 
+/-- Check if all elements in a list are distinct -/
+def allDistinct : List Nat → Prop
+  | [] => True
+  | x :: xs => x ∉ xs ∧ allDistinct xs
+
 /-- A path visits all vertices exactly once -/
 def visitsAllOnce (g : Graph) (p : Path) : Prop :=
-  (∀ v ∈ g.vertices, v ∈ p) ∧ p.Pairwise (· ≠ ·)
+  (∀ v ∈ g.vertices, v ∈ p) ∧ allDistinct p
 
 /-- A circuit is a path that starts and ends at the same vertex -/
 def isCircuit : Path → Prop
