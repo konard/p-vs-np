@@ -30,10 +30,11 @@ jobs:
 
     - name: Clean stale build artifacts
       run: |
-        # Clean .lake build artifacts to ensure fresh build with current sources
-        if [ -d ".lake/build" ]; then
-          echo "Cleaning stale build artifacts..."
-          rm -rf .lake/build
+        # Clean entire .lake directory to ensure fresh build with current sources
+        # This prevents stale compiled artifacts from causing build failures
+        if [ -d ".lake" ]; then
+          echo "Cleaning stale .lake directory..."
+          rm -rf .lake
         fi
 
     - name: Build and test Lean
