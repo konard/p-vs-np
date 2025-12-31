@@ -76,17 +76,15 @@ where
 (* Figueroa's actual algorithm: appends n bits for each input bit
 
    This means it should map {0,1}^n to {0,1}^(n^2), not {0,1}^n to {0,1}^n! *)
-(* Simplified version - actual construction uses more complex hash composition *)
-fun tau_actual_construction :: "nat \<Rightarrow> UniversalHashFamily \<Rightarrow> BitString \<Rightarrow> BitString" where
-  "tau_actual_construction n H [] = []" |
-  "tau_actual_construction n H (bit # rest) =
-    (let hash_output = hash_function H [bit] []
-     in hash_output @ tau_actual_construction n H rest)"
+(* Simplified version - actual construction uses hash composition, modeled here as replication *)
+fun tau_actual_construction :: "nat \<Rightarrow> BitString \<Rightarrow> BitString" where
+  "tau_actual_construction n [] = []" |
+  "tau_actual_construction n (bit # rest) = (replicate n bit) @ tau_actual_construction n rest"
 
 (* The actual output has length n * n = n^2 *)
 theorem tau_actual_output_length:
   assumes "bitstring_length x = n"
-  shows "bitstring_length (tau_actual_construction n H x) = n * n"
+  shows "bitstring_length (tau_actual_construction n x) = n * n"
   (* The actual output has length n * n = n^2 *)
   (* This contradicts tau_claimed_preserves_length! *)
   sorry  (* Cannot complete - reveals the type error *)
@@ -103,8 +101,8 @@ theorem tau_actual_output_length:
 theorem type_error_contradiction:
   assumes claimed: "\<forall>n x. bitstring_length x = n \<longrightarrow> bitstring_length (tau_claimed x) = n"
   assumes actual: "\<forall>n x. bitstring_length x = n \<longrightarrow>
-                    bitstring_length (tau_actual_construction n H x) = n * n"
-  assumes equal: "tau_claimed = tau_actual_construction n H"
+                    bitstring_length (tau_actual_construction n x) = n * n"
+  assumes equal: "tau_claimed = tau_actual_construction n"
   shows "False"
   (* If they're equal, they must have the same output length *)
   (* But n ≠ n * n for n > 1 *)
