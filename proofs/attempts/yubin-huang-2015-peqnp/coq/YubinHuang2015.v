@@ -82,7 +82,8 @@ Definition ComputationTree : Type := unit.  (* Abstract for now *)
 Parameter count_nondeterministic_moves :
   NondeterministicTM -> BinaryString -> nat.
 
-Notation "'C' M w" := (count_nondeterministic_moves M w) (at level 50).
+(** Abbreviation for readability *)
+Definition C := count_nondeterministic_moves.
 
 (** ** 3.2 The Hierarchy L_i *)
 
@@ -151,8 +152,7 @@ Proof.
   apply H_union in H_NP.
   destruct H_NP as [i H_in_Li].
   (* By H_all_Li, L is in P *)
-  apply H_all_Li.
-  exact H_in_Li.
+  exact (H_all_Li i L H_in_Li).
 Qed.
 
 (** Combined with P ⊆ NP, this gives P = NP *)
@@ -256,11 +256,12 @@ Proof.
     intros H_sim L H_NP.
     (* An NP problem is decided by a nondeterministic TM with polynomial moves *)
     (* If we can simulate this deterministically, it's in P *)
-Admitted.
+    admit.
   - (* If P = NP, then we can simulate *)
     intros H_eq M i.
     (* If P = NP, then we can decide any NP problem in polynomial time *)
     (* This includes simulating nondeterministic moves *)
+    admit.
 Admitted.
 
 (** Therefore, Huang's proof is circular: it assumes P = NP to prove P = NP *)
@@ -272,8 +273,11 @@ Proof.
   split; [|split].
   - (* hierarchy_collapse -> P = NP *)
     intro H_collapse.
-    apply huang_proof_sketch.
-    exact H_collapse.
+    unfold P_equals_NP.
+    intros L H_NP.
+    (* huang_proof_sketch gives us an iff, extract the forward direction *)
+    apply (huang_proof_sketch H_collapse L).
+    exact H_NP.
   - (* hierarchy_collapse -> simulation exists *)
     apply hierarchy_collapse_requires_simulation.
   - (* simulation exists -> P = NP *)
