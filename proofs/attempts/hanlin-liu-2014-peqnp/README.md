@@ -1,148 +1,213 @@
-# Formalization: Hanlin Liu (2014) - P=NP
+# Hanlin Liu (2014) - P=NP Attempt
 
-**Attempt ID**: 96
-**Author**: Hanlin Liu
-**Year**: 2014
-**Claim**: P=NP
-**Paper**: "A Algorithm for the Hamilton Circuit Problem"
-**Source**: http://arxiv.org/abs/1401.6423
-**Listed in**: Woeginger's P vs NP page (Entry #96)
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [All Proof Attempts](../) | [Issue #47](https://github.com/konard/p-vs-np/issues/47)
+
+---
+
+## Metadata
+
+- **Attempt ID**: 101 (Woeginger's list)
+- **Author**: Hanlin Liu (刘汉林)
+- **Year**: January 2014
+- **Claim**: P = NP
+- **Method**: Polynomial-time algorithm for Hamiltonian Circuit Problem
+- **Claimed Complexity**: O(|V|^9)
+- **Status**: ❌ **WITHDRAWN by author** (October 31, 2018)
+- **Woeginger Entry**: #101 (https://wscor.win.tue.nl/woeginger/P-versus-NP.htm)
+
+## Paper Reference
+
+- **Title**: "A Algorithm for the Hamilton Circuit Problem"
+- **arXiv**: [1401.6423](http://arxiv.org/abs/1401.6423)
+- **Submission History**: 8 versions (v1-v8) from January 2014 to October 2018
+- **Final Status**: Withdrawn by author on October 31, 2018
+- **PDF Availability**: ❌ Not available (withdrawn)
 
 ## Summary
 
-In January 2014, Hanlin Liu published a paper claiming to establish P=NP by constructing a polynomial-time algorithm for the Hamiltonian circuit problem with time complexity O(|V|^9).
+Hanlin Liu attempted to establish P=NP by constructing a polynomial-time algorithm for the Hamiltonian Circuit Problem in a graph G=(V,E). The Hamiltonian Circuit Problem is known to be NP-complete (proven by Karp in 1972), so a polynomial-time solution would indeed imply P=NP.
 
-**Important Note**: This paper has been **withdrawn by the author** with the following comment:
-> "Unfortunately, it can not cover all cases of hamilton circuit problem. So, it is a failed attempt."
+The claimed time complexity was O(|V|^9), where |V| is the number of vertices in the graph. If correct, this would represent a breakthrough result solving one of the most important open problems in mathematics and computer science.
 
-This self-retraction makes the paper particularly interesting for formalization, as it demonstrates how incomplete algorithms can fail to cover all graph instances.
+## Main Argument/Approach
 
-## Main Argument
+Due to the paper being withdrawn and the PDF no longer being available, the specific algorithmic details cannot be analyzed. However, the general approach was to:
 
-### The Approach
+1. Design an algorithm for finding Hamiltonian circuits in arbitrary graphs
+2. Prove the algorithm runs in polynomial time (specifically O(|V|^9))
+3. Conclude that since Hamiltonian Circuit is NP-complete, this implies P=NP
 
-The paper attempts to solve the Hamiltonian Circuit Problem (HCP) for a graph G=(V,E) in polynomial time O(|V|^9). The general approach for such claims typically involves:
+## Known Refutation
 
-1. **Graph Decomposition**: Attempting to decompose the graph into manageable substructures
-2. **Path Extension**: Building candidate Hamiltonian paths incrementally
-3. **Backtracking Avoidance**: Claiming to avoid exponential backtracking through clever pruning
+### Author's Own Assessment
 
-### Common Patterns in Failed Attempts
+The most direct refutation comes from **the author himself**. In the final version (v8) before withdrawal, Liu Hanlin explicitly stated:
 
-Since the original PDF is no longer available (withdrawn from arXiv), we analyze based on common patterns in similar attempts to solve Hamiltonian circuit in polynomial time:
+> "In this article, we try to find a algorithm for the hamilton circuit problem. Unfortunately, it can not cover all cases of hamilton circuit problem. So, it is a failed attempt"
 
-1. **Greedy Path Construction**: Build paths by always choosing the "best" next vertex
-   - **Flaw**: Local optimality doesn't guarantee global Hamiltonian path existence
+### The Error in the Proof
 
-2. **Degree-based Heuristics**: Use vertex degrees to guide path construction
-   - **Flaw**: Degree constraints are necessary but not sufficient for Hamiltonicity
+Based on the author's admission, the fundamental error is:
 
-3. **Connectivity Arguments**: Claim that certain connectivity properties ensure Hamiltonicity
-   - **Flaw**: Connectivity doesn't imply Hamiltonicity (e.g., Petersen graph is 3-regular, 3-connected, but not Hamiltonian)
+**Incomplete Case Coverage**: The proposed algorithm does not correctly handle all possible graph structures. A valid polynomial-time algorithm for an NP-complete problem must:
+- Correctly solve ALL instances of the problem
+- Return correct answers for every possible input
+- Run in polynomial time for all cases
 
-4. **Incomplete Case Analysis**: Algorithm works for special graph classes but not all graphs
-   - **Flaw**: This is exactly what the author admitted - "it can not cover all cases"
+The author acknowledged that the algorithm "can not cover all cases," meaning:
+- Some graph structures were not properly handled
+- The algorithm may fail, give incorrect results, or run in super-polynomial time on certain inputs
+- The proof of P=NP was therefore incomplete and invalid
 
-## The Critical Error
+### Historical Context
 
-### Primary Flaw: Incomplete Coverage
+This is a common pattern in failed P vs NP attempts:
+1. An algorithm is proposed for an NP-complete problem
+2. The algorithm works correctly on many (even most) test cases
+3. However, edge cases or specific graph structures reveal the algorithm's limitations
+4. The algorithm either:
+   - Gives incorrect results on some inputs
+   - Requires exponential time on certain instances
+   - Contains logical gaps in its correctness proof
 
-As admitted by the author, the algorithm fails to cover all cases of the Hamiltonian circuit problem. This is a fundamental issue because:
+### Why This Matters
 
-1. **NP-completeness**: The Hamiltonian circuit problem is NP-complete (Karp, 1972)
-2. **Reduction hardness**: Any polynomial-time algorithm must handle ALL instances
-3. **Worst-case complexity**: A single class of uncovered instances invalidates the P=NP claim
+For a proof of P=NP to be valid, the algorithm must:
+- ✅ Be polynomial-time for **all** instances (not just "most" or "many")
+- ✅ Be correct for **all** instances (100% accuracy, not probabilistic)
+- ✅ Have a rigorous mathematical proof of both correctness and time complexity
+- ✅ Address known barriers (relativization, natural proofs, algebrization)
 
-### Likely Failure Modes
+Liu's attempt failed the first two requirements by not covering all cases.
 
-Based on common patterns in similar attempts, the algorithm likely fails on:
+## Formalization Strategy
 
-1. **Sparse graphs**: Graphs with few edges where path choices are constrained
-2. **Non-Hamiltonian graphs**: Graphs with no Hamiltonian cycle (algorithm may not terminate or give false positives)
-3. **Near-Hamiltonian graphs**: Graphs that are "almost" Hamiltonian but have subtle obstructions
-4. **Counter-examples**: Specific graph constructions designed to exploit greedy/local approaches
+Since the original paper is withdrawn and unavailable, our formalization focuses on the **general structure** of such attempts and why they fail. We formalize:
 
-### Why O(|V|^9) is Suspicious
+### 1. Hamiltonian Circuit Problem Definition
+- Formal definition of graphs, paths, and circuits
+- Specification of when a circuit is Hamiltonian
+- Encoding as a decision problem
 
-The claimed complexity O(|V|^9) is polynomial but extremely high. This suggests:
-- The algorithm may be enumerating many possible path configurations
-- Higher polynomial degrees often indicate incomplete pruning of the search space
-- True polynomial algorithms for such problems typically have lower degrees
+### 2. The Claim Structure
+```
+Claim: ∃ Algorithm A such that:
+  1. A solves Hamiltonian Circuit Problem
+  2. A runs in time O(|V|^9) for all inputs
+  3. A is correct for all inputs
+```
 
-## Known Counterexamples
+### 3. The Gap/Error
+```
+Reality: The proposed algorithm A fails because:
+  ∃ Graph G such that:
+    A(G) is incorrect OR
+    A(G) runs in super-polynomial time OR
+    A(G) does not terminate
+```
 
-### The Petersen Graph
+### 4. Lesson for Future Attempts
+We formalize the requirement that any valid P=NP proof via an algorithmic approach must prove correctness and polynomial-time complexity **for all possible inputs**, not just for a subset.
 
-A classic counterexample for many Hamiltonian circuit heuristics:
-- 10 vertices, 15 edges
-- 3-regular (every vertex has degree 3)
-- 3-connected (remains connected after removing any 2 vertices)
-- **NOT Hamiltonian** despite appearing highly regular
+## Implementations
 
-### Hypohamiltonian Graphs
+### Coq (`coq/HanlinLiu2014.v`)
+- Defines graph structures and Hamiltonian circuits
+- Formalizes the claim of polynomial-time solvability
+- Proves that incomplete case coverage invalidates the proof
+- Uses classical logic and standard library
 
-Graphs that are not Hamiltonian, but become Hamiltonian when any single vertex is removed:
-- Demonstrate subtle obstructions to Hamiltonicity
-- Often defeat local/greedy approaches
+### Lean 4 (`lean/HanlinLiu2014.lean`)
+- Type-safe encoding of graphs and decision problems
+- Dependent types for correctness proofs
+- Demonstrates why partial algorithms don't prove P=NP
+- Integration with repository's Lean infrastructure
 
-## Formalization Goal
+### Isabelle/HOL (`isabelle/HanlinLiu2014.thy`)
+- Higher-order logic formalization
+- Record types for algorithms and their properties
+- Proof that universal correctness is required
+- Compatible with repository's Isabelle/HOL setup
 
-Our formalization will:
+## Educational Value
 
-1. **Define Hamiltonian cycles formally**: Precise definition in proof assistants
-2. **Model the algorithm structure**: Represent typical greedy path construction approaches
-3. **Construct counterexamples**: Provide specific graphs where greedy approaches fail
-4. **Prove incompleteness**: Show that polynomial-time coverage of all cases is not achieved
+This formalization serves several purposes:
 
-## Implementation Structure
+1. **Demonstrates common failure modes**: Many P vs NP attempts fail by not covering all cases
+2. **Importance of rigorous proof**: Informal testing on examples is insufficient
+3. **Respect for author transparency**: Liu's honest acknowledgment of failure is scientifically valuable
+4. **Template for analyzing attempts**: This structure can be reused for other failed attempts
 
-### Coq Formalization (`coq/`)
-- Definitions of graphs, paths, and Hamiltonian cycles
-- Greedy path construction model
-- Counterexample construction (non-Hamiltonian regular graphs)
-- Proof that greedy approaches have failure cases
+## Timeline
 
-### Lean Formalization (`lean/`)
-- Type-safe graph structures
-- Path extension algorithms
-- Petersen graph as counterexample
-- Proof of incompleteness for greedy strategies
+- **January 2014**: Initial submission (v1) to arXiv
+- **2014-2018**: Multiple revisions (v2-v7)
+- **October 31, 2018**: Final version (v8) submitted with withdrawal notice
+- **October 31, 2018**: Paper officially withdrawn by author
 
-### Isabelle Formalization (`isabelle/`)
-- Higher-order logic representation
-- Graph theory foundations
-- Formal verification of counterexamples
-- Gap demonstration
+## Related Work
+
+### NP-Completeness of Hamiltonian Circuit
+- **Karp (1972)**: "Reducibility Among Combinatorial Problems" - proved Hamiltonian Circuit is NP-complete
+- **Garey & Johnson (1979)**: *Computers and Intractability* - comprehensive treatment
+
+### Known Algorithms
+- **Exact algorithms**:
+  - Held-Karp algorithm: O(n^2 * 2^n) via dynamic programming
+  - Best known: O(1.657^n) (Björklund, 2014)
+- **Heuristic algorithms**: Various approximations and metaheuristics (no worst-case guarantees)
+- **Special cases**: Polynomial-time algorithms exist for specific graph classes (planar graphs with restrictions, etc.)
+
+## Verification
+
+To verify the formalizations:
+
+```bash
+# Coq
+cd coq
+coqc HanlinLiu2014.v
+
+# Lean 4
+cd lean
+lake build
+
+# Isabelle/HOL
+cd isabelle
+isabelle build -D .
+```
 
 ## References
 
 ### Primary Source
-- **Liu, H.** (2014). "A Algorithm for the Hamilton Circuit Problem." arXiv:1401.6423. http://arxiv.org/abs/1401.6423 (Withdrawn)
+- Liu, H. (2014). "A Algorithm for the Hamilton Circuit Problem." arXiv:1401.6423 [Withdrawn]
 
-### Classical Results
-- **Karp, R. M.** (1972). "Reducibility among combinatorial problems." *Complexity of Computer Computations*
-- **Holton, D. A., & Sheehan, J.** (1993). *The Petersen Graph*. Cambridge University Press
-- **Garey, M. R., & Johnson, D. S.** (1979). *Computers and Intractability: A Guide to the Theory of NP-Completeness*
+### Hamiltonian Circuit Problem
+- Karp, R. M. (1972). "Reducibility Among Combinatorial Problems." *Complexity of Computer Computations*, pp. 85-103.
+- Garey, M. R., & Johnson, D. S. (1979). *Computers and Intractability: A Guide to the Theory of NP-Completeness*. W. H. Freeman.
 
 ### Woeginger's List
-- **Woeginger, G. J.** "The P versus NP page." https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+- Woeginger, G. J. "The P versus NP Page." https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+
+### General P vs NP
+- Cook, S. A. (2000). "The P versus NP Problem." Clay Mathematics Institute. https://www.claymath.org/wp-content/uploads/2022/06/pvsnp.pdf
+- Arora, S., & Barak, B. (2009). *Computational Complexity: A Modern Approach*. Cambridge University Press.
+
+## Acknowledgments
+
+We acknowledge Hanlin Liu's scientific integrity in transparently withdrawing the paper and acknowledging its limitations. This honesty is valuable for the research community and serves as an educational example.
+
+## License
+
+See repository [LICENSE](../../../LICENSE) file.
 
 ## Status
 
-- [x] Problem structure identified
-- [x] Critical error located: Incomplete case coverage (author-confirmed)
-- [x] Formal verification in progress
-- [x] Counterexamples constructed
-
-## Conclusion
-
-The Hanlin Liu (2014) proof attempt was self-retracted by the author, who acknowledged that the algorithm "can not cover all cases of hamilton circuit problem." This is a classic failure mode for P=NP proof attempts: an algorithm that works on many or most instances but fails on certain graph classes. Since NP-completeness requires solving ALL instances in polynomial time, any uncovered cases invalidate the P=NP claim.
-
-The formalization demonstrates this gap by:
-1. Modeling the general structure of greedy Hamiltonian path algorithms
-2. Constructing counterexample graphs (Petersen graph, hypohamiltonian graphs)
-3. Proving that these counterexamples cannot be handled by local/greedy approaches
+- ✅ Documentation: Complete
+- ✅ Coq formalization: Complete
+- ✅ Lean formalization: Complete
+- ✅ Isabelle formalization: Complete
+- ✅ Error identification: Complete (author's own admission)
 
 ---
 
-**Navigation:** [Back to Attempts](../) | [Repository Root](../../../README.md)
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [P vs NP Documentation](../../../P_VS_NP_TASK_DESCRIPTION.md) | [All Attempts](../)
