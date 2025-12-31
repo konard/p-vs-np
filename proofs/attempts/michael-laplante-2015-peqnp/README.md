@@ -1,9 +1,18 @@
 # Michael LaPlante (2015) - P=NP Clique Algorithm Attempt
 
-**Attempt ID**: 102
+**Navigation:** [Back to Repository Root](../../../README.md)
+
+---
+
+## Overview
+
+**Attempt ID**: 102 (from Woeginger's list)
 **Author**: Michael LaPlante
 **Year**: 2015
-**Claim**: P=NP
+**Claim**: P = NP
+**Paper**: "A Polynomial Time Algorithm For Solving Clique Problems"
+**arXiv**: [1503.04794](https://arxiv.org/abs/1503.04794)
+**Refutation**: Cardenas et al., 2015 ([arXiv:1504.06890](https://arxiv.org/abs/1504.06890))
 **Status**: **REFUTED**
 
 ## Summary
@@ -90,6 +99,20 @@ To fix the algorithm, one would need to:
 - Try all possible orderings of vertex pairs
 - **This requires exponential time**, destroying the polynomial-time claim
 
+## Additional Issues
+
+### Exponential Number of Maximal Cliques
+
+A fundamental issue is that some graphs have exponentially many maximal cliques. The Moon-Moser graph family shows that an n-vertex graph can have up to 3^(n/3) maximal cliques. No algorithm that enumerates all maximal cliques can run in polynomial time on such graphs.
+
+### Failure of the Triangle-Based Approach
+
+The approach of building larger cliques from triangles has several flaws:
+
+- **Combinatorial Explosion**: The number of ways to combine triangles can grow exponentially
+- **Correctness Issues**: Not all cliques can be correctly identified by simply merging triangles
+- **Hidden Exponential Work**: The algorithm's analysis underestimates the work required in the extension phase
+
 ## Formal Verification Goal
 
 The goal of this formalization is to:
@@ -141,17 +164,39 @@ LaPlante's algorithm does neither.
 - **arXiv**: [1504.06890](https://arxiv.org/abs/1504.06890)
 - **Local Copy**: `refutation.pdf`
 
+### Background on Clique Problem
+- Karp, R.M. (1972). "Reducibility Among Combinatorial Problems." Complexity of Computer Computations, pp. 85-103.
+- Moon, J.W., Moser, L. (1965). "On cliques in graphs." Israel Journal of Mathematics, 3(1):23-28.
+- Garey, M.R., Johnson, D.S. (1979). "Computers and Intractability: A Guide to the Theory of NP-Completeness." W.H. Freeman.
+
 ### From Woeginger's List
 - Entry #102: [Woeginger's P-versus-NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm)
 
 ## Files in This Directory
 
-- `README.md` - This file
-- `laplante-original.pdf` - LaPlante's original paper
-- `refutation.pdf` - The refutation by Cardenas et al.
-- `coq/` - Coq formalization of the counterexample
-- `lean/` - Lean formalization of the counterexample
-- `isabelle/` - Isabelle/HOL formalization of the counterexample
+```
+proofs/attempts/michael-laplante-2015-peqnp/
+├── README.md                              # This file
+├── laplante-original.pdf                  # LaPlante's original paper
+├── refutation.pdf                         # The refutation by Cardenas et al.
+├── coq/
+│   ├── LaPlante2015.v                     # Coq formalization (general)
+│   └── LaPlante2015Counterexample.v       # Coq counterexample formalization
+├── lean/
+│   ├── LaPlante2015.lean                  # Lean formalization (general)
+│   └── LaPlante2015Counterexample.lean    # Lean counterexample formalization
+└── isabelle/
+    ├── ROOT                               # Session configuration
+    ├── LaPlante2015.thy                   # Isabelle formalization (general)
+    └── LaPlante2015Counterexample.thy     # Isabelle counterexample formalization
+```
+
+## Status
+
+- [x] Documentation: Complete
+- [x] Lean formalization: Complete (counterexample verified)
+- [x] Coq formalization: Complete (counterexample verified)
+- [x] Isabelle formalization: Complete (counterexample verified)
 
 ## Related Work
 
@@ -162,3 +207,7 @@ The goal is to formalize incorrect P vs NP proofs to:
 2. Build a library of counterexamples
 3. Develop automated tools for detecting similar errors
 4. Educate researchers about pitfalls in complexity theory proofs
+
+---
+
+**Note**: This formalization is for educational purposes to understand why certain approaches to P vs NP fail. The goal is to build intuition about the problem and common pitfalls in attempted proofs.

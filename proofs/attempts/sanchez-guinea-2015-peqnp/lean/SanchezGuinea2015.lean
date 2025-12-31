@@ -9,14 +9,10 @@
   recursion depth in Algorithm D.
 -/
 
-import Mathlib.Data.List.Basic
-import Mathlib.Data.Nat.Basic
-import Mathlib.Logic.Basic
-
-/-- * 1. Basic Definitions -/
+/-! ## 1. Basic Definitions -/
 
 /-- Variables are natural numbers -/
-def Variable := Nat
+abbrev Variable := Nat
 
 /-- Literals: positive or negative variables -/
 inductive Literal where
@@ -44,7 +40,7 @@ structure Clause3 where
 /-- A 3-SAT instance is a list of 3-clauses -/
 def SAT3Instance := List Clause3
 
-/-- * 2. Understanding - The Key Concept -/
+/-! ## 2. Understanding - The Key Concept -/
 
 /-- Three-valued truth value: true, false, or free (unassigned) -/
 inductive UnderstandingValue where
@@ -64,7 +60,7 @@ def emptyUnderstanding : Understanding :=
 def updateUnderstanding (u : Understanding) (l : Literal) (v : UnderstandingValue) : Understanding :=
   fun l' => if l = l' then v else u l'
 
-/-- * 3. Concepts and Contexts -/
+/-! ## 3. Concepts and Contexts -/
 
 /-- A context is a pair of literals (the other two in a 3-clause) -/
 structure Context where
@@ -108,7 +104,7 @@ def classifyConcept (c : Concept) : ConceptType :=
   | .ufree, .ufalse => .cplus
   | .ufree, .ufree => .cplus
 
-/-- * 4. Understanding Definition Rules -/
+/-! ## 4. Understanding Definition Rules -/
 
 /-- Check if any concept in a list is of type C⁺ -/
 def hasCPlus (concepts : List Concept) : Bool :=
@@ -118,10 +114,10 @@ def hasCPlus (concepts : List Concept) : Bool :=
 def allCStar (concepts : List Concept) : Bool :=
   concepts.all (fun c => match classifyConcept c with | .cstar => true | _ => false)
 
-/-- * 5. Algorithms -/
+/-! ## 5. Algorithms -/
 
 /-- Fuel parameter for bounded recursion (to ensure termination in Lean) -/
-def Fuel := Nat
+abbrev Fuel := Nat
 
 /-
   Algorithm D: Make a false literal free
@@ -179,7 +175,7 @@ def algorithmU
           -- Add clause to phi and continue
           algorithmU fuel' rest (clause :: phi) u
 
-/-- * 6. The Complexity Error -/
+/-! ## 6. The Complexity Error -/
 
 /-
   THEOREM (claimed by paper): Algorithm U runs in O(m²) time where m is
@@ -231,7 +227,7 @@ theorem algorithmU_not_polynomial :
   -- showing that no polynomial bound exists
   sorry
 
-/-- * 7. Additional Issues -/
+/-! ## 7. Additional Issues -/
 
 /-
   Issue 1: The ⟨Compute ũ⟩ operation
@@ -257,7 +253,7 @@ theorem algorithmU_not_polynomial :
   or the convergence rate of the fixed-point computation.
 -/
 
-/-- * 8. Conclusion -/
+/-! ## 8. Conclusion -/
 
 /-
   The Sanchez Guinea (2015) proof attempt FAILS because:

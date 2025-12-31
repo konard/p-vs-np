@@ -8,9 +8,8 @@
   Date: 2025
 -/
 
-import Mathlib.Data.List.Basic
-import Mathlib.Data.Nat.Basic
-import Mathlib.Data.Int.Basic
+-- NOTE: Mathlib imports removed as Mathlib is not configured in this project.
+-- This file uses only standard Lean 4 library features.
 
 /-! # Part 1: Basic Definitions -/
 
@@ -34,7 +33,7 @@ def sumSelected : IntSet → SubsetSelection → Int
 
 /-- Check if a selection is a valid solution -/
 def isSolution (inst : SubsetSumInstance) (sel : SubsetSelection) : Bool :=
-  sumSelected inst.elements sel == inst.target
+  decide (sumSelected inst.elements sel = inst.target)
 
 /-! # Part 2: Computational Model -/
 
@@ -47,8 +46,8 @@ inductive ComputationStep where
 /-- A computation is a sequence of steps -/
 def Computation := List ComputationStep
 
-/-- Cost model: maps steps to time cost -/
-/-- This is parameterized by the "computer" (Mabel, Mildred, or modern machine) -/
+-- Cost model: maps steps to time cost
+-- This is parameterized by the "computer" (Mabel, Mildred, or modern machine)
 structure ComputerModel where
   sortCost : Nat → Nat
   compareCost : Nat → Nat
@@ -109,16 +108,16 @@ def isOptimalForModel (alg : Algorithm) (model : ComputerModel) : Prop :=
 /-- Feinstein's key claim: Meet-in-the-Middle is optimal for Mabel -/
 axiom feinsteinClaimMabel : isOptimalForModel meetInMiddleAlgorithm mabel
 
-/-- Feinstein's inference: if optimal for Mabel, then optimal for all models -/
-/-- THIS IS THE ERROR -/
+-- Feinstein's inference: if optimal for Mabel, then optimal for all models
+-- THIS IS THE ERROR
 axiom feinsteinMachineIndependence :
   isOptimalForModel meetInMiddleAlgorithm mabel →
   ∀ (model : ComputerModel), isOptimalForModel meetInMiddleAlgorithm model
 
 /-! # Part 5: Identifying the Error -/
 
-/-- Counter-example: An algorithm that's better for Mildred -/
-/-- Suppose there exists an algorithm that uses more comparisons but less sorting -/
+-- Counter-example: An algorithm that's better for Mildred
+-- Suppose there exists an algorithm that uses more comparisons but less sorting
 def comparisonHeavyAlgorithm (n : Nat) : Computation :=
   [ComputationStep.compareStep (2^n)]  -- Just compare, don't sort
 
@@ -129,9 +128,9 @@ example : ∃ (n : Nat),
   -- This illustrates that different models can have different optimal algorithms
   sorry
 
-/-- THE KEY ERROR: Machine independence doesn't preserve optimality -/
-/-- Even if an algorithm A is optimal on machine M1, a different algorithm B -/
-/-- might be optimal on machine M2 -/
+-- THE KEY ERROR: Machine independence doesn't preserve optimality
+-- Even if an algorithm A is optimal on machine M1, a different algorithm B
+-- might be optimal on machine M2
 theorem feinsteinError :
   ¬ (∀ (alg : Algorithm) (model1 model2 : ComputerModel),
       isOptimalForModel alg model1 → isOptimalForModel alg model2) := by
@@ -141,12 +140,12 @@ theorem feinsteinError :
 
 /-! # Part 6: The Induction Argument Analysis -/
 
-/-- Feinstein's induction claims to prove optimality by showing: -/
-/-- 1. Base case: Meet-in-middle is optimal for n=4 -/
-/-- 2. Inductive step: If optimal for n, then optimal for n+1 -/
+-- Feinstein's induction claims to prove optimality by showing:
+-- 1. Base case: Meet-in-middle is optimal for n=4
+-- 2. Inductive step: If optimal for n, then optimal for n+1
 
-/-- What the induction ACTUALLY proves (at best): -/
-/-- Meet-in-middle is optimal among DIVIDE-AND-CONQUER algorithms -/
+-- What the induction ACTUALLY proves (at best):
+-- Meet-in-middle is optimal among DIVIDE-AND-CONQUER algorithms
 
 def isDivideAndConquerAlg (alg : Algorithm) : Prop :=
   ∀ n, ∃ k, computationCost modernComputer (alg n) ≤
@@ -163,8 +162,8 @@ theorem whatInductionActuallyProves :
     True := by
   intros; trivial
 
-/-- But this doesn't prove optimality among ALL algorithms! -/
-/-- There might be non-divide-and-conquer algorithms that are faster -/
+-- But this doesn't prove optimality among ALL algorithms!
+-- There might be non-divide-and-conquer algorithms that are faster
 
 /-! # Part 7: The Conclusion -/
 
@@ -176,10 +175,10 @@ def requiresExponentialTime (problem : Type) : Prop :=
 /-- The claimed result -/
 axiom feinsteinConclusion : requiresExponentialTime SubsetSumInstance
 
-/-- But this doesn't follow from the premises! -/
-/-- Even if Meet-in-the-Middle is optimal on Mabel's model, -/
-/-- and even if asymptotic complexity is machine-independent, -/
-/-- this doesn't prove that NO polynomial-time algorithm exists -/
+-- But this doesn't follow from the premises!
+-- Even if Meet-in-the-Middle is optimal on Mabel's model,
+-- and even if asymptotic complexity is machine-independent,
+-- this doesn't prove that NO polynomial-time algorithm exists
 
 theorem feinsteinProofInvalid :
   (isOptimalForModel meetInMiddleAlgorithm mabel) →
