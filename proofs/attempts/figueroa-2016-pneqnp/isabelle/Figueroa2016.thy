@@ -46,12 +46,14 @@ section \<open>Hash Functions\<close>
 (*
   Universal hash function family
   A family H of hash functions where each h : {0,1}^n -> {0,1}^m
+
+  Note: In the actual Figueroa paper, hash functions are used in the
+  construction. Here we abstract away from them since the type error
+  is independent of how the hash functions work.
 *)
-record UniversalHashFamily =
-  uhf_input_size :: nat
-  uhf_output_size :: nat
-  uhf_hash :: "BitString \<Rightarrow> BitString \<Rightarrow> BitString"
-  (* Universal property simplified *)
+
+(* Abstract hash function type *)
+type_synonym HashFunc = "bool list \<Rightarrow> bool list"
 
 section \<open>Figueroa's Tau Construction - Exposing the Type Error\<close>
 
