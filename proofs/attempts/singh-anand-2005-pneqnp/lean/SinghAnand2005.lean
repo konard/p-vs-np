@@ -194,4 +194,5 @@ axiom Godel_predicate : Formula
 #check existence_of_nonstandard_models
 
 -- Formalization complete: Core contradiction identified
-#print "✓ Singh Anand (2005) formalization complete - contradiction identified"
+-- #print "✓ Singh Anand (2005) formalization complete - contradiction identified"
+-- Note: #print with string literals is not valid Lean 4 syntax
