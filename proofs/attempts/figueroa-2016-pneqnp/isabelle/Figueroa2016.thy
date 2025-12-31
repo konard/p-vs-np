@@ -17,43 +17,24 @@ begin
 section \<open>Basic Definitions\<close>
 
 (* Bit strings represented as lists of booleans *)
-type_synonym BitString = "bool list"
+type_synonym bit_string = "bool list"
 
 (* Length of a bit string *)
-definition bitstring_length :: "BitString \<Rightarrow> nat" where
-  "bitstring_length bs \<equiv> length bs"
+definition bit_len :: "bit_string \<Rightarrow> nat" where
+  "bit_len bs \<equiv> length bs"
 
 (* A function from bit strings to bit strings *)
-type_synonym BitFunction = "BitString \<Rightarrow> BitString"
+type_synonym bit_func = "bit_string \<Rightarrow> bit_string"
 
 section \<open>Polynomial-Time Computability\<close>
 
-(* Time complexity function *)
-type_synonym TimeComplexity = "nat \<Rightarrow> nat"
-
 (* A function is polynomial-time if there exists a polynomial bound *)
-definition IsPolynomialTime :: "TimeComplexity \<Rightarrow> bool" where
-  "IsPolynomialTime f \<equiv> \<exists>k. \<forall>n. f n \<le> n ^ k"
+definition is_polynomial_time :: "(nat \<Rightarrow> nat) \<Rightarrow> bool" where
+  "is_polynomial_time f \<equiv> \<exists>k. \<forall>n. f n \<le> n ^ k"
 
-(* A BitFunction is computable in polynomial time *)
-definition IsPolytimeComputable :: "BitFunction \<Rightarrow> bool" where
-  "IsPolytimeComputable f \<equiv> \<exists>time.
-    IsPolynomialTime time \<and>
-    (\<forall>x. True)"  (* Placeholder - full formalization would track computation steps *)
-
-section \<open>Hash Functions\<close>
-
-(*
-  Universal hash function family
-  A family H of hash functions where each h : {0,1}^n -> {0,1}^m
-
-  Note: In the actual Figueroa paper, hash functions are used in the
-  construction. Here we abstract away from them since the type error
-  is independent of how the hash functions work.
-*)
-
-(* Abstract hash function type *)
-type_synonym HashFunc = "bool list \<Rightarrow> bool list"
+(* A bit_func is computable in polynomial time - placeholder *)
+definition is_polytime_computable :: "bit_func \<Rightarrow> bool" where
+  "is_polytime_computable f \<equiv> True"
 
 section \<open>Figueroa's Tau Construction - Exposing the Type Error\<close>
 
@@ -67,186 +48,88 @@ section \<open>Figueroa's Tau Construction - Exposing the Type Error\<close>
 *)
 
 (* Figueroa's claimed signature: maps n bits to n bits
-
    ERROR: This is inconsistent with the actual construction! *)
 axiomatization
-  tau_claimed :: "BitFunction"
+  tau_claimed :: "bit_func"
 where
   tau_claimed_preserves_length:
-    "\<forall>n x. bitstring_length x = n \<longrightarrow> bitstring_length (tau_claimed x) = n"
+    "\<forall>n x. bit_len x = n \<longrightarrow> bit_len (tau_claimed x) = n"
 
 (* Figueroa's actual algorithm: appends n bits for each input bit
-
-   This means it should map {0,1}^n to {0,1}^(n^2), not {0,1}^n to {0,1}^n! *)
-(* Simplified version - actual construction uses hash composition, modeled here as replication *)
-fun tau_actual_construction :: "nat \<Rightarrow> BitString \<Rightarrow> BitString" where
-  "tau_actual_construction n [] = []" |
-  "tau_actual_construction n (bit # rest) = (replicate n bit) @ tau_actual_construction n rest"
+   This means it should map {0,1}^n to {0,1}^(n^2), not {0,1}^n to {0,1}^n!
+   Simplified version: uses replication instead of hash functions *)
+primrec tau_actual :: "nat \<Rightarrow> bit_string \<Rightarrow> bit_string" where
+  "tau_actual n [] = []" |
+  "tau_actual n (b # bs) = (replicate n b) @ tau_actual n bs"
 
 (* The actual output has length n * n = n^2 *)
-theorem tau_actual_output_length:
-  assumes "bitstring_length x = n"
-  shows "bitstring_length (tau_actual_construction n x) = n * n"
-  (* The actual output has length n * n = n^2 *)
+theorem tau_actual_length:
+  assumes "bit_len x = n"
+  shows "bit_len (tau_actual n x) = n * n"
   (* This contradicts tau_claimed_preserves_length! *)
-  sorry  (* Cannot complete - reveals the type error *)
+  sorry
 
 (*
   TYPE ERROR EXPOSED:
-
   The claimed type: τ : {0,1}^n -> {0,1}^n
   The actual type:  τ : {0,1}^n -> {0,1}^(n^2)
-
   This fundamental type mismatch invalidates the entire construction.
 *)
 
 theorem type_error_contradiction:
-  assumes claimed: "\<forall>n x. bitstring_length x = n \<longrightarrow> bitstring_length (tau_claimed x) = n"
-  assumes actual: "\<forall>n x. bitstring_length x = n \<longrightarrow>
-                    bitstring_length (tau_actual_construction n x) = n * n"
-  assumes equal: "tau_claimed = tau_actual_construction n"
+  assumes claimed: "\<forall>n x. bit_len x = n \<longrightarrow> bit_len (tau_claimed x) = n"
+  assumes actual: "\<forall>n x. bit_len x = n \<longrightarrow> bit_len (tau_actual n x) = n * n"
+  assumes equal: "tau_claimed = tau_actual n"
   shows "False"
-  (* If they're equal, they must have the same output length *)
-  (* But n ≠ n * n for n > 1 *)
   sorry
 
 section \<open>One-Way Functions\<close>
 
 (* Negligible function: decreases faster than any polynomial *)
-definition Negligible :: "(nat \<Rightarrow> bool) \<Rightarrow> bool" where
-  "Negligible epsilon \<equiv> \<forall>k. \<exists>n0. \<forall>n \<ge> n0. True"
-  (* Placeholder: epsilon(n) < 1/n^k *)
+definition negligible :: "(nat \<Rightarrow> bool) \<Rightarrow> bool" where
+  "negligible eps \<equiv> \<forall>k. \<exists>n0. \<forall>n \<ge> n0. True"
 
-(* Probabilistic polynomial-time algorithm *)
-axiomatization
-  PPTAlgorithm :: "unit itself"
+(* PPT algorithm (abstract) *)
+typedecl ppt_algo
 
-(* Success probability of inverting f *)
+(* Inversion probability (abstract) *)
 axiomatization
-  InversionProbability :: "BitFunction \<Rightarrow> unit \<Rightarrow> nat \<Rightarrow> bool"
+  inversion_prob :: "bit_func \<Rightarrow> ppt_algo \<Rightarrow> nat \<Rightarrow> bool"
 
 (* A function is one-way *)
-definition IsOneWayFunction :: "BitFunction \<Rightarrow> bool" where
-  "IsOneWayFunction f \<equiv>
-    IsPolytimeComputable f \<and>
-    (\<forall>A. Negligible (InversionProbability f A))"
+definition is_one_way :: "bit_func \<Rightarrow> bool" where
+  "is_one_way f \<equiv> is_polytime_computable f \<and> (\<forall>A. negligible (inversion_prob f A))"
 
 section \<open>Figueroa's Main Claim\<close>
 
-(* Assume we somehow fixed the type error *)
 axiomatization
-  tau :: "BitFunction"
+  tau :: "bit_func"
 where
-  (* CLAIMED PROPERTY 1: tau is polynomial-time computable *)
-  tau_polytime: "IsPolytimeComputable tau" and
-
-  (*
-    CLAIMED PROPERTY 2: tau is hard to invert
-
-    ERROR #3: The proof of this property uses flawed probability arguments
-
-    Figueroa argues that the probability of finding a preimage is negligible
-    by computing: (favorable outcomes) / (total outcomes)
-
-    But this informal calculation doesn't establish the formal definition
-    of one-wayness, which requires:
-
-    For ANY PPT algorithm A, Pr[A(tau(x)) successfully inverts] is negligible
-
-    The proof doesn't show this for arbitrary A; it only argues about
-    the structure of the construction.
-  *)
-  tau_hard_to_invert_CLAIMED:
-    "\<forall>A. Negligible (InversionProbability tau A)"
+  tau_polytime: "is_polytime_computable tau" and
+  tau_hard_to_invert: "\<forall>A. negligible (inversion_prob tau A)"
 
 (* If the claims were true, tau would be a one-way function *)
-theorem tau_is_one_way_CLAIMED: "IsOneWayFunction tau"
-  unfolding IsOneWayFunction_def
-  using tau_polytime tau_hard_to_invert_CLAIMED by simp
-
-(*
-  CRITICAL ERROR #4: Circular reasoning
-
-  The existence of one-way functions is believed to be equivalent
-  to P ≠ NP. Proving one-way functions exist requires proving
-  lower bounds on inversion complexity, which faces the same barriers
-  as proving P ≠ NP directly:
-
-  - Relativization barrier
-  - Natural proofs barrier
-  - Algebrization barrier
-
-  Figueroa's construction doesn't address these barriers.
-*)
+theorem tau_is_one_way: "is_one_way tau"
+  unfolding is_one_way_def
+  using tau_polytime tau_hard_to_invert by simp
 
 section \<open>The Gap: From Construction to One-Wayness\<close>
 
-(*
-  Even if we had a well-defined construction, there's a fundamental gap:
-
-  CONSTRUCTION: Here's a function f built from hash functions
-  ONE-WAYNESS: For ANY algorithm A, A cannot invert f
-
-  The gap is proving the universal quantification "for ANY algorithm A".
-  This requires proving a complexity lower bound.
-*)
-
 axiomatization
-  well_defined_tau :: "BitFunction"
+  well_defined_tau :: "bit_func"
 
-(* What Figueroa provides: Structural arguments about the construction *)
-(* The function is built from hash functions in a specific way - placeholder *)
-definition construction_has_nice_structure :: "bool" where
-  "construction_has_nice_structure = True"
+definition has_nice_structure :: "bool" where
+  "has_nice_structure = True"
 
-(* What's needed: A proof that NO efficient algorithm can invert it *)
-definition needed_for_one_wayness :: bool where
-  "needed_for_one_wayness \<equiv>
-    \<forall>A. Negligible (InversionProbability well_defined_tau A)"
-
-(*
-  THE UNBRIDGEABLE GAP (without new techniques):
-
-  Going from "the construction has nice structure" to
-  "no algorithm can break it" requires proving complexity lower bounds.
-
-  This is exactly what P vs NP is about!
-*)
+definition needed_for_owf :: bool where
+  "needed_for_owf \<equiv> \<forall>A. negligible (inversion_prob well_defined_tau A)"
 
 theorem the_gap:
-  assumes "construction_has_nice_structure"
-  assumes "needed_for_one_wayness"
-  shows "IsOneWayFunction well_defined_tau"
-  (* We can conclude one-wayness, but the second premise is unprovable
-     with current techniques *)
-  unfolding IsOneWayFunction_def needed_for_one_wayness_def
-  sorry  (* Would need to show well_defined_tau is polytime computable *)
-
-(*
-  The gap is that Figueroa assumes (or tries to prove informally)
-  needed_for_one_wayness, but this requires techniques we don't have.
-*)
-
-section \<open>Lessons from Formalization\<close>
-
-text \<open>
-  1. TYPE CHECKING CATCHES ERRORS IMMEDIATELY
-     The type error (n vs n^2) is caught by the type system
-
-  2. PRECISE DEFINITIONS REVEAL AMBIGUITIES
-     Formalizing forces us to specify exactly what the hash functions are
-
-  3. PROOF OBLIGATIONS ARE EXPLICIT
-     The gap between construction and one-wayness becomes obvious
-
-  4. LOWER BOUNDS ARE HARD
-     Proving "no algorithm exists" is fundamentally different from
-     showing a specific algorithm doesn't work
-
-  5. BARRIERS MUST BE ADDRESSED
-     Any proof of P ≠ NP must overcome known barriers; informal
-     probability arguments don't suffice
-\<close>
+  assumes "has_nice_structure"
+  assumes "needed_for_owf"
+  shows "is_one_way well_defined_tau"
+  unfolding is_one_way_def needed_for_owf_def
+  sorry
 
 section \<open>Summary\<close>
 
