@@ -180,16 +180,17 @@ def costInterferenceExample : Prop :=
 /-- What would be needed for the approach to work -/
 structure ComposabilityRequirement where
   /-- 1. Local correctness of each gate -/
-  localCorrectness : (gate : Unit) → Prop
+  localCorrectness : FlowNetwork → Prop
   /-- 2. Costs must be "isolated" - no interference -/
-  costIsolation : FlowNetwork → Unit → Unit → Prop
+  costIsolation : FlowNetwork → FlowNetwork → FlowNetwork → Prop
   /-- 3. Minimum-cost flow must respect logical structure -/
-  respectsLogic : FlowNetwork → isMinimumCostFlow → Prop
+  respectsLogic : FlowNetwork → Prop
   /-- 4. These must compose: local + isolation → global correctness -/
   compositionTheorem : ∀ net : FlowNetwork,
-    (∀ gate, localCorrectness gate) →
-    (∀ g1 g2, costIsolation net g1 g2) →
-    ∃ h : isMinimumCostFlow net, respectsLogic net h
+    (∀ gate : FlowNetwork, localCorrectness gate) →
+    (∀ g1 g2 : FlowNetwork, costIsolation net g1 g2) →
+    isMinimumCostFlow net →
+    respectsLogic net
 
 /-
   THEOREM: The composability requirement is NOT satisfied by Gillet's construction
@@ -199,7 +200,10 @@ theorem gilletComposabilityFails :
   ¬∃ (req : ComposabilityRequirement),
     /- The requirement would need to be satisfied for arbitrary circuits -/
     ∀ (circuit : FlowNetwork),
-      req.compositionTheorem circuit := by
+      (∀ gate : FlowNetwork, req.localCorrectness gate) →
+      (∀ g1 g2 : FlowNetwork, req.costIsolation circuit g1 g2) →
+      isMinimumCostFlow circuit →
+      req.respectsLogic circuit := by
   /-
     This would require showing a counterexample where:
     1. All gates are locally correct
@@ -212,6 +216,9 @@ theorem gilletComposabilityFails :
 
 /-! ## Reduction Attempts -/
 
+/-- An assignment maps variable indices to boolean values -/
+def Assignment := Nat → Bool
+
 /-- Attempting to reduce 3SAT to minimum-cost flow -/
 axiom threeSATToFlowNetwork : List (List (Nat × Bool)) → FlowNetwork
 
@@ -221,7 +228,7 @@ axiom threeSATToFlowNetwork : List (List (Nat × Bool)) → FlowNetwork
 
 axiom gilletReductionClaim : ∀ formula,
   (∃ net, net = threeSATToFlowNetwork formula ∧ isMinimumCostFlow net) →
-  (∃ assignment, True)  -- formula is satisfied by assignment
+  (∃ (assignment : Assignment), True)  -- formula is satisfied by assignment
 
 /-
   THE ERROR: This claim is UNPROVEN because:
@@ -233,7 +240,7 @@ axiom gilletReductionClaim : ∀ formula,
 theorem gilletReductionUnsound :
   ¬∀ formula,
     (∃ net, net = threeSATToFlowNetwork formula ∧ isMinimumCostFlow net) ↔
-    (∃ assignment, True) := by  -- formula is satisfied by assignment
+    (∃ (assignment : Assignment), True) := by  -- formula is satisfied by assignment
   /-
     The bidirectional correspondence does not hold due to:
     - Forward direction: flow might not correspond to valid assignment
