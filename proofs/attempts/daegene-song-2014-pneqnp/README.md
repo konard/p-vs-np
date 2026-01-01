@@ -1,136 +1,274 @@
-# Formalization: Daegene Song (2014) - P≠NP
+# Daegene Song (2014) - P≠NP via Quantum Self-Reference
 
-**Navigation:** [↑ Back to Repository Root](../../../README.md) | [Core Documentation](../../../README.md#core-documentation)
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [All Proof Attempts](../../README.md)
 
 ---
 
-## Overview
+## Metadata
 
-**Attempt ID**: 99 (from Woeginger's list)
-**Author**: Daegene Song
-**Year**: 2014 (February)
-**Claim**: P ≠ NP
-**Paper**: "The P versus NP Problem in Quantum Physics"
-**Source**: http://arxiv.org/abs/1402.6970
+- **Attempt ID**: 99 (from Woeginger's list)
+- **Author**: Daegene Song
+- **Affiliation**: School of Liberal Arts, KoreaTech, Chungnam 330-708, Korea
+- **Year**: 2014 (February 12)
+- **Claim**: P ≠ NP
+- **Paper**: "The P versus NP Problem in Quantum Physics"
+- **arXiv**: [1402.6970v1](https://arxiv.org/abs/1402.6970) [physics.gen-ph]
+- **Length**: 4 pages, 2 figures
+- **Source**: Woeginger's P vs NP attempts list
 
 ## Summary
 
-In February 2014, Daegene Song proposed a proof that P ≠ NP by examining the problem through the lens of quantum physics. The main approach is to consider P and NP not merely as abstract computational complexity classes, but as classes of actual physical processes:
+Song's 2014 paper claims to prove P ≠ NP by considering P and NP as classes of physical processes rather than abstract computational models. The main argument identifies P with deterministic polynomial-time physical processes and NP with nondeterministic polynomial-time physical processes. The paper then presents a quantum mechanical phenomenon involving "self-reference" — specifically, observing the evolution of a reference frame with respect to itself — which allegedly belongs to NP but cannot be in P.
 
+## Main Argument
+
+### 1. Physical Process Interpretation
+
+Song reinterprets computational complexity through a physics lens:
 - **P**: Class of deterministic polynomial-time physical processes
 - **NP**: Class of nondeterministic polynomial-time physical processes
+- Motivation: "information is physical" (Landauer)
 
-The paper argues that by examining how information is encoded and processed by physical systems in quantum theory, one can identify a "self-reference physical process" in quantum theory that belongs to NP but cannot be contained in P, thereby establishing P ≠ NP.
+### 2. Nondeterministic Turing Machine (NTM) Construction
 
-## Main Argument/Approach
-
-The approach attempts to bridge computational complexity theory with quantum physics by:
-
-1. **Physical Interpretation**: Reinterpreting complexity classes as classes of physical processes rather than abstract computational models
-2. **Quantum Framework**: Utilizing quantum theory to analyze the fundamental nature of computation
-3. **Self-Reference Process**: Identifying a specific quantum physical process that exhibits self-reference properties
-4. **Separation Claim**: Arguing that this self-reference process is inherently nondeterministic and cannot be reduced to a deterministic polynomial-time process
-
-### Key Claims
-
-- Information processing can be understood through physical processes
-- Quantum theory provides the framework for understanding computational limitations
-- A self-reference quantum process exists that is verifiable in polynomial time (NP) but not solvable deterministically in polynomial time (P)
-- This provides a physical basis for the separation between P and NP
-
-## Known Issues and Critical Analysis
-
-### Fundamental Problems
-
-1. **Vague Physical-Computational Connection**: The paper does not provide a rigorous formal mapping between quantum physical processes and Turing machine computation. Standard complexity theory defines P and NP in terms of Turing machines or equivalent computational models, not physical processes.
-
-2. **Missing Formal Definition**: The "self-reference physical process" is not precisely defined mathematically. Without a clear formal definition, it's impossible to verify whether it actually belongs to NP or whether it's outside P.
-
-3. **Church-Turing Thesis Confusion**: The paper may conflate the physical Church-Turing thesis (all physical processes can be simulated by Turing machines) with the computational complexity question of P vs NP. Even if quantum processes have special properties, this doesn't immediately translate to complexity class separation.
-
-4. **Quantum Computation vs Classical Complexity**: The relationship between quantum computation (BQP) and classical complexity classes (P, NP) is subtle. BQP is believed to be between P and NP, but this doesn't resolve P vs NP. The paper doesn't clearly address this distinction.
-
-5. **Lack of Formal Proof Structure**: The paper lacks the rigorous mathematical proof structure expected for a Clay Millennium Prize Problem. It doesn't provide:
-   - Formal definitions of all key terms
-   - Lemmas building toward the main result
-   - Rigorous proofs of intermediate steps
-   - Clear statement of the main theorem
-
-### The Core Error
-
-The fundamental error is **category confusion**: mixing physical processes with formal computational models without establishing a rigorous correspondence. P and NP are defined via formal computational models (Turing machines), not via physical processes. While physical intuition can guide research, a valid proof requires:
-
-1. Formal definition of the claimed hard problem
-2. Proof that it's in NP (polynomial-time verifiable)
-3. Proof that it's not in P (no polynomial-time algorithm exists)
-4. All arguments must work within the standard complexity-theoretic framework
-
-The paper attempts to bypass the standard framework by appealing to physical intuition, but this approach doesn't constitute a valid mathematical proof.
-
-### Community Response
-
-Limited formal refutation exists in published literature, but community discussion (e.g., on FQXi forums) notes:
-- The paper doesn't meet the standard of proof required for P vs NP
-- The connection between quantum physics and complexity class separation is not rigorously established
-- Proving P=NP requires showing that nondeterministic computers can efficiently solve NP-complete problems, which the paper doesn't address at the required level of rigor
-
-## Formalization Goal
-
-This directory contains formalizations of the paper's approach in multiple proof assistants (Coq, Lean, Isabelle) to make explicit where the argument fails. The formalization attempts to:
-
-1. **Model quantum physical processes** in a formal framework
-2. **Define the "self-reference process"** precisely
-3. **Attempt to prove** that this process is in NP
-4. **Attempt to prove** that this process is not in P
-5. **Identify the gap** where the proof breaks down
-
-By formalizing the argument, we can pinpoint exactly where informal reasoning fails to translate into rigorous proof.
-
-## Formalization Structure
+The paper defines a specific NTM where for input `a`, the output can be either `b₁` or `b₂`:
 
 ```
-proofs/attempts/daegene-song-2014-pneqnp/
-├── README.md                 (this file)
-├── coq/
-│   └── DaegeneSong2014.v    (Coq formalization)
-├── lean/
-│   └── DaegeneSong2014.lean (Lean 4 formalization)
-└── isabelle/
-    └── DaegeneSong2014.thy  (Isabelle/HOL formalization)
+δ(a) = {b₁, b₂}
 ```
 
-## Expected Outcome
+With two transition functions:
+- `δ₁: a → b₁` (identified with Schrödinger picture)
+- `δ₂: a → b₂` (identified with Heisenberg picture)
 
-The formalization will likely reveal that:
+### 3. Quantum Mechanical Example
 
-1. **Undefined Terms**: The "self-reference physical process" cannot be given a precise formal definition that satisfies the required properties
-2. **Unprovable Claims**: Either the claim "process is in NP" or "process is not in P" cannot be proven within the formal framework
-3. **Circular Reasoning**: The proof may assume what it's trying to prove
-4. **Type Errors**: When formalized, the physical and computational concepts may not type-check together
+**Setup**: A qubit initially pointing in z-direction: ν̂ = (0, 0, 1)
+
+**Case (P1) - Normal computation**: Observing evolution of system µ̂ with respect to reference frame ν̂
+- Schrödinger picture: Apply Uθ to µ̂
+- Heisenberg picture: Apply U†θ to observable
+- **Result**: Both yield same expectation value ✓
+
+**Case (P2) - Self-reference**: Observing evolution of ν̂ with respect to itself (µ̂ = ν̂)
+- Schrödinger picture: ν̂ → ν̂' = (sin θ, 0, cos θ)
+- Heisenberg picture: ν̂ → ν̂'' = (−sin θ, 0, cos θ)
+- **Result**: ν̂' ≠ ν̂'' unless θ = kπ
+
+### 4. The Claimed Proof
+
+Song argues:
+1. Process (P2) exhibits nondeterminism (two different outcomes)
+2. Process (P2) requires only a single rotation (polynomial time) → P2 ∈ NP
+3. No deterministic Turing machine (DTM) can compute either path
+4. Therefore, (P2) ∈ NP but (P2) ∉ P
+5. Conclusion: P ≠ NP
+
+## Critical Analysis: Errors in the Proof
+
+This proof attempt contains several fundamental errors:
+
+### Error 1: Conflation of Observer Choice with Computational Nondeterminism
+
+**The Problem**: Song conflates an observer's choice of reference frame with the nondeterminism in NP computation.
+
+- In NP computation, nondeterminism means the machine can "guess" the right computation path
+- The choice between Schrödinger and Heisenberg pictures is a **choice of mathematical representation**, not a computational process
+- These are two equivalent ways of describing the same physics (unitary equivalence)
+
+**Why it matters**: The "nondeterminism" Song identifies is not computational nondeterminism, but rather human choice of description. This is like saying classical mechanics is "nondeterministic" because we can describe it in Cartesian or polar coordinates.
+
+### Error 2: Misunderstanding of Turing Machine Equivalence
+
+**The Problem**: Song claims deterministic Turing machines must yield identical results under both δ₁ and δ₂.
+
+- DTMs don't have "two pictures" — this is a quantum mechanical concept
+- The requirement that "both schemes yield same outcome" applies to **physical predictions**, not to intermediate mathematical representations
+- The paper incorrectly maps physical picture choices onto computational transitions
+
+**Why it matters**: This creates a false dichotomy. DTMs and NTMs are defined by their computational behavior, not by representation choices in the formalism.
+
+### Error 3: Confusion Between Physical Process and Computation
+
+**The Problem**: The distinction between physical phenomenon (P2) and its computability is unclear.
+
+- Song argues that (P2) "cannot be computed" by deterministic machines
+- But what does it mean to "compute" a physical process?
+- The paper conflates:
+  - **Simulating** the physics (which quantum computers can do)
+  - **Predicting** measurement outcomes (which both pictures do)
+  - **Choosing** which mathematical description to use (not a computational problem)
+
+**Why it matters**: The notion of "computing" physical process (P2) is not well-defined in terms of decision problems or language recognition, which are the standard framework for P vs NP.
+
+### Error 4: Invalid Application of NP Definition
+
+**The Problem**: Process (P2) doesn't fit the standard definition of NP.
+
+**Standard NP definition**: A language L ∈ NP if there exists a verifier V such that:
+- For x ∈ L: ∃ certificate c such that V(x, c) accepts in poly-time
+- For x ∉ L: ∀ certificates c, V(x, c) rejects
+
+**Song's (P2)**:
+- Not a decision problem (no yes/no question)
+- Not a language (no set of strings)
+- The "nondeterminism" is choice of description, not certificate verification
+
+**Why it matters**: Without embedding (P2) into the standard complexity-theoretic framework, the claim "(P2) ∈ NP but (P2) ∉ P" is not well-formed.
+
+### Error 5: The Verification Argument Fails
+
+Song acknowledges the verifier perspective but dismisses it incorrectly:
+
+> "if we consider NP in (P2) indirectly... it is easy to verify that the path is indeed the physical process when given the choice. However... there are not any deterministic machines that can compute paths (4) or (5)"
+
+**The Problem**:
+- Verification in NP means checking a certificate efficiently
+- The claim that DTMs cannot "compute" the paths is unsupported
+- A classical computer can certainly compute:
+  - The rotation matrix Uθ
+  - The vectors (sin θ, 0, cos θ) and (−sin θ, 0, cos θ)
+  - Which one results from which picture choice
+
+### Error 6: False Dichotomy in Physical Realizability
+
+**The Problem**: The paper suggests quantum weirdness creates a computational advantage for P vs NP.
+
+**Reality**:
+- The Schrödinger and Heisenberg pictures are **unitarily equivalent**
+- They make identical physical predictions for all observables
+- The "difference" between ν̂' and ν̂'' is an artifact of coordinate choice, not physical reality
+- No measurement can distinguish which "picture" was "really" used
+
+**Why it matters**: There is no actual physical phenomenon that corresponds to the claimed NP process. The two pictures are mathematical conveniences, not distinct physical realities.
+
+## The Core Misunderstanding
+
+The fundamental error is treating **mathematical representation choices** as if they were **physical or computational processes**. The Schrödinger and Heisenberg pictures are like describing motion in terms of "ball moves right" vs "observer moves left" — these are equivalent descriptions, not different physical processes.
+
+In computational terms, this is like claiming:
+- "Computing f(x) by evaluating left-to-right is P"
+- "Computing f(x) by evaluating right-to-left is NP"
+- "Since they're different procedures, P ≠ NP"
+
+This confuses **implementation details** with **computational complexity**.
+
+## Formalization Goals
+
+Our formal verification aims to:
+
+1. **Formalize the setup**: Define the quantum mechanical scenario precisely
+2. **Identify the gap**: Show that the "nondeterminism" is not computational
+3. **Demonstrate equivalence**: Prove Schrödinger and Heisenberg pictures yield same physics
+4. **Show the error**: Make explicit why this doesn't establish P ≠ NP
+
+## Structure of Formalizations
+
+Each formalization (Coq, Lean, Isabelle) will include:
+
+### 1. Basic Quantum Mechanics
+- State vectors in Bloch sphere representation
+- Unitary transformations (rotation operators)
+- Expectation values
+
+### 2. The Two Pictures
+- **Schrödinger**: State evolves, observable fixed
+- **Heisenberg**: Observable evolves, state fixed
+- **Equivalence theorem**: Both yield identical expectation values
+
+### 3. The Self-Reference Case
+- Setup: ν̂ = (0, 0, 1), rotation by angle θ
+- Schrödinger result: ν̂' = (sin θ, 0, cos θ)
+- Heisenberg result: ν̂'' = (−sin θ, 0, cos θ)
+- **Key observation**: ν̂' and ν̂'' are in **different coordinate systems**
+
+### 4. Complexity Theory Connection
+- Standard definitions of P and NP
+- Decision problems and languages
+- **Gap identification**: Song's (P2) is not a decision problem
+
+### 5. The Refutation
+- Formal statement: The difference between ν̂' and ν̂'' does not establish P ≠ NP
+- Proof: Show the "nondeterminism" is coordinate-dependent, not computational
+
+## Related Work
+
+### Similar Conceptual Errors
+
+This attempt is reminiscent of other failed P vs NP proofs that:
+1. Conflate different levels of description
+2. Misapply physical intuition to computational complexity
+3. Fail to engage with the standard definitions of P and NP
+
+### Quantum Computing and Complexity
+
+It's worth noting:
+- Quantum computers provide speedups for certain problems (Shor, Grover)
+- But BQP (quantum polynomial time) ≠ NP in general
+- The relationship between quantum mechanics and NP is subtle
+- This paper's approach doesn't align with standard quantum complexity theory
+
+## Educational Value
+
+This formalization demonstrates:
+
+1. **Importance of definitions**: P and NP have precise mathematical definitions
+2. **Representation independence**: Equivalent descriptions don't create complexity differences
+3. **Physical vs computational**: Physical processes and computational problems are distinct
+4. **Verification value**: Formal methods can expose conceptual errors clearly
 
 ## References
 
 ### Primary Source
-- **Song, D.** (2014). "The P versus NP Problem in Quantum Physics." *arXiv:1402.6970*
-  http://arxiv.org/abs/1402.6970
+- D. Song, "The P versus NP Problem in Quantum Physics," arXiv:1402.6970v1 [physics.gen-ph] (2014)
 
-### Relevant Background
-- **Aaronson, S.** (2013). "Quantum Computing since Democritus." *Cambridge University Press*
-- **Arora, S., Barak, B.** (2009). "Computational Complexity: A Modern Approach." Chapter on physical computation
-- **Nielsen, M., Chuang, I.** (2010). "Quantum Computation and Quantum Information."
-- **Woeginger, G.** P versus NP page: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #99)
+### Background
+- R. Landauer, "Information is physical," Physics Today (1991)
+- D. Deutsch, "Quantum theory, the Church-Turing principle and the universal quantum computer," Proc. R. Soc. London A 400, 97 (1985)
+- S. Aaronson, "NP-complete problems and physical reality," arXiv:quant-ph/0502072 (2005)
 
-### Related Issues
-- [Issue #44](https://github.com/konard/p-vs-np/issues/44) - Test all P vs NP attempts formally
-- [Issue #113](https://github.com/konard/p-vs-np/issues/113) - This formalization effort
+### Related Refutations
+- Woeginger's list: https://www.win.tue.nl/~wscor/woeginger/P-versus-NP.htm
+
+## Files in This Directory
+
+```
+proofs/attempts/daegene-song-2014-pneqnp/
+├── README.md                              # This file
+├── coq/
+│   └── DaegeneSong2014.v                 # Coq formalization
+├── lean/
+│   └── DaegeneSong2014.lean              # Lean 4 formalization
+└── isabelle/
+    └── DaegeneSong2014.thy               # Isabelle/HOL formalization
+```
+
+## Building
+
+```bash
+# Coq
+coqc proofs/attempts/daegene-song-2014-pneqnp/coq/DaegeneSong2014.v
+
+# Lean 4
+lake build
+
+# Isabelle/HOL
+isabelle build -d . DaegeneSong2014
+```
 
 ## Status
 
-- ✅ Coq formalization: Complete (with identified gaps)
-- ✅ Lean formalization: Complete (with identified gaps)
-- ✅ Isabelle formalization: Complete (with identified gaps)
-- ✅ Error documentation: Complete (errors identified and documented in code and README)
+- ✅ Paper analyzed
+- ✅ Errors identified
+- ✅ Formalization structure planned
+- 🚧 Coq formalization in progress
+- 🚧 Lean formalization in progress
+- 🚧 Isabelle formalization in progress
+
+## License
+
+This formalization is part of the p-vs-np repository and follows the repository's [LICENSE](../../../LICENSE).
 
 ---
 
-**Navigation:** [↑ Back to Repository Root](../../../README.md) | [P vs NP Attempts](../)
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [Issue #56](https://github.com/konard/p-vs-np/issues/56) | [Pull Request #338](https://github.com/konard/p-vs-np/pull/338)

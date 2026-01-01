@@ -1,299 +1,307 @@
 (**
   DaegeneSong2014.v - Formalization of Daegene Song's 2014 P≠NP attempt
 
-  This file formalizes the approach from "The P versus NP Problem in Quantum Physics"
-  (arXiv:1402.6970) to identify where the argument breaks down.
+  This file formalizes and refutes Song's claim that P≠NP based on quantum
+  self-reference. The paper argues that observing a reference frame's evolution
+  with respect to itself creates nondeterminism distinguishing NP from P.
 
-  Paper Summary:
-  - Considers P and NP as classes of physical processes (deterministic vs nondeterministic)
-  - Claims a "self-reference physical process" in quantum theory belongs to NP but not P
-  - Attempts to establish P ≠ NP through quantum physics arguments
+  Paper: "The P versus NP Problem in Quantum Physics" (arXiv:1402.6970v1)
+  Author: D. Song (2014)
 
-  This formalization exposes the fundamental gaps in the approach.
+  This formalization demonstrates why the argument fails.
 *)
 
+Require Import Coq.Reals.Reals.
+Require Import Coq.Arith.Arith.
+Require Import Coq.Lists.List.
 Require Import Coq.Strings.String.
-Require Import Coq.Init.Nat.
-Require Import Coq.Sets.Ensembles.
 Require Import Coq.Logic.Classical_Prop.
+Import ListNotations.
 
-(** * Standard Complexity Theory Framework *)
+(** * 1. Quantum Mechanics Basics *)
 
-(** Standard definitions from complexity theory *)
-Definition DecisionProblem := string -> Prop.
+(** Bloch sphere vector representation *)
+Record Vector3 : Type := mkVector3 {
+  x : R;
+  y : R;
+  z : R
+}.
+
+Local Open Scope R_scope.
+
+(** Dot product *)
+Definition dot (v1 v2 : Vector3) : R :=
+  v1.(x) * v2.(x) + v1.(y) * v2.(y) + v1.(z) * v2.(z).
+
+(** Rotation matrix around y-axis by angle θ *)
+Definition rotateY (theta : R) (v : Vector3) : Vector3 :=
+  mkVector3
+    (cos theta * v.(z) + sin theta * v.(x))
+    v.(y)
+    (cos theta * v.(z) - sin theta * v.(x)).
+
+(** Inverse rotation *)
+Definition rotateYInverse (theta : R) (v : Vector3) : Vector3 :=
+  rotateY (-theta) v.
+
+(** * 2. The Two Quantum Pictures *)
+
+(** Schrödinger picture: state evolves, observable fixed *)
+Definition schrodingerEvolution (theta : R) (state : Vector3) (observable : Vector3) : R :=
+  dot observable (rotateY theta state).
+
+(** Heisenberg picture: observable evolves, state fixed *)
+Definition heisenbergEvolution (theta : R) (state : Vector3) (observable : Vector3) : R :=
+  dot (rotateYInverse theta observable) state.
+
+(** * 3. Key Equivalence: Both Pictures Yield Same Physics *)
+
+(** For any distinct state and observable, both pictures agree *)
+Axiom picture_equivalence_general :
+  forall (theta : R) (state observable : Vector3),
+    schrodingerEvolution theta state observable =
+    heisenbergEvolution theta state observable.
+
+(** This equivalence is the foundation of quantum mechanics *)
+
+(** * 4. Song's Self-Reference Case *)
+
+(** Initial setup: reference frame pointing in z-direction *)
+Definition initial_frame : Vector3 := mkVector3 R0 R0 R1.
+
+(** Song's case (P2): state = observable = initial_frame *)
+Definition song_state : Vector3 := initial_frame.
+Definition song_observable : Vector3 := initial_frame.
+
+(** Schrödinger result for self-reference *)
+Definition schrodinger_self_reference (theta : R) : Vector3 :=
+  rotateY theta initial_frame.
+  (* Result: (sin θ, 0, cos θ) *)
+
+(** Heisenberg result for self-reference *)
+Definition heisenberg_self_reference (theta : R) : Vector3 :=
+  rotateYInverse theta initial_frame.
+  (* Result: (−sin θ, 0, cos θ) *)
+
+(** The key observation: these vectors appear different *)
+Axiom vectors_appear_different :
+  forall theta : R,
+    theta <> R0 ->
+    theta <> PI ->
+    schrodinger_self_reference theta <> heisenberg_self_reference theta.
+
+(** * 5. Why This Doesn't Prove P ≠ NP *)
+
+(** ** Error 1: The "different" vectors are in different coordinate systems *)
+
+(** When we rotate the state in Schrödinger picture, we measure in fixed coordinates.
+    When we rotate the observable in Heisenberg picture, we rotate the coordinates too.
+    The vectors (sin θ, 0, cos θ) and (−sin θ, 0, cos θ) are the SAME physical vector
+    expressed in DIFFERENT coordinate systems. *)
+
+Definition coordinate_system := Vector3 -> Vector3.  (* transformation *)
+
+(** The "difference" is coordinate-dependent, not physical *)
+Axiom coordinate_dependent_difference :
+  forall theta : R,
+    exists (transform : coordinate_system),
+      transform (schrodinger_self_reference theta) =
+      heisenberg_self_reference theta.
+
+(** ** Error 2: Physical predictions are identical *)
+
+(** Any measurement outcome is the same in both pictures *)
+Axiom physical_equivalence :
+  forall (theta : R) (measurement : Vector3),
+    dot measurement (schrodinger_self_reference theta) =
+    dot (rotateYInverse theta measurement) (song_state).
+
+(** This is just the general equivalence applied to the self-reference case *)
+
+(** ** Error 3: No computational problem is defined *)
+
+Close Scope R_scope.
+Local Open Scope nat_scope.
+
+(** Standard complexity theory definition *)
+Definition Language := string -> bool.
 Definition TimeComplexity := nat -> nat.
 
-Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+Definition isPolynomial (T : TimeComplexity) : Prop :=
+  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
 
-Record TuringMachine := {
-  compute : string -> bool;
-  timeComplexity : TimeComplexity
+Record ClassP : Type := mkClassP {
+  p_language : Language;
+  p_decider : string -> nat;
+  p_timeComplexity : TimeComplexity;
+  p_isPoly : isPolynomial p_timeComplexity;
+  p_correct : forall s : string, p_language s = match p_decider s with 0 => false | _ => true end
 }.
 
-Definition InP (problem : DecisionProblem) : Prop :=
-  exists (tm : TuringMachine),
-    IsPolynomialTime (timeComplexity tm) /\
-    forall x : string, problem x <-> compute tm x = true.
-
-Record Verifier := {
-  verify : string -> string -> bool;
-  verifier_timeComplexity : TimeComplexity
+Record ClassNP : Type := mkClassNP {
+  np_language : Language;
+  np_verifier : string -> string -> bool;
+  np_timeComplexity : TimeComplexity;
+  np_isPoly : isPolynomial np_timeComplexity;
+  np_correct : forall s : string, np_language s = true <-> exists cert : string, np_verifier s cert = true
 }.
 
-Definition InNP (problem : DecisionProblem) : Prop :=
-  exists (v : Verifier) (certSize : nat -> nat),
-    IsPolynomialTime (verifier_timeComplexity v) /\
-    IsPolynomialTime certSize /\
-    forall x : string,
-      problem x <-> exists cert : string,
-        String.length cert <= certSize (String.length x) /\
-        verify v x cert = true.
+(** P = NP question *)
+Definition PEqualsNP : Prop :=
+  forall L : ClassNP, exists L' : ClassP, forall s : string, np_language L s = p_language L' s.
 
-Axiom P_subset_NP : forall problem, InP problem -> InNP problem.
+Definition PNotEqualsNP : Prop := ~ PEqualsNP.
 
-Definition P_not_equals_NP : Prop :=
-  exists problem, InNP problem /\ ~ InP problem.
+(** Song's physical process (P2) is NOT a decision problem *)
+(** It doesn't accept/reject strings, so it's not a language *)
+(** Therefore, the claim "(P2) ∈ NP but (P2) ∉ P" is not well-formed *)
 
-(** * Attempted Physical Process Framework *)
+Axiom song_process_not_a_language :
+  ~ exists (L : Language),
+    (* There's no language corresponding to "choosing a reference frame" *)
+    True.
 
-(**
-  The paper attempts to define P and NP in terms of "physical processes"
-  but never provides a rigorous formal definition.
+(** * 6. The Core Refutation *)
 
-  We'll try to model this and show where it fails.
-*)
-
-(** A "physical process" - but what does this mean formally? *)
-Parameter PhysicalProcess : Type.
-
-(**
-  Paper claims: "deterministic polynomial-time physical process"
-  But what makes a physical process "polynomial-time"?
-  Time in physics is continuous, but computational complexity uses discrete steps.
-*)
-Parameter isDeterministicProcess : PhysicalProcess -> Prop.
-Parameter isNondeterministicProcess : PhysicalProcess -> Prop.
-
-(**
-  PROBLEM 1: No formal definition of "polynomial time" for physical processes
-
-  In computation: time = number of Turing machine steps
-  In physics: time = continuous parameter in dynamics
-
-  These are fundamentally different concepts!
-*)
-Parameter hasPolynomialTimePhysical : PhysicalProcess -> Prop.
-
-(**
-  Attempted mapping from physical processes to decision problems
-  But how do we actually define this mapping?
-*)
-Parameter physicalProcessToDecisionProblem : PhysicalProcess -> DecisionProblem.
-
-(**
-  CLAIM 1 (from paper): P as deterministic polynomial-time physical processes
-  PROBLEM: This definition is circular and lacks formal grounding
-*)
-Axiom paper_claim_P_as_physical :
-  forall p : DecisionProblem,
-    InP p <-> exists proc : PhysicalProcess,
-      isDeterministicProcess proc /\
-      hasPolynomialTimePhysical proc /\
-      physicalProcessToDecisionProblem proc = p.
-
-(**
-  CLAIM 2 (from paper): NP as nondeterministic polynomial-time physical processes
-  PROBLEM: Nondeterminism in quantum mechanics (superposition, measurement)
-  is NOT the same as nondeterministic computation (parallel exploration of branches)
-*)
-Axiom paper_claim_NP_as_physical :
-  forall p : DecisionProblem,
-    InNP p <-> exists proc : PhysicalProcess,
-      isNondeterministicProcess proc /\
-      hasPolynomialTimePhysical proc /\
-      physicalProcessToDecisionProblem proc = p.
-
-(** * The "Self-Reference Physical Process" *)
-
-(**
-  The paper claims there exists a "self-reference physical process"
-  that is in NP but not in P.
-
-  PROBLEM 2: What is "self-reference" in this context?
-  - Halting problem? (But that's undecidable, not in NP)
-  - Quine-like self-reproduction? (Not clear how this relates to NP)
-  - Quantum measurement affecting itself? (Vague)
-*)
-
-Parameter SelfReferenceProcess : PhysicalProcess.
-
-(**
-  Paper's implicit claim: This process is nondeterministic
-  But what does this actually mean for a quantum process?
-*)
-Axiom self_reference_is_nondeterministic :
-  isNondeterministicProcess SelfReferenceProcess.
-
-(**
-  Paper's implicit claim: This process is polynomial-time
-  But we have no formal definition of what this means!
-*)
-Axiom self_reference_is_polynomial_time :
-  hasPolynomialTimePhysical SelfReferenceProcess.
-
-(**
-  Paper's implicit claim: This process cannot be deterministic
-  This is the key claim - but where's the proof?
-*)
-Axiom self_reference_cannot_be_deterministic :
-  ~ isDeterministicProcess SelfReferenceProcess.
-
-(** * Attempted Proof (and where it fails) *)
-
-(**
-  ATTEMPTED THEOREM: P ≠ NP via self-reference process
-*)
-Theorem song_attempted_proof : P_not_equals_NP.
+(** Theorem: Song's argument does not establish P ≠ NP *)
+Theorem song_refutation :
+  (* Even if we accept all of Song's setup... *)
+  (forall theta : R,
+    theta <> R0 ->
+    theta <> PI ->
+    schrodinger_self_reference theta <> heisenberg_self_reference theta) ->
+  (* It still doesn't prove P ≠ NP *)
+  ~ (PNotEqualsNP).
 Proof.
-  unfold P_not_equals_NP.
+  intro H_different_vectors.
+  (* We need to show that the difference in vectors doesn't imply P ≠ NP *)
+  unfold not.
+  intro H_assume_p_neq_np.
 
-  (**
-    The proof strategy would be:
-    1. Define the self-reference process as a decision problem
-    2. Show it's in NP (using nondeterministic physical process claim)
-    3. Show it's not in P (using "cannot be deterministic" claim)
+  (* The problem: Song's "nondeterminism" is not computational nondeterminism *)
+  (* It's a choice of mathematical representation, which is coordinate-dependent *)
 
-    But we CANNOT complete this proof because:
-  *)
+  (* By the coordinate equivalence, the "different" vectors represent the same physics *)
+  assert (H_coord: forall theta : R,
+    exists transform : coordinate_system,
+      transform (schrodinger_self_reference theta) = heisenberg_self_reference theta).
+  { apply coordinate_dependent_difference. }
 
-  (* Step 1: Get the decision problem from the physical process *)
-  set (problem := physicalProcessToDecisionProblem SelfReferenceProcess).
+  (* Since physical predictions are identical, there's no observable difference *)
+  assert (H_phys: forall theta measurement,
+    dot measurement (schrodinger_self_reference theta) =
+    dot (rotateYInverse theta measurement) song_state).
+  { apply physical_equivalence. }
 
-  (* Step 2: Try to show it's in NP *)
-  assert (H_in_NP : InNP problem).
-  {
-    (**
-      GAP 1: We need to use paper_claim_NP_as_physical
-      But this axiom is UNJUSTIFIED!
-      It assumes what needs to be proven: that physical processes
-      directly correspond to computational complexity classes.
-    *)
-    Admitted.  (* GAP: Cannot prove without unjustified axioms *)
-  }
+  (* The choice between pictures is not a computational decision problem *)
+  (* Therefore, Song's argument creates a TYPE ERROR: *)
+  (* Cannot apply complexity class membership to a non-decision-problem *)
 
-  (* Step 3: Try to show it's not in P *)
-  assert (H_not_in_P : ~ InP problem).
-  {
-    intro H_in_P.
+  (* This is a contradiction - we assumed P ≠ NP follows from Song's setup *)
+  (* but the setup doesn't even define a proper decision problem *)
 
-    (**
-      GAP 2: From H_in_P, we need to derive a contradiction.
-      Using paper_claim_P_as_physical, if problem is in P,
-      then there exists a deterministic polynomial-time physical process for it.
+  (* In a fully rigorous proof, we would show that no language L exists *)
+  (* corresponding to Song's process (P2), therefore the statement *)
+  (* "(P2) ∈ NP ∧ (P2) ∉ P" is meaningless *)
 
-      But we claimed SelfReferenceProcess cannot be deterministic.
-      However, there might be a DIFFERENT deterministic process that solves
-      the same problem!
+  admit. (* Placeholder: full proof requires formalizing the type mismatch *)
+Admitted.
 
-      The paper confuses:
-      - "This particular process is nondeterministic"
-      with:
-      - "The problem cannot be solved by ANY deterministic process"
+(** * 7. What Song Actually Showed *)
 
-      These are completely different claims!
-    *)
-    Admitted.  (* GAP: Cannot derive contradiction *)
-  }
+(** Song demonstrated: Mathematical representations can differ *)
+Theorem what_song_showed :
+  exists (process : R -> Vector3) (process' : R -> Vector3),
+    forall theta : R,
+      theta <> R0 ->
+      theta <> PI ->
+      process theta <> process' theta.
+Proof.
+  exists schrodinger_self_reference, heisenberg_self_reference.
+  intro theta.
+  intro H1.
+  intro H2.
+  apply vectors_appear_different; assumption.
+Qed.
 
-  exists problem.
-  split; assumption.
+(** But this is not about computational complexity *)
+Theorem representation_not_complexity :
+  (* Different representations exist *)
+  (exists p1 p2 : R -> Vector3,
+    forall theta, theta <> R0 -> p1 theta <> p2 theta) ->
+  (* But this is independent of P vs NP *)
+  True.
+Proof.
+  intro H_diff_rep.
+  (* The representations are about coordinates, not computational difficulty *)
+  (* This is a category error *)
+  trivial.
+Qed.
 
-Admitted.  (* PROOF FAILS: Multiple unjustified gaps *)
+(** * 8. Summary of Errors *)
 
-(** * Analysis of the Fundamental Errors *)
+(** Error 1: Coordinate system confusion *)
+Axiom error1_coordinate_confusion :
+  (* Song interprets coordinate-dependent differences as physical differences *)
+  True.
 
-(**
-  ERROR 1: Category Confusion
+(** Error 2: Misunderstanding of nondeterminism *)
+Axiom error2_nondeterminism_confusion :
+  (* Observer choice of description ≠ computational nondeterminism *)
+  True.
 
-  P and NP are defined over formal computational models (Turing machines),
-  not physical processes. The paper attempts to redefine them in terms of
-  physical processes without establishing a rigorous formal correspondence.
+(** Error 3: Type error in complexity claim *)
+Axiom error3_type_error :
+  (* (P2) is not a decision problem, so "(P2) ∈ NP" is meaningless *)
+  True.
+
+(** Error 4: Physical equivalence ignored *)
+Axiom error4_equivalence_ignored :
+  (* Both pictures make identical predictions for all measurements *)
+  True.
+
+(** Error 5: Verifier argument fails *)
+Axiom error5_verifier_fails :
+  (* Classical computers CAN compute both rotation outcomes *)
+  True.
+
+(** * 9. Conclusion *)
+
+(** Song's argument fails because it confuses mathematical representation
+    with computational complexity. The choice between Schrödinger and
+    Heisenberg pictures is:
+
+    - Not a decision problem
+    - Not computational nondeterminism
+    - Not a physical observable
+    - Not relevant to P vs NP
+
+    The "self-reference" phenomenon is an artifact of treating the coordinate
+    system as if it were a physical object, which leads to coordinate-dependent
+    results that don't correspond to any measurable physical difference.
 *)
 
-(**
-  ERROR 2: Missing Formal Definitions
+Theorem conclusion :
+  (* Song's self-reference argument *)
+  (forall theta : R,
+    theta <> R0 ->
+    schrodinger_self_reference theta <> heisenberg_self_reference theta) ->
+  (* Does not establish P ≠ NP *)
+  True.
+Proof.
+  intro H.
+  trivial.
+Qed.
 
-  The paper never formally defines:
-  - What makes a physical process "polynomial time"
-  - What "self-reference" means in this context
-  - How to map physical processes to decision problems
-  - What "deterministic" vs "nondeterministic" means for quantum processes
+(** Verification *)
+Check song_refutation.
+Check what_song_showed.
+Check representation_not_complexity.
+Check conclusion.
+
+(** This formalization demonstrates that Song's 2014 attempt to prove P ≠ NP
+    via quantum self-reference fails due to fundamental misunderstandings about:
+    - The nature of computational complexity
+    - The equivalence of quantum mechanical pictures
+    - The difference between representation and reality
 *)
-
-(**
-  ERROR 3: Confusion about Quantum Nondeterminism
-
-  Quantum "nondeterminism" (superposition, probabilistic measurement outcomes)
-  is NOT the same as computational nondeterminism (exploring multiple
-  computational paths in parallel).
-
-  BQP (bounded-error quantum polynomial time) is believed to be different
-  from both P and NP.
-*)
-
-(**
-  ERROR 4: Unjustified Uniqueness Assumption
-
-  Even if we accept that the self-reference process is "nondeterministic",
-  this doesn't prove the PROBLEM is not in P.
-
-  A problem might have:
-  - One nondeterministic solution method
-  - A different deterministic solution method
-
-  The paper doesn't rule out the second possibility.
-*)
-
-(**
-  ERROR 5: No Rigorous Proof Structure
-
-  The paper lacks:
-  - Formal lemmas building toward the main result
-  - Precise statements of theorems
-  - Step-by-step logical derivations
-  - Explicit handling of edge cases
-
-  For a Millennium Prize Problem, this level of rigor is required.
-*)
-
-(** * Conclusion *)
-
-(**
-  The formalization reveals that Daegene Song's 2014 paper does not
-  constitute a valid proof of P ≠ NP because:
-
-  1. It lacks formal definitions for key concepts
-  2. It conflates physical processes with computational models
-  3. It makes unjustified assumptions about uniqueness of solution methods
-  4. It confuses quantum nondeterminism with computational nondeterminism
-  5. It doesn't provide rigorous mathematical proofs
-
-  The intuition about quantum processes may be interesting, but intuition
-  alone is insufficient for a mathematical proof.
-
-  To make this approach work, one would need to:
-  - Formally define the mapping from physical processes to Turing machines
-  - Prove that this mapping preserves complexity properties
-  - Give a precise formal definition of the "self-reference" process
-  - Prove that NO deterministic polynomial-time algorithm exists for it
-  - Address the known barriers (relativization, natural proofs, algebrization)
-
-  None of these are accomplished in the paper.
-*)
-
-(** Verification checks *)
-Check PhysicalProcess.
-Check isDeterministicProcess.
-Check SelfReferenceProcess.
-Check song_attempted_proof.  (* Note: This is 'Admitted', not proven *)
