@@ -47,8 +47,8 @@ Definition Path := list Vertex.
 Fixpoint isValidPath (g : Graph) (p : Path) : bool :=
   match p with
   | [] => true
-  | [v] => true
-  | v1 :: v2 :: rest => hasEdge g (v1, v2) && isValidPath g (v2 :: rest)
+  | [_] => true
+  | v1 :: ((v2 :: _) as tail) => hasEdge g (v1, v2) && isValidPath g tail
   end.
 
 (* Check if a path visits all vertices exactly once *)
@@ -87,9 +87,9 @@ Record TSPInstance := {
 Fixpoint tourCost (tsp : TSPInstance) (tour : Path) : nat :=
   match tour with
   | [] => 0
-  | [v] => 0
-  | v1 :: v2 :: rest =>
-      tsp_cost tsp (v1, v2) + tourCost tsp (v2 :: rest)
+  | [_] => 0
+  | v1 :: ((v2 :: _) as tail) =>
+      tsp_cost tsp (v1, v2) + tourCost tsp tail
   end.
 
 (* Add cost of returning to start *)
