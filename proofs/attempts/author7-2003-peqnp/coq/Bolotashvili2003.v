@@ -166,7 +166,7 @@ Qed.
 (** Identifying which facet is violated is NP-hard in general *)
 (** This is known as the "separation problem" for polytopes *)
 
-Definition separation_problem (n : nat) (solution : list nat) : Prop :=
+Definition separation_problem (solution : list nat) : Prop :=
   exists (facet : FacetInequality),
     (* Finding a violated facet requires solving an NP-hard problem *)
     satisfies_facet solution facet = false.
@@ -212,10 +212,9 @@ Axiom branch_and_cut_exponential_iterations :
   forall (n : nat) (matrix : WeightMatrix n),
     exists (instance_matrix : WeightMatrix n),
       (* There exist instances requiring exponential iterations *)
-      forall algo,
-        exists (num_iterations : nat),
-          (* Number of iterations to solve this instance *)
-          num_iterations >= 2^n.
+      exists (num_iterations : nat),
+        (* Number of iterations to solve this instance *)
+        num_iterations >= 2^n.
 
 (** ** Issue 4: Optimality Check *)
 
