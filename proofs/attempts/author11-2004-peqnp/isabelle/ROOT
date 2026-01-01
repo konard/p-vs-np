@@ -1,0 +1,4 @@
+session "BringsjordTaylorPeqNP" = HOL +
+  options [timeout = 300, quick_and_dirty]
+  theories
+    BringsjordTaylorPeqNP
