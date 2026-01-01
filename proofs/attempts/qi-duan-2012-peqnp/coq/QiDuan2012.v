@@ -13,6 +13,7 @@
 
 Require Import Coq.Init.Nat.
 Require Import Coq.Arith.PeanoNat.
+Require Import Coq.Bool.Bool.
 Require Import Coq.Lists.List.
 Require Import Coq.Logic.Classical_Prop.
 Import ListNotations.
