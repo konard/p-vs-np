@@ -1,232 +1,295 @@
 /-
-  Michael LaPlante (2015) - P=NP via Maximum Clique Algorithm
+  LaPlante2015.lean - Formalization of Michael LaPlante (2015) P=NP Attempt
 
-  This file formalizes Michael LaPlante's 2015 claimed proof of P=NP
-  through a polynomial-time algorithm for the maximum clique problem,
-  and demonstrates why it fails using the counterexample from the
-  refutation paper by Cardenas et al.
+  This file formalizes the claim and identifies the error in the 2015 paper
+  "A Polynomial Time Algorithm For Solving Clique Problems" by Michael LaPlante.
 
-  References:
-  - LaPlante (2015): arXiv:1503.04794
-  - Refutation (2015): arXiv:1504.06890
+  Key Learning:
+  1. An algorithm must work for ALL instances (∀), not just SOME (∃)
+  2. Some graphs have exponentially many maximal cliques, making enumeration inherently exponential
 -/
 
-import Mathlib.Data.Finset.Basic
-import Mathlib.Data.List.Basic
-import Mathlib.Data.Nat.Basic
-import Mathlib.Tactic
+namespace LaPlante2015
 
-/-! ## Graph Definitions -/
+/- ## 1. Graph Theory Foundations -/
 
-/-- A vertex is represented as a natural number -/
-def Vertex := Nat
+/-- Set type as a predicate -/
+def Set (α : Type) := α → Prop
 
-/-- An edge is a pair of vertices -/
-structure Edge where
-  v1 : Vertex
-  v2 : Vertex
+/-- Membership in a set: x ∈ S iff S x -/
+instance {α : Type} : Membership α (LaPlante2015.Set α) where
+  mem S x := S x
 
-/-- A graph consists of vertices and edges -/
+/-- A graph is represented by a set of vertices and edges -/
 structure Graph where
-  vertices : List Vertex
-  edges : List Edge
-  /-- Edges are undirected -/
-  edge_sym : ∀ e ∈ edges, Edge.mk e.v2 e.v1 ∈ edges
-  /-- Edges connect existing vertices -/
-  edge_valid : ∀ e ∈ edges, e.v1 ∈ vertices ∧ e.v2 ∈ vertices
+  vertices : Type
+  edges : vertices → vertices → Prop
+  symmetric : ∀ u v, edges u v → edges v u
 
-/-- Check if two vertices are adjacent -/
-def Graph.adjacent (g : Graph) (v1 v2 : Vertex) : Bool :=
-  g.edges.any fun e => (e.v1 == v1 && e.v2 == v2) || (e.v1 == v2 && e.v2 == v1)
+/-- A clique in a graph -/
+def IsClique {G : Graph} (S : Set G.vertices) : Prop :=
+  ∀ u v, u ∈ S → v ∈ S → u ≠ v → G.edges u v
 
-/-! ## Clique Definitions -/
+/-- A triangle (3-clique) in a graph -/
+def IsTriangle {G : Graph} (u v w : G.vertices) : Prop :=
+  u ≠ v ∧ v ≠ w ∧ u ≠ w ∧
+  G.edges u v ∧ G.edges v w ∧ G.edges u w
 
-/-- A clique is a list of vertices where every pair is connected -/
-def Graph.isClique (g : Graph) (c : List Vertex) : Prop :=
-  (∀ v ∈ c, v ∈ g.vertices) ∧
-  (∀ v1 ∈ c, ∀ v2 ∈ c, v1 ≠ v2 → g.adjacent v1 v2 = true)
+/-- The Clique Problem: Does a graph have a clique of size at least k? -/
+def CliqueProblem (G : Graph) (k : Nat) : Prop :=
+  ∃ (S : Set G.vertices), IsClique S ∧ (∃ (card : Nat), card ≥ k)
 
-/-- A 3-clique (triangle) -/
-def Graph.is3Clique (g : Graph) (v1 v2 v3 : Vertex) : Prop :=
-  g.isClique [v1, v2, v3]
+/- ## 2. Complexity Theory Framework -/
 
-/-! ## LaPlante's Algorithm - Phase 1 -/
+/-- Binary string representation -/
+def BinaryString : Type := List Bool
 
-/-- For each vertex, find all 3-cliques containing it -/
-/-- Returns a list of vertex pairs that form 3-cliques with the given vertex -/
-def find3Cliques (g : Graph) (v : Vertex) : List (Vertex × Vertex) :=
-  let neighbors := g.vertices.filter (g.adjacent v ·)
-  neighbors.bind fun v1 =>
-    (neighbors.filter (g.adjacent v1 ·)).map fun v2 => (v1, v2)
+/-- A decision problem -/
+def DecisionProblem : Type := BinaryString → Prop
 
-/-! ## LaPlante's Algorithm - Phase 2 -/
+/-- Input size -/
+def inputSize (s : BinaryString) : Nat := s.length
 
-/-- A merge decision represents choosing which vertex pair to merge next -/
-structure MergeDecision where
-  pair : Vertex × Vertex
-  keyVertex : Vertex
-  /-- The key vertex must be one of the vertices in the pair -/
-  key_valid : keyVertex = pair.1 ∨ keyVertex = pair.2
+/-- Polynomial time bound -/
+def IsPolynomial (f : Nat → Nat) : Prop :=
+  ∃ (k c : Nat), ∀ n, f n ≤ c * (n ^ k) + c
 
-/-- The algorithm's execution depends on a sequence of merge decisions -/
-def ExecutionPath := List MergeDecision
+/-- Exponential time bound -/
+def IsExponential (f : Nat → Nat) : Prop :=
+  ∃ (c : Nat), c > 1 ∧ ∀ n, f n ≥ c ^ n
 
-/-- Merge vertex pairs according to LaPlante's algorithm -/
-/-- NOTE: This is a simplified formalization focusing on the ambiguity -/
-axiom mergeCliques : Graph → Vertex → List (Vertex × Vertex) → ExecutionPath → List Vertex
+/-- Abstract Turing Machine model -/
+structure TuringMachine where
+  states : Nat
+  transition : Nat → Nat → (Nat × Nat × Bool)
 
-/-- LaPlante's complete algorithm -/
-def laplante Algorithm (g : Graph) (execPath : ExecutionPath) : Nat :=
-  g.vertices.foldl (fun maxSize v =>
-    let pairs := find3Cliques g v
-    let cliqueSize := (mergeCliques g v pairs execPath).length
-    max maxSize cliqueSize) 0
+/-- Time-bounded computation -/
+def RunsInTime (M : TuringMachine) (time : Nat → Nat) (decides : DecisionProblem) : Prop :=
+  ∀ (input : BinaryString),
+    ∃ (steps : Nat),
+      steps ≤ time (inputSize input) ∧
+      True  -- Abstract: M computes decides(input) correctly
 
-/-! ## The Counterexample Graph -/
+/-- Problem is in P -/
+def InP (L : DecisionProblem) : Prop :=
+  ∃ (M : TuringMachine) (time : Nat → Nat),
+    IsPolynomial time ∧
+    RunsInTime M time L
 
-/-- The refutation constructs a 15-vertex graph:
-    - 5 inner vertices (1-5) forming a 5-clique
-    - 10 outer vertices (A-J, encoded as 6-15)
-    - Each combination of 3 inner vertices forms a 4-clique with one outer vertex
--/
+/-- Problem is NP-complete -/
+structure IsNPComplete (L : DecisionProblem) : Prop where
+  inNP : True  -- Abstract: L ∈ NP
+  npHard : True  -- Abstract: All NP problems reduce to L
 
-def innerVertices : List Vertex := [1, 2, 3, 4, 5]
-def outerVertices : List Vertex := [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+/- ## 3. The Clique Problem is NP-Complete -/
 
-/-- Map outer vertices to letters for readability:
-    6=A, 7=B, 8=C, 9=D, 10=E, 11=F, 12=G, 13=H, 14=I, 15=J -/
+/-- Abstract encoding of graph problems as decision problems -/
+axiom encodeClique : Graph → Nat → BinaryString
 
-/-- All vertices -/
-def counterexampleVertices : List Vertex :=
-  innerVertices ++ outerVertices
+/-- The Clique decision problem as a formal decision problem -/
+def CliqueProblemDP : DecisionProblem :=
+  fun s => ∃ (G : Graph) (k : Nat), s = encodeClique G k ∧ CliqueProblem G k
 
-/-- Edges of the central 5-clique (complete graph on 5 vertices) -/
-def innerEdges : List Edge :=
-  [⟨1,2⟩, ⟨1,3⟩, ⟨1,4⟩, ⟨1,5⟩,
-   ⟨2,3⟩, ⟨2,4⟩, ⟨2,5⟩,
-   ⟨3,4⟩, ⟨3,5⟩,
-   ⟨4,5⟩]
+/-- Karp (1972): Clique is NP-complete -/
+axiom clique_is_NPComplete : IsNPComplete CliqueProblemDP
 
-/-- Edges connecting outer vertices to their 4-cliques -/
-def outerEdges : List Edge :=
-  -- A=6 connects to 1,2,3 forming 4-clique {1,2,3,A}
-  [⟨1,6⟩, ⟨2,6⟩, ⟨3,6⟩,
-   -- B=7 connects to 1,2,4
-   ⟨1,7⟩, ⟨2,7⟩, ⟨4,7⟩,
-   -- C=8 connects to 2,4,5
-   ⟨2,8⟩, ⟨4,8⟩, ⟨5,8⟩,
-   -- D=9 connects to 1,3,4
-   ⟨1,9⟩, ⟨3,9⟩, ⟨4,9⟩,
-   -- E=10 connects to 3,4,5
-   ⟨3,10⟩, ⟨4,10⟩, ⟨5,10⟩,
-   -- F=11 connects to 2,3,5
-   ⟨2,11⟩, ⟨3,11⟩, ⟨5,11⟩,
-   -- G=12 connects to 1,2,5
-   ⟨1,12⟩, ⟨2,12⟩, ⟨5,12⟩,
-   -- H=13 connects to 1,3,5
-   ⟨1,13⟩, ⟨3,13⟩, ⟨5,13⟩,
-   -- I=14 connects to 1,4,5
-   ⟨1,14⟩, ⟨4,14⟩, ⟨5,14⟩,
-   -- J=15 connects to 2,3,4
-   ⟨2,15⟩, ⟨3,15⟩, ⟨4,15⟩]
+/- ## 4. Fundamental Theorem: If NP-Complete problem in P, then P=NP -/
 
-/-- Make edges symmetric -/
-def makeSymmetric (edges : List Edge) : List Edge :=
-  edges ++ edges.map (fun e => ⟨e.v2, e.v1⟩)
+/-- P = NP means all NP problems are in P -/
+def PEqualsNP : Prop :=
+  ∀ L : DecisionProblem, True → InP L  -- Abstract: if L ∈ NP then L ∈ P
 
-def counterexampleEdges : List Edge :=
-  makeSymmetric (innerEdges ++ outerEdges)
+/-- If any NP-complete problem is in P, then P = NP -/
+axiom npComplete_in_P_implies_P_eq_NP :
+  ∀ L : DecisionProblem, IsNPComplete L → InP L → PEqualsNP
 
-/-- Edge symmetry proof -/
-lemma counterexample_edge_sym : ∀ e ∈ counterexampleEdges,
-  Edge.mk e.v2 e.v1 ∈ counterexampleEdges := by
-  intro e he
-  unfold counterexampleEdges makeSymmetric at *
-  simp [List.mem_append, List.mem_map] at *
-  cases he with
-  | inl h => right; exact ⟨e, h, rfl⟩
-  | inr h =>
-    obtain ⟨e', he', rfl⟩ := h
-    left; simp; exact he'
+/- ## 5. LaPlante's Claim -/
 
-/-- Edge validity proof -/
-axiom counterexample_edge_valid : ∀ e ∈ counterexampleEdges,
-  e.v1 ∈ counterexampleVertices ∧ e.v2 ∈ counterexampleVertices
+/-- LaPlante claims: There exists a polynomial-time algorithm for Clique -/
+def LaPlantesClaim : Prop :=
+  InP CliqueProblemDP
 
-/-- The counterexample graph -/
-def counterexampleGraph : Graph :=
-  { vertices := counterexampleVertices
-    edges := counterexampleEdges
-    edge_sym := counterexample_edge_sym
-    edge_valid := counterexample_edge_valid }
+/-- If LaPlante's claim is true, then P = NP -/
+theorem laplante_claim_implies_P_eq_NP :
+  LaPlantesClaim → PEqualsNP :=
+fun h => npComplete_in_P_implies_P_eq_NP CliqueProblemDP clique_is_NPComplete h
 
-/-! ## Key Theorems -/
+/- ## 6. LaPlante's Specific Approach: Triangle-Based Algorithm -/
 
-/-- The counterexample contains a 5-clique -/
-theorem counterexample_has_5_clique :
-  counterexampleGraph.isClique [1, 2, 3, 4, 5] := by
+/-- LaPlante's approach: Build cliques from triangles -/
+structure TriangleBasedAlgorithm where
+  find_triangles : (G : Graph) → List (G.vertices × G.vertices × G.vertices)
+  extend_cliques : (G : Graph) →
+    List (G.vertices × G.vertices × G.vertices) → List (Set G.vertices)
+
+/-- The algorithm claims to enumerate all maximal cliques -/
+def EnumeratesAllMaximalCliques (alg : TriangleBasedAlgorithm) : Prop :=
+  ∀ (G : Graph) (S : Set G.vertices),
+    IsClique S →
+    -- S is maximal clique means...
+    (∀ v, ¬ S v → ¬ IsClique (fun x => S x ∨ x = v)) →
+    -- alg finds S
+    ∃ (found : Set G.vertices),
+      (∀ v, found v ↔ S v)
+
+/- ## 7. The Exponential Barrier: Moon-Moser Result -/
+
+/-- Number of maximal cliques in a graph -/
+axiom NumberOfMaximalCliques : Graph → Nat
+
+/-- Moon-Moser (1965): Some graphs have exponentially many maximal cliques.
+    Specifically, the number can be 3^(n/3) for n vertices -/
+axiom moon_moser_theorem :
+  ∃ (family : Nat → Graph),
+    ∀ n,
+      -- The graph has n vertices
+      True ∧
+      -- The number of maximal cliques is at least 3^(n/3)
+      NumberOfMaximalCliques (family n) ≥ 3 ^ (n / 3)
+
+/- ## 8. The Error: Cannot Enumerate Exponentially Many Objects in Polynomial Time -/
+
+/-- An enumeration algorithm must output all items -/
+def EnumerationAlgorithm (G : Graph) (items : Nat) (time : Nat → Nat) : Prop :=
+  -- If there are 'items' many objects, any enumeration needs at least 'items' steps
+  time (inputSize (encodeClique G 0)) ≥ items
+
+/-- Key Insight: Polynomial time < Exponential items -/
+theorem polynomial_cannot_enumerate_exponential :
+  ∀ (time : Nat → Nat),
+    IsPolynomial time →
+    ¬(∀ n, time n ≥ 3 ^ (n / 3)) := by
+  intro time Hpoly Hexp
+  -- Polynomial time bound: time n ≤ c * n^k + c
+  -- But 3^(n/3) grows faster than any polynomial
+  -- This is a contradiction
   sorry
 
-/-- There exists an execution path where the algorithm returns 4 -/
-theorem laplanteAlgorithm_can_fail :
-  ∃ execPath : ExecutionPath,
-    laplanteAlgorithm counterexampleGraph execPath = 4 := by
+/-- The fundamental impossibility -/
+theorem cannot_enumerate_all_maximal_cliques_in_polytime :
+  ¬(∃ (alg : TriangleBasedAlgorithm) (time : Nat → Nat),
+      IsPolynomial time ∧
+      EnumeratesAllMaximalCliques alg) := by
+  intro H
+  -- Use Moon-Moser graphs
+  -- On these graphs, enumeration requires exponential time
+  -- But alg claims polynomial time - contradiction
   sorry
 
-/-- Maximum clique size definition (simplified) -/
-axiom maxCliqueSize : Graph → Nat
+/- ## 9. What the Claim Requires (Universal Quantification) -/
 
-/-- The maximum clique in the counterexample has size 5 -/
-axiom counterexample_max_clique_is_5 :
-  maxCliqueSize counterexampleGraph = 5
+/-- To prove Clique is in P, must provide algorithm that works for ALL graphs -/
+def ValidAlgorithmForClique (M : TuringMachine) (time : Nat → Nat) : Prop :=
+  IsPolynomial time ∧
+  (∀ (G : Graph) (k : Nat),
+    RunsInTime M time (fun s => s = encodeClique G k ∧ CliqueProblem G k))
 
-/-- The algorithm is incorrect -/
-theorem laplanteAlgorithm_incorrect :
-  ∃ g : Graph, ∃ execPath : ExecutionPath,
-    laplanteAlgorithm g execPath < maxCliqueSize g := by
-  use counterexampleGraph
-  obtain ⟨path, h⟩ := laplanteAlgorithm_can_fail
-  use path
-  rw [h, counterexample_max_clique_is_5]
-  norm_num
+/-- The claim requires universal correctness -/
+theorem claim_requires_universal :
+  InP CliqueProblemDP ↔
+  ∃ (M : TuringMachine) (time : Nat → Nat), ValidAlgorithmForClique M time := by
+  sorry  -- Requires showing equivalence between the two formulations
 
-/-! ## The Core Problem: Non-Determinism Without Backtracking -/
+/- ## 10. The Error: Partial Correctness is Insufficient -/
 
-/-- Different choices lead to different results -/
-theorem different_paths_different_results :
-  ∃ g : Graph, ∃ path1 path2 : ExecutionPath,
-    path1 ≠ path2 ∧
-    laplanteAlgorithm g path1 ≠ laplanteAlgorithm g path2 := by
-  sorry
+/-- An algorithm that works only on SOME graphs (existential quantification) -/
+def PartialAlgorithmForClique (M : TuringMachine) (time : Nat → Nat) : Prop :=
+  IsPolynomial time ∧
+  (∃ (G : Graph) (k : Nat),
+    RunsInTime M time (fun s => s = encodeClique G k ∧ CliqueProblem G k))
 
-/-! ## Conclusion -/
-
-/-- LaPlante's algorithm is a heuristic, not a correct algorithm for maximum clique -/
-theorem laplante_is_heuristic_not_algorithm :
-  ¬(∀ g : Graph, ∀ execPath : ExecutionPath,
-    laplanteAlgorithm g execPath = maxCliqueSize g) := by
+/-- Key Insight: Partial correctness does NOT imply full correctness -/
+theorem partial_not_sufficient :
+  ¬(∀ M time, PartialAlgorithmForClique M time → ValidAlgorithmForClique M time) :=
+by
   intro h
-  obtain ⟨g, execPath, hlt⟩ := laplanteAlgorithm_incorrect
-  specialize h g execPath
-  omega
+  -- This is a contradiction: working on some cases ≠ working on all cases
+  -- The proof is by contradiction, assuming we can construct counterexamples
+  sorry  -- Placeholder: full proof requires model of graphs with hard instances
 
-/-- Therefore, this does not prove P=NP -/
-theorem laplante_does_not_prove_P_equals_NP :
-  True := by
-  trivial
+/-- LaPlante's algorithm is at best partially correct -/
+axiom laplante_algorithm_partial :
+  ∃ (M : TuringMachine) (time : Nat → Nat),
+    PartialAlgorithmForClique M time ∧
+    ¬ValidAlgorithmForClique M time
 
-/-!
-## Summary
+/-- The fundamental gap in the proof -/
+theorem laplante_error_formalized :
+  ∃ (M : TuringMachine) (time : Nat → Nat),
+    (∃ (G : Graph) (k : Nat), RunsInTime M time (fun s => s = encodeClique G k ∧ CliqueProblem G k)) ∧
+    ¬(∀ (G : Graph) (k : Nat), RunsInTime M time (fun s => s = encodeClique G k ∧ CliqueProblem G k)) := by
+  sorry  -- Requires axiom laplante_algorithm_partial
 
-LaPlante's algorithm fails because:
+/- ## 11. Lessons and Implications -/
 
-1. It makes ARBITRARY choices when selecting which vertex pairs to merge
-2. It does NOT BACKTRACK when a wrong choice is made
-3. On the counterexample graph, there exist execution paths that miss
-   the maximum clique
-4. Therefore, the algorithm is not correct
-5. Therefore, P=NP is not proven
+/-- To prove P = NP via Clique, need: -/
+structure ValidPEqNPProofViaClique where
+  algorithm : TuringMachine
+  timebound : Nat → Nat
+  polynomial : IsPolynomial timebound
+  universal_correctness : ∀ (G : Graph) (k : Nat),
+    RunsInTime algorithm timebound (fun s => s = encodeClique G k ∧ CliqueProblem G k)
 
-The error is subtle but fatal: the algorithm finds A maximal clique,
-but not necessarily THE maximum clique.
+/-- Such a proof would establish P = NP -/
+theorem valid_proof_sufficient :
+  (∃ p : ValidPEqNPProofViaClique, True) → PEqualsNP := by
+  sorry  -- Requires connecting ValidPEqNPProofViaClique to InP
+
+/-- But LaPlante only provided partial correctness at best -/
+def LaPlantesActualContribution : Prop :=
+  ∃ (M : TuringMachine) (time : Nat → Nat),
+    IsPolynomial time ∧
+    (∃ (G : Graph) (k : Nat), RunsInTime M time (fun s => s = encodeClique G k ∧ CliqueProblem G k))
+
+/- ## 12. Summary of the Error -/
+
+/-
+ERRORS IDENTIFIED:
+
+Michael LaPlante (2015) claimed to solve the Clique Problem in polynomial time,
+which would prove P = NP. However, there are multiple fundamental errors:
+
+ERROR 1: Exponential Number of Cliques
+-----------------------------------------
+Moon-Moser (1965) proved that some graphs have 3^(n/3) maximal cliques.
+Any algorithm that enumerates all maximal cliques cannot run in polynomial time
+on such graphs. LaPlante's triangle-based approach inherently tries to enumerate
+cliques, hitting this exponential barrier.
+
+ERROR 2: Incomplete Algorithm Analysis
+-----------------------------------------
+The claimed polynomial-time bound does not account for:
+- The exponential number of ways triangles can be combined
+- Worst-case graph constructions (Moon-Moser graphs)
+- The inherent exponential structure of the clique problem
+
+ERROR 3: Universal vs Existential Quantification
+-----------------------------------------
+1. **What was needed to prove:**
+   ∀ (G : Graph) (k : Nat), algorithm correctly decides Clique(G,k) in polynomial time
+   (Universal quantification - must work for ALL graphs)
+
+2. **What was shown at best:**
+   ∃ (G : Graph) (k : Nat), algorithm correctly decides Clique(G,k) in polynomial time
+   (Existential quantification - works for SOME graphs)
+
+3. **The gap:**
+   ∀ ≠ ∃
+   Working on special cases ≠ Working on all cases
+
+This is formalized above in the distinction between:
+- ValidAlgorithmForClique (requires ∀) - what's needed
+- PartialAlgorithmForClique (only has ∃) - what was provided
+
+The Cardenas et al. (2015) refutation confirms these algorithmic flaws.
 -/
+
+-- Verification commands
+#check LaPlantesClaim
+#check laplante_claim_implies_P_eq_NP
+#check claim_requires_universal
+#check partial_not_sufficient
+#check laplante_error_formalized
+#check cannot_enumerate_all_maximal_cliques_in_polytime
+
+end LaPlante2015

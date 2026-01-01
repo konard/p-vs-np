@@ -1,146 +1,213 @@
-# Michael LaPlante (2015) - P=NP via Maximum Clique Algorithm
+# Michael LaPlante (2015) - P=NP Clique Algorithm Attempt
+
+**Navigation:** [Back to Repository Root](../../../README.md)
+
+---
+
+## Overview
 
 **Attempt ID**: 102 (from Woeginger's list)
 **Author**: Michael LaPlante
 **Year**: 2015
-**Claim**: P=NP
-**Paper**: "A Polynomial Time Algorithm For Solving Clique Problems (And Subsequently, P=NP)"
-**arXiv**: [1503.04794](http://arxiv.org/abs/1503.04794)
+**Claim**: P = NP
+**Paper**: "A Polynomial Time Algorithm For Solving Clique Problems"
+**arXiv**: [1503.04794](https://arxiv.org/abs/1503.04794)
+**Refutation**: Cardenas et al., 2015 ([arXiv:1504.06890](https://arxiv.org/abs/1504.06890))
 **Status**: **REFUTED**
 
 ## Summary
 
-In March 2015, Michael LaPlante published a paper claiming to prove P=NP by presenting a polynomial-time algorithm for solving the maximum clique problem, which is known to be NP-complete. The algorithm operates in two phases:
+In March 2015, Michael LaPlante claimed to establish P=NP by presenting a polynomial-time algorithm for solving the maximum clique problem. The paper "A Polynomial Time Algorithm For Solving Clique Problems" was published on arXiv (arXiv:1503.04794).
 
-1. **Phase 1 (Neighbor Introductions)**: For each vertex in the graph, find all 3-cliques containing it by having vertices "communicate" their neighbors to each other.
+In April 2015, Hector A. Cardenas, Chester Holtz, Maria Janczak, Philip Meyers, and Nathaniel S. Potrepka published a refutation titled "A Refutation of the Clique-Based P=NP Proofs of LaPlante and Tamta-Pande-Dhami" (arXiv:1504.06890), demonstrating that LaPlante's algorithm is flawed.
 
-2. **Phase 2 (Clique Calculation)**: Merge the discovered 3-cliques into larger cliques by iterating through vertex pairs and checking for merge conditions.
+## The Approach
 
-LaPlante claimed this algorithm runs in polynomial time: O((n-1)(n-2)(n-3)) for Phase 1 and O(n((n-1)(n-2))/2) for Phase 2 in a complete graph.
+LaPlante's algorithm operates in two phases:
 
-## Refutation
+### Phase 1: Neighbor Introductions (Finding 3-Cliques)
 
-In April 2015, Cardenas, Holtz, Janczak, Meyers, and Potrepka published a refutation: "A Refutation of the Clique-Based P=NP Proofs of LaPlante and Tamta-Pande-Dhami" ([arXiv:1504.06890](http://arxiv.org/abs/1504.06890)).
+The algorithm first finds all 3-cliques in the graph through a "neighbor introduction" process:
 
-### The Critical Error
+1. Each vertex "advertises" its neighbors to all its other neighbors
+2. When a vertex learns that one of its neighbors also connects to another of its neighbors, it identifies a 3-clique
+3. Each vertex builds a list of all 3-cliques it participates in
+4. This phase runs in O(n³) time
 
-The refutation identifies a **fundamental flaw in Phase 2's merging logic**: the algorithm makes arbitrary choices when selecting which vertex pairs to merge, and **does not backtrack** when a wrong choice is made. This causes the algorithm to miss the maximum clique in certain graphs.
+### Phase 2: Clique Merging
 
-### Counterexample
+The algorithm then attempts to merge 3-cliques into larger cliques:
 
-The refutation presents a 15-vertex graph with 5-fold rotational symmetry containing:
-- A central 5-clique (vertices 1, 2, 3, 4, 5)
-- Ten 4-cliques, each consisting of 3 vertices from the 5-clique plus one additional "outer" vertex (labeled A-J)
+1. For each vertex, examine its "neighborhood" (the set of 3-cliques containing it)
+2. Arbitrarily choose a vertex pair from the neighborhood
+3. Select one vertex in the pair as the "key node"
+4. Search for other pairs containing the key node
+5. Check if merging is possible (all necessary vertex pairs exist)
+6. Merge compatible pairs to build larger cliques
+7. Continue until no more merges are possible
+8. Repeat with the next unmerged pair
 
-**Key insight**: Every combination of 3 vertices from the 5-clique appears in some 4-clique with an outer vertex. This means every vertex pair in the 5-clique can potentially be merged with an outer vertex, creating a 4-clique and missing the 5-clique entirely.
+LaPlante claimed this process correctly identifies all maximal cliques in polynomial time.
 
-#### Why the Algorithm Fails
+## The Error
 
-When analyzing vertex 1's neighborhood:
-- Phase 1 correctly identifies all 3-cliques containing vertex 1
-- Phase 2 must arbitrarily choose a starting vertex pair (e.g., {2, 3})
-- This pair can merge with either:
-  - Another number pair (e.g., {2, 4}) → potentially finds the 5-clique
-  - A letter pair (e.g., {2, A}) → finds only a 4-clique and stops
+The refutation paper identifies a **critical flaw in the merging strategy**: the algorithm's arbitrary choices during the merge phase can cause it to miss the maximum clique entirely.
 
-**The problem**: LaPlante's algorithm never specifies a strategy for choosing merges and never backtracks. If the algorithm consistently makes the "wrong" choice (merging with letter vertices), it will discover only 4-cliques and report 4 as the maximum clique size, when the correct answer is 5.
+### The Core Problem
 
-### The Merging Ambiguity
+LaPlante's algorithm:
+- Makes arbitrary choices when selecting which vertex pair to merge next
+- **Never backtracks** from these choices
+- Assumes that any sequence of valid merges will eventually find the maximum clique
 
-LaPlante states: "The order does not matter" and chooses pairs "arbitrarily." However, the refutation proves that **order does matter** - different orderings lead to different outcomes. Without backtracking, the algorithm cannot guarantee finding the maximum clique.
+This assumption is **incorrect**. The algorithm can be misled into merging into smaller cliques, preventing it from discovering the actual maximum clique.
 
-## The Error in Formal Terms
+### Concrete Counterexample
 
-**What the algorithm claims to do**:
-- Find the maximum clique in polynomial time O(n^k) for some constant k
+The refutation paper presents a 15-vertex graph with 5-way rotational symmetry:
 
-**What the algorithm actually does**:
-- Find **a** maximal clique (possibly not maximum) in polynomial time
-- Uses a greedy heuristic that can get stuck in local maxima
-
-**Why the claim fails**:
-- **Missing specification**: The algorithm doesn't specify which vertex pair to choose when multiple pairs have equal priority
-- **No backtracking**: Once a merge path is chosen, the algorithm never reconsiders
-- **Exists a graph family**: For the counterexample graph, there exist execution paths where the algorithm provably fails to find the maximum clique
-- **Cannot be fixed in polynomial time**: Adding complete backtracking would make the algorithm exponential, not polynomial
-
-## Complexity Theory Insight
-
-This attempt falls into a classic trap in complexity theory:
-
-1. **Easy to verify**: Given a clique, verifying it is a clique takes O(k²) time
-2. **Hard to find**: Finding the maximum clique (without backtracking) can lead to wrong answers
-3. **Greedy doesn't work**: The clique problem doesn't have the optimal substructure needed for greedy algorithms
-4. **NP-completeness**: The maximum clique problem is NP-complete, meaning unless P=NP, no polynomial-time algorithm exists
-
-## Formalization Goals
-
-This formalization aims to:
-
-1. **Define the clique problem** formally in Coq, Lean, and Isabelle
-2. **Formalize LaPlante's algorithm** including its two phases
-3. **Construct the counterexample graph** from the refutation
-4. **Prove the algorithm fails** on the counterexample by showing:
-   - The graph contains a 5-clique
-   - There exists an execution path of the algorithm that returns 4
-   - Therefore, the algorithm is incorrect
-
-## Files
-
-- `coq/LaPlante2015.v` - Coq formalization
-- `lean/LaPlante2015.lean` - Lean formalization
-- `isabelle/LaPlante2015.thy` - Isabelle formalization
-
-## Key Definitions
-
-### Clique
-A set of vertices C in a graph G = (V, E) where every pair of distinct vertices in C is connected by an edge.
-
-### k-Clique Decision Problem
-Given a graph G and integer k, determine whether G contains a clique of size at least k.
-
-### Maximum Clique Problem
-Given a graph G, find the largest clique in G.
-
-### LaPlante's Algorithm (Simplified)
 ```
-Phase 1: For each vertex v:
-  - Find all 3-cliques containing v
-  - Store as list of vertex pairs
-
-Phase 2: For each vertex v:
-  - Pick unmerged vertex pair p = {a, b}
-  - Set key_node = a (arbitrary choice)
-  - For each other pair p' containing key_node:
-    - Check if merge conditions satisfied
-    - If yes, merge p and p'
-  - Repeat until no more merges possible
-  - Record size of merged clique
+- Contains one 5-clique with vertices {1, 2, 3, 4, 5}
+- Contains ten 4-cliques, each consisting of 3 vertices from the 5-clique plus one additional vertex
+- Each combination of 3 vertices from {1, 2, 3, 4, 5} forms a 4-clique with an additional "letter" vertex
 ```
 
-### The Bug
-**Line**: "Pick unmerged vertex pair p" and "Set key_node = a (arbitrary choice)"
-**Issue**: "Arbitrary" choice + no backtracking = potential failure
-**Fix required**: Backtracking through all choices (exponential time!)
+**What happens:**
+
+When the algorithm processes vertex 1:
+1. It finds many 3-cliques in its neighborhood
+2. It arbitrarily selects a pair to start merging (e.g., {2, 3})
+3. It then looks for another pair containing the key node (say, 2)
+4. **Critical choice**: It could merge with {2, 4} (leading to the 5-clique) OR {2, A} (leading to a 4-clique)
+5. If it chooses {2, A}, it merges into the 4-clique {1, 2, 3, A}
+6. No further merges are possible with this 4-clique
+7. The algorithm marks these pairs as "merged" and moves on
+8. **The 5-clique is never discovered**
+
+Since the algorithm tries each pair as a starting point but never backtracks within a merge sequence, it's possible that every starting pair leads to a 4-clique instead of the 5-clique.
+
+### Why This Fails the Polynomial Time Claim
+
+The key issues are:
+
+1. **Greedy without backtracking**: The algorithm makes irrevocable choices during merging
+2. **No global optimization**: It doesn't consider which merge path leads to the largest clique
+3. **Arbitrary selection is insufficient**: LaPlante assumes arbitrary choices don't matter, but they do
+
+To fix the algorithm, one would need to:
+- Backtrack through all possible merge sequences
+- Try all possible orderings of vertex pairs
+- **This requires exponential time**, destroying the polynomial-time claim
+
+## Additional Issues
+
+### Exponential Number of Maximal Cliques
+
+A fundamental issue is that some graphs have exponentially many maximal cliques. The Moon-Moser graph family shows that an n-vertex graph can have up to 3^(n/3) maximal cliques. No algorithm that enumerates all maximal cliques can run in polynomial time on such graphs.
+
+### Failure of the Triangle-Based Approach
+
+The approach of building larger cliques from triangles has several flaws:
+
+- **Combinatorial Explosion**: The number of ways to combine triangles can grow exponentially
+- **Correctness Issues**: Not all cliques can be correctly identified by simply merging triangles
+- **Hidden Exponential Work**: The algorithm's analysis underestimates the work required in the extension phase
+
+## Formal Verification Goal
+
+The goal of this formalization is to:
+
+1. Model the clique problem and LaPlante's algorithm in Coq, Lean, and Isabelle
+2. Formalize the counterexample graph from the refutation paper
+3. Prove that LaPlante's algorithm **fails** to find the maximum clique on this graph
+4. Demonstrate that the algorithm's correctness depends on arbitrary choices
+5. Show that guaranteeing correctness would require exponential-time backtracking
+
+## Key Insights
+
+### What LaPlante Got Right
+- Finding all 3-cliques efficiently (Phase 1) is correct
+- The intuition that cliques can be built from 3-cliques is sound
+- Many graphs are correctly solved by the algorithm
+
+### What LaPlante Got Wrong
+- **Assumption of path independence**: He assumes the order of merging doesn't affect the final result
+- **No proof of convergence to maximum**: He provides no proof that his greedy approach finds the maximum clique
+- **Ignoring adversarial graphs**: The counterexample shows carefully constructed graphs can mislead the algorithm
+
+### The Fundamental Lesson
+
+This attempt illustrates a common error in P vs NP attempts:
+
+> **A heuristic that works on many examples is not the same as a correct algorithm that works on all inputs.**
+
+The clique problem is NP-complete precisely because such greedy approaches can be misled. Any polynomial-time algorithm must either:
+1. Provide a proof that its strategy cannot be misled, OR
+2. Use a fundamentally different approach that avoids the need for backtracking
+
+LaPlante's algorithm does neither.
 
 ## References
 
-1. LaPlante, M. (2015). "A Polynomial Time Algorithm For Solving Clique Problems." arXiv:1503.04794
-2. Cardenas, H. A., Holtz, C., Janczak, M., Meyers, P., & Potrepka, N. S. (2015). "A Refutation of the Clique-Based P=NP Proofs of LaPlante and Tamta-Pande-Dhami." arXiv:1504.06890
-3. Woeginger, G. J. "The P-versus-NP page." https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+### Original Paper
+- **Title**: A Polynomial Time Algorithm For Solving Clique Problems (And Subsequently, P=NP)
+- **Author**: Michael LaPlante
+- **Date**: March 9, 2015
+- **arXiv**: [1503.04794](https://arxiv.org/abs/1503.04794)
+- **Local Copy**: `laplante-original.pdf`
 
-## Educational Value
+### Refutation Paper
+- **Title**: A Refutation of the Clique-Based P=NP Proofs of LaPlante and Tamta-Pande-Dhami
+- **Authors**: Hector A. Cardenas, Chester Holtz, Maria Janczak, Philip Meyers, Nathaniel S. Potrepka
+- **Institution**: Department of Computer Science, University of Rochester
+- **Date**: April 26, 2015
+- **arXiv**: [1504.06890](https://arxiv.org/abs/1504.06890)
+- **Local Copy**: `refutation.pdf`
 
-This failed proof attempt demonstrates:
+### Background on Clique Problem
+- Karp, R.M. (1972). "Reducibility Among Combinatorial Problems." Complexity of Computer Computations, pp. 85-103.
+- Moon, J.W., Moser, L. (1965). "On cliques in graphs." Israel Journal of Mathematics, 3(1):23-28.
+- Garey, M.R., Johnson, D.S. (1979). "Computers and Intractability: A Guide to the Theory of NP-Completeness." W.H. Freeman.
 
-1. **Greedy algorithms don't always work**: The clique problem lacks optimal substructure
-2. **Verification ≠ Solution**: Verifying a clique is easy; finding the maximum is hard
-3. **Importance of formal proof**: Informal arguments can hide subtle errors
-4. **Value of counterexamples**: A single counterexample refutes a universal claim
-5. **Backtracking vs polynomial time**: Complete search requires exponential time
+### From Woeginger's List
+- Entry #102: [Woeginger's P-versus-NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm)
 
-## Conclusion
+## Files in This Directory
 
-LaPlante's algorithm is a **heuristic** that works on many graphs but fails on a precisely constructed counterexample. The error is subtle: the algorithm appears to work because it finds **a** large clique, just not always the **maximum** clique. This highlights why P vs NP is so difficult - many plausible approaches fail on carefully crafted counterexamples.
+```
+proofs/attempts/michael-laplante-2015-peqnp/
+├── README.md                              # This file
+├── laplante-original.pdf                  # LaPlante's original paper
+├── refutation.pdf                         # The refutation by Cardenas et al.
+├── coq/
+│   ├── LaPlante2015.v                     # Coq formalization (general)
+│   └── LaPlante2015Counterexample.v       # Coq counterexample formalization
+├── lean/
+│   ├── LaPlante2015.lean                  # Lean formalization (general)
+│   └── LaPlante2015Counterexample.lean    # Lean counterexample formalization
+└── isabelle/
+    ├── ROOT                               # Session configuration
+    ├── LaPlante2015.thy                   # Isabelle formalization (general)
+    └── LaPlante2015Counterexample.thy     # Isabelle counterexample formalization
+```
 
-The formalization in this directory makes the error explicit and verifiable, contributing to our understanding of why certain approaches to P=NP cannot work.
+## Status
+
+- [x] Documentation: Complete
+- [x] Lean formalization: Complete (counterexample verified)
+- [x] Coq formalization: Complete (counterexample verified)
+- [x] Isabelle formalization: Complete (counterexample verified)
+
+## Related Work
+
+This is part of issue #44: **Test all P vs NP attempts formally**
+
+The goal is to formalize incorrect P vs NP proofs to:
+1. Understand common error patterns
+2. Build a library of counterexamples
+3. Develop automated tools for detecting similar errors
+4. Educate researchers about pitfalls in complexity theory proofs
+
+---
+
+**Note**: This formalization is for educational purposes to understand why certain approaches to P vs NP fail. The goal is to build intuition about the problem and common pitfalls in attempted proofs.
