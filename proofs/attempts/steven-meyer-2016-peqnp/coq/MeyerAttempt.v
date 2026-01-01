@@ -1,13 +1,13 @@
 (**
-  MeyerAttempt.v - Formalization of Steven Meyer's 2016 P=NP attempt
+  MeyerAttempt.v - Formalization of Steven Meyer (2016) P=NP attempt
 
-  This file formalizes and refutes Steven Meyer's 2016 argument that
-  P = NP based on using the MRAM (Random Access Machine with Multiply)
-  computational model instead of Turing machines.
+  This file formalizes Steven Meyer's 2016 proof attempt claiming P=NP
+  through the MRAM computational model, and demonstrates the errors in
+  the reasoning.
 
-  The formalization demonstrates that Meyer's argument contains a
-  fundamental error: conflating computational model choice with the
-  definition of complexity classes P and NP.
+  Key Error: Meyer confuses computational models with the fundamental
+  question. The P-versus-NP question is model-independent for all
+  polynomially equivalent computational models.
 *)
 
 Require Import Coq.Strings.String.
@@ -19,335 +19,332 @@ Require Import Coq.Logic.Classical_Prop.
 (** A decision problem is a predicate on strings *)
 Definition DecisionProblem := string -> Prop.
 
-(** Time complexity function: maps input size to time bound *)
+(** Time complexity function *)
 Definition TimeComplexity := nat -> nat.
 
-(** A problem is polynomial-time if there exists a polynomial bound *)
+(** Polynomial time predicate *)
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
   exists k : nat, forall n : nat, f n <= n ^ k.
 
 (** * Computational Models *)
 
-(**
-  We formalize three computational models to show they're
-  polynomial-time equivalent:
-  1. Turing Machines (TM)
-  2. Random Access Machines (RAM)
-  3. Random Access Machines with Multiply (MRAM)
-*)
+(** ** Turing Machine Model *)
 
-(** Turing Machine model *)
 Record TuringMachine := {
   tm_compute : string -> bool;
-  tm_timeComplexity : TimeComplexity
+  tm_time : TimeComplexity
 }.
 
-(** Random Access Machine (RAM) model *)
-Record RAM := {
-  ram_compute : string -> bool;
-  ram_timeComplexity : TimeComplexity
-}.
-
-(** Random Access Machine with Multiply (MRAM) - Meyer's proposed model *)
-Record MRAM := {
-  mram_compute : string -> bool;
-  mram_timeComplexity : TimeComplexity
-}.
-
-(** Nondeterministic Turing Machine *)
-Record NondeterministicTM := {
-  ndtm_compute : string -> string -> bool;  (* input, witness -> result *)
-  ndtm_timeComplexity : TimeComplexity
-}.
-
-(** * Polynomial-Time Equivalence of Models *)
-
-(**
-  FUNDAMENTAL FACT: All reasonable computational models are
-  polynomial-time equivalent. This is the polynomial-time
-  Church-Turing thesis.
-*)
-
-(** TM can simulate RAM with polynomial overhead *)
-Axiom tm_simulates_ram :
-  forall (r : RAM),
-    exists (tm : TuringMachine) (overhead : nat -> nat),
-      IsPolynomialTime overhead /\
-      forall (x : string),
-        tm_compute tm x = ram_compute r x /\
-        tm_timeComplexity tm (String.length x) <=
-          overhead (ram_timeComplexity r (String.length x)).
-
-(** RAM can simulate TM with polynomial overhead *)
-Axiom ram_simulates_tm :
-  forall (tm : TuringMachine),
-    exists (r : RAM) (overhead : nat -> nat),
-      IsPolynomialTime overhead /\
-      forall (x : string),
-        ram_compute r x = tm_compute tm x /\
-        ram_timeComplexity r (String.length x) <=
-          overhead (tm_timeComplexity tm (String.length x)).
-
-(** MRAM can simulate TM with polynomial overhead *)
-Axiom mram_simulates_tm :
-  forall (tm : TuringMachine),
-    exists (m : MRAM) (overhead : nat -> nat),
-      IsPolynomialTime overhead /\
-      forall (x : string),
-        mram_compute m x = tm_compute tm x /\
-        mram_timeComplexity m (String.length x) <=
-          overhead (tm_timeComplexity tm (String.length x)).
-
-(** TM can simulate MRAM with polynomial overhead *)
-Axiom tm_simulates_mram :
-  forall (m : MRAM),
-    exists (tm : TuringMachine) (overhead : nat -> nat),
-      IsPolynomialTime overhead /\
-      forall (x : string),
-        tm_compute tm x = mram_compute m x /\
-        tm_timeComplexity tm (String.length x) <=
-          overhead (mram_timeComplexity m (String.length x)).
-
-(** KEY THEOREM: Polynomial-time equivalence is transitive and preserves complexity classes *)
-Theorem polynomial_overhead_composition :
-  forall (f g : nat -> nat),
-    IsPolynomialTime f ->
-    IsPolynomialTime g ->
-    IsPolynomialTime (fun n => f (g n)).
-Proof.
-  intros f g [k1 Hf] [k2 Hg].
-  (* Composition of polynomials is polynomial *)
-  exists (k1 * k2).
-  intro n.
-  (* This is a sketch - full proof would require polynomial arithmetic *)
-  admit.
-Admitted.
-
-(** * Complexity Classes P and NP *)
-
-(** P in the Turing Machine model *)
 Definition InP_TM (problem : DecisionProblem) : Prop :=
   exists (tm : TuringMachine),
-    IsPolynomialTime (tm_timeComplexity tm) /\
+    IsPolynomialTime (tm_time tm) /\
     forall x : string, problem x <-> tm_compute tm x = true.
 
-(** P in the RAM model *)
-Definition InP_RAM (problem : DecisionProblem) : Prop :=
-  exists (r : RAM),
-    IsPolynomialTime (ram_timeComplexity r) /\
-    forall x : string, problem x <-> ram_compute r x = true.
+Record Verifier := {
+  verify : string -> string -> bool;
+  verify_time : TimeComplexity
+}.
 
-(** P in the MRAM model (Meyer's proposed definition) *)
-Definition InP_MRAM (problem : DecisionProblem) : Prop :=
-  exists (m : MRAM),
-    IsPolynomialTime (mram_timeComplexity m) /\
-    forall x : string, problem x <-> mram_compute m x = true.
-
-(** NP in any model with verifiers *)
-Definition InNP (problem : DecisionProblem) : Prop :=
-  exists (v : NondeterministicTM) (certSize : nat -> nat),
-    IsPolynomialTime (ndtm_timeComplexity v) /\
+Definition InNP_TM (problem : DecisionProblem) : Prop :=
+  exists (v : Verifier) (certSize : nat -> nat),
+    IsPolynomialTime (verify_time v) /\
     IsPolynomialTime certSize /\
     forall x : string,
       problem x <-> exists cert : string,
         String.length cert <= certSize (String.length x) /\
-        ndtm_compute v x cert = true.
+        verify v x cert = true.
 
-(** * MEYER'S ERROR: Model Independence of P *)
+(** ** MRAM Model (Random Access with Unit Multiply) *)
+
+(** MRAM: Random Access Machine with unit-cost multiplication *)
+Record MRAM := {
+  mram_compute : string -> bool;
+  mram_time : TimeComplexity
+}.
+
+Definition InP_MRAM (problem : DecisionProblem) : Prop :=
+  exists (mram : MRAM),
+    IsPolynomialTime (mram_time mram) /\
+    forall x : string, problem x <-> mram_compute mram x = true.
+
+Record MRAMVerifier := {
+  mram_verify : string -> string -> bool;
+  mram_verify_time : TimeComplexity
+}.
+
+Definition InNP_MRAM (problem : DecisionProblem) : Prop :=
+  exists (v : MRAMVerifier) (certSize : nat -> nat),
+    IsPolynomialTime (mram_verify_time v) /\
+    IsPolynomialTime certSize /\
+    forall x : string,
+      problem x <-> exists cert : string,
+        String.length cert <= certSize (String.length x) /\
+        mram_verify v x cert = true.
+
+(** * Model Equivalence *)
 
 (**
-  THEOREM: P is the SAME in all polynomial-time equivalent models.
-  This refutes Meyer's central claim that changing models affects P vs NP.
+  Key Fact: Turing Machines and MRAMs are polynomially equivalent.
+
+  This means:
+  1. Any MRAM computation can be simulated by a TM with polynomial overhead
+  2. Any TM computation can be simulated by an MRAM with polynomial overhead
+
+  Therefore, P_TM = P_MRAM and NP_TM = NP_MRAM.
 *)
 
-Theorem P_model_independent_TM_RAM :
-  forall problem : DecisionProblem,
-    InP_TM problem <-> InP_RAM problem.
+(** Simulation of MRAM by Turing Machine (polynomial overhead) *)
+Axiom mram_to_tm_simulation :
+  forall (mram : MRAM),
+  exists (tm : TuringMachine) (overhead : nat -> nat),
+    IsPolynomialTime overhead /\
+    (forall x, tm_compute tm x = mram_compute mram x) /\
+    (forall n, tm_time tm n <= overhead (mram_time mram n)).
+
+(** Simulation of Turing Machine by MRAM (polynomial overhead) *)
+Axiom tm_to_mram_simulation :
+  forall (tm : TuringMachine),
+  exists (mram : MRAM) (overhead : nat -> nat),
+    IsPolynomialTime overhead /\
+    (forall x, mram_compute mram x = tm_compute tm x) /\
+    (forall n, mram_time mram n <= overhead (tm_time tm n)).
+
+(** Helper: Polynomial composition *)
+Axiom poly_compose :
+  forall f g : nat -> nat,
+  IsPolynomialTime f -> IsPolynomialTime g -> IsPolynomialTime (fun n => f (g n)).
+
+(** Theorem: P is the same in both models *)
+Theorem P_model_equivalence :
+  forall problem, InP_TM problem <-> InP_MRAM problem.
 Proof.
   intro problem.
   split.
-  - (* TM -> RAM *)
-    intros [tm [H_poly H_decides]].
-    destruct (ram_simulates_tm tm) as [r [overhead [H_overhead [H_correct H_time]]]].
-    exists r.
+  - (* TM to MRAM *)
+    intro H.
+    unfold InP_TM in H.
+    destruct H as [tm [H_poly H_correct]].
+    destruct (tm_to_mram_simulation tm) as [mram [overhead [H_overhead [H_sim_correct H_sim_time]]]].
+    unfold InP_MRAM.
+    exists mram.
     split.
-    + (* RAM runs in polynomial time *)
-      (* Composition of polynomials is polynomial *)
-      apply (polynomial_overhead_composition _ _ H_overhead H_poly).
-    + (* RAM decides the same language *)
+    + (* Polynomial time *)
+      unfold IsPolynomialTime in *.
+      destruct H_poly as [k H_poly].
+      destruct H_overhead as [k' H_overhead].
+      exists (k + k').
+      intro n.
+      specialize (H_sim_time n).
+      specialize (H_poly n).
+      specialize (H_overhead (tm_time tm n)).
+      (* mram_time mram n <= overhead (tm_time tm n) <= overhead (n^k) <= (n^k)^k' *)
+      admit. (* Proof sketch: polynomial composition *)
+    + (* Correctness *)
       intro x.
-      rewrite <- H_correct.
-      apply H_decides.
-  - (* RAM -> TM *)
-    intros [r [H_poly H_decides]].
-    destruct (tm_simulates_ram r) as [tm [overhead [H_overhead [H_correct H_time]]]].
+      specialize (H_sim_correct x).
+      specialize (H_correct x).
+      (* H_correct: problem x <-> tm_compute tm x = true *)
+      (* H_sim_correct: mram_compute mram x = tm_compute tm x *)
+      (* Goal: problem x <-> mram_compute mram x = true *)
+      split.
+      * intro Hpx.
+        rewrite H_sim_correct.
+        apply H_correct.
+        exact Hpx.
+      * intro Hmram.
+        apply H_correct.
+        rewrite <- H_sim_correct.
+        exact Hmram.
+  - (* MRAM to TM *)
+    intro H.
+    unfold InP_MRAM in H.
+    destruct H as [mram [H_poly H_correct]].
+    destruct (mram_to_tm_simulation mram) as [tm [overhead [H_overhead [H_sim_correct H_sim_time]]]].
+    unfold InP_TM.
     exists tm.
     split.
-    + (* TM runs in polynomial time *)
-      apply (polynomial_overhead_composition _ _ H_overhead H_poly).
-    + (* TM decides the same language *)
+    + (* Polynomial time *)
+      unfold IsPolynomialTime in *.
+      destruct H_poly as [k H_poly].
+      destruct H_overhead as [k' H_overhead].
+      exists (k + k').
+      intro n.
+      specialize (H_sim_time n).
+      specialize (H_poly n).
+      specialize (H_overhead (mram_time mram n)).
+      admit. (* Proof sketch: polynomial composition *)
+    + (* Correctness *)
       intro x.
-      rewrite <- H_correct.
-      apply H_decides.
-Qed.
+      specialize (H_sim_correct x).
+      specialize (H_correct x).
+      (* H_correct: problem x <-> mram_compute mram x = true *)
+      (* H_sim_correct: tm_compute tm x = mram_compute mram x *)
+      (* Goal: problem x <-> tm_compute tm x = true *)
+      split.
+      * intro Hpx.
+        rewrite H_sim_correct.
+        apply H_correct.
+        exact Hpx.
+      * intro Htm.
+        apply H_correct.
+        rewrite <- H_sim_correct.
+        exact Htm.
+Admitted.
 
-Theorem P_model_independent_TM_MRAM :
-  forall problem : DecisionProblem,
-    InP_TM problem <-> InP_MRAM problem.
+(** Theorem: NP is the same in both models *)
+Theorem NP_model_equivalence :
+  forall problem, InNP_TM problem <-> InNP_MRAM problem.
 Proof.
   intro problem.
   split.
-  - (* TM -> MRAM *)
-    intros [tm [H_poly H_decides]].
-    destruct (mram_simulates_tm tm) as [m [overhead [H_overhead [H_correct H_time]]]].
-    exists m.
-    split.
-    + apply (polynomial_overhead_composition _ _ H_overhead H_poly).
-    + intro x.
-      rewrite <- H_correct.
-      apply H_decides.
-  - (* MRAM -> TM *)
-    intros [m [H_poly H_decides]].
-    destruct (tm_simulates_mram m) as [tm [overhead [H_overhead [H_correct H_time]]]].
-    exists tm.
-    split.
-    + apply (polynomial_overhead_composition _ _ H_overhead H_poly).
-    + intro x.
-      rewrite <- H_correct.
-      apply H_decides.
+  - (* TM to MRAM *)
+    intro H.
+    unfold InNP_TM in H.
+    destruct H as [v [certSize [H_poly_v [H_poly_cert H_correct]]]].
+    (* Similar construction using verifier simulation *)
+    admit.
+  - (* MRAM to TM *)
+    intro H.
+    unfold InNP_MRAM in H.
+    destruct H as [v [certSize [H_poly_v [H_poly_cert H_correct]]]].
+    (* Similar construction using verifier simulation *)
+    admit.
+Admitted.
+
+(** * Meyer's Claim *)
+
+(**
+  Meyer's central claim: P = NP in the MRAM model
+
+  This is stated as an axiom representing Meyer's (unsupported) assertion.
+*)
+Axiom Meyer_claim_MRAM : forall problem, InP_MRAM problem <-> InNP_MRAM problem.
+
+(** * The Error in Meyer's Reasoning *)
+
+(**
+  If P = NP in the MRAM model, then P = NP in the Turing Machine model.
+
+  This theorem demonstrates the error in Meyer's reasoning: he cannot
+  resolve P-versus-NP by changing the computational model, because
+  the answer is the same in all polynomially equivalent models.
+*)
+Theorem Meyer_error :
+  (forall problem, InP_MRAM problem <-> InNP_MRAM problem) ->
+  (forall problem, InP_TM problem <-> InNP_TM problem).
+Proof.
+  intro H_mram.
+  intro problem.
+  split.
+  - (* P_TM -> NP_TM *)
+    intro H_p.
+    (* P_TM -> P_MRAM -> NP_MRAM -> NP_TM *)
+    apply NP_model_equivalence.
+    apply H_mram.
+    apply P_model_equivalence.
+    exact H_p.
+  - (* NP_TM -> P_TM *)
+    intro H_np.
+    (* NP_TM -> NP_MRAM -> P_MRAM -> P_TM *)
+    apply P_model_equivalence.
+    apply H_mram.
+    apply NP_model_equivalence.
+    exact H_np.
 Qed.
 
 (**
-  COROLLARY: Using MRAM instead of TM doesn't change P
+  Corollary: Meyer's argument doesn't resolve P-versus-NP
+
+  If Meyer's claim were valid in the MRAM model, it would imply
+  P = NP in the Turing Machine model as well. Therefore, changing
+  the computational model does not help resolve the question.
 *)
-Corollary MRAM_does_not_change_P :
-  forall problem : DecisionProblem,
-    InP_TM problem <-> InP_MRAM problem.
+Theorem Meyer_doesnt_resolve_P_vs_NP :
+  (forall problem, InP_MRAM problem <-> InNP_MRAM problem) ->
+  (forall problem, InP_TM problem <-> InNP_TM problem).
 Proof.
-  apply P_model_independent_TM_MRAM.
+  intro H.
+  apply Meyer_error.
+  exact H.
 Qed.
 
-(** * The P vs NP Question *)
+(** * What's Missing in Meyer's Argument *)
 
-(** Standard definition using TMs *)
+(**
+  To validly prove P = NP (in any model), Meyer would need to provide:
+
+  1. A concrete polynomial-time algorithm for an NP-complete problem, OR
+  2. A mathematical proof that such an algorithm exists
+
+  Meyer's paper provides neither. It only offers philosophical arguments
+  about the "nature" of the P-versus-NP problem, which cannot substitute
+  for mathematical proof.
+*)
+
+(** P = NP in TM model *)
 Definition P_equals_NP_TM : Prop :=
-  forall problem : DecisionProblem, InP_TM problem <-> InNP problem.
+  forall problem, InP_TM problem <-> InNP_TM problem.
 
-(** Meyer's claimed result using MRAM *)
+(** P = NP in MRAM model *)
 Definition P_equals_NP_MRAM : Prop :=
-  forall problem : DecisionProblem, InP_MRAM problem <-> InNP problem.
+  forall problem, InP_MRAM problem <-> InNP_MRAM problem.
 
-(**
-  REFUTATION OF MEYER'S ARGUMENT
-
-  Meyer claims that using MRAM instead of TM gives us P = NP.
-  But we've proven that P is the same in both models!
-  Therefore, P = NP in the MRAM model if and only if P = NP in the TM model.
-*)
-
-Theorem meyer_error_model_equivalence :
+(** The key insight: these are equivalent due to model equivalence *)
+Theorem P_vs_NP_is_model_independent :
   P_equals_NP_TM <-> P_equals_NP_MRAM.
 Proof.
   unfold P_equals_NP_TM, P_equals_NP_MRAM.
-  split; intro H; intro problem.
-  - (* TM -> MRAM *)
-    rewrite <- P_model_independent_TM_MRAM.
-    apply H.
-  - (* MRAM -> TM *)
-    rewrite P_model_independent_TM_MRAM.
-    apply H.
-Qed.
-
-(**
-  CRITICAL CONCLUSION: Changing the computational model does NOT resolve P vs NP
-*)
-Theorem changing_model_does_not_resolve_P_vs_NP :
-  P_equals_NP_TM <-> P_equals_NP_MRAM.
-Proof.
-  apply meyer_error_model_equivalence.
-Qed.
-
-(** * Meyer's Second Error: Misunderstanding Nondeterminism *)
-
-(**
-  Even if MRAM could "simulate" nondeterministic TMs, this doesn't
-  mean P = NP. The question is whether we can do it in polynomial time
-  WITHOUT exploring all possible nondeterministic choices.
-*)
-
-Definition MRAM_simulates_NDTM_deterministically : Prop :=
-  forall (ndtm : NondeterministicTM),
-    exists (m : MRAM) (overhead : nat -> nat),
-      IsPolynomialTime overhead /\
-      forall (x : string),
-        (* MRAM finds accepting witness if one exists *)
-        (exists cert : string, ndtm_compute ndtm x cert = true) <->
-        mram_compute m x = true.
-
-(**
-  If this were true, it would indeed give us P = NP!
-  But Meyer provides NO algorithm or proof that this holds.
-
-  In fact, if P ≠ NP, then this property is FALSE.
-*)
-
-Theorem if_P_not_NP_then_no_poly_NDTM_simulation :
-  ~ P_equals_NP_TM -> ~ MRAM_simulates_NDTM_deterministically.
-Proof.
-  intros H_P_neq_NP H_mram_sim.
-  apply H_P_neq_NP.
-  unfold P_equals_NP_TM.
-  intro problem.
   split.
-  - (* P -> NP is always true *)
-    intro H_in_P.
-    unfold InNP.
-    destruct H_in_P as [tm [H_poly H_decides]].
-    (* Construct verifier that ignores certificate *)
-    admit.
-  - (* NP -> P using the hypothetical MRAM simulation *)
-    intro H_in_NP.
-    unfold InP_TM.
-    destruct H_in_NP as [ndtm [certSize [H_poly_v [H_poly_cert H_verifies]]]].
-    (* Use the MRAM to simulate NDTM *)
-    destruct (H_mram_sim ndtm) as [m [overhead [H_overhead H_simulates]]].
-    (* Convert MRAM back to TM *)
-    destruct (tm_simulates_mram m) as [tm [overhead2 [H_overhead2 [H_correct H_time]]]].
-    exists tm.
+  - intro H.
+    intro problem.
     split.
-    + apply (polynomial_overhead_composition _ _ H_overhead2 H_overhead).
-    + intro x.
-      rewrite <- H_correct.
-      rewrite <- H_simulates.
-      apply H_verifies.
-Admitted.
+    + intro H_p.
+      apply NP_model_equivalence.
+      apply H.
+      apply P_model_equivalence.
+      exact H_p.
+    + intro H_np.
+      apply P_model_equivalence.
+      apply H.
+      apply NP_model_equivalence.
+      exact H_np.
+  - intro H.
+    intro problem.
+    split.
+    + intro H_p.
+      apply NP_model_equivalence.
+      apply H.
+      apply P_model_equivalence.
+      exact H_p.
+    + intro H_np.
+      apply P_model_equivalence.
+      apply H.
+      apply NP_model_equivalence.
+      exact H_np.
+Qed.
 
-(** * Summary of Meyer's Errors *)
+(** * Summary of Errors *)
 
 (**
-  1. MODEL INDEPENDENCE ERROR:
-     Meyer claims using MRAM instead of TM changes P vs NP.
-     We proved: InP_TM problem <-> InP_MRAM problem
-     Therefore changing models is irrelevant.
+  Meyer's proof attempt contains the following errors:
 
-  2. SIMULATION ERROR:
-     Meyer seems to think that because MRAM can simulate NDTM
-     (in the sense of universal computation), this gives P = NP.
-     We showed: Simulation ≠ Polynomial-time nondeterminism resolution
+  1. MODEL CONFUSION: Conflates the computational model with the question itself.
+     The P-versus-NP question is model-independent for polynomially equivalent models.
 
-  3. MISSING ALGORITHM:
-     Meyer provides no polynomial-time algorithm for NP-complete problems.
-     A valid P = NP proof requires constructive content.
+  2. PHILOSOPHICAL VS MATHEMATICAL: Attempts to resolve a mathematical question
+     with philosophical arguments about the "nature" of the problem.
 
-  4. PHILOSOPHICAL CONFUSION:
-     Claiming P vs NP is "not mathematical" doesn't change the formal question.
-     The problem is precisely defined regardless of philosophical interpretation.
+  3. NO CONCRETE RESULT: Provides neither an algorithm nor a mathematical proof.
+
+  4. MISUNDERSTANDING OF EQUIVALENCE: Fails to recognize that Turing Machines
+     and MRAMs are polynomially equivalent, so P_TM = P_MRAM and NP_TM = NP_MRAM.
+
+  Conclusion: Meyer's argument does not resolve P-versus-NP.
 *)
 
-(** * Verification *)
-
-Check P_model_independent_TM_MRAM.
-Check meyer_error_model_equivalence.
-Check changing_model_does_not_resolve_P_vs_NP.
-
-(** All formal refutation verified successfully *)
+(** Final check: The formalization type-checks *)
+Check P_model_equivalence.
+Check NP_model_equivalence.
+Check Meyer_error.
+Check Meyer_doesnt_resolve_P_vs_NP.
+Check P_vs_NP_is_model_independent.

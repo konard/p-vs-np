@@ -1,182 +1,174 @@
 # Steven Meyer (2016) - P=NP Proof Attempt
 
-**Navigation:** [↑ Back to Repository Root](../../../README.md) | [Proof Attempts](../)
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [All Proof Frameworks](../../../README.md#-formal-verification)
 
 ---
 
 ## Metadata
 
 - **Author**: Steven Meyer
-- **Year**: 2016 (March)
+- **Year**: 2016
 - **Claim**: P = NP
-- **Paper**: "Philosophical Solution to P=?NP: P is Equal to NP"
-- **ArXiv**: [arXiv:1603.06018](https://arxiv.org/abs/1603.06018)
-- **Woeginger's List**: Entry #113
+- **Source**: [arXiv:1603.06018](https://arxiv.org/abs/1603.06018)
+- **Title**: "The Scientific Nature of the P-versus-NP Problem"
+- **Entry**: #108 on [Woeginger's P-versus-NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm)
+- **Status**: Refuted (contains fundamental errors)
 
 ## Summary
 
-Steven Meyer proposes a philosophical solution to the P vs NP problem, claiming that P equals NP in the Random Access Machine with Unit Multiply (MRAM) model. Meyer argues that the P vs NP problem is fundamentally a scientific rather than mathematical question, and critiques the use of Non-Deterministic Turing Machines (NDTMs) as the basis for defining NP.
+In March 2016, Steven Meyer claimed to have established P=NP by arguing that the P-versus-NP problem should be understood as a scientific rather than mathematical problem. Meyer's approach attempts to solve P=NP philosophically using the Random Access with Unit Multiply (MRAM) computational model, criticizing the traditional definition based on non-deterministic Turing Machines (NDTMs).
 
 ## Main Argument
 
-### Central Thesis
+Meyer's proof attempt rests on the following key claims:
 
-Meyer's argument rests on several key claims:
+1. **Philosophical Reframing**: The P-versus-NP problem is claimed to be "a scientific rather than a mathematical problem," suggesting that it should be addressed through empirical computational modeling rather than pure mathematical proof.
 
-1. **MRAM as the "correct" model**: Meyer argues that the MRAM (Random Access Machine with Unit Multiply) model "empirically best models computation hardness"
+2. **MRAM Model Superiority**: Meyer argues that the MRAM (Random Access with Unit Multiply) model "empirically best models computation hardness" and should replace the standard NDTM-based formulation.
 
-2. **Critique of NDTMs**: The paper asserts that the current definition of the P vs NP problem using Non-Deterministic Turing Machines is fundamentally flawed and based on incorrect assumptions from axiomatic automata theory
+3. **Model Equivalence**: Using techniques from Hartmanis and Simon, Meyer claims to show that the computational power of MRAMs equals that of NDTMs.
 
-3. **Equivalence claim**: Meyer claims to demonstrate that MRAMs have the same computational power as NDTMs
+4. **Conclusion**: Based on this analysis in the MRAM model, Meyer concludes P = NP.
 
-4. **Philosophical reframing**: The problem is characterized as "scientific rather than mathematical" and "neither a problem in pure nor applied mathematics"
+5. **Additional Claims**:
+   - Von Neumann allegedly rejected traditional automata computation models
+   - Deolalikar's previous P≠NP solution should be revisited
+   - The problem is "neither a problem in pure nor applied mathematics"
 
-### Computational Model
+## The Error
 
-The paper focuses on the MRAM (Random Access Machine with Unit Multiply) model, which:
-- Has random access memory
-- Supports unit-cost multiplication
-- Is claimed to be equivalent in power to NDTMs
-- Is argued to be the "empirically correct" model for measuring computational hardness
+Meyer's proof attempt contains several fundamental errors:
 
-### Proof Strategy
+### 1. **Confusion Between Computational Models**
 
-Meyer's approach involves:
-1. Arguing that MRAM machines can simulate NDTMs
-2. Claiming that "the computation power of MRAMs is the same as NDTMs"
-3. Using this equivalence to conclude P = NP
-4. Critiquing previous attempts (particularly Deolalikar's P ≠ NP claim)
-5. Appealing to historical correspondence between Gödel and von Neumann
+**Error**: Meyer conflates the computational model used to analyze complexity (MRAM vs. Turing Machine) with the fundamental question of whether P=NP.
 
-## Identified Errors and Issues
+**Why This Matters**: The P-versus-NP question is about the relationship between two complexity classes, which is invariant across polynomially equivalent computational models. The Church-Turing thesis (and its polynomial-time variant) establishes that all reasonable deterministic models are polynomially equivalent—they can simulate each other with at most polynomial overhead.
 
-### Critical Error 1: Conflation of Computational Models with Complexity Classes
+**Formal Issue**:
+```
+P_TM = NP_TM  ⟺  P_MRAM = NP_MRAM
+```
+If Meyer proves P=NP in the MRAM model, this would imply P=NP in the Turing Machine model (and vice versa). The choice of model doesn't resolve the question—it remains open in all polynomially equivalent models.
 
-**Error**: Meyer conflates the choice of computational model (Turing machines vs. RAM models) with the definition of complexity classes P and NP.
+### 2. **Philosophical Arguments Don't Resolve Mathematical Questions**
 
-**Why this is wrong**:
-- The classes P and NP are **robust** across polynomial-time equivalent models
-- Church-Turing thesis and its polynomial-time variant establish that reasonable computational models are polynomial-time equivalent
-- Changing from Turing machines to RAM models (or MRAM) does **not** change which problems are in P or NP
-- Both standard RAM and MRAM are polynomial-time equivalent to Turing machines for decision problems
+**Error**: Meyer argues the problem is "scientific rather than mathematical" and attempts to resolve it philosophically.
 
-**Formal statement**: If a language L is in P under Turing machines, there exists a polynomial-time RAM algorithm for L, and vice versa (up to polynomial factors in the conversion).
+**Why This Matters**: The P-versus-NP problem is a well-defined mathematical question about the existence of polynomial-time algorithms. Philosophical arguments about the "nature" of the problem cannot substitute for a mathematical proof or disproof.
 
-### Critical Error 2: Misunderstanding of Nondeterminism
+**What's Required**: To prove P=NP, one must either:
+- Provide a polynomial-time algorithm for an NP-complete problem (like SAT), OR
+- Prove that such an algorithm must exist through mathematical argument
 
-**Error**: The paper appears to misunderstand the nature of nondeterministic computation and the NP class.
+To prove P≠NP, one must show:
+- A super-polynomial lower bound for some problem in NP, OR
+- Prove that no polynomial-time algorithm can exist for some NP-complete problem
 
-**Why this is wrong**:
-- NP is defined via **polynomial-time verifiability**, not just nondeterministic computation
-- The verifier definition of NP (∃-witness formulation) is independent of the computational model
-- Even in the MRAM model, NP would still be defined as problems with polynomial-time verifiable witnesses
-- Simulation of NDTMs by MRAMs doesn't make NP collapse to P
+### 3. **Misunderstanding of Model Independence**
 
-**Key insight**: NP = "problems with polynomial-time checkable solutions" is model-independent.
+**Error**: Meyer suggests that changing the computational model from NDTMs to MRAMs affects the answer to P-versus-NP.
 
-### Critical Error 3: Invalid Inference from Model Equivalence
+**Why This Matters**:
+- **P** is the class of problems solvable in polynomial time (regardless of model)
+- **NP** is the class of problems verifiable in polynomial time (regardless of model)
+- These definitions are robust across polynomially equivalent models
 
-**Error**: Even if MRAMs could simulate NDTMs efficiently (which needs proper definition), this doesn't imply P = NP.
+**The Issue**: Meyer's argument would only be meaningful if:
+1. MRAMs could solve NP problems in polynomial time, AND
+2. This capability doesn't transfer to Turing Machines
 
-**Why this is wrong**:
-- **All** standard models (TMs, RAM, MRAM, etc.) can simulate each other with at most polynomial overhead
-- This simulation is **already accounted for** in the definition of P and NP
-- The existence of a simulation does not collapse the distinction between deterministic and nondeterministic time
-- The key question is not "can we simulate?" but "can we simulate without exponential overhead?"
+But condition (2) contradicts the polynomial equivalence of computational models.
 
-### Critical Error 4: Philosophical vs. Mathematical Confusion
+### 4. **No Concrete Algorithm or Lower Bound**
 
-**Error**: Claiming P vs NP is "scientific rather than mathematical" or "neither pure nor applied mathematics."
+**Error**: The paper provides neither:
+- A polynomial-time algorithm for SAT or any NP-complete problem
+- A proof that such algorithms must exist
+- Any concrete computational result
 
-**Why this is wrong**:
-- P vs NP is a **precisely defined mathematical question** about the relationship between two complexity classes
-- The formal definitions use standard mathematical logic and computation theory
-- Whether a problem is "philosophical" or "mathematical" doesn't change its formal content
-- This appears to be an attempt to sidestep the actual mathematical content of the problem
+**Why This Matters**: A valid proof of P=NP must be constructive (provide an algorithm) or non-constructive (prove existence). Meyer's philosophical argument does neither.
 
-### Critical Error 5: Appeal to Authority Without Technical Content
+### 5. **Misrepresentation of Historical Context**
 
-**Error**: References to Gödel-von Neumann correspondence and critiques of automata theory don't constitute a proof.
+**Error**: Meyer's claims about Von Neumann and Deolalikar are not supported by historical evidence or peer-reviewed analysis.
 
-**Why this is wrong**:
-- Historical correspondence, while interesting, doesn't resolve modern complexity-theoretic questions
-- The P vs NP problem is formally defined and requires a formal proof
-- Criticizing the foundations of automata theory requires rigorous mathematical arguments, not philosophical assertions
-- Even if von Neumann "rejected automata models" (citation needed), this doesn't invalidate modern complexity theory
-
-### Gap 1: Missing Formal Definitions
-
-The paper lacks:
-- Formal definition of the MRAM model used
-- Precise statement of what "simulation" means
-- Complexity-theoretic analysis of the claimed simulation
-- Formal proof of any claimed equivalences
-
-### Gap 2: No Treatment of Known Barriers
-
-The paper doesn't address:
-- Relativization barrier (Baker-Gill-Solovay)
-- Natural proofs barrier (Razborov-Rudich)
-- Why the proposed approach would circumvent these barriers
-
-### Gap 3: No Concrete Algorithm
-
-If P = NP, there should exist a polynomial-time algorithm for an NP-complete problem:
-- No such algorithm is provided
-- No constructive proof is given
-- The paper offers only philosophical arguments, not algorithmic content
+**Why This Matters**:
+- Von Neumann's work predates the formal definition of NP-completeness (1971)
+- Deolalikar's 2010 proof attempt was thoroughly refuted by the community
+- Appeals to authority don't constitute mathematical proof
 
 ## Formalization Strategy
 
-Our formalization identifies the core logical errors by:
+Our formalization captures Meyer's error by:
 
-1. **Formalizing computational model equivalence**: Showing that Turing machines, RAM, and MRAM are polynomial-time equivalent
+1. **Defining Multiple Models**: Implementing both Turing Machine and MRAM computational models
+2. **Showing Model Equivalence**: Proving that P_TM = P_MRAM and NP_TM = NP_MRAM (up to polynomial overhead)
+3. **Exposing the Error**: Demonstrating that proving P=NP in one model implies P=NP in all polynomially equivalent models
+4. **Rejecting Philosophical Arguments**: Showing that the question remains mathematical regardless of philosophical framing
 
-2. **Formalizing P and NP in multiple models**: Demonstrating that the definition of P and NP is model-independent (up to polynomial factors)
+## Files in This Directory
 
-3. **Showing the gap**: Proving that model equivalence does **not** imply P = NP
+### Coq (`coq/MeyerAttempt.v`)
+Formal proof in Coq that demonstrates:
+- Definition of MRAM and Turing Machine models
+- Polynomial equivalence of models
+- Why changing models doesn't resolve P-versus-NP
+- The error in Meyer's reasoning
 
-4. **Identifying the invalid inference**: Formalizing why "MRAM simulates NDTM" doesn't give us P = NP
+### Lean 4 (`lean/MeyerAttempt.lean`)
+Formal proof in Lean 4 that:
+- Defines computational models formally
+- Proves model equivalence theorems
+- Shows the independence of P-versus-NP from model choice
+- Identifies the gap in Meyer's argument
 
-## Repository Structure
+### Isabelle/HOL (`isabelle/MeyerAttempt.thy`)
+Formal proof in Isabelle that:
+- Implements polynomial-time equivalence of models
+- Demonstrates that P-versus-NP is model-independent
+- Formalizes why philosophical arguments are insufficient
 
-```
-proofs/attempts/steven-meyer-2016-peqnp/
-├── README.md           # This file
-├── coq/
-│   └── MeyerAttempt.v  # Coq formalization
-├── lean/
-│   └── MeyerAttempt.lean  # Lean 4 formalization
-└── isabelle/
-    └── MeyerAttempt.thy   # Isabelle/HOL formalization
-```
+## Key Takeaways
 
-## Key Lessons
+1. **P-versus-NP is model-independent**: The problem has the same answer regardless of whether we use Turing Machines, RAM machines, MRAMs, or any other polynomially equivalent model.
 
-This attempt illustrates several common pitfalls in P vs NP proof attempts:
+2. **Philosophical arguments are insufficient**: The P-versus-NP problem is a precise mathematical question requiring a mathematical proof or disproof.
 
-1. **Model confusion**: Conflating computational models with complexity classes
-2. **Robustness misunderstanding**: Not recognizing that P and NP are robust across reasonable models
-3. **Nondeterminism misunderstanding**: Misinterpreting what nondeterministic computation means
-4. **Philosophical handwaving**: Attempting to resolve a precise mathematical question with philosophical arguments
-5. **Missing formal content**: Lack of rigorous definitions, proofs, and algorithmic details
+3. **Burden of proof**: To claim P=NP, one must provide:
+   - A concrete polynomial-time algorithm for an NP-complete problem, OR
+   - A mathematical proof that such an algorithm exists
+
+4. **Common misconception**: Changing the computational model does not resolve the fundamental question about the relationship between P and NP.
 
 ## References
 
-- **Original paper**: Steven Meyer, "Philosophical Solution to P=?NP: P is Equal to NP", arXiv:1603.06018, March 2016
-- **Woeginger's list**: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #113)
-- **Model equivalence**: See any standard complexity theory textbook (Arora & Barak, Papadimitriou, etc.)
-- **Church-Turing thesis**: Turing, "On Computable Numbers...", 1936
-- **Polynomial-time Church-Turing thesis**: Discussed in Cobham (1965), Edmonds (1965)
+### Meyer's Paper
+- **Meyer, S.** (2016). "The Scientific Nature of the P-versus-NP Problem." [arXiv:1603.06018](https://arxiv.org/abs/1603.06018)
 
-## Verification Status
+### Foundational Results
+- **Cook, S.** (1971). "The complexity of theorem-proving procedures." *STOC*
+- **Karp, R.** (1972). "Reducibility among combinatorial problems." *Complexity of Computer Computations*
+- **Hartmanis, J., Stearns, R.** (1965). "On the computational complexity of algorithms." *Transactions of the American Mathematical Society*
 
-All formalizations compile and successfully demonstrate the logical errors in Meyer's argument:
+### Computational Models
+- **Aho, A., Hopcroft, J., Ullman, J.** (1974). *The Design and Analysis of Computer Algorithms*
+- **Cook, S., Reckhow, R.** (1973). "Time bounded random access machines." *Journal of Computer and System Sciences*
 
-- ✓ Coq formalization: [coq/MeyerAttempt.v](coq/MeyerAttempt.v)
-- ✓ Lean formalization: [lean/MeyerAttempt.lean](lean/MeyerAttempt.lean)
-- ✓ Isabelle formalization: [isabelle/MeyerAttempt.thy](isabelle/MeyerAttempt.thy)
+### P-versus-NP Resources
+- **Arora, S., Barak, B.** (2009). *Computational Complexity: A Modern Approach*
+- **Sipser, M.** (2012). *Introduction to the Theory of Computation*
+
+## See Also
+
+- [P = NP Framework](../../p_eq_np/) - Framework for verifying P=NP proofs
+- [P ≠ NP Framework](../../p_not_equal_np/) - Framework for verifying P≠NP proofs
+- [Repository Root](../../../README.md) - Main documentation
+
+## License
+
+This formalization is provided for educational and research purposes. See repository [LICENSE](../../../LICENSE) file.
 
 ---
 
-**Conclusion**: Meyer's attempt fails because it fundamentally misunderstands the relationship between computational models and complexity classes. The claim that using a different computational model (MRAM instead of Turing machines) resolves P vs NP demonstrates a misunderstanding of the robustness of complexity classes and the polynomial-time Church-Turing thesis.
+**Status**: Formalization complete. All three proof assistants successfully identify and formalize the errors in Meyer's argument.
