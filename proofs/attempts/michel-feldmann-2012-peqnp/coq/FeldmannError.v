@@ -18,6 +18,7 @@ Require Import Coq.Arith.Arith.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Logic.FunctionalExtensionality.
 Require Import Coq.Logic.Classical.
+Require Import Lia.
 Import ListNotations.
 
 (** * Basic Definitions *)
@@ -187,7 +188,7 @@ Proof.
   intros n Hn.
   unfold working_unknowns_bound, num_partial_reqs.
   (* The actual bound grows combinatorially *)
-  omega.
+  lia.
 Admitted. (* Proof would require bounding combinatorial sums *)
 
 (** ** Problem 2: Verifying Completeness Requires Checking All Assignments
