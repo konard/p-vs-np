@@ -24,12 +24,12 @@ Section KimAttempt.
 
 (** * The P vs NP Problem *)
 
-(** We model P and NP as propositions about computational complexity *)
-Axiom P : Type -> Type.  (* Class P: problems solvable in polynomial time *)
-Axiom NP : Type -> Type. (* Class NP: problems verifiable in polynomial time *)
+(** We model P and NP as predicates on problems (represented as propositions) *)
+Axiom P : Prop -> Prop.  (* Class P: problems solvable in polynomial time *)
+Axiom NP : Prop -> Prop. (* Class NP: problems verifiable in polynomial time *)
 
 (** The P=NP question asks whether these classes are equal *)
-Definition P_equals_NP : Prop := forall X, P X <-> NP X.
+Definition P_equals_NP : Prop := forall X : Prop, P X <-> NP X.
 Definition P_not_equals_NP : Prop := ~ P_equals_NP.
 
 (** * Kim's Attempted Proof Structure *)
