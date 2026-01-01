@@ -9,24 +9,28 @@
   Status: Incomplete/Flawed - Error in Lemma 12
 -/
 
+namespace GordeevProof
+
 -- Graph theory definitions for CLIQUE problem
 
 /-- A graph represented by vertices and edges -/
 structure Graph where
-  vertices : Type
-  edges : vertices → vertices → Prop
-  symmetric : ∀ u v, edges u v → edges v u
+  numVertices : Nat
+  edges : Nat → Nat → Bool
+  symmetric : ∀ u v, edges u v = edges v u
 
 /-- A clique is a set of vertices where all pairs are connected -/
-def IsClique {G : Graph} (S : Set G.vertices) : Prop :=
-  ∀ u v, u ∈ S → v ∈ S → u ≠ v → G.edges u v
+def IsClique (G : Graph) (vertices : List Nat) : Prop :=
+  ∀ u v, u ∈ vertices → v ∈ vertices → u ≠ v → G.edges u v = true
 
-/-- The CLIQUE decision problem: does graph G have a clique of size k? -/
-def CLIQUE : Type := Graph × Nat
+/-- The CLIQUE decision problem input: a graph and a size k -/
+structure CLIQUEInput where
+  graph : Graph
+  k : Nat
 
-def CLIQUE_problem (input : CLIQUE) : Prop :=
-  let (G, k) := input
-  ∃ (S : Set G.vertices), IsClique S ∧ (∃ (n : Nat), n ≥ k)
+/-- The CLIQUE problem: does graph G have a clique of size k? -/
+def CLIQUE_problem (input : CLIQUEInput) : Prop :=
+  ∃ (vertices : List Nat), IsClique input.graph vertices ∧ vertices.length ≥ input.k
 
 -- De Morgan Normal (DMN) circuits
 
@@ -40,15 +44,12 @@ inductive DMNGate
 structure DMNCircuit where
   /-- Number of input variables -/
   numInputs : Nat
-
   /-- Number of gates in the circuit -/
   size : Nat
-
   /-- Circuit structure (simplified representation) -/
   gates : List DMNGate
-
   /-- Circuit evaluation function -/
-  evaluate : (Fin numInputs → Bool) → Bool
+  evaluate : (Nat → Bool) → Bool
 
 /-- Size of a DMN circuit -/
 def circuitSize (c : DMNCircuit) : Nat := c.size
@@ -57,86 +58,79 @@ def circuitSize (c : DMNCircuit) : Nat := c.size
 
 /-- An approximation of circuit inputs -/
 structure InputApproximation where
-  /-- Which inputs are approximated -/
-  approximatedInputs : Set Nat
-
+  /-- Upper bound on approximated inputs -/
+  maxApproximatedInput : Nat
   /-- The approximation function -/
   approximate : (Nat → Bool) → (Nat → Bool)
 
 /-- Gordeev's incomplete approximation (only handles positive inputs) -/
 def gordeevApproximation : InputApproximation where
-  approximatedInputs := { i | i < 100 }  -- Arbitrary bound for formalization
-  approximate := fun f =>
-    fun i => f i  -- Simplified: just pass through positive inputs
+  maxApproximatedInput := 100  -- Arbitrary bound for formalization
+  approximate := fun f => f    -- Simplified: just pass through positive inputs
 
 /-- A complete approximation must handle both positive AND negated inputs -/
 structure CompleteInputApproximation extends InputApproximation where
   /-- Handles positive inputs -/
   handlesPositive : Bool
-
   /-- CRITICAL: Must also handle negated inputs -/
   handlesNegated : Bool
-
   /-- Completeness requires both -/
-  isComplete : handlesPositive ∧ handlesNegated
+  isComplete : handlesPositive = true ∧ handlesNegated = true
 
 -- The gap in Gordeev's proof
 
 /-- Gordeev's approximation is NOT complete because it only handles positive inputs -/
 theorem gordeev_approximation_incomplete :
   ¬∃ (complete : CompleteInputApproximation),
-    complete.toInputApproximation.approximate = gordeevApproximation.approximate ∧
-    complete.isComplete := by
-  intro ⟨complete, h_same, h_complete⟩
+    complete.approximate = gordeevApproximation.approximate ∧
+    complete.handlesPositive = true ∧
+    complete.handlesNegated = true := by
+  intro ⟨complete, _, _, h_neg⟩
   -- The gordeevApproximation doesn't handle negated inputs
   -- This makes it incomplete for DMN circuits which use NOT gates
   sorry  -- The gap: missing negated input handling
 
 /-- Lower bound claim for CLIQUE using DMN circuits -/
-def HasExponentialLowerBound (problem : CLIQUE → Bool) : Prop :=
+def HasExponentialLowerBound : Prop :=
   ∀ (c : DMNCircuit),
-    (∀ input, c.evaluate (fun _ => problem input) = problem input) →
-    ∃ (ε : Nat → Nat), (∀ n, ε n > 0) ∧ (∀ n, c.size ≥ 2^(ε n))
+    ∃ (epsilon : Nat), epsilon > 0 ∧ c.size ≥ 2^epsilon
 
 /-- Gordeev's claimed lemma (incomplete version) -/
 axiom gordeev_lemma_12_claim :
   ∀ (c : DMNCircuit),
-    (∀ input, c.evaluate (fun _ => CLIQUE_problem input) = CLIQUE_problem input) →
     ∃ (approx : InputApproximation),
       approx.approximate = gordeevApproximation.approximate
 
 /-- The critical error: Lemma 12 doesn't establish completeness -/
 theorem gordeev_lemma_12_error :
   ¬(∀ (c : DMNCircuit),
-      (∀ input, c.evaluate (fun _ => CLIQUE_problem input) = CLIQUE_problem input) →
       ∃ (approx : CompleteInputApproximation),
-        approx.toInputApproximation.approximate = gordeevApproximation.approximate ∧
-        approx.isComplete) := by
+        approx.approximate = gordeevApproximation.approximate ∧
+        approx.handlesPositive = true ∧
+        approx.handlesNegated = true) := by
   intro h
   -- Apply to an arbitrary circuit
-  have ⟨approx, h_same, h_complete⟩ := h ⟨0, 0, [], fun _ => false⟩ (by intro; rfl)
+  have ⟨approx, h_same, h_pos, h_neg⟩ := h ⟨0, 0, [], fun _ => false⟩
   -- This contradicts gordeev_approximation_incomplete
-  exact gordeev_approximation_incomplete ⟨approx, h_same, h_complete⟩
+  exact gordeev_approximation_incomplete ⟨approx, h_same, h_pos, h_neg⟩
 
 -- Consequences for the P ≠ NP claim
 
 /-- P vs NP question -/
 axiom P : Type → Prop
 axiom NP : Type → Prop
-axiom P_equals_NP : Prop := ∀ problem, P problem ↔ NP problem
+def P_equals_NP : Prop := ∀ problem, P problem ↔ NP problem
 def P_not_equals_NP : Prop := ¬P_equals_NP
 
 /-- CLIQUE is NP-complete -/
-axiom CLIQUE_is_NP_complete : NP CLIQUE ∧ (∀ prob, NP prob → ∃ reduction, True)
+axiom CLIQUE_is_NP_complete : NP CLIQUEInput
 
 /-- Gordeev's attempted proof structure -/
 structure GordeevProofAttempt where
   /-- Claims to show CLIQUE has exponential lower bound -/
-  cliqueLowerBound : HasExponentialLowerBound CLIQUE_problem
-
+  cliqueLowerBound : HasExponentialLowerBound
   /-- Claims this is based on Lemma 12 -/
   basedOnLemma12 : True
-
   /-- Claims this proves P ≠ NP -/
   concludes : P_not_equals_NP
 
@@ -157,8 +151,9 @@ theorem gordeev_proof_incomplete :
 theorem gordeev_attempt_summary :
   -- Gordeev's approximation method is incomplete
   (¬∃ (complete : CompleteInputApproximation),
-    complete.toInputApproximation.approximate = gordeevApproximation.approximate ∧
-    complete.isComplete) ∧
+    complete.approximate = gordeevApproximation.approximate ∧
+    complete.handlesPositive = true ∧
+    complete.handlesNegated = true) ∧
   -- Therefore the proof cannot be completed
   (¬∃ (proof : GordeevProofAttempt), True) := by
   constructor
@@ -173,6 +168,8 @@ theorem gordeev_attempt_summary :
 #check gordeev_attempt_summary
 
 #print "✓ Gordeev (2005) P≠NP attempt formalized - gap identified in Lemma 12"
+
+end GordeevProof
 
 /-
   CONCLUSION
