@@ -10,6 +10,7 @@
 Require Import Coq.Bool.Bool.
 Require Import Coq.Lists.List.
 Require Import Coq.Reals.Reals.
+Require Import Coq.micromega.Lra.
 Require Import Coq.Logic.Classical_Prop.
 Import ListNotations.
 
