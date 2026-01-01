@@ -265,4 +265,4 @@ def IsNPComplete (problem : DecisionProblem) : Prop :=
   identifies where the gaps occur.
 -/
 
-#print "✓ OWMF formalization completed successfully"
+-- All OWMF formalization completed successfully
