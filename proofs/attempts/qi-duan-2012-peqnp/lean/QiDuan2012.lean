@@ -118,16 +118,10 @@ theorem reduction_correctness (g : Graph) :
   constructor
   · -- Ham cycle => 0-cost TSP tour
     intro ⟨p, hp⟩
-    use p
-    constructor
-    · -- Need to prove tour is optimal
-      sorry
-    · -- Need to prove cost is 0
-      sorry
+    exact ⟨p, by sorry, by sorry⟩
   · -- 0-cost TSP tour => Ham cycle
-    intro ⟨tour, ⟨hopt, hcost⟩⟩
-    use tour
-    sorry
+    intro ⟨tour, hopt, hcost⟩
+    exact ⟨tour, by sorry⟩
   -- This part is standard and correct
 
 /- ## 5. Duan's Growth Process Algorithm -/
@@ -258,21 +252,30 @@ theorem greedy_insertion_not_optimal :
 
 /- ## 8. What Would Be Required -/
 
+/-- The optimality preservation claim as a standalone proposition -/
+def OptimalityPreservationHolds : Prop :=
+  ∀ (tsp : TSPInstance) (pt : PartialTour) (new_vertex : Vertex),
+    isOptimalTour tsp pt.tour →
+    ¬(new_vertex ∈ pt.covered) →
+    new_vertex ∈ tsp.graph.vertices →
+    let new_tour := findBestInsertion tsp pt.tour new_vertex
+    isOptimalTour tsp new_tour
+
 /-- To actually prove P = NP via this approach, we would need: -/
 theorem requirements_for_proof :
   -- 1. Prove optimality preservation (impossible for TSP)
-  (∀ tsp pt v, optimality_preservation_claim tsp pt v) →
+  OptimalityPreservationHolds →
   -- 2. Prove polynomial time complexity
-  (∀ g, ∃ k c,
-     ∀ n, g.vertices.length = n →
+  (∀ g : Graph, ∃ k : Nat, ∃ c : Nat,
+     ∀ n : Nat, g.vertices.length = n →
      -- algorithm time ≤ c * n^k
      True) →
   -- 3. Then we could conclude P = NP
   ∀ L : Prop, True := by -- Placeholder for "P = NP"
   intro _ _
-  intro L
+  intro _
   -- Even with these assumptions, full proof requires more formalization
-  sorry
+  trivial
 
 /- ## 9. Conclusion -/
 
@@ -287,7 +290,7 @@ theorem requirements_for_proof :
 -/
 
 theorem duan_proof_incomplete :
-  ¬(∀ tsp pt v, optimality_preservation_claim tsp pt v) →
+  ¬OptimalityPreservationHolds →
   -- Cannot prove the main result
   ¬(∀ g, hasHamiltonianCycle g ↔
        ∃ tour, duanAlgorithm g = some tour ∧
