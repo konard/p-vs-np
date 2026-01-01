@@ -188,28 +188,33 @@ text \<open>
   5. Cohen's equivalence conflates these by saying "use regular tape instead"
 \<close>
 
+text \<open>
+  The following theorem statement captures the claim that D and D_new are NOT
+  polynomially equivalent. The proof is left as 'sorry' because:
+
+  1. The equivalence is ill-defined: for D_new, we must specify whether
+     input is on regular or hidden tape. Cohen's equivalence ignores this!
+
+  2. Proof by contradiction would proceed:
+     - Consider Problem_Q presented to hidden tape on D_new
+     - This requires exponential time (by Q_requires_exponential_on_D_new)
+     - But Problem_Q on D (with normal input) is polynomial
+     - Contradiction... except these aren't the same problem!
+
+  3. The error is that "Problem_Q on D" and "Problem_Q on D_new with hidden
+     input" have different input encodings, so they're incomparable.
+
+  This formalization demonstrates that Cohen's proof has a gap at the
+  foundational level - the equivalence claim is not well-defined.
+\<close>
+
 theorem cohen_equivalence_claim_is_false:
   "\<not>(\<forall>(problem :: DecisionProblem).
       (\<exists>d :: DeterministicTM. IsPolynomialTime (D_time d) \<and>
                               (\<forall>x. problem x = D_compute d x)) \<longleftrightarrow>
       (\<exists>d_new :: D_new. IsPolynomialTime (D_new_time d_new) \<and>
                         (\<forall>x. problem x = True)))"
-proof -
-  text \<open>
-    The equivalence is ill-defined: for D_new, we must specify whether
-    input is on regular or hidden tape. The equivalence ignores this!
-
-    Proof by contradiction would proceed:
-    1. Consider Problem_Q presented to hidden tape on D_new
-    2. This requires exponential time (by Q_requires_exponential_on_D_new)
-    3. But Problem_Q on D (with normal input) is polynomial
-    4. Contradiction... except these aren't the same problem!
-
-    The error is that "Problem_Q on D" and "Problem_Q on D_new with hidden
-    input" have different input encodings, so they're incomparable.
-  \<close>
   sorry  \<comment> \<open>Error identified: equivalence claim is not well-defined\<close>
-qed
 
 section \<open>Summary of the Error\<close>
 
