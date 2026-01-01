@@ -93,14 +93,14 @@ Definition HasExponentialLowerBound (problem : CLIQUE_input -> bool) : Prop :=
 (* Gordeev's claimed lemma (incomplete version) *)
 Axiom gordeev_lemma_12_claim :
   forall (c : DMNCircuit),
-    (forall input, true) ->  (* Simplified condition *)
+    (forall (input : nat -> bool), True) ->  (* Simplified condition *)
     exists (approx : InputApproximation),
       approximate approx = approximate gordeevApproximation.
 
 (* The critical error: Lemma 12 doesn't establish completeness *)
 Theorem gordeev_lemma_12_error :
   ~ (forall (c : DMNCircuit),
-       (forall input, true) ->
+       (forall (input : nat -> bool), True) ->
        exists (approx : CompleteInputApproximation),
          approximate (base approx) = approximate gordeevApproximation /\
          handlesPositive approx = true /\
@@ -109,7 +109,7 @@ Proof.
   intro H.
   (* Apply to an arbitrary circuit *)
   destruct (H {| numInputs := 0; circuitSize := 0; gates := []; evaluate := fun _ => false |}) as [approx [H1 [H2 H3]]].
-  - intro; reflexivity.
+  - intro; exact I.
   (* This contradicts gordeev_approximation_incomplete *)
   - apply gordeev_approximation_incomplete.
     exists approx.
@@ -126,7 +126,7 @@ Definition P_not_equals_NP : Prop := ~ P_equals_NP.
 
 (* CLIQUE is NP-complete *)
 Axiom CLIQUE_is_NP_complete :
-  NP CLIQUE_input /\ (forall prob, NP prob -> exists reduction, True).
+  NP CLIQUE_input /\ (forall prob, NP prob -> exists (reduction : Type), True).
 
 (* Gordeev's attempted proof structure *)
 Record GordeevProofAttempt : Type := {
