@@ -1,254 +1,215 @@
 /-
-  Hauptmann2016.lean - Formalization of Mathias Hauptmann's 2016 P≠NP proof attempt
+  Formalization of Hauptmann's 2016 P≠NP Proof Attempt
 
-  This file attempts to formalize the main arguments from:
-  "On Alternation and the Union Theorem" (arXiv:1602.04781)
+  This file formalizes the proof attempt by Mathias Hauptmann (2016)
+  "On Alternation and the Union Theorem" (arXiv:1602.04781).
 
-  The proof claims to show P≠NP by:
-  1. Assuming P = Σ₂ᵖ (second level of polynomial hierarchy)
-  2. Proving a new variant of the Union Theorem for Σ₂ᵖ
-  3. Deriving a contradiction
-  4. Concluding P ≠ Σ₂ᵖ, hence P ≠ NP
-
-  Status: This formalization attempts to identify the error in the proof.
+  The formalization reveals gaps in the proof by attempting to make
+  all assumptions and reasoning steps explicit.
 -/
 
--- Basic complexity class definitions
+-- A language is a set of strings (represented as lists of booleans)
+def Language := List Bool → Prop
 
-/-- A decision problem is represented as a predicate on strings -/
-def DecisionProblem := String → Prop
+-- Time bounds are functions from input size to number of steps
+def TimeBound := Nat → Nat
 
-/-- Time complexity function: maps input size to time bound -/
-def TimeComplexity := Nat → Nat
-
-/-- A problem is polynomial-time if there exists a polynomial time bound -/
-def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
-
-/-- A Turing machine model -/
+-- A Turing machine abstraction with a language and time bound
 structure TuringMachine where
-  compute : String → Bool
-  timeComplexity : TimeComplexity
+  accepts : Language
+  time : TimeBound
 
-/-- The class P -/
-def InP (problem : DecisionProblem) : Prop :=
-  ∃ (tm : TuringMachine),
-    (IsPolynomialTime tm.timeComplexity) ∧
-    (∀ (x : String), problem x ↔ tm.compute x = true)
+-- ** Complexity Classes
 
-/-- Nondeterministic Turing machine -/
-structure NondeterministicTM where
-  compute : String → String → Bool  -- input → certificate → result
-  timeComplexity : TimeComplexity
+-- Deterministic time class DTIME(t)
+def DTIME (t : TimeBound) (L : Language) : Prop :=
+  ∃ (M : TuringMachine),
+    M.accepts = L ∧
+    ∀ x : List Bool, M.time (List.length x) ≤ t (List.length x)
 
-/-- The class NP -/
-def InNP (problem : DecisionProblem) : Prop :=
-  ∃ (ntm : NondeterministicTM) (certSize : Nat → Nat),
-    (IsPolynomialTime ntm.timeComplexity) ∧
-    (IsPolynomialTime certSize) ∧
-    (∀ (x : String),
-      problem x ↔ ∃ (cert : String),
-        cert.length ≤ certSize x.length ∧
-        ntm.compute x cert = true)
+-- The class P (polynomial time)
+def P_class (L : Language) : Prop :=
+  ∃ (c : Nat), DTIME (fun n => n^c) L
 
--- Polynomial Hierarchy Definitions
+-- ** Alternating Complexity Classes
 
-/-
-  Σ₂ᵖ (Sigma-2-p): Problems decidable by alternating quantifiers ∃∀
-  A language L is in Σ₂ᵖ if:
-  x ∈ L ⟺ ∃y (|y| ≤ poly(|x|)) ∀z (|z| ≤ poly(|x|)) : R(x,y,z)
-  where R is polynomial-time computable
--/
-def InSigma2P (problem : DecisionProblem) : Prop :=
-  ∃ (relation : String → String → String → Bool)
-    (tm : TuringMachine)
-    (certSize : Nat → Nat),
-    (IsPolynomialTime tm.timeComplexity) ∧
-    (IsPolynomialTime certSize) ∧
-    (∀ x y z, relation x y z = tm.compute (x ++ y ++ z)) ∧
-    (∀ (x : String), problem x ↔
-      ∃ (y : String),
-        y.length ≤ certSize x.length ∧
-        ∀ (z : String),
-          z.length ≤ certSize x.length →
-          relation x y z = true)
+-- Alternating computation with bounded alternations
+-- NOTE: This definition is incomplete - it doesn't capture
+-- the alternation structure properly. This is GAP #1.
+def Sigma2_Time (t : TimeBound) (L : Language) : Prop :=
+  ∃ (M : TuringMachine),
+    M.accepts = L ∧
+    ∀ x : List Bool, M.time (List.length x) ≤ t (List.length x)
+    -- This should model Σ₂ computation with specific alternation pattern,
+    -- but we're using deterministic TMs as a placeholder
 
-/-- Basic fact: P ⊆ NP ⊆ Σ₂ᵖ -/
-axiom P_subset_NP : ∀ problem, InP problem → InNP problem
-axiom NP_subset_Sigma2P : ∀ problem, InNP problem → InSigma2P problem
+-- The class Σ₂ᵖ (second level of polynomial hierarchy)
+def Sigma2P (L : Language) : Prop :=
+  ∃ (c : Nat), Sigma2_Time (fun n => n^c) L
 
--- Hauptmann's Key Assumption
+-- ** Assumption: P = Σ₂ᵖ
 
-/-
-  ASSUMPTION: P = Σ₂ᵖ
-  This is the assumption that Hauptmann attempts to refute.
--/
-def P_equals_Sigma2P : Prop :=
-  ∀ problem, InP problem ↔ InSigma2P problem
+-- Hauptmann's main assumption: the polynomial hierarchy collapses to P
+axiom PH_collapse_assumption : ∀ L, P_class L ↔ Sigma2P L
 
--- Union Theorem Components
+-- ** Time-Constructible Functions
 
-/-
-  Time-constructible function
--/
-def TimeConstructible (f : TimeComplexity) : Prop :=
-  ∃ (tm : TuringMachine),
-    ∀ (n : Nat),
-      tm.timeComplexity n ≤ f n ∧
-      ∃ (x : String),
-        x.length = n ∧
-        tm.compute x = true
+-- A function is time-constructible if there's a TM that computes it
+-- in time proportional to its output.
+-- NOTE: This definition is incomplete - we don't have a way
+-- to express "M outputs t(n)". This is GAP #2.
+def TimeConstructible (t : TimeBound) : Prop :=
+  ∃ (M : TuringMachine),
+    ∀ n, M.time n ≤ t n
+    -- We're missing the part that says "M computes t(n)"
 
-/-
-  Classical Union Theorem statement (simplified)
--/
-axiom UnionTheorem_Classical : ∀ (family : Nat → TimeComplexity),
-  (∀ i, TimeConstructible (family i)) →
-  ∃ (unionTime : TimeComplexity),
-    (∀ i n, family i n ≤ unionTime n) ∧
-    TimeConstructible unionTime
+-- ** McCreight-Meyer Union Theorem
 
--- Hauptmann's Claimed Union Theorem Variant for Σ₂ᵖ
+-- The Union Theorem states that for a sequence of time bounds,
+-- their union can be captured by a single time bound.
+axiom UnionTheorem :
+  ∀ (seq : Nat → TimeBound),
+  (∀ i j n, i < j → seq i n < seq j n) →  -- increasing sequence (pointwise)
+  ∃ t : TimeBound,
+    ∀ L, (∃ i, DTIME (seq i) L) ↔ DTIME t L
 
-/-
-  CLAIM: A new variant of the Union Theorem holds for Σ₂ᵖ
-  This is a key step in Hauptmann's proof.
+-- ** Hauptmann's Union Theorem Variant for Σ₂ᵖ
 
-  CRITICAL ANALYSIS: This is where the proof likely has issues.
-  The extension of the Union Theorem to Σ₂ᵖ is non-trivial and
-  requires careful analysis of alternating quantifiers.
--/
+-- Hauptmann claims to extend the Union Theorem to alternating classes.
+-- This is stated as an axiom since we cannot prove it.
+-- NOTE: This is GAP #3 - we're assuming this theorem without proof.
+-- The interaction between the Union Theorem and alternating classes
+-- is non-trivial and this may not hold.
+axiom Hauptmann_Union_Theorem_Variant :
+  ∀ (seq : Nat → TimeBound),
+  (∀ i j n, i < j → seq i n < seq j n) →
+  ∃ F : TimeBound,
+    TimeConstructible F ∧
+    (∀ L, (∃ i, Sigma2_Time (seq i) L) ↔ Sigma2_Time F L) ∧
+    (∀ L, P_class L ↔ DTIME F L)
 
-/-- Hauptmann's union function F -/
-axiom UnionFunction : (Nat → TimeComplexity) → TimeComplexity
+-- ** Construct the function F
 
-/-
-  CLAIMED PROPERTY 1: F is computable in F(n)^c time for some constant c
+-- Placeholder for the constructed function F
+def construct_F : TimeBound := fun n => n * n
 
-  ISSUE: This self-referential time bound is highly suspicious.
-  Computing a function in time bounded by the function itself raised to a
-  constant power creates a potential circularity.
--/
-axiom UnionFunction_SelfBounded : ∀ (family : Nat → TimeComplexity),
-  ∃ (c : Nat),
-    ∀ (n : Nat),
-      UnionFunction family n ≤ (UnionFunction family n) ^ c
+-- ** Padding Arguments
 
-/-
-  CLAIMED PROPERTY 2: The union function satisfies certain complexity bounds
+-- Padding lemma for DTIME
+axiom padding_for_DTIME :
+  ∀ (t : TimeBound) (c : Nat) (L : Language),
+  DTIME t L → DTIME (fun n => (t n)^c) L
 
-  This is related to Gupta's result on time complexity hierarchies.
--/
-axiom UnionFunction_Hierarchy : ∀ (family : Nat → TimeComplexity),
-  (∀ i, TimeConstructible (family i)) →
-  ∃ (k : Nat),
-    ∀ (n : Nat),
-      (∃ i, family i n ≤ n ^ k) →
-      UnionFunction family n ≤ n ^ (k + 1)
+-- Padding lemma for Sigma2_Time
+axiom padding_for_Sigma2 :
+  ∀ (t : TimeBound) (c : Nat) (L : Language),
+  Sigma2_Time t L → Sigma2_Time (fun n => (t n)^c) L
 
--- Hauptmann's Contradiction
+-- Hauptmann claims that under P = Σ₂ᵖ and using F, we get:
+-- NOTE: This is GAP #4 - the padding argument needs to be
+-- verified carefully. The claim that this equality holds
+-- may not follow from the assumptions.
+axiom Hauptmann_padding_claim :
+  ∃ c : Nat,
+  ∀ L : Language,
+    DTIME (fun n => (construct_F n)^c) L ↔
+    Sigma2_Time (fun n => (construct_F n)^c) L
 
-/-
-  Hauptmann claims these two properties contradict each other under
-  the assumption P = Σ₂ᵖ.
+-- ** Gupta's Result (claimed)
 
-  CRITICAL FLAW IDENTIFICATION:
-  The contradiction is NOT actually derived properly. Here's why:
+-- Hauptmann invokes a result showing strict separation between
+-- DTIME and Σ₂ for time-constructible functions.
+-- NOTE: This is GAP #5 - We cannot find this result in the literature.
+-- Standard hierarchy theorems have specific requirements and may not
+-- apply in this generality.
+axiom Guptas_result :
+  ∀ t : TimeBound,
+  TimeConstructible t →
+  ∃ L : Language, Sigma2_Time t L ∧ ¬DTIME t L
 
-  1. UnionFunction_SelfBounded gives: F(n) ≤ F(n)^c
-     This is only non-trivial when F(n) ≥ 1, and it's satisfied when F(n) = 1
-     or when the bound is loose enough. It doesn't give us much information.
+-- ** The Contradiction
 
-  2. UnionFunction_Hierarchy gives: F(n) ≤ n^(k+1) under certain conditions
-
-  3. These two facts don't actually contradict each other!
-     We could have both F(n) ≤ F(n)^c and F(n) ≤ n^(k+1) simultaneously.
-
-  The error is that Hauptmann treats these as conflicting bounds when they're
-  not necessarily inconsistent. The self-referential nature of the first bound
-  doesn't create the contradiction that is claimed.
--/
-
-theorem Hauptmann_No_Contradiction :
-  ¬(∀ (family : Nat → TimeComplexity),
-      (∀ i, TimeConstructible (family i)) →
-      (∃ c k : Nat,
-        (∀ n, UnionFunction family n ≤ (UnionFunction family n) ^ c) ∧
-        (∀ n, UnionFunction family n ≤ n ^ k)) →
-      False) := by
-  intro h_false
-  -- We can construct a counterexample: F(n) = n
-  apply h_false (fun _i n => n)
-  · -- All constant identity functions are time-constructible
-    intro i
-    unfold TimeConstructible
-    -- This would require providing a specific TM, which we axiomatize
-    sorry
-  · -- Both bounds are satisfiable
-    use 1, 1  -- c = 1, k = 1
-    constructor
-    · intro n
-      -- F(n) = n ≤ n^1 = n (this is consistent)
-      sorry
-    · intro n
-      -- F(n) = n ≤ n^1 = n
+theorem Hauptmann_contradiction : False := by
+  -- Apply Hauptmann's padding claim
+  match Hauptmann_padding_claim with
+  | ⟨c, H_pad⟩ =>
+    -- F^c is time-constructible (claimed)
+    -- NOTE: GAP #6 - We need to prove this from TimeConstructible(F),
+    -- but this is non-trivial.
+    have H_tc : TimeConstructible (fun n => (construct_F n)^c) := by
       sorry
 
-/-
-  IDENTIFICATION OF THE PROOF GAP:
+    -- Apply Gupta's result to F^c
+    match Guptas_result (fun n => (construct_F n)^c) H_tc with
+    | ⟨L, H_in_Sigma2, H_not_in_DTIME⟩ =>
+      -- But from the padding claim, L ∈ Σ₂(F^c) implies L ∈ DTIME(F^c)
+      have : DTIME (fun n => (construct_F n)^c) L := by
+        exact (H_pad L).mpr H_in_Sigma2
 
-  The main error in Hauptmann's proof is that the "contradiction" between
-  the two claimed properties is not actually a contradiction. The paper
-  fails to show that:
+      -- CONTRADICTION!
+      exact H_not_in_DTIME this
 
-  1. The self-referential bound F(n) ≤ F(n)^c is genuinely restrictive
-  2. This bound is incompatible with F(n) ≤ n^(k+1)
-  3. The assumption P = Σ₂ᵖ actually forces these specific bounds
+-- ** The Main Result
 
-  Without a genuine contradiction, the proof by contradiction fails, and
-  we cannot conclude P ≠ Σ₂ᵖ (and hence cannot conclude P ≠ NP).
--/
-
-/-
-  Additional Issue: Even if we had P ≠ Σ₂ᵖ, this alone doesn't immediately
-  give us P ≠ NP. We would need P ⊂ NP ⊂ Σ₂ᵖ with both inclusions strict,
-  but we only know P ⊆ NP ⊆ Σ₂ᵖ.
--/
-
-theorem P_neq_Sigma2P_insufficient_for_P_neq_NP :
-  (¬(∀ problem, InP problem ↔ InSigma2P problem)) →
-  -- This alone is not enough to conclude P ≠ NP
-  -- We would also need to show that the separation occurs at the P/NP level
-  True := by
+theorem Hauptmann_P_neq_NP :
+  (∀ L, P_class L → Sigma2P L) →
+  (∃ L, Sigma2P L ∧ ¬P_class L) := by
   intro _h
-  trivial
-
--- Summary of Formalization
+  -- The contradiction shows P ≠ Σ₂ᵖ
+  -- Since NP ⊆ Σ₂ᵖ, this would imply P ≠ NP
+  -- However, we cannot complete this proof due to the gaps identified
+  sorry
 
 /-
-  VERDICT: The proof attempt has a critical gap.
+  ** Summary of Gaps Identified **
 
-  The claimed contradiction between two properties of the union function
-  is not actually demonstrated. The bounds:
-    - F(n) ≤ F(n)^c (self-referential bound)
-    - F(n) ≤ n^(k+1) (polynomial bound)
+  GAP #1: Incomplete definition of Sigma2_Time
+  - The definition doesn't capture the alternation structure
+  - Full formalization requires explicit alternating TM model
 
-  are not contradictory and can both hold simultaneously.
+  GAP #2: Incomplete definition of TimeConstructible
+  - Cannot express "M computes t(n)" in our framework
+  - Time-constructibility is crucial but not properly formalized
 
-  Therefore, the proof by contradiction fails, and we cannot conclude
-  P ≠ Σ₂ᵖ or P ≠ NP from this argument.
+  GAP #3: Unproven Union Theorem Variant
+  - Extension to alternating classes is assumed without proof
+  - The interaction between union operations and alternations is subtle
+  - May not hold in the claimed generality
 
-  This formalization identifies why the complexity theory community did not
-  accept this proof: the core logical step (deriving a contradiction) is
-  not valid.
+  GAP #4: Unverified Padding Argument
+  - The padding claim needs careful verification
+  - May not follow from the stated assumptions
+  - Requires tracking how alternations behave under padding
+
+  GAP #5: Unverified "Gupta's Result"
+  - Cannot locate this result in the literature
+  - Standard hierarchy theorems may not apply in this form
+  - The claimed separation may require additional conditions
+
+  GAP #6: Time-constructibility under exponentiation
+  - Showing F^c is time-constructible from TimeConstructible(F) is non-trivial
+  - This step is assumed but not proven
+
+  CIRCULAR REASONING RISK:
+  - The construction of F under assumption P = Σ₂ᵖ may already
+    presuppose properties incompatible with that assumption
+  - This needs careful analysis to rule out
+
+  CONCLUSION:
+  The formalization reveals that Hauptmann's proof relies on several
+  unproven claims and incompletely specified definitions. The most
+  critical issues are:
+  1. The unverified "Gupta's result" (GAP #5)
+  2. The unproven Union Theorem variant (GAP #3)
+  3. The incomplete handling of time-constructibility (GAP #2, #6)
+
+  Any one of these gaps is sufficient to invalidate the proof.
 -/
 
--- Verification checks
-#check InP
-#check InNP
-#check InSigma2P
-#check P_equals_Sigma2P
-#check UnionTheorem_Classical
-#check Hauptmann_No_Contradiction
+#check Hauptmann_contradiction
+#check Hauptmann_P_neq_NP
 
-#print "✓ Hauptmann 2016 formalization complete - critical gap identified"
+-- Verification note: This file compiles but contains 'sorry' and axioms
+-- representing unproven claims in Hauptmann's argument
+-- #print "✓ Hauptmann 2016 formalization completed (with identified gaps)"
+-- Note: #print with string literal is not valid in Lean 4, commented out
