@@ -131,9 +131,9 @@ Lemma bad_lp_is_feasible :
 Proof.
   unfold LPFeasible, NonNegative, lp_constraint_for_clause.
   split.
-  - intros n. lra.
+  - intros n. unfold bad_lp_solution. lra.
   - intros c [Heq | []]. subst.
-    unfold counterexample_all_false, clause_sum.
+    unfold counterexample_all_false, clause_sum, bad_lp_solution.
     simpl. lra.
 Qed.
 
