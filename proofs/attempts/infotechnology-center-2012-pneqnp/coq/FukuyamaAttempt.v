@@ -159,11 +159,12 @@ Axiom lemma_5_3_incorrect_statement : forall (sigma : sigma_type),
 *)
 
 (** Assume f actually varies with z *)
-Parameter f_depends_on_z : Prop.
+Definition f_depends_on_z : Prop :=
+  exists (sigma : sigma_type) (z1 z2 : z_type),
+    z1 <> z2 /\ f sigma z1 <> f sigma z2.
+
+(** We assume this property holds *)
 Axiom f_depends_on_z_holds : f_depends_on_z.
-Axiom f_depends_on_z_witnesses : exists (sigma : sigma_type) (z1 z2 : z_type),
-  z1 <> z2 /\ f sigma z1 <> f sigma z2.
-Axiom f_depends_on_z_equiv : f_depends_on_z <-> f_depends_on_z_witnesses.
 
 (** This contradicts the incorrect lemma *)
 Theorem lemma_5_3_is_false :
@@ -172,7 +173,7 @@ Proof.
   intros H_depends.
   unfold not. intros H_lemma.
   (* Extract the counterexample from f_depends_on_z *)
-  apply f_depends_on_z_equiv in H_depends.
+  unfold f_depends_on_z in H_depends.
   destruct H_depends as [sigma [z1 [z2 [Hneq Hdiff]]]].
   (* Apply the incorrect lemma to this sigma *)
   specialize (H_lemma sigma).
