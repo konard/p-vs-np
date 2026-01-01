@@ -151,15 +151,16 @@ theorem accepting_pseudopolynomial_implies_wrong_conclusion :
   complexity is measured relative to input encoding size.
 -/
 
-#check subsetSumExists
-#check binarySize
-#check unarySize
-#check isPseudopolynomial
-#check isPolynomialInBinarySize
-#check bianchini_error_formalized
+end SubsetSumEncoding
+
+-- Verification checks
+#check SubsetSumEncoding.subsetSumExists
+#check SubsetSumEncoding.binarySize
+#check SubsetSumEncoding.unarySize
+#check SubsetSumEncoding.isPseudopolynomial
+#check SubsetSumEncoding.isPolynomialInBinarySize
+#check SubsetSumEncoding.bianchini_error_formalized
 
 -- Verification successful
 #print "✓ SubsetSum encoding formalization verified successfully"
 #print "✓ Bianchini's error (pseudopolynomial vs polynomial) formalized"
-
-end SubsetSumEncoding
