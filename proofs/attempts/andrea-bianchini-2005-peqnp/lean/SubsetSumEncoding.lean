@@ -134,9 +134,8 @@ theorem accepting_pseudopolynomial_implies_wrong_conclusion :
   have := h dpSubsetSumTime dp_is_pseudopolynomial
   exact dp_not_polynomial_in_binary_size this
 
-/-! # Summary of the Formalization -/
+/-! # Summary of the Formalization
 
-/--
   This formalization demonstrates:
 
   1. The distinction between binary and unary encoding
