@@ -1,0 +1,4 @@
+session "DaegeneSong2014" = "HOL-Analysis" +
+  options [timeout = 1800, quick_and_dirty]
+  theories
+    DaegeneSong2014
