@@ -320,6 +320,14 @@ Record DiabyAttempt := {
   da_implication : da_correspondence -> PEqualsNP
 }.
 
+(* Helper lemma: identity function is polynomial *)
+Lemma identity_is_polynomial : isPolynomial (fun n => n).
+Proof.
+  unfold isPolynomial.
+  exists 1, 1. intros n.
+  simpl. lia.
+Qed.
+
 (* The attempt fails at the correspondence step *)
 Theorem diaby_fails_at_correspondence :
   exists attempt : DiabyAttempt,
@@ -327,7 +335,7 @@ Theorem diaby_fails_at_correspondence :
 Proof.
   exists {|
     da_polynomialSize := diaby_formulation_is_polynomial;
-    da_lpSolvable := fun lp => ex_intro _ (fun n => n) (ex_intro _ 1 (ex_intro _ 1 (fun n => le_n n)));
+    da_lpSolvable := fun lp => ex_intro _ (fun n => n) identity_is_polynomial;
     da_correspondence := (forall g : Graph,
       (forall tour : TSPTour g, exists ep : ExtremePoint (diabyLPFormulation g), True) /\
       (forall ep : ExtremePoint (diabyLPFormulation g), exists tour : TSPTour g, True));
