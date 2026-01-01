@@ -38,7 +38,6 @@ def VarIndex : Type := Nat
 inductive Literal where
   | pos : VarIndex → Literal
   | neg : VarIndex → Literal
-  deriving Repr
 
 /-- A clause: disjunction of exactly 3 literals -/
 def Clause3 : Type := Literal × Literal × Literal
@@ -70,11 +69,11 @@ def ThreeSAT (f : Formula3CNF) : Prop :=
   ∃ (a : Assignment), evalFormula3 a f = true
 
 /-- 3-SAT is in NP (axiomatized - standard result) -/
-axiom threeSAT_in_NP : ∀ (f : Formula3CNF), True
+axiom threeSAT_in_NP : ∀ (_ : Formula3CNF), True
 
 /- ## 4. Integer Operations and Computational Models -/
 
-/-- The Critical Issue: Integer Operation Costs -/
+/- The Critical Issue: Integer Operation Costs -/
 
 /-- Size of an integer (number of bits) -/
 def integerBitsize (n : Nat) : Nat :=
@@ -83,7 +82,7 @@ def integerBitsize (n : Nat) : Nat :=
 /-- Cost of basic arithmetic operations on n-bit integers -/
 def arithmeticCost (bits : Nat) : Nat := bits
 
-/-- Computational Cost Model -/
+/- Computational Cost Model -/
 
 /-- Cost model for an algorithm step -/
 structure StepCost where
@@ -109,7 +108,7 @@ def algorithmCorrect : Prop :=
 def algorithmPolytime : Prop :=
   ∃ (time : Nat → Nat),
     IsPolynomial time ∧
-    ∀ (f : Formula3CNF),
+    ∀ (_ : Formula3CNF),
       True  -- Abstract runtime bound
 
 /- ## 6. The Error: Unbounded Integer Operations -/
@@ -168,31 +167,29 @@ axiom paperWithdrawn : True
 
 /-- Withdrawal reason: integer operations cannot be proven polynomial-time -/
 axiom withdrawalReason :
-  ¬missingProof → paperWithdrawn
+  ¬missingProof → True
 
-/- ## 10. Lessons Learned -/
+/- ## 10. Lessons Learned
 
-/-- Lesson 1: Computational Model Matters
-    Any complexity claim must specify:
-    - The model of computation (Turing machine, RAM, etc.)
-    - The cost model for operations (uniform cost vs. logarithmic cost)
-    - Bounds on the size of intermediate values
--/
+Lesson 1: Computational Model Matters
+  Any complexity claim must specify:
+  - The model of computation (Turing machine, RAM, etc.)
+  - The cost model for operations (uniform cost vs. logarithmic cost)
+  - Bounds on the size of intermediate values
 
-/-- Lesson 2: Integer Arithmetic is Not Free
-    When integers can grow large:
-    - Addition/subtraction: O(bits)
-    - Multiplication: O(bits²) or O(bits^1.585) with Karatsuba
-    - Division: O(bits²)
-    - Comparison: O(bits)
--/
+Lesson 2: Integer Arithmetic is Not Free
+  When integers can grow large:
+  - Addition/subtraction: O(bits)
+  - Multiplication: O(bits²) or O(bits^1.585) with Karatsuba
+  - Division: O(bits²)
+  - Comparison: O(bits)
 
-/-- Lesson 3: Verification Requires Rigor
-    This attempt shows the value of:
-    - Formal verification
-    - Detailed complexity analysis
-    - Peer review
-    - Willingness to recognize and correct errors
+Lesson 3: Verification Requires Rigor
+  This attempt shows the value of:
+  - Formal verification
+  - Detailed complexity analysis
+  - Peer review
+  - Willingness to recognize and correct errors
 -/
 
 /- ## 11. Summary
@@ -221,7 +218,5 @@ axiom withdrawalReason :
 #check missingProof
 #check proofGap
 #check paperWithdrawn
-
-#print "✓ Steinmetz attempt formalization compiled successfully"
 
 end SteinmetzAttempt
