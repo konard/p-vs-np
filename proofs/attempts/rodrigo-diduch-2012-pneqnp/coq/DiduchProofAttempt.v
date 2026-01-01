@@ -137,12 +137,9 @@ Admitted.  (* INCOMPLETE: Cannot prove P≠NP from definitions alone *)
   Many problems once thought hard were later solved efficiently.
 *)
 
-Axiom SAT_appears_hard :
-  (* No currently known polynomial-time algorithm for SAT *)
-  forall (tm : TuringMachine),
-    (forall x, SAT x <-> compute tm x = true) ->
-    (* This doesn't prove it's not polynomial time! *)
-    True.
+(** Axiom representing the informal observation that no known polynomial algorithm for SAT exists.
+    However, this is not a proof - it's just an observation about the current state of knowledge. *)
+Axiom SAT_appears_hard : Prop.
 
 Theorem diduch_attempt_from_intuition :
   SAT_appears_hard ->
@@ -298,6 +295,7 @@ Definition addresses_known_barriers : Prop :=
   computer science.
 *)
 
+(** Analysis structure showing the gap in Diduch's proof *)
 Record DiduchProofAttemptAnalysis := {
   (* What the proof claims *)
   claims : P_not_equals_NP;
@@ -305,8 +303,8 @@ Record DiduchProofAttemptAnalysis := {
   (* What it would need to prove *)
   needs : HasSuperPolynomialLowerBound SAT;
 
-  (* The gap: the lower bound is not proven *)
-  gap : needs -> claims
+  (* The gap: if we had the lower bound, we could prove P≠NP *)
+  gap : HasSuperPolynomialLowerBound SAT -> P_not_equals_NP
 }.
 
 (** The formalization shows that without proving the lower bound,
