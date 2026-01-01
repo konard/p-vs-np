@@ -312,8 +312,8 @@ Theorem requirements_for_proof :
   OptimalityPreservationHolds ->
 
   (* 2. Prove polynomial time complexity *)
-  (forall g, exists k, exists c,
-     forall n, length (vertices g) = n ->
+  (forall g : Graph, exists k : nat, exists c : nat,
+     forall n : nat, length (vertices g) = n ->
      (* algorithm time <= c * n^k *) True) ->
 
   (* 3. Then we could conclude P = NP *)
