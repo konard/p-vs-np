@@ -74,10 +74,8 @@ text \<open>
   each vertex belongs to 2^(n-1) cliques.
 \<close>
 axiomatization where
-  exponential_cliques_in_complete_graph:
-    "n \<ge> 1 \<Longrightarrow>
-     \<exists>cliques. length cliques = pow2 (n - 1) \<and>
-       (\<forall>C \<in> set cliques. IsClique (CompleteGraph n) C \<and> 0 \<in> set C)"
+  exponential_cliques_exist:
+    "n \<ge> 1 \<Longrightarrow> \<exists>cliques. length cliques = pow2 (n - 1)"
 
 text \<open>
   Standard result from complexity theory: exponential functions
@@ -102,9 +100,8 @@ theorem hamelin_proof_gap:
   shows "(\<exists>cliques. length cliques = pow2 (n - 1)) \<and>
          \<not> IsPolynomial pow2"
 proof
-  obtain cliques where "length cliques = pow2 (n - 1)"
-    using exponential_cliques_in_complete_graph[OF assms] by auto
-  thus "\<exists>cliques. length cliques = pow2 (n - 1)" by blast
+  show "\<exists>cliques. length cliques = pow2 (n - 1)"
+    using exponential_cliques_exist[OF assms] .
 next
   show "\<not> IsPolynomial pow2"
     using pow2_not_polynomial .
