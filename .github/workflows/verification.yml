@@ -21,20 +21,26 @@ jobs:
         curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
         echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
-    - name: Cache Lean dependencies
+    - name: Verify Lean installation
+      run: |
+        lean --version
+        lake --version
+
+    - name: Cache Lean toolchain
       uses: actions/cache@v4
       with:
         path: |
           ~/.elan
-        key: ${{ runner.os }}-lean-toolchain-${{ hashFiles('lean-toolchain') }}
+        key: ${{ runner.os }}-lean-elan-v2-${{ hashFiles('lakefile.lean') }}
+        restore-keys: |
+          ${{ runner.os }}-lean-elan-v2-
 
     - name: Clean stale build artifacts
       run: |
-        # Clean .lake build artifacts to ensure fresh build with current sources
-        if [ -d ".lake/build" ]; then
-          echo "Cleaning stale build artifacts..."
-          rm -rf .lake/build
-        fi
+        # Always clean .lake directory to ensure fresh build with current sources
+        # This prevents stale compiled artifacts from causing build failures
+        echo "Cleaning .lake directory for fresh build..."
+        rm -rf .lake
 
     - name: Build and test Lean
       run: |
