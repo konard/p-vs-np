@@ -250,15 +250,21 @@ Proof.
   - intros m Hm. subst m.
     unfold standard_dp_complexity.
     (* 2^n <= n * 2^n * n *)
-    apply Nat.le_trans with (m := 2^n * 1).
-    + rewrite Nat.mul_1_r. apply Nat.le_refl.
-    + apply Nat.mul_le_mono_l.
-      destruct n as [|n'].
-      * (* n = 0 case: 0 * 0 >= 1 is false, but this contradicts Hn: n > 1 *)
-        inversion Hn.
-      * apply Nat.le_trans with (m := S n').
-        -- apply Nat.le_succ_diag_r.
-        -- apply Nat.le_mul_diag_r.
+    (* Goal: 2^n <= (n * 2^n) * n *)
+    (* Strategy: show 2^n <= 1 * 2^n * 1 <= n * 2^n * n *)
+    apply Nat.le_trans with (m := 1 * 2^n * 1).
+    + rewrite Nat.mul_1_l. rewrite Nat.mul_1_r. apply Nat.le_refl.
+    + apply Nat.mul_le_mono.
+      * apply Nat.mul_le_mono.
+        -- (* 1 <= n, because n > 1 implies n >= 2 >= 1 *)
+           destruct n as [|n'].
+           ++ inversion Hn.
+           ++ apply Nat.le_succ_l. apply Nat.lt_0_succ.
+        -- apply Nat.le_refl.
+      * (* 1 <= n *)
+        destruct n as [|n'].
+        -- inversion Hn.
+        -- apply Nat.le_succ_l. apply Nat.lt_0_succ.
 Qed.
 
 (** * 12. Summary and Conclusion *)
