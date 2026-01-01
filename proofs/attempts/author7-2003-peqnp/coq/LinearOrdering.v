@@ -27,7 +27,7 @@ Definition WeightMatrix (n : nat) := list (list nat).
 Definition Permutation (n : nat) := list Vertex.
 
 (** Check if a list is a valid permutation of {0, 1, ..., n-1} *)
-Fixpoint is_permutation (n : nat) (perm : Permutation n) : Prop :=
+Definition is_permutation (n : nat) (perm : Permutation n) : Prop :=
   length perm = n /\
   (forall i, i < n -> In i perm) /\
   (forall i, In i perm -> i < n) /\
@@ -132,7 +132,7 @@ Proof.
   - intros [perm [H_perm H_obj]].
     exists perm.
     unfold verify_LOP_certificate.
-    destruct H_perm as [H_len _].
+    destruct H_perm as [H_len [_ [_ _]]].
     rewrite H_len.
     rewrite Nat.eqb_refl.
     apply Nat.leb_le.
@@ -200,11 +200,11 @@ Axiom all_LOP_facets : nat -> list FacetInequality.
 (** * 8. The Critical Issue with Facet-Based Approaches *)
 
 (** Issue 1: The number of facets can be exponential in n *)
-Axiom facet_count_exponential : forall n,
+Axiom facet_count_exponential : forall (n : nat),
   exists k, length (all_LOP_facets n) >= 2^k.
 
 (** Issue 2: Identifying violated facets is itself NP-hard in general *)
-Axiom separation_problem_hard : forall n solution,
+Axiom separation_problem_hard : forall (n : nat) (solution : list nat),
   (* Finding a violated facet is NP-hard *)
   True.
 
