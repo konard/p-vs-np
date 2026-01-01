@@ -123,7 +123,7 @@ Proof.
     (* The goal is: (S n' * 2^(S n')) * S n' >= 2^(S n') *)
     (* We know S n' >= 1, so (S n' * 2^(S n')) * S n' >= (1 * 2^(S n')) * 1 = 2^(S n') *)
     apply Nat.le_trans with (m := 1 * 2 ^ S n' * 1).
-    + simpl. rewrite Nat.mul_1_r. apply Nat.le_refl.
+    + rewrite Nat.mul_1_l. rewrite Nat.mul_1_r. apply Nat.le_refl.
     + apply Nat.mul_le_mono.
       * apply Nat.mul_le_mono.
         -- apply Nat.le_succ_diag_r.
@@ -295,7 +295,7 @@ Proof.
         (* Goal: S (S n2) * 2 ^ S (S n2) * S (S n2) >= 2 ^ S (S n2) *)
         (* Same approach as standard_dp_is_exponential *)
         apply Nat.le_trans with (m := 1 * 2 ^ S (S n2) * 1).
-        -- simpl. rewrite Nat.mul_1_r. apply Nat.le_refl.
+        -- rewrite Nat.mul_1_l. rewrite Nat.mul_1_r. apply Nat.le_refl.
         -- apply Nat.mul_le_mono.
            ++ apply Nat.mul_le_mono.
               ** apply Nat.le_succ_diag_r.
