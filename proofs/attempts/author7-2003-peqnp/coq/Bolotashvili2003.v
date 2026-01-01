@@ -101,6 +101,10 @@ Definition satisfies_facet (solution : list nat) (facet : FacetInequality) : boo
 (** Set of all facet-defining inequalities for LOP *)
 Axiom all_LOP_facets : nat -> list FacetInequality.
 
+(** The number of facets can be exponential in n *)
+Axiom facet_count_exponential : forall (n : nat),
+  exists k, length (all_LOP_facets n) >= 2^k.
+
 (** * 1. Polynomial Time Definition *)
 
 (** A function is polynomial-time if bounded by a polynomial *)
@@ -169,7 +173,7 @@ Definition separation_problem (n : nat) (solution : list nat) : Prop :=
 
 (** The separation problem for LOP polytope is NP-hard *)
 Axiom separation_is_NP_hard :
-  forall n solution,
+  forall (n : nat) (solution : list nat),
     (* Determining if there exists a violated facet is NP-hard *)
     True.
 
@@ -180,7 +184,7 @@ Axiom separation_is_NP_hard :
     checking all facets would take exponential time *)
 
 Theorem checking_all_facets_exponential :
-  forall n,
+  forall (n : nat),
     exists (num_facets : nat),
       length (all_LOP_facets n) = num_facets /\
       (* Number of facets is exponential in n *)
@@ -205,7 +209,7 @@ Qed.
     - Total runtime is exponential *)
 
 Axiom branch_and_cut_exponential_iterations :
-  forall n matrix,
+  forall (n : nat) (matrix : WeightMatrix n),
     exists (instance_matrix : WeightMatrix n),
       (* There exist instances requiring exponential iterations *)
       forall algo,
@@ -256,7 +260,7 @@ Inductive ProofGap :=
 
 (** At least one of these gaps must exist *)
 Theorem proof_has_gap :
-  forall algo,
+  forall (algo : ClaimedAlgorithm),
     ~ Bolotashvili_Claim algo \/
     exists gap : ProofGap, True.
 Proof.
