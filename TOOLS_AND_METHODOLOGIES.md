@@ -1,5 +1,7 @@
 # Tools and Methodologies for Approaching the P vs NP Problem
 
+**Language:** [English](TOOLS_AND_METHODOLOGIES.md) | [Русский (Russian)](TOOLS_AND_METHODOLOGIES.ru.md)
+
 **Navigation:** [↑ Back to Repository Root](README.md) | [Problem Description](P_VS_NP_TASK_DESCRIPTION.md) | [Solution Plan](DETAILED_SOLUTION_PLAN.md) | [Formal Proofs](README.md#-formal-verification)
 
 ---
