@@ -106,7 +106,7 @@ This directory contains formal verification code that:
 
 ## References
 
-1. Woeginger's P vs NP page: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #19)
+1. Woeginger's P vs NP page: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #16)
 2. Original paper: "A Polynomial-time Exact Algorithm for the Subset Sum Problem" (2005)
 3. Computer Science Stack Exchange: Discussions on subset sum complexity (2014)
 4. Standard textbook reference: Garey & Johnson, "Computers and Intractability" (1979) - Discussion of strong vs weak NP-completeness

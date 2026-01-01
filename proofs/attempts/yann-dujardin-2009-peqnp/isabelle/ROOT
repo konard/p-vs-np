@@ -1,0 +1,4 @@
+session "DujardinPartition" = "HOL-Computational_Algebra" +
+  options [timeout = 300, quick_and_dirty]
+  theories
+    DujardinPartition
