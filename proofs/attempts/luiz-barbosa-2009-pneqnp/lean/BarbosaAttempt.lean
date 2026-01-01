@@ -9,8 +9,8 @@
 /-- Binary strings represented as lists of booleans -/
 def BString := List Bool
 
-/-- A polynomial is a function from ℕ to ℕ -/
-def Polynomial := ℕ → ℕ
+/-- A polynomial is a function from Nat to Nat -/
+def Polynomial := Nat → Nat
 
 /-- A function is polynomial if there exist constants c and k
     such that for all n, P(n) ≤ c * n^k -/
@@ -42,7 +42,7 @@ structure RestrictedTypeXProgram where
 /-- An instance of XG-SAT is a pair (S, n) -/
 structure XGSATInstance where
   xgProgram : RestrictedTypeXProgram
-  xgInputLength : ℕ
+  xgInputLength : Nat
 
 /-- XG-SAT membership: does the program return true for at least one input of length n? -/
 def inXGSAT (inst : XGSATInstance) : Prop :=
