@@ -298,9 +298,18 @@ Admitted.
 
 (* To actually prove P = NP via this approach, we would need: *)
 
+(* Helper: the optimality preservation claim as a standalone proposition *)
+Definition OptimalityPreservationHolds : Prop :=
+  forall (tsp : TSPInstance) (pt : PartialTour) (new_vertex : Vertex),
+    isOptimalTour tsp (pt_tour pt) ->
+    ~ In new_vertex (pt_covered pt) ->
+    In new_vertex (vertices (tsp_graph tsp)) ->
+    let new_tour := findBestInsertion tsp (pt_tour pt) new_vertex in
+    isOptimalTour tsp new_tour.
+
 Theorem requirements_for_proof :
   (* 1. Prove optimality preservation (impossible for TSP) *)
-  (forall tsp pt v, optimality_preservation_claim tsp pt v) ->
+  OptimalityPreservationHolds ->
 
   (* 2. Prove polynomial time complexity *)
   (forall g, exists k, exists c,
@@ -328,7 +337,7 @@ Admitted.
 *)
 
 Theorem duan_proof_incomplete :
-  ~ (forall tsp pt v, optimality_preservation_claim tsp pt v) ->
+  ~ OptimalityPreservationHolds ->
   (* Cannot prove the main result *)
   ~ (forall g, hasHamiltonianCycle g <->
        exists tour, duanAlgorithm g = Some tour /\
