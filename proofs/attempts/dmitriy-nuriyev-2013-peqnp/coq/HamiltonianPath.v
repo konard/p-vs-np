@@ -126,9 +126,11 @@ Proof.
     + rewrite Nat.mul_1_l. rewrite Nat.mul_1_r. apply Nat.le_refl.
     + apply Nat.mul_le_mono.
       * apply Nat.mul_le_mono.
-        -- apply Nat.le_succ_diag_r.
+        -- (* 1 <= S n' *)
+           apply Nat.le_succ_l. apply Nat.lt_0_succ.
         -- apply Nat.le_refl.
-      * apply Nat.le_succ_diag_r.
+      * (* 1 <= S n' *)
+        apply Nat.le_succ_l. apply Nat.lt_0_succ.
 Qed.
 
 (** * 6. Polynomial Time Bound *)
@@ -298,9 +300,11 @@ Proof.
         -- rewrite Nat.mul_1_l. rewrite Nat.mul_1_r. apply Nat.le_refl.
         -- apply Nat.mul_le_mono.
            ++ apply Nat.mul_le_mono.
-              ** apply Nat.le_succ_diag_r.
+              ** (* 1 <= S (S n2) *)
+                 apply Nat.le_succ_l. apply Nat.lt_0_succ.
               ** apply Nat.le_refl.
-           ++ apply Nat.le_succ_diag_r.
+           ++ (* 1 <= S (S n2) *)
+              apply Nat.le_succ_l. apply Nat.lt_0_succ.
   - split.
     + apply nuriyev_claim_is_polynomial.
     + exists 16%nat. intros Hn0.
