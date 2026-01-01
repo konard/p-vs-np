@@ -35,15 +35,20 @@ jobs:
         lean --version
         lake --version
 
-    - name: Cache Lean dependencies
+    - name: Cache Lean toolchain
       uses: actions/cache@v4
       with:
         path: |
-          .lake
           ~/.elan
-        key: ${{ runner.os }}-lean-${{ hashFiles('lakefile.lean', 'lean-toolchain') }}
+        key: ${{ runner.os }}-lean-elan-v2-${{ hashFiles('lakefile.lean') }}
         restore-keys: |
-          ${{ runner.os }}-lean-
+          ${{ runner.os }}-lean-elan-v2-
+
+    - name: Clean stale build artifacts
+      run: |
+        # Always clean .lake directory to ensure fresh build with current sources
+        echo "Cleaning .lake directory for fresh build..."
+        rm -rf .lake
 
     - name: List Lean files
       run: |
