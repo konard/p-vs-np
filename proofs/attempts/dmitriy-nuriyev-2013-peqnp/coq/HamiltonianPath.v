@@ -115,12 +115,17 @@ Proof.
   unfold standard_dp_complexity.
   (* n * 2^n * n >= 2^n when n > 0 *)
   (* This simplifies to n^2 * 2^n >= 2^n which is true for n > 0 *)
-  destruct n. lia.
-  simpl.
-  apply Nat.le_trans with (m := 1 * 2^(S n)).
-  - rewrite Nat.mul_1_l. apply Nat.le_refl.
-  - apply Nat.mul_le_mono_r.
-    lia.
+  destruct n as [|n'].
+  - (* n = 0 case contradicts Hn *)
+    inversion Hn.
+  - (* n = S n' case *)
+    (* We need to show: S n' * 2^(S n') * S n' >= 2^(S n') *)
+    (* Rewrite as: (S n' * S n') * 2^(S n') >= 1 * 2^(S n') *)
+    rewrite Nat.mul_assoc.
+    apply Nat.mul_le_mono_r.
+    (* S n' * S n' >= 1 *)
+    apply Nat.le_succ_l.
+    apply Nat.lt_0_succ.
 Qed.
 
 (** * 6. Polynomial Time Bound *)
@@ -243,10 +248,12 @@ Proof.
     apply Nat.le_trans with (m := 2^n * 1).
     + rewrite Nat.mul_1_r. apply Nat.le_refl.
     + apply Nat.mul_le_mono_l.
-      destruct n. lia.
-      apply Nat.le_trans with (m := S n).
-      * apply Nat.le_succ_diag_r.
-      * apply Nat.le_mul_diag_r.
+      destruct n as [|n'].
+      * (* n = 0 case: 0 * 0 >= 1 is false, but this contradicts Hn: n > 1 *)
+        inversion Hn.
+      * apply Nat.le_trans with (m := S n').
+        -- apply Nat.le_succ_diag_r.
+        -- apply Nat.le_mul_diag_r.
 Qed.
 
 (** * 12. Summary and Conclusion *)
@@ -275,8 +282,19 @@ Proof.
   split.
   - (* Standard DP is exponential *)
     unfold standard_dp_complexity.
-    destruct n. lia. destruct n. lia.
-    simpl. lia.
+    destruct n as [|n1].
+    + (* n = 0 contradicts n >= 2 *)
+      inversion Hn.
+    + destruct n1 as [|n2].
+      * (* n = 1 contradicts n >= 2 *)
+        inversion Hn. inversion H0.
+      * (* n = S (S n2), i.e., n >= 2 *)
+        (* Goal: S (S n2) * 2 ^ S (S n2) * S (S n2) >= 2 ^ S (S n2) *)
+        rewrite Nat.mul_assoc.
+        apply Nat.mul_le_mono_r.
+        (* S (S n2) * S (S n2) >= 1 *)
+        apply Nat.le_succ_l.
+        apply Nat.lt_0_succ.
   - split.
     + apply nuriyev_claim_is_polynomial.
     + exists 16%nat. intros Hn0.
