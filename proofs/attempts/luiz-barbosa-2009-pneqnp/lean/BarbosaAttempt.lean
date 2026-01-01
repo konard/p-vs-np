@@ -3,10 +3,6 @@
   This file formalizes the key definitions and identifies the uniformity error
 -/
 
-import Mathlib.Data.List.Basic
-import Mathlib.Data.Nat.Basic
-import Mathlib.Logic.Basic
-
 -- ================================================================
 -- Basic Definitions
 

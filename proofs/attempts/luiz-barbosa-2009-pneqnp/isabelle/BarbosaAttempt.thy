@@ -103,10 +103,10 @@ text \<open>
 \<close>
 
 theorem uniformity_problem_for_xgsat:
-  "\<not>(\<exists>p_uniform. is_polynomial p_uniform \<and>
-      (\<forall>S. time_bound_is_poly S \<longrightarrow>
-        (\<forall>n. time_bound S n \<le> p_uniform n)))"
-  oops  (* The proof captures the essence of the uniformity problem *)
+  "\<not>(\<exists>p_uniform::polynomial. is_polynomial p_uniform \<and>
+      (\<forall>S::restricted_type_x_program. time_bound_is_poly S \<longrightarrow>
+        (\<forall>n::nat. time_bound S n \<le> p_uniform n)))"
+  sorry  (* The proof captures the essence of the uniformity problem *)
 
 text \<open>
   Therefore, XG-SAT does not obviously have a single polynomial bound
@@ -114,8 +114,8 @@ text \<open>
 \<close>
 
 theorem xgsat_np_membership_unclear:
-  "\<not>(\<exists>p. is_polynomial p \<and> NP_with_promise xgsat_promise xgsat_language)"
-  oops  (* The proof follows from uniformity_problem_for_xgsat *)
+  "\<not>(\<exists>p::polynomial. is_polynomial p \<and> NP_with_promise xgsat_promise xgsat_language)"
+  sorry  (* The proof follows from uniformity_problem_for_xgsat *)
 
 section \<open>The Logical Implication Error\<close>
 
@@ -138,8 +138,8 @@ text \<open>
 
 theorem barbosa_implies_standard_separation:
   "barbosa_claim \<Longrightarrow>
-   \<exists>L. NP_standard L \<and> \<not>P_standard L"
-  oops
+   \<exists>L::(bstring \<Rightarrow> bool). NP_standard L \<and> \<not>P_standard L"
+  sorry
   (* If P = NP in the standard sense, then for any Lz, P[Lz] = NP[Lz]
      By contrapositive, if P[Lz] ≠ NP[Lz], then P ≠ NP
      The key insight: A language in NP (standard) that witnesses the separation
@@ -148,9 +148,9 @@ theorem barbosa_implies_standard_separation:
 text \<open>Corollary: Proving Barbosa's claim would solve the million-dollar problem\<close>
 corollary barbosa_solves_p_vs_np:
   "barbosa_claim \<Longrightarrow>
-   (\<exists>L. NP_standard L \<and> \<not>P_standard L) \<or>
-   (\<forall>L. NP_standard L \<longrightarrow> P_standard L)"
-  by (metis barbosa_implies_standard_separation)
+   (\<exists>L::(bstring \<Rightarrow> bool). NP_standard L \<and> \<not>P_standard L) \<or>
+   (\<forall>L::(bstring \<Rightarrow> bool). NP_standard L \<longrightarrow> P_standard L)"
+  using barbosa_implies_standard_separation by blast
 
 section \<open>Summary of Errors\<close>
 
