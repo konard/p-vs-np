@@ -1,217 +1,85 @@
-# Peng Cui (2014) - P=NP Attempt
+# Peng Cui (2014) - P=NP Claim
 
-**Navigation:** [↑ Back to Repository Root](../../../README.md) | [All Proof Attempts](../)
-
----
-
-## Metadata
-
-- **Attempt ID**: #98 (Woeginger's list)
-- **Author**: Peng Cui
-- **Year**: 2014 (revised 2015)
-- **Claim**: P = NP
-- **Paper Title**: "Approximation Resistance by Disguising Biased Distributions"
-- **Source**: [arXiv:1401.6520v24](https://arxiv.org/abs/1401.6520)
-- **Status**: Claimed proof contains logical errors
+**Attempt ID**: 98
+**Author**: Peng Cui
+**Year**: 2014
+**Claim**: P = NP
+**Source**: [arXiv:1401.6520](https://arxiv.org/abs/1401.6520)
+**Woeginger's List**: Entry #98 at https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
 
 ## Summary
 
-In this 2014 paper (revised through 2015), Peng Cui claims to prove that P = NP. The paper attempts to show that a certain 3-XOR gap problem, which is known to be NP-hard by Chan's theorem, can be solved in polynomial time by running the Charikar & Wirth SDP algorithm for two rounds. The author concludes that since an NP-hard problem can be solved in polynomial time, P = NP.
+In February 2014, Peng Cui published a paper titled "Approximation Resistance by Disguising Biased Distributions" claiming to prove P=NP. The paper claims to solve the gap problem of 3-XOR using a semidefinite programming (SDP) algorithm and concludes that this implies P=NP.
 
-## The Main Argument
+## Main Argument/Approach
 
-The proof structure follows these steps:
+The paper's main technical ingredients include:
 
-### 1. Background: Approximation Resistance
+1. **Dictator Test Techniques**: The paper addresses a key issue in dictator tests that disguises the questions of the verifier to a balanced pairwise independent distribution.
 
-- **Max k-CSP**: The task of satisfying the maximum fraction of constraints where each constraint involves k variables
-- **Approximation Resistant CSPs**: CSPs that are NP-hard to approximate better than a random assignment (e.g., Max 3-SAT, Max 3-XOR)
-- **Chan's Result (2013)**: Shows that CSPs whose support forms a subgroup with balanced pairwise independent distribution are approximation resistant
+2. **Variance-Style Theorem**: Uses a variance-style theorem to eliminate correlation of answers of all players based on Label-Cover and its reflection version.
 
-### 2. Chan's Theorem (Theorem 1 in the paper)
+3. **SDP Algorithm**: Claims that running Charikar & Wirth's SDP algorithm for two rounds on the gap problem of some 3-XOR proves that this NP-hard problem can be solved efficiently.
 
-For arbitrarily small constant ε, it is NP-hard to distinguish:
-- **Completeness**: val(P) ≥ 1 - ε
-- **Soundness**: val(P) ≤ 1/2 + ε
+4. **Three Truncated Biased Pairwise Independent Distributions**: The approach uses these distributions as part of the construction.
 
-This establishes a gap problem for 3-XOR that is NP-hard.
+5. **No Direct Sum Technique**: The approach claims not to rely on the technique of direct sum that requires the subgroup property.
 
-### 3. Cui's Construction (Section 4)
+The core claim is that by showing a specific 3-XOR gap problem (which is NP-hard) can be solved by an SDP algorithm in polynomial time, this demonstrates P=NP.
 
-Cui considers a specific 3-XOR instance where:
-- C = G₃ ∪ G₁ (where Gₘ denotes 3-tuples with exactly m ones)
-- The distribution ψ = (3/4, 1/4) disguises uniform distributions over G₃ and G₁ to create a balanced pairwise independent distribution
-- The constraint is a subgroup of G³
+## Critical Analysis
 
-### 4. Cui's Algorithm
+### Issues with the Claim
 
-**The claimed polynomial-time algorithm:**
+1. **Extraordinary Claim**: The claim of proving P=NP is extraordinary and would represent one of the most significant mathematical discoveries of all time. Such claims require extraordinary scrutiny.
 
-1. **Step 1**: Run Charikar & Wirth's SDP algorithm on the bi-linear form I⁽²⁾ (derived from tri-linear form I⁽³⁾) to get assignment f⁽¹⁾
-2. **Step 2**: Run the SDP algorithm again on I⁽³⁾ subject to f⁽¹⁾ to get assignment f⁽²⁾
-3. **Step 3**: Combine f⁽¹⁾ and f⁽²⁾ to get final assignment f
+2. **Paper Length**: The paper is only 6 pages long, which is remarkably brief for resolving such a fundamental and difficult problem. Most serious attempts at major complexity theory results span dozens or hundreds of pages.
 
-**Claim**: This algorithm achieves value at least 1/2 + Ω(1), contradicting the NP-hardness gap.
+3. **Multiple Revisions**: The arXiv listing shows 24 versions of the paper, including withdrawn versions (v2 and v21), suggesting ongoing issues with the manuscript's claims or methodology.
 
-### 5. The Conclusion
+4. **No Peer Review**: The paper appears only on arXiv and has not been published in a peer-reviewed journal or conference, which is typical for flawed P vs NP proofs.
 
-Since the algorithm solves an NP-hard gap problem in polynomial time, Cui concludes P = NP.
+5. **Lack of Acceptance**: The result has not been accepted by the computational complexity theory community, and no major researchers have validated the proof.
 
-## The Error in the Proof
+### Likely Error
 
-The fundamental error in this proof lies in **invalid application of the Charikar & Wirth algorithm and misunderstanding of the hardness reduction**.
+The most likely error in this type of argument is a gap between:
+- Showing that a specific SDP algorithm can solve a specific instance or restricted version of 3-XOR efficiently, versus
+- Showing that all NP-complete problems (or equivalently, all instances of 3-SAT/3-XOR in their full generality) can be solved in polynomial time.
 
-### Critical Flaws:
+Common errors in P=NP claims include:
+- Solving a related but easier problem
+- Missing subtle conditions or assumptions
+- Incorrect complexity analysis
+- Confusing average-case with worst-case complexity
+- Errors in the reduction or hardness proof
 
-#### 1. **Invalid Reduction from Tri-linear to Bi-linear Forms**
+Without access to the full paper details, we cannot pinpoint the exact error, but the formalization process below aims to identify where the argument fails.
 
-The paper claims to convert the tri-linear form I⁽³⁾ into a bi-linear form I⁽²⁾ by introducing new variables x⁽²³⁾ᵢ₂ᵢ₃. However:
+## Formalization Goals
 
-- **Problem**: The Charikar & Wirth algorithm applies to quadratic programs (bi-linear forms), but the reduction from a 3-XOR instance to a quadratic program is not trivial or automatic
-- **Gap**: The paper does not prove that optimizing I⁽²⁾ corresponds to optimizing the original 3-XOR instance
-- **Missing proof**: There's no justification that the constraints and structure of the 3-XOR problem are preserved in this transformation
+This formalization aims to:
 
-#### 2. **Circular Reasoning in the Algorithm**
+1. Formalize the key definitions (3-XOR, gap problems, SDP algorithms)
+2. Formalize the claimed algorithm and its properties
+3. Formalize the claimed reduction or proof that this implies P=NP
+4. Identify the gap or error in the argument through formal verification
 
-The proof claims:
-- Step 1 returns f⁽¹⁾ under which I⁽²⁾ ≥ Ω(1) (citing Lemma 5 from [3])
-- By "enumeration arguments," there exists f' such that I⁽³⁾ subject to f⁽¹⁾ ≥ Ω(1)
-- Step 2 returns f⁽²⁾ achieving this bound
-
-**Flaw**: The "enumeration arguments" are never proven or justified. This is a critical gap because:
-- If we need to enumerate all possible assignments to find f', that would take exponential time
-- The claim that such an f' exists with the required property is unsubstantiated
-- Even if f' exists, finding it efficiently is the core of the problem
-
-#### 3. **Misapplication of Lemma 5 from Charikar & Wirth**
-
-- **Original context**: Lemma 5 in [3] applies to specific quadratic programs with certain structural properties
-- **Missing verification**: The paper doesn't verify that the transformed problem I⁽²⁾ satisfies the preconditions of Lemma 5
-- **Algorithm mismatch**: Running the SDP algorithm "for two rounds" is not a standard technique and its correctness is never established
-
-#### 4. **Gap Between Soundness and Algorithm Performance**
-
-The paper claims the algorithm achieves value ≥ 1/2 + Ω(1), but:
-- **Vague bound**: Ω(1) is not explicitly computed or bounded
-- **Comparison error**: Even if the algorithm achieves some constant advantage, this doesn't immediately contradict the hardness result unless ε can be made arbitrarily small while maintaining the Ω(1) advantage
-- **Missing analysis**: No rigorous analysis shows the algorithm consistently beats the 1/2 + ε soundness threshold for all ε
-
-#### 5. **Ignoring the Dictatorship Test Structure**
-
-Chan's hardness result relies on a sophisticated dictatorship test composed with Label-Cover:
-- The hardness comes from the composition structure
-- The paper doesn't address how the SDP algorithm handles this composed structure
-- The folding and noise operations in the dictatorship test are not accounted for in the algorithm
-
-#### 6. **Fundamental Misunderstanding of Hardness Results**
-
-- **Key insight**: NP-hardness of approximation doesn't mean no algorithm can achieve better than random performance on *some* instances
-- **The error**: The hardness result states it's NP-hard to *distinguish* between high-value and low-value instances
-- **What's missing**: Even if an SDP algorithm achieves good value on satisfiable instances, it doesn't resolve the distinguishing problem unless it can also certify when instances have low value
-
-## Formalization Strategy
-
-To formalize this proof attempt and identify the errors, we will:
-
-1. **Define the 3-XOR problem and its gap version**
-2. **Formalize Chan's Theorem 1** (the NP-hardness result)
-3. **Formalize the Charikar & Wirth SDP algorithm and its guarantees**
-4. **Attempt to formalize Cui's reduction** from tri-linear to bi-linear forms
-5. **Attempt to formalize Cui's two-round algorithm**
-6. **Identify where the formalization fails** (proof obligations that cannot be satisfied)
-
-The formalization will make explicit:
-- The missing proof that the reduction preserves problem structure
-- The unsubstantiated "enumeration arguments"
-- The gap in applying Lemma 5 from [3]
-- The invalid conclusion from "algorithm performance" to "P = NP"
-
-## Directory Structure
-
-```
-proofs/attempts/peng-cui-2014-peqnp/
-├── README.md              (this file)
-├── paper.pdf             (the original arXiv paper)
-├── coq/
-│   └── PengCui2014.v    (Coq formalization)
-├── lean/
-│   └── PengCui2014.lean (Lean formalization)
-└── isabelle/
-    └── PengCui2014.thy  (Isabelle formalization)
-```
-
-## Key Definitions to Formalize
-
-### 1. Max k-CSP
-- Decision problems
-- Constraint satisfaction problems
-- Value of an assignment
-
-### 2. 3-XOR
-- Boolean variables over {1, -1}
-- XOR constraints
-- Balanced pairwise independent distributions
-- Biased distributions
-
-### 3. Gap Problems
-- Completeness and soundness parameters
-- NP-hardness of distinguishing
-
-### 4. SDP Algorithms
-- Semi-definite programming
-- Charikar & Wirth algorithm
-- Performance guarantees
-
-### 5. The Claimed Algorithm
-- Reduction to bi-linear form
-- Two-round SDP execution
-- Performance analysis
-
-## Expected Formalization Outcomes
-
-For each proof assistant, we expect to:
-
-1. ✅ Successfully formalize the problem definitions
-2. ✅ State Chan's Theorem 1 (assume as axiom since it's proven separately)
-3. ✅ State the Charikar & Wirth guarantees (assume as axiom)
-4. ❌ **Fail to prove** the reduction from I⁽³⁾ to I⁽²⁾ preserves optimality
-5. ❌ **Fail to prove** the "enumeration arguments" claim
-6. ❌ **Fail to prove** the algorithm runs in polynomial time with the claimed guarantees
-7. ❌ **Fail to prove** P = NP from the algorithm's existence
-
-The formalization will reveal precise **proof obligations that cannot be satisfied**, demonstrating where the original proof is invalid.
-
-## References
-
-1. **Peng Cui** (2014). "Approximation Resistance by Disguising Biased Distributions." arXiv:1401.6520v24 [cs.CC]
-2. **Chan, S. O.** (2013). "Approximation resistance from pairwise independent subgroups." STOC 2013.
-3. **Charikar, M. & Wirth, A.** (2004). "Maximizing quadratic programs: Extending Grothendieck's inequality." FOCS 2004.
-4. **Austrin, P., & Mossel, E.** (2009). "Approximation resistant predicates from pairwise independence." Computational Complexity.
-5. **Håstad, J.** (2001). "Some optimal inapproximability results." Journal of the ACM.
-
-## Related Work
-
-- [P = NP proofs](../../p_eq_np/) - Framework for testing P = NP claims
-- [P ≠ NP proofs](../../p_not_equal_np/) - Framework for testing P ≠ NP claims
-- [Barrier results](../../../TOOLS_AND_METHODOLOGIES.md) - Known barriers to P vs NP resolution
-
-## Notes
-
-- The paper went through 24 revisions (v1 through v24), with some versions withdrawn
-- The claim remained controversial and was never accepted by the community
-- No independent verification or peer-reviewed publication confirmed the result
-- The paper demonstrates common pitfalls in complexity theory proofs:
-  - Misunderstanding approximation hardness results
-  - Unjustified algorithmic claims
-  - Missing rigor in reduction arguments
+The formalization will be done in three proof assistants:
+- **Coq** (`coq/PengCui2014.v`)
+- **Lean** (`lean/PengCui2014.lean`)
+- **Isabelle/HOL** (`isabelle/PengCui2014.thy`)
 
 ## Status
 
-- 🚧 Coq formalization: In progress
-- 🚧 Lean formalization: In progress
-- 🚧 Isabelle formalization: In progress
-- ⏳ Error identification: Pending formalization completion
+This formalization is part of the systematic effort (issue #44) to formally verify or refute claimed proofs of P vs NP. The goal is not to prove or disprove P vs NP itself, but to understand and formalize the specific claims made in this paper and identify where the error lies.
 
----
+## References
 
-**Navigation:** [↑ Back to Repository Root](../../../README.md) | [Issue #110](https://github.com/konard/p-vs-np/issues/110)
+- **Paper**: Peng Cui, "Approximation Resistance by Disguising Biased Distributions", arXiv:1401.6520, 2014
+- **Woeginger's List**: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+- **Charikar & Wirth SDP**: Moses Charikar and Anthony Wirth, "Maximizing quadratic programs: extending Grothendieck's inequality", FOCS 2004
+
+## Parent Issue
+
+Part of #44 - Test all P vs NP attempts formally

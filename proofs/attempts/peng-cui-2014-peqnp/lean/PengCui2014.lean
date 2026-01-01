@@ -1,311 +1,241 @@
 /-
-  PengCui2014.lean - Formalization of Peng Cui's 2014 P=NP claim
+  PengCui2014.lean - Formalization of Peng Cui's 2014 P=NP Claim
 
-  This file formalizes the proof attempt by Peng Cui (2014) that claims P = NP
-  by showing a polynomial-time algorithm for a 3-XOR gap problem that Chan (2013)
-  proved to be NP-hard.
+  This file formalizes the key claims from Peng Cui's 2014 paper
+  "Approximation Resistance by Disguising Biased Distributions"
+  (arXiv:1401.6520) which claims to prove P=NP.
 
-  The formalization reveals where the proof fails by making explicit the
-  unproven assumptions and gaps in the argument.
+  The goal is to identify the gap or error in the claimed proof.
 -/
 
-namespace PengCui2014
+-- Basic definitions
+def BinaryString := List Bool
 
-/- ## 1. Basic Complexity Definitions -/
+def DecisionProblem := BinaryString → Prop
 
-def BinaryString : Type := List Bool
-def DecisionProblem : Type := BinaryString → Prop
 def inputSize (s : BinaryString) : Nat := s.length
 
-def IsPolynomial (f : Nat → Nat) : Prop :=
+-- Polynomial time bounds
+def isPolynomial (f : Nat → Nat) : Prop :=
   ∃ (k c : Nat), ∀ n, f n ≤ c * (n ^ k) + c
 
-structure TuringMachine where
-  states : Nat
-  alphabet : Nat
-  transition : Nat → Nat → (Nat × Nat × Bool)
-  initialState : Nat
-  acceptState : Nat
-  rejectState : Nat
+-- Complexity class P
+def inP (L : DecisionProblem) : Prop :=
+  ∃ (time : Nat → Nat),
+    isPolynomial time ∧
+    ∃ (decide : BinaryString → Bool),
+      ∀ x, L x ↔ decide x = true
 
-def InP (L : DecisionProblem) : Prop :=
-  ∃ (M : TuringMachine) (time : Nat → Nat),
-    IsPolynomial time ∧ True  -- M decides L in polynomial time
+-- Complexity class NP (via certificates)
+def inNP (L : DecisionProblem) : Prop :=
+  ∃ (verify : BinaryString → BinaryString → Bool)
+    (certSize time : Nat → Nat),
+    isPolynomial certSize ∧
+    isPolynomial time ∧
+    ∀ x, L x ↔ ∃ c, c.length ≤ certSize x.length ∧ verify x c = true
 
-def Certificate : Type := BinaryString
+-- NP-hardness via polynomial-time reductions
+def NPHard (L : DecisionProblem) : Prop :=
+  ∀ L', inNP L' →
+    ∃ (reduction : BinaryString → BinaryString) (time : Nat → Nat),
+      isPolynomial time ∧
+      (∀ x, L' x ↔ L (reduction x))
 
-def InNP (L : DecisionProblem) : Prop :=
-  ∃ (V : BinaryString → Certificate → Bool) (certSize : Nat → Nat),
-    IsPolynomial certSize ∧
-    ∀ (x : BinaryString),
-      L x ↔ ∃ (c : Certificate), inputSize c ≤ certSize (inputSize x) ∧ V x c = true
+-- NP-completeness
+def NPComplete (L : DecisionProblem) : Prop :=
+  inNP L ∧ NPHard L
 
-def PEqualsNP : Prop :=
-  ∀ L, InNP L → InP L
+-- 3-XOR Problem Definition
+structure XOR3Clause where
+  var1 : Nat
+  var2 : Nat
+  var3 : Nat
+  target : Bool
 
-/- ## 2. 3-XOR Problem Definitions -/
+def XOR3Instance := List XOR3Clause
 
-/-- Group G = {1, -1} with multiplication -/
-inductive G where
-  | one : G      -- represents 0/false
-  | negOne : G   -- represents 1/true
-  deriving DecidableEq
+def Assignment := Nat → Bool
 
-/-- Multiplication in G -/
-def G.mult : G → G → G
-  | G.one, x => x
-  | x, G.one => x
-  | G.negOne, G.negOne => G.one
+-- Evaluate a 3-XOR clause under an assignment
+def evalXOR3Clause (a : Assignment) (c : XOR3Clause) : Bool :=
+  xor (xor (a c.var1) (a c.var2)) (xor (a c.var3) c.target)
 
-/-- 3-tuples over G -/
-def G3 : Type := G × G × G
+-- Check if an assignment satisfies all clauses
+def satisfiesXOR3 (a : Assignment) (inst : XOR3Instance) : Bool :=
+  inst.all (evalXOR3Clause a)
 
-/-- ** Probability Distributions (abstract) -/
+-- The 3-XOR decision problem: is there a satisfying assignment?
+def XOR3SAT (inst : XOR3Instance) : Prop :=
+  ∃ a, satisfiesXOR3 a inst = true
 
-def Distribution (A : Type) := A → Prop
+-- Note: To use with DecisionProblem, we need an encoding from BinaryString to XOR3Instance
+-- For this formalization, we axiomatize the encoding
+axiom encodeToXOR3 : BinaryString → XOR3Instance
+axiom decodeFromXOR3 : XOR3Instance → BinaryString
 
-/-- Ground of a distribution -/
-def ground {A : Type} (phi : Distribution A) : A → Prop := phi
+def XOR3SAT_problem : DecisionProblem :=
+  fun s => XOR3SAT (encodeToXOR3 s)
 
-/-- ** Pairwise Independence -/
+-- 3-XOR is NP-complete (stated as axiom, well-known result)
+axiom xor3IsNPComplete : NPComplete XOR3SAT_problem
 
-/-- Balanced pairwise independent distribution over G^3 -/
-def BalancedPairwiseIndependent (phi : Distribution G3) : Prop :=
-  True  -- Abstract property
+-- Gap Problems
+-- A gap problem for 3-XOR with parameter ε (epsilon)
+-- YES instances: at least (1-ε) fraction of clauses can be satisfied
+-- NO instances: at most (1/2 + ε) fraction of clauses can be satisfied
 
-/-- Biased pairwise independent with bias gamma -/
-def BiasedPairwiseIndependent (phi : Distribution G3) (gamma : Nat) : Prop :=
-  True  -- Abstract property
+def GapXOR3 (epsilon : Nat) (inst : XOR3Instance) : Prop :=
+  -- Either almost all clauses are satisfiable, or almost none are
+  -- This is a promise problem - only defined on instances meeting the gap
+  True -- Abstract gap property
 
-/-- ** Disguising Distributions (Definition 2 from paper) -/
+def GapXOR3_problem (epsilon : Nat) : DecisionProblem :=
+  fun s => GapXOR3 epsilon (encodeToXOR3 s)
 
-def Disguises {A : Type}
-  (phi1 phi2 : Distribution A) (weights : Nat × Nat) (result : Distribution A) : Prop :=
-  True  -- Abstract: result is weighted combination
+-- Gap 3-XOR is NP-hard (for appropriate epsilon)
+axiom gapXOR3IsNPHard : ∀ epsilon, NPHard (GapXOR3_problem epsilon)
 
-/- ## 3. Chan's Theorem (2013) -/
+-- Semidefinite Programming (SDP)
+structure SDPProblem where
+  dimension : Nat
+  objective : Nat  -- abstract objective
+  constraints : Nat  -- abstract constraints
 
-/-- A 3-XOR instance -/
-structure ThreeXORInstance where
-  variables : Nat
-  constraints : List (Nat × Nat × Nat)  -- triples of variable indices
+-- SDP solver - runs in polynomial time
+def sdpSolver (sdp : SDPProblem) : Option Nat :=
+  some 0  -- Abstract SDP solver
 
-/-- Value of an assignment on a 3-XOR instance -/
-def xorValue (I : ThreeXORInstance) (assignment : Nat → G) : Nat :=
-  0  -- Abstract: fraction of satisfied constraints
+-- SDP is solvable in polynomial time
+axiom sdpIsPolynomial :
+  ∃ (time : Nat → Nat),
+    isPolynomial time ∧
+    ∀ (sdp : SDPProblem), ∃ solution, sdpSolver sdp = some solution
 
-/-- Gap problem: distinguish high-value from low-value instances -/
-def Distinguishable (eps : Nat) (I1 I2 : ThreeXORInstance) : Prop :=
-  True  -- I1 has value >= 1-eps, I2 has value <= 1/2+eps
+-- Charikar-Wirth SDP Algorithm
+def charikarWirthSDPRound (inst : XOR3Instance) : Option Nat :=
+  some 0  -- Abstract implementation
 
-/-- Chan's Theorem 1: The gap problem for 3-XOR is NP-hard -/
-axiom ChansTheorem : ∀ (eps : Nat),
-  -- For arbitrarily small eps, it is NP-hard to distinguish:
-  -- Completeness: val(P) >= 1 - eps
-  -- Soundness: val(P) <= 1/2 + eps
-  True
+-- Running algorithm for multiple rounds
+def charikarWirthSDPRounds : Nat → XOR3Instance → Option Nat
+  | 0, _ => none
+  | _ + 1, inst => charikarWirthSDPRound inst
 
-/- ## 4. Charikar & Wirth SDP Algorithm (2004) -/
+-- The algorithm is polynomial time
+axiom charikarWirthIsPolynomial :
+  ∃ (time : Nat → Nat), isPolynomial time
 
-/-- Semi-definite programming representation -/
-structure SDPInstance where
-  size : Nat
-  objective : Nat  -- Abstract representation
+-- Peng Cui's Key Claim
+-- Claim: Running Charikar-Wirth SDP for 2 rounds solves Gap 3-XOR exactly
+axiom cuiClaimSDPSolvesGapXOR3 :
+  ∀ (inst : XOR3Instance) (epsilon : Nat),
+    ∃ (solution : Nat),
+      charikarWirthSDPRounds 2 inst = some solution ∧
+      (GapXOR3 epsilon inst ↔ solution > 0)  -- Abstract correctness
 
-/-- Charikar & Wirth's algorithm for maximizing quadratic programs -/
-axiom CharikarWirthAlgorithm :
-  ∀ (sdp : SDPInstance), Nat  -- Returns an assignment
+-- The Claimed Proof of P=NP
 
-/-- Lemma 5 from Charikar & Wirth: performance guarantee -/
-axiom CharikarWirthLemma5 : ∀ (sdp : SDPInstance),
-  -- If optimal value is Omega(1), algorithm achieves Omega(1)
-  True
+-- Step 1: Gap 3-XOR is NP-hard
+theorem step1GapXOR3NPHard : ∀ epsilon, NPHard (GapXOR3_problem epsilon) := by
+  intro epsilon
+  exact gapXOR3IsNPHard epsilon
 
-/- ## 5. Fourier Analysis -/
+-- Step 2: Charikar-Wirth SDP solves Gap 3-XOR in polynomial time
+theorem step2SDPSolvesGapXOR3PolyTime :
+  ∀ epsilon,
+    ∃ (time : Nat → Nat),
+      isPolynomial time ∧
+      ∀ inst, GapXOR3 epsilon inst ↔ True := by
+  intro epsilon
+  -- Use the claimed result
+  obtain ⟨time, hpoly⟩ := charikarWirthIsPolynomial
+  exact ⟨time, hpoly, fun _inst => ⟨fun _ => trivial, fun _ => sorry⟩⟩
 
-/-- Tri-linear form from a 3-XOR instance -/
-def triLinearForm (I : ThreeXORInstance) : Nat :=
-  0  -- Abstract: sum of tri-linear terms in Fourier spectra
-
-/-- Lemma 4 from Hast (2005): completeness implies large tri-linear form -/
-axiom HastLemma4 : ∀ (I : ThreeXORInstance) (eps : Nat),
-  -- val(I) >= 1 - eps implies triLinearForm(I) >= Omega(1)
-  True
-
-/- ## 6. Cui's Reduction: Tri-linear to Bi-linear -/
-
-/-- Cui's proposed reduction from I^(3) to I^(2)
-    For each tri-linear term a_i1i2i3 * x^(1)_i1 * x^(2)_i2 * x^(3)_i3,
-    introduce bi-linear term a_i1i2i3 * x^(1)_i1 * x^(23)_i2i3 -/
-
-def biLinearForm (I : ThreeXORInstance) : Nat :=
-  0  -- Abstract: Cui's bi-linear form I^(2)
-
-/-- ⚠️ CRITICAL GAP 1: The reduction must preserve optimality
-    This is UNPROVEN in Cui's paper -/
-axiom CuiReductionPreservesOptimality : ∀ (I : ThreeXORInstance),
-  -- If triLinearForm(I) >= k, then biLinearForm(I) >= f(k) for some f
-  triLinearForm I = biLinearForm I
-
-/-- ⚠️ This axiom is HIGHLY SUSPICIOUS - it's precisely what needs to be proven! -/
-
-/- ## 7. Cui's Two-Round Algorithm -/
-
-/-- Step 1: Run SDP on I^(2) to get assignment f^(1) -/
-def CuiAlgorithmStep1 (I : ThreeXORInstance) : Nat :=
-  CharikarWirthAlgorithm ⟨0, biLinearForm I⟩
-
-/-- Step 2: Run SDP on I^(3) subject to f^(1) -/
-def CuiAlgorithmStep2 (I : ThreeXORInstance) (f1 : Nat) : Nat :=
-  CharikarWirthAlgorithm ⟨0, triLinearForm I⟩
-
-/-- ⚠️ CRITICAL GAP 2: The "enumeration arguments"
-    Cui claims: "By enumeration arguments, there is an assignment f' such that
-    I^(3) subject to f^(1) >= Omega(1)"
-    This is UNPROVEN and likely FALSE (enumeration takes exponential time!) -/
-axiom CuiEnumerationArgument : ∀ (I : ThreeXORInstance) (f1 : Nat),
-  -- There exists f' such that I^(3) subject to f1 >= Omega(1)
-  -- AND this f' can be found in polynomial time
-  True
-
-/-- ⚠️ Again, this axiom is what needs to be proven! -/
-
-/-- Step 3: Combine assignments -/
-def CuiAlgorithmStep3 (f1 f2 : Nat) : Nat → G :=
-  fun _ => G.one
-
-/-- The complete algorithm -/
-def CuiAlgorithm (I : ThreeXORInstance) : Nat → G :=
-  let f1 := CuiAlgorithmStep1 I
-  let f2 := CuiAlgorithmStep2 I f1
-  CuiAlgorithmStep3 f1 f2
-
-/- ## 8. Cui's Main Claim -/
-
-/-- Cui claims the algorithm achieves value >= 1/2 + Omega(1) -/
-axiom CuiAlgorithmPerformance : ∀ (I : ThreeXORInstance),
-  -- xorValue I (CuiAlgorithm I) >= 1/2 + Omega(1)
-  True
-
-/-- ⚠️ CRITICAL GAP 3: Polynomial time complexity -/
-axiom CuiAlgorithmPolynomialTime :
-  IsPolynomial (fun n => n)  -- Placeholder - actual bound missing
-
-/- ## 9. The Alleged Proof of P = NP -/
-
-/-- Cui's Theorem 2: P = NP
-    We attempt to formalize the proof and identify where it fails -/
-
-theorem CuiPEqualsNPATTEMPT : PEqualsNP := by
-  unfold PEqualsNP
-  intro L H_L_in_NP
-
-  /-  The proof would go:
-      1. By Chan's theorem, there's an NP-hard 3-XOR gap problem
-      2. By Cui's algorithm, this gap problem can be solved in poly time
-      3. Therefore, an NP-hard problem is in P
-      4. Therefore, P = NP
-
-      However, this proof has MULTIPLE FATAL FLAWS:
-  -/
-
-  /- ⚠️ FLAW 1: We invoked CuiReductionPreservesOptimality, which is UNPROVEN -/
-  /- ⚠️ FLAW 2: We invoked CuiEnumerationArgument, which is UNPROVEN and likely FALSE -/
-  /- ⚠️ FLAW 3: We invoked CuiAlgorithmPerformance, which depends on flaws 1 and 2 -/
-  /- ⚠️ FLAW 4: Even if the algorithm works on some instances, it doesn't solve the
-              DISTINGUISHING problem (telling high-value from low-value instances) -/
-  /- ⚠️ FLAW 5: The reduction from arbitrary NP problems to 3-XOR is not established -/
-
-  /- The proof CANNOT be completed without proving these axioms! -/
+-- Step 3: If an NP-hard problem is in P, then P=NP
+theorem step3NPHardInPImpliesPEqNP :
+  ∀ L, NPHard L → inP L →
+    ∀ L', inNP L' → inP L' := by
+  intro L hNPHard hInP L' hInNP
+  -- L is NP-hard, so L' reduces to L
+  obtain ⟨reduction, time, hPoly, hReduction⟩ := hNPHard L' hInNP
+  -- L is in P
+  obtain ⟨timeL, hPolyL, decideL, hDecideL⟩ := hInP
+  -- Compose the reduction with the decision procedure for L
+  -- The full proof requires showing polynomial composition preserves bounds
+  -- and that the composed decision procedure is correct
   sorry
 
-/- ## 10. Identifying the Precise Errors -/
-
-/-- Error 1: Invalid reduction from tri-linear to bi-linear -/
-lemma CuiError1InvalidReduction :
-  -- The claim that optimizing I^(2) helps optimize I^(3) is unsubstantiated
-  ∀ (I : ThreeXORInstance),
-    -- There's no proof that biLinearForm optimization preserves triLinearForm structure
-    True := by
-  intro _
-  -- The paper simply ASSERTS this without proof
-  -- This is equivalent to assuming what needs to be proven
-  trivial
-
-/-- Error 2: Enumeration arguments are not polynomial time ---/
-lemma CuiError2EnumerationNotPoly :
-  -- Enumerating all assignments to find f' takes exponential time
-  ∀ (I : ThreeXORInstance),
-    -- Cannot enumerate all assignments in polynomial time
-    True := by
-  intro _
-  -- For n variables, there are 2^n assignments
-  -- Enumeration is inherently exponential
-  trivial
-
-/-- Error 3: Misapplication of Lemma 5 -/
-lemma CuiError3Lemma5Misapplication :
-  -- Lemma 5 from Charikar & Wirth applies to specific quadratic programs
-  -- Cui doesn't verify the preconditions
-  True := by
-  -- The SDP algorithm has specific requirements on the problem structure
-  -- These are not verified for the transformed problem
-  trivial
-
-/-- Error 4: Gap problem vs optimization problem -/
-lemma CuiError4GapVsOptimization :
-  -- Chan's hardness is for DISTINGUISHING high-value from low-value instances
-  -- Cui's algorithm (even if correct) only finds good assignments on satisfiable instances
-  -- This doesn't solve the distinguishing problem
-  True := by
-  -- A distinguisher must certify BOTH high and low value cases
-  -- Cui only addresses the high-value case
-  trivial
-
-/-- Error 5: Reduction from general NP to specific 3-XOR -/
-lemma CuiError5GeneralNPReduction :
-  -- Even if Cui's specific 3-XOR instance can be solved efficiently,
-  -- this doesn't immediately imply P = NP
-  -- Need a reduction from ALL NP problems
-  True := by
-  -- This requires showing 3-XOR is NP-complete, which is separate
-  trivial
-
-/- ## 11. Summary of Formalization -/
+-- The Complete Claimed Proof
+theorem cuiPEqualsNPClaim :
+  -- Assuming the SDP claim is correct
+  (∀ inst epsilon solution,
+    charikarWirthSDPRounds 2 inst = some solution →
+    (GapXOR3 epsilon inst ↔ solution > 0)) →
+  -- Then P = NP
+  ∀ L, inNP L → inP L := by
+  intro _hSDPClaim L hInNP
+  -- Pick an appropriate epsilon
+  let epsilon := 1  -- arbitrary choice
+  -- Gap_XOR3 epsilon is NP-hard
+  have hNPHard : NPHard (GapXOR3_problem epsilon) := gapXOR3IsNPHard epsilon
+  -- Gap_XOR3 epsilon is in P (using the SDP algorithm)
+  -- This is where the key gap is - Cui's claim that SDP solves Gap 3-XOR is unproven
+  -- The rest of the proof would follow from step3NPHardInPImpliesPEqNP
+  sorry
 
 /-
-This formalization demonstrates that Cui's proof of P = NP contains
-multiple critical gaps:
+  Critical Gap Analysis
 
-1. **UNPROVEN REDUCTION**: The transformation from tri-linear to bi-linear form
-   is claimed to preserve optimality without proof.
+  The error in Cui's proof likely lies in one of these places:
 
-2. **UNPROVEN ENUMERATION**: The "enumeration arguments" are never justified and
-   likely require exponential time.
+  1. The claim that Charikar-Wirth SDP solves Gap 3-XOR exactly
+     - The algorithm may only provide an approximation
+     - It may work for specific instances but not all NP-hard instances
 
-3. **MISAPPLIED LEMMA**: Lemma 5 from Charikar & Wirth is applied without
-   verifying its preconditions.
+  2. The gap in the gap problem may not be sufficient
+     - Even if the SDP gives good approximations, it may not decide the gap problem
 
-4. **INCORRECT PROBLEM TYPE**: The hardness result is for a gap problem
-   (distinguishing), but the algorithm only addresses optimization on
-   satisfiable instances.
+  3. The reduction from general 3-XOR to Gap 3-XOR may lose information
+     - The gap problem is a promise problem, not all instances are valid
 
-5. **INCOMPLETE REDUCTION**: Even if the specific instance is solved, the
-   reduction from arbitrary NP problems is not established.
-
-The formalization makes these gaps EXPLICIT by requiring them as axioms.
-A valid proof would need to prove these axioms, which Cui's paper does not do.
+  4. The encoding and decoding between problems may not preserve hardness
+     - Going from arbitrary NP problems to Gap 3-XOR and back may fail
 -/
 
-/- Check that we can state the problem -/
-#check PEqualsNP
-#check CuiPEqualsNPATTEMPT
-#check CuiError1InvalidReduction
-#check CuiError2EnumerationNotPoly
-#check CuiError3Lemma5Misapplication
-#check CuiError4GapVsOptimization
-#check CuiError5GeneralNPReduction
+-- A counter-check: If P=NP, then NP=coNP
+theorem pEqNPImpliesNPEqCoNP :
+  (∀ L, inNP L → inP L) →
+  ∀ L, inNP L → inNP (fun x => ¬L x) := by
+  intro hPEqNP L hInNP
+  -- L is in NP, so L is in P
+  have hLInP := hPEqNP L hInNP
+  -- P is closed under complement
+  obtain ⟨time, hPoly, decide, hDecide⟩ := hLInP
+  -- ~L is also in P
+  -- P ⊆ NP, so ~L is in NP
+  sorry
 
-#print "✓ Peng Cui (2014) formalization compiled with identified gaps"
+/-
+  Summary
 
-end PengCui2014
+  This formalization captures the structure of Cui's argument:
+  1. Gap 3-XOR is NP-hard (true)
+  2. Charikar-Wirth SDP solves Gap 3-XOR in polynomial time (CLAIMED - likely false)
+  3. Therefore, an NP-hard problem is in P (follows from 1,2)
+  4. Therefore, P=NP (follows from 3)
+
+  The error is almost certainly in step 2. The SDP algorithm provides
+  an approximation, but may not exactly solve the decision problem or
+  may only work for specific instances rather than the full NP-hard problem.
+
+  To complete this formalization, one would need to:
+  - Formalize the actual SDP algorithm in detail
+  - Prove its approximation guarantees
+  - Show where the gap between "approximation" and "exact solution" occurs
+  - Demonstrate that the claimed exact solution is not achievable in polynomial time
+-/
+
+-- Verification that key definitions are well-formed
+#check GapXOR3
+#check charikarWirthSDPRounds
+#check cuiPEqualsNPClaim
+
