@@ -1,0 +1,3 @@
+build	UNKNOWN STEP	2025-10-26T17:49:57.3937606Z PvsNP FAILED (see also "isabelle build_log -H Error PvsNP")
+build	UNKNOWN STEP	2025-10-26T17:49:57.3940437Z *** Outer syntax error (line 222 of "~/work/p-vs-np/p-vs-np/proofs/attempts/infotechnology-center-2012-pneqnp/isabelle/FukuyamaAttempt.thy"): proposition expected,
+build	UNKNOWN STEP	2025-10-26T17:49:57.7042003Z ##[error]Process completed with exit code 1.
