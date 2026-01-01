@@ -120,12 +120,15 @@ Proof.
     inversion Hn.
   - (* n = S n' case *)
     (* We need to show: S n' * 2^(S n') * S n' >= 2^(S n') *)
-    (* Rewrite as: (S n' * S n') * 2^(S n') >= 1 * 2^(S n') *)
-    rewrite Nat.mul_assoc.
-    apply Nat.mul_le_mono_r.
-    (* S n' * S n' >= 1 *)
-    apply Nat.le_succ_l.
-    apply Nat.lt_0_succ.
+    (* The goal is: (S n' * 2^(S n')) * S n' >= 2^(S n') *)
+    (* We know S n' >= 1, so (S n' * 2^(S n')) * S n' >= (1 * 2^(S n')) * 1 = 2^(S n') *)
+    apply Nat.le_trans with (m := 1 * 2 ^ S n' * 1).
+    + simpl. rewrite Nat.mul_1_r. apply Nat.le_refl.
+    + apply Nat.mul_le_mono.
+      * apply Nat.mul_le_mono.
+        -- apply Nat.le_succ_diag_r.
+        -- apply Nat.le_refl.
+      * apply Nat.le_succ_diag_r.
 Qed.
 
 (** * 6. Polynomial Time Bound *)
@@ -290,11 +293,14 @@ Proof.
         inversion Hn. inversion H0.
       * (* n = S (S n2), i.e., n >= 2 *)
         (* Goal: S (S n2) * 2 ^ S (S n2) * S (S n2) >= 2 ^ S (S n2) *)
-        rewrite Nat.mul_assoc.
-        apply Nat.mul_le_mono_r.
-        (* S (S n2) * S (S n2) >= 1 *)
-        apply Nat.le_succ_l.
-        apply Nat.lt_0_succ.
+        (* Same approach as standard_dp_is_exponential *)
+        apply Nat.le_trans with (m := 1 * 2 ^ S (S n2) * 1).
+        -- simpl. rewrite Nat.mul_1_r. apply Nat.le_refl.
+        -- apply Nat.mul_le_mono.
+           ++ apply Nat.mul_le_mono.
+              ** apply Nat.le_succ_diag_r.
+              ** apply Nat.le_refl.
+           ++ apply Nat.le_succ_diag_r.
   - split.
     + apply nuriyev_claim_is_polynomial.
     + exists 16%nat. intros Hn0.
