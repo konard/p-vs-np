@@ -1,7 +1,7 @@
 (**
-  DaegeneSong2014.v - Formalization of Daegene Song's 2014 P≠NP attempt
+  DaegeneSong2014.v - Formalization of Daegene Song's 2014 P!=NP attempt
 
-  This file formalizes and refutes Song's claim that P≠NP based on quantum
+  This file formalizes and refutes Song's claim that P!=NP based on quantum
   self-reference. The paper argues that observing a reference frame's evolution
   with respect to itself creates nondeterminism distinguishing NP from P.
 
@@ -90,7 +90,7 @@ Axiom vectors_appear_different :
     theta <> PI ->
     schrodinger_self_reference theta <> heisenberg_self_reference theta.
 
-(** * 5. Why This Doesn't Prove P ≠ NP *)
+(** * 5. Why This Doesn't Prove P != NP *)
 
 (** ** Error 1: The "different" vectors are in different coordinate systems *)
 
@@ -154,7 +154,7 @@ Definition PNotEqualsNP : Prop := ~ PEqualsNP.
 
 (** Song's physical process (P2) is NOT a decision problem *)
 (** It doesn't accept/reject strings, so it's not a language *)
-(** Therefore, the claim "(P2) ∈ NP but (P2) ∉ P" is not well-formed *)
+(** Therefore, the claim "(P2) in NP but (P2) not in P" is not well-formed *)
 
 Axiom song_process_not_a_language :
   ~ exists (L : Language),
@@ -163,18 +163,18 @@ Axiom song_process_not_a_language :
 
 (** * 6. The Core Refutation *)
 
-(** Theorem: Song's argument does not establish P ≠ NP *)
+(** Theorem: Song's argument does not establish P != NP *)
 Theorem song_refutation :
   (* Even if we accept all of Song's setup... *)
   (forall theta : R,
     theta <> R0 ->
     theta <> PI ->
     schrodinger_self_reference theta <> heisenberg_self_reference theta) ->
-  (* It still doesn't prove P ≠ NP *)
+  (* It still doesn't prove P != NP *)
   ~ (PNotEqualsNP).
 Proof.
   intro H_different_vectors.
-  (* We need to show that the difference in vectors doesn't imply P ≠ NP *)
+  (* We need to show that the difference in vectors doesn't imply P != NP *)
   unfold not.
   intro H_assume_p_neq_np.
 
@@ -197,12 +197,12 @@ Proof.
   (* Therefore, Song's argument creates a TYPE ERROR: *)
   (* Cannot apply complexity class membership to a non-decision-problem *)
 
-  (* This is a contradiction - we assumed P ≠ NP follows from Song's setup *)
+  (* This is a contradiction - we assumed P != NP follows from Song's setup *)
   (* but the setup doesn't even define a proper decision problem *)
 
   (* In a fully rigorous proof, we would show that no language L exists *)
   (* corresponding to Song's process (P2), therefore the statement *)
-  (* "(P2) ∈ NP ∧ (P2) ∉ P" is meaningless *)
+  (* "(P2) in NP and (P2) not in P" is meaningless *)
 
   admit. (* Placeholder: full proof requires formalizing the type mismatch *)
 Admitted.
@@ -247,12 +247,12 @@ Axiom error1_coordinate_confusion :
 
 (** Error 2: Misunderstanding of nondeterminism *)
 Axiom error2_nondeterminism_confusion :
-  (* Observer choice of description ≠ computational nondeterminism *)
+  (* Observer choice of description != computational nondeterminism *)
   True.
 
 (** Error 3: Type error in complexity claim *)
 Axiom error3_type_error :
-  (* (P2) is not a decision problem, so "(P2) ∈ NP" is meaningless *)
+  (* (P2) is not a decision problem, so "(P2) in NP" is meaningless *)
   True.
 
 (** Error 4: Physical equivalence ignored *)
@@ -286,7 +286,7 @@ Theorem conclusion :
   (forall theta : R,
     theta <> R0 ->
     schrodinger_self_reference theta <> heisenberg_self_reference theta) ->
-  (* Does not establish P ≠ NP *)
+  (* Does not establish P != NP *)
   True.
 Proof.
   intro H.
@@ -299,7 +299,7 @@ Check what_song_showed.
 Check representation_not_complexity.
 Check conclusion.
 
-(** This formalization demonstrates that Song's 2014 attempt to prove P ≠ NP
+(** This formalization demonstrates that Song's 2014 attempt to prove P != NP
     via quantum self-reference fails due to fundamental misunderstandings about:
     - The nature of computational complexity
     - The equivalence of quantum mechanical pictures
