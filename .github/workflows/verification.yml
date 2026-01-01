@@ -26,9 +26,9 @@ jobs:
       with:
         path: |
           ~/.elan
-        key: ${{ runner.os }}-lean-elan-${{ hashFiles('lakefile.lean') }}
+        key: ${{ runner.os }}-lean-elan-v2-${{ hashFiles('lakefile.lean') }}
         restore-keys: |
-          ${{ runner.os }}-lean-elan-
+          ${{ runner.os }}-lean-elan-v2-
 
     - name: Clean stale build artifacts
       run: |
