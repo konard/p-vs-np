@@ -56,18 +56,21 @@ record InputApproximation =
   approximatedInputs :: "nat set"
   approximate :: "(nat \<Rightarrow> bool) \<Rightarrow> (nat \<Rightarrow> bool)"
 
-(* Gordeev's incomplete approximation (only handles positive inputs) *)
+(* Gordeev's incomplete approximation (only handles positive inputs)
+   - approximatedInputs: Arbitrary bound of 100 for formalization purposes
+   - approximate: Simplified - just passes through positive inputs *)
 definition gordeevApproximation :: InputApproximation where
   "gordeevApproximation = \<lparr>
-    approximatedInputs = {i. i < 100},  (* Arbitrary bound for formalization *)
-    approximate = (\<lambda>f. f)  (* Simplified: just pass through positive inputs *)
+    approximatedInputs = {i. i < 100},
+    approximate = (\<lambda>f. f)
   \<rparr>"
 
-(* A complete approximation must handle both positive AND negated inputs *)
+(* A complete approximation must handle both positive AND negated inputs
+   CRITICAL: handlesNegated is essential for DMN circuits which use NOT gates *)
 record CompleteInputApproximation =
   base :: InputApproximation
   handlesPositive :: bool
-  handlesNegated :: bool  (* CRITICAL: Must also handle negated inputs *)
+  handlesNegated :: bool
 
 definition isCompleteApproximation :: "CompleteInputApproximation \<Rightarrow> bool" where
   "isCompleteApproximation c \<longleftrightarrow>
@@ -88,10 +91,11 @@ definition HasExponentialLowerBound :: "(CLIQUE_input \<Rightarrow> bool) \<Righ
     (\<forall>c. (\<forall>input. evaluate c (\<lambda>_. problem input) = problem input) \<longrightarrow>
      (\<exists>\<epsilon>. (\<forall>n. \<epsilon> n > 0) \<and> (\<forall>n. circuitSize c \<ge> 2^(\<epsilon> n))))"
 
-(* Gordeev's claimed lemma (incomplete version) *)
+(* Gordeev's claimed lemma (incomplete version)
+   Note: Condition simplified to True for formalization *)
 axiomatization where
   gordeev_lemma_12_claim:
-    "\<forall>c. True \<longrightarrow>  (* Simplified condition *)
+    "\<forall>c. True \<longrightarrow>
      (\<exists>approx. approximate approx = approximate gordeevApproximation)"
 
 (* The critical error: Lemma 12 doesn't establish completeness *)
@@ -142,13 +146,13 @@ definition P_equals_NP :: bool where
 definition P_not_equals_NP :: bool where
   "P_not_equals_NP \<longleftrightarrow> \<not>P_equals_NP"
 
-(* CLIQUE is NP-complete *)
+(* CLIQUE is NP-complete - simplified to True for formalization purposes *)
 axiomatization where
-  CLIQUE_is_NP_complete: "True"  (* Simplified *)
+  CLIQUE_is_NP_complete: "True"
 
-(* Gordeev's attempted proof structure *)
+(* Gordeev's attempted proof structure - cliqueLowerBound simplified to bool *)
 record GordeevProofAttempt =
-  cliqueLowerBound :: bool  (* Simplified *)
+  cliqueLowerBound :: bool
   basedOnLemma12 :: bool
   concludes :: bool
 
