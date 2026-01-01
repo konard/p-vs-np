@@ -14,8 +14,92 @@
 Require Import Coq.Arith.Arith.
 Require Import Coq.Lists.List.
 Require Import Coq.Logic.FunctionalExtensionality.
-Require Import LinearOrdering.
 Import ListNotations.
+
+(** * Basic Definitions from LinearOrdering.v *)
+
+(** Number of vertices *)
+Definition Vertex := nat.
+
+(** A weight matrix for the directed graph *)
+Definition WeightMatrix (n : nat) := list (list nat).
+
+(** A permutation of vertices (linear ordering) *)
+Definition Permutation (n : nat) := list Vertex.
+
+(** Check if a list is a valid permutation of {0, 1, ..., n-1} *)
+Fixpoint is_permutation (n : nat) (perm : Permutation n) : Prop :=
+  length perm = n /\
+  (forall i, i < n -> In i perm) /\
+  (forall i, In i perm -> i < n) /\
+  NoDup perm.
+
+(** Position of an element in a permutation *)
+Fixpoint position_in_list {A : Type} (eq_dec : forall x y : A, {x = y} + {x <> y})
+                           (x : A) (l : list A) : option nat :=
+  match l with
+  | [] => None
+  | h :: t => if eq_dec x h then Some 0
+             else match position_in_list eq_dec x t with
+                  | None => None
+                  | Some pos => Some (S pos)
+                  end
+  end.
+
+Definition vertex_position (v : Vertex) (perm : Permutation 0) : option nat :=
+  position_in_list Nat.eq_dec v perm.
+
+(** Check if vertex i comes before vertex j in permutation *)
+Definition comes_before (i j : Vertex) (perm : Permutation 0) : bool :=
+  match vertex_position i perm, vertex_position j perm with
+  | Some pos_i, Some pos_j => Nat.ltb pos_i pos_j
+  | _, _ => false
+  end.
+
+(** Get weight from weight matrix *)
+Fixpoint get_weight (matrix : WeightMatrix 0) (i j : nat) : nat :=
+  match matrix with
+  | [] => 0
+  | row :: rest =>
+      if Nat.eqb i 0 then
+        match nth_error row j with
+        | Some w => w
+        | None => 0
+        end
+      else get_weight rest (i - 1) j
+  end.
+
+(** Calculate the objective value of a permutation *)
+Fixpoint calculate_objective_aux (matrix : WeightMatrix 0) (perm : Permutation 0)
+                                  (i j : nat) (n : nat) : nat :=
+  match n with
+  | 0 => 0
+  | S n' =>
+      let weight := if comes_before i j perm then get_weight matrix i j else 0 in
+      weight + calculate_objective_aux matrix perm i j n'
+  end.
+
+Fixpoint calculate_objective (matrix : WeightMatrix 0) (perm : Permutation 0)
+                              (n : nat) : nat :=
+  match n with
+  | 0 => 0
+  | S n' =>
+      let sum_for_i := calculate_objective_aux matrix perm n' 0 n in
+      sum_for_i + calculate_objective matrix perm n'
+  end.
+
+(** Facet inequality representation *)
+Record FacetInequality := {
+  facet_lhs : list nat -> nat;
+  facet_rhs : nat;
+}.
+
+(** Check if a solution satisfies a facet inequality *)
+Definition satisfies_facet (solution : list nat) (facet : FacetInequality) : bool :=
+  Nat.leb (facet_lhs facet solution) (facet_rhs facet).
+
+(** Set of all facet-defining inequalities for LOP *)
+Axiom all_LOP_facets : nat -> list FacetInequality.
 
 (** * 1. Polynomial Time Definition *)
 
