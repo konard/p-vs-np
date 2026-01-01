@@ -65,8 +65,8 @@ Proof.
     + inversion Hfalse.
   - intros u v' Hu Hv' Hneq.
     simpl in Hu, Hv'.
-    destruct Hu as [Hequ | Hfu]; destruct Hv' as [Heqv | Hfv].
-    + rewrite Hequ in Hneq. rewrite Heqv in Hneq.
+    destruct Hu as [Hequ | Hfu]; destruct Hv' as [Heqv' | Hfv].
+    + rewrite Hequ in Hneq. rewrite Heqv' in Hneq.
       exfalso. apply Hneq. reflexivity.
     + inversion Hfv.
     + inversion Hfu.

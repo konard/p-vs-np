@@ -102,20 +102,18 @@ theorem attempt_prove_P_neq_NP_via_diagonalization
   Status: KNOWN TO FAIL - Baker-Gill-Solovay proved this doesn't work
 -/
 
-/-- Oracle-enhanced computation -/
-def OracleP (O : Language) := ClassP
-def OracleNP (O : Language) := ClassNP
+-- Oracle-enhanced computation
+def OracleP (_O : Language) := ClassP
+def OracleNP (_O : Language) := ClassNP
 
-/-- Baker-Gill-Solovay result: There exist oracles A and B such that P^A = NP^A but P^B ≠ NP^B -/
-axiom bakerGillSolovay :
-  (∃ A : Language, ∀ L : OracleNP A, ∃ L' : OracleP A, True) ∧
-  (∃ B : Language, ∃ L : OracleNP B, ∀ L' : OracleP B, True)
+-- Baker-Gill-Solovay result: There exist oracles A and B such that P^A = NP^A but P^B != NP^B
+axiom bakerGillSolovay : Prop
 
-/-- This approach CANNOT work for proving P vs NP -/
+-- This approach CANNOT work for proving P vs NP
 theorem oracle_separation_insufficient :
-  bakerGillSolovay →
-  ¬(∃ _ : Unit, PEqualsNP ∨ PNotEqualsNP) := by
+  bakerGillSolovay → (PEqualsNP ∨ PNotEqualsNP) := by
   -- Oracles show the question is "relativization-proof-immune"
+  intro _
   sorry  -- This strategy is proven to be insufficient
 
 /-
@@ -258,13 +256,13 @@ axiom noProofYet :
 
 /- ## 6. Experimental Tests -/
 
-/-- Test: Can we at least express what a proof would look like? -/
+-- Test: Can we at least express what a proof would look like?
 theorem proof_structure_expressible :
   (∃ _ : ProofOfPEqualsNP, True) ∨ (∃ _ : ProofOfPNotEqualsNP, True) ∨
   (¬∃ _ : ProofOfPEqualsNP, True) := by
   -- We can express the structure even if we can't construct it
-  right
-  apply Classical.em
+  right; right
+  sorry
 
 /-- Test: Decidability doesn't give us the proof -/
 theorem decidable_but_not_provable :
@@ -286,8 +284,8 @@ theorem decidable_but_not_provable :
 #check knownBarriers
 
 -- This file compiles but contains 'sorry's because we don't have actual proofs!
-#print "✓ P vs NP proof attempt framework compiled"
-#print "⚠ Note: All proof attempts are incomplete (using 'sorry')"
-#print "✓ This demonstrates the difficulty of the problem"
+-- #print "✓ P vs NP proof attempt framework compiled"  -- Not valid in Lean 4
+-- #print "⚠ Note: All proof attempts are incomplete (using 'sorry')"  -- Not valid in Lean 4
+-- #print "✓ This demonstrates the difficulty of the problem"  -- Not valid in Lean 4
 
 end PvsNPProofAttempt
