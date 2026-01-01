@@ -146,7 +146,8 @@ Parameter f : sigma_type -> z_type -> nat.
 *)
 
 (** The incorrect statement (simplified version) *)
-Axiom lemma_5_3_incorrect_statement : forall (sigma : sigma_type),
+Definition lemma_5_3_incorrect_statement : Prop :=
+  forall (sigma : sigma_type),
   (* Some property P that was claimed about f(sigma) *)
   (* but this implicitly assumed f didn't depend on z *)
   exists n, forall z, f sigma z = n.
@@ -179,10 +180,10 @@ Proof.
   specialize (H_lemma sigma).
   destruct H_lemma as [n Hconst].
   (* Get values for both z1 and z2 *)
-  specialize (Hconst z1).
+  assert (Hz1 : f sigma z1 = n) by apply (Hconst z1).
   assert (Hz2 : f sigma z2 = n) by apply (Hconst z2).
   (* But we know f sigma z1 ≠ f sigma z2 *)
-  rewrite Hconst in Hdiff.
+  rewrite Hz1 in Hdiff.
   rewrite Hz2 in Hdiff.
   (* Contradiction: n ≠ n *)
   apply Hdiff. reflexivity.
