@@ -14,6 +14,8 @@ Require Import Coq.Sets.Ensembles.
 Require Import Coq.Logic.Classical_Prop.
 Require Import Coq.Reals.Reals.
 
+Open Scope string_scope.
+
 (** * Basic Complexity Theory Definitions *)
 
 Definition DecisionProblem := string -> Prop.
