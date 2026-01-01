@@ -240,4 +240,4 @@ axiom sampling_challenge :
 #check fundamental_error
 #check average_case_gap
 
-#print "✓ Rass formalization complete - error identified"
+-- Formalization complete - error identified
