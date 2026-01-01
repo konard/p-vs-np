@@ -188,21 +188,6 @@ section \<open>6. The Complexity Error\<close>
 definition chain_example :: "nat \<Rightarrow> sat3_instance" where
   "chain_example n = undefined"  (* Would construct explicit counterexample *)
 
-(* NOTE: The following theorem is commented out due to Isabelle syntax issues.
-   The theorem expresses: Algorithm U does not run in polynomial time.
-   The error: Inner syntax error - comment appears inside formula causing parse failure.
-   This is a known issue when mixing inner (formula) and outer (comment) syntax incorrectly.
-
-theorem algorithm_U_not_polynomial:
-  "\<not> (\<exists>poly.
-      (\<forall>n. \<exists>k c. poly n \<le> c * n^k + c) \<and>
-      (\<forall>Phi. \<exists>steps.
-        steps \<le> poly (length Phi) \<and>
-        (* Algorithm U terminates in 'steps' steps *)
-        True))"
-  oops
-*)
-
 section \<open>7. Additional Issues\<close>
 
 (*
@@ -240,19 +225,6 @@ section \<open>8. Conclusion\<close>
   4. The overall complexity is exponential, not polynomial
 
   Therefore, this paper does NOT prove P=NP.
-*)
-
-(* NOTE: The following theorem is commented out due to inner syntax error (comment inside formula).
-   The theorem expresses: Sanchez Guinea's 2015 algorithm does not solve SAT in polynomial time.
-   The error: Inner syntax error - comments (* ... *) inside the formula are parsed as part of
-   the logical expression rather than as documentation, causing parse failures.
-   The theorem states that the algorithm's claimed polynomial-time SAT solving is incorrect.
-
-theorem sanchez_guinea_2015_fails:
-  "\<not> (\<forall>Phi. \<exists>u poly_time.
-      (* u is a satisfying assignment *) True \<and>
-      (* computed in polynomial time *) True)"
-  oops  (* Proof follows from algorithm_U_not_polynomial *)
 *)
 
 (*

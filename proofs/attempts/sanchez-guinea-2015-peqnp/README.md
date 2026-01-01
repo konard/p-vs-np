@@ -126,16 +126,23 @@ This attempt appears on Gerhard Woeginger's famous list of P=NP attempts (Entry 
 
 ## Formalization Strategy
 
-Our formal verification in Coq, Lean, and Isabelle will:
+Our formal verification in Coq, Lean, and Isabelle:
 
-1. **Formalize the 3-SAT problem** and the notion of polynomial-time algorithms
-2. **Define the "understanding" concept** and related definitions (concepts, types C⁺/C*)
-3. **Formalize Algorithms G, D, and U** as recursive functions
-4. **Attempt to prove Theorem 2** (polynomial time complexity)
-5. **Identify the gap**: Show that the recursion depth and iteration bounds are **not polynomially bounded**
-6. **Conclude**: The proof attempt fails at the complexity analysis step
+1. **Formalizes the 3-SAT problem** and the notion of polynomial-time algorithms
+2. **Defines the "understanding" concept** and related definitions (concepts, types C⁺/C*)
+3. **Formalizes Algorithms G, D, and U** as recursive functions with explicit fuel parameter
+4. **Identifies the gap**: Shows that the recursion depth and iteration bounds are **not polynomially bounded**
+5. **Concludes**: The proof attempt fails at the complexity analysis step
 
-The formalization will make explicit what the paper leaves implicit: the **recursive structure** of Algorithm D and the **unbounded fixed-point iteration** of ⟨Compute ũ⟩.
+The formalization makes explicit what the paper leaves implicit: the **recursive structure** of Algorithm D and the **unbounded fixed-point iteration** of ⟨Compute ũ⟩.
+
+## Files in This Directory
+
+- `README.md` - This file, documenting the attempt and its error
+- `coq/SanchezGuinea2015.v` - Coq formalization
+- `lean/SanchezGuinea2015.lean` - Lean 4 formalization
+- `isabelle/SanchezGuinea2015.thy` - Isabelle/HOL formalization
+- `isabelle/ROOT` - Isabelle build configuration
 
 ## References
 
@@ -146,4 +153,4 @@ The formalization will make explicit what the paper leaves implicit: the **recur
 ## Related Issues
 
 - Parent issue: #44 (Test all P vs NP attempts formally)
-- Source issue: #319 (This formalization task)
+- This issue: #123
