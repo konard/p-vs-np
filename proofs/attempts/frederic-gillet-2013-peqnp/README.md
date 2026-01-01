@@ -5,135 +5,135 @@
 **Year**: 2013
 **Claim**: P=NP
 **Paper**: "Solving 3-SAT and 3-dimensional matching in polynomial time"
-**arXiv**: [1310.1971](https://arxiv.org/abs/1310.1971) (withdrawn)
-**Status**: **Retracted by author**
+**ArXiv**: [1310.1971](https://arxiv.org/abs/1310.1971) (withdrawn)
+**Status**: Self-refuted by author in November 2013
 
 ## Summary
 
-In October 2013, Frederic Gillet proposed a polynomial-time algorithm for solving 3-SAT and 3-dimensional matching problems using conservative logic gates implemented on flow networks combined with minimum-cost flow methods.
+In October 2013, Frederic Gillet claimed to show that P=NP by demonstrating how the implementation of conservative logic gates on flow networks allows us to solve 3-SAT and 3-dimensional matching problems in polynomial time using standard minimum-cost flow methods.
 
-**Author's Retraction (November 2013)**: The author added the following comment to the arXiv page: "The proposed method does not work. Updated the article with an analysis of why the general method suggested cannot work."
+**Important**: In November 2013, the author added an addendum stating: "The proposed method does not work. Updated the article with an analysis of why the general method suggested cannot work."
 
 ## Main Approach
 
-### Core Idea
+### 1. Conservative Logic Gates
 
-The paper proposes a reduction from NP-complete problems (3-SAT, 3-dimensional matching) to the minimum-cost flow problem, which can be solved in polynomial time. The approach consists of:
+The approach builds on the work of Fredkin and Toffoli on conservative logic - computation models that reflect physical principles like:
+- Reversibility of dynamical laws
+- Conservation of additive quantities
 
-1. **Conservative Logic Gates on Flow Networks**: Implement Boolean logic gates (AND, OR, NOT, NAND, XOR, fan-out) as flow network subgraphs
-2. **Flow Represents Boolean Values**: Unit flows (0 or 1) on edges represent Boolean variable assignments
-3. **Negative Costs Drive Solutions**: Use edge costs of 0 or -1 to guide the minimum-cost flow algorithm toward satisfying assignments
-4. **Polynomial-Time Solver**: Apply standard minimum-cost flow algorithms (e.g., minimum-mean cycle-canceling)
+### 2. Flow Network Implementation
 
-### Technical Construction
+Gillet proposes implementing logic gates (AND, OR, NOT, NAND, XOR, fan-out) as flow networks where:
+- Boolean variables are represented as flows (0 or 1 unit)
+- Logic gates are constructed using vertices, edges with capacities, and costs
+- Key insight: Use negative costs (typically -1) on certain edges to guide minimum-cost flow algorithms toward correct logical behavior
 
-#### Logic Gates as Flow Networks
+### 3. The "Diamond Gate"
 
-The paper shows how to construct flow network gadgets for:
+A critical innovation is a special gate that accepts flows of value 0, 1, or 2 and outputs:
+- 2 if exactly one input is 2 and the other is 0
+- 0 otherwise
 
-- **AND/OR gates**: Using parallel paths with appropriate capacities and a central edge with negative cost (-1)
-- **NOT gate**: Requires a constant "power" flow source and "ground" sink to generate output when input is 0
-- **Fan-out gate**: Duplicates a flow signal (similar to NOT but different output routing)
-- **NAND gate**: Composition of AND followed by NOT
-- **XOR gate**: Built from NAND and fan-out gates
+This gate is used to ensure unique flow assignments in 3-dimensional matching.
 
-Each gate uses:
-- **Capacity constraints** `u(e)` to limit flow values
-- **Lower bound constraints** `l(e)` to force minimum flows
-- **Negative costs** `c(e) = -1` on specific edges to make certain paths "cheaper"
+### 4. Reduction Strategy
 
-#### Application to 3-Dimensional Matching
+**For 3-Dimensional Matching**:
+1. Transform the 3D matching problem into a flow network
+2. Use diamond gates to enforce the constraint that each element receives exactly one flow of value 2 (not two flows of value 1)
+3. Solve using polynomial-time minimum-cost flow algorithms
+4. Extract the matching from the flow solution
 
-The paper attempts to solve 3-dimensional matching by:
+**For 3-SAT**:
+1. Transform Boolean clauses into flow networks using the logic gates
+2. Set constraints: output must be 1 (satisfied formula)
+3. Solve using minimum-cost flow
+4. Extract variable assignment from the flow solution
 
-1. Representing triplets as element nodes (E) and dimension nodes (X, Y, Z) as vertices
-2. Adding source and sink vertices
-3. Requiring flow of 2 through each selected triplet
-4. Using a "diamond gate" to ensure exactly one flow of value 2 (not two flows of value 1) reaches each dimension node
-5. Solving for minimum-cost flow with appropriate constraints
+## The Claimed Argument
 
-#### Application to 3-SAT
+1. **Turing Completeness**: Flow networks with costs can model arbitrary logical circuits
+2. **Polynomial Reduction**: Any 3-SAT or 3D-matching instance can be transformed to a flow network in polynomial time (size differs by constant factor)
+3. **Polynomial Solving**: Minimum-cost flow can be solved in polynomial time (e.g., minimum-mean cycle-canceling algorithm)
+4. **Therefore**: P=NP
 
-For 3-SAT with variables {x₁, x₂, ..., xₙ} and clauses:
+## The Error
 
-1. Build a flow network with logic gates corresponding to each clause
-2. Connect gates according to the CNF formula structure
-3. Force the output to 1 using a lower bound constraint  `l(f) = 1`
-4. Solve for minimum-cost flow
-5. Read variable assignments from realized flows on variable edges
+### Author's Own Assessment
 
-### The Critical Flaw
-
-**The paper's core assumption is flawed**: It assumes that flow networks with negative costs can correctly model arbitrary logical circuits in a way that preserves the semantics of all gate combinations.
-
-From the paper's own "Validity and Conclusion" section (page 26):
+From page 26 of the paper:
 
 > "The proposed approach relies on the hypothesis that flow networks with costs can be used to model logical circuits (Turing Complete).
 >
 > **The work lacks a theoretical demonstration of this assumption.** One could try to show that arbitrary logic blocks can be put in series and parallel so that the various costs of the realized paths do not interfere with each other."
 
-## The Error
+### Critical Issues
 
-### What Went Wrong
+#### 1. **Cost Interference Problem**
 
-The fundamental error is that **the optimization objective (minimum cost) interferes with the logical constraints** in ways that cannot be controlled when gates are composed:
+The fundamental flaw is that **minimum-cost flow optimization is global**, meaning costs from different parts of the circuit can interfere with each other in unexpected ways.
 
-1. **Cost Interference**: When multiple logic gates are connected, the global cost minimization can select flows that satisfy local gate constraints but violate the intended logical relationships between gates
+While the author claims that using only non-positive costs (0 or -1) prevents interference, this is **insufficient**:
 
-2. **Non-Compositionality**: While individual gates might work in isolation, their composition does not preserve logical semantics. The minimum-cost flow algorithm optimizes globally, not respecting the intended dataflow through the logical circuit
+- The minimum-cost flow algorithm optimizes over the **entire network simultaneously**
+- There is no guarantee that the flow configuration minimizing global cost corresponds to correct logical evaluation
+- Different logical paths may have different numbers of gates, leading to different total costs even for logically equivalent computations
 
-3. **Spurious Solutions**: The minimum-cost flow can find solutions that:
-   - Satisfy all capacity and flow conservation constraints
-   - Have negative total cost (appearing "valid")
-   - But do NOT correspond to valid truth assignments for the original problem
+#### 2. **Composability Not Proven**
 
-4. **The "Diamond Gate" Issue**: The special gate designed to distinguish between one flow of value 2 versus two flows of value 1 (critical for 3-dimensional matching) likely does not work correctly when embedded in the full network with global cost optimization
+The paper shows individual gates work in isolation but **does not prove** that:
+- Gates can be arbitrarily composed while maintaining correctness
+- Parallel compositions don't create unintended flow paths
+- Series compositions preserve the cost structure needed for correctness
 
-### Why Minimum-Cost Flow Cannot Solve NP-Complete Problems
+#### 3. **The Diamond Gate Flaw**
 
-If this approach worked, it would imply P=NP, which contradicts:
+The diamond gate (pages 19-23) is supposed to distinguish between:
+- One flow of value 2 (valid for 3D matching)
+- Two flows of value 1 (invalid)
 
-- **50+ years of failed attempts** to find polynomial-time algorithms for NP-complete problems
-- **Strong theoretical evidence** (though not proof) that P ≠ NP
-- **Known barriers**: Such a reduction would need to overcome relativization, natural proofs, and algebrization barriers
+However, in a global minimum-cost optimization:
+- The algorithm may find lower-cost solutions that violate the intended semantics
+- The gate's behavior in isolation doesn't guarantee correct behavior when embedded in a larger network
+- Flow can "leak" through unintended paths when multiple diamond gates interact
 
-The specific issue is that **local constraints (gate behavior) and global optimization (minimum cost) interact in unpredictable ways**. The minimum-cost flow algorithm has no mechanism to enforce that flows through the network represent consistent truth assignments that satisfy the logical formula.
+#### 4. **No Correctness Proof**
 
-### Author's Recognition
+From the paper (page 26):
 
-Frederic Gillet himself recognized the error and withdrew the paper in February 2014, explicitly stating "The proposed method does not work" and providing "an analysis of why the general method suggested cannot work."
+> "A practical approach consists in implementing the proposed method and show that it simply works (currently a work in progress)."
 
-## Key Lessons
+This reveals the core issue: **no formal proof of correctness was ever provided**. The author hoped empirical testing would validate the approach, which is methodologically backwards for a P vs NP claim.
 
-1. **Gadget reductions are subtle**: Just because individual gadgets work in isolation doesn't mean their composition preserves desired properties
+## Why This Matters for Formalization
 
-2. **Global vs. local optimization**: Using a global optimization objective (min-cost) to enforce local logical constraints is fragile and prone to interference
+This attempt is particularly instructive because:
 
-3. **Proof of correctness is essential**: The paper's own admission that it "lacks a theoretical demonstration" of its core assumption should have been a red flag
+1. **Self-Aware Failure**: The author recognized and publicly acknowledged the flaw
+2. **Subtle Error**: The mistake is not trivial - it involves the interaction between local correctness and global optimization
+3. **Common Pattern**: Many P=NP attempts fail by assuming that local gadgets compose correctly without proving it
 
-4. **Empirical testing reveals errors**: The author noted implementing the method would show "it simply works" - presumably implementation revealed the flaw
+## Formalization Strategy
 
-## Historical Context
+Our formal verification will focus on:
 
-- **Submission**: October 7, 2013 (v1)
-- **Revisions**: Multiple versions (v1 through v6)
-- **Withdrawal**: February 4, 2014 (v6, final)
-- **Listed**: Entry #95 on Woeginger's P vs NP attempts list
+1. **Modeling flow networks** with capacities and costs
+2. **Defining the logic gate constructions** (AND, OR, NOT, NAND, XOR, diamond gate)
+3. **Attempting to prove composability** - this is where we expect to hit the error
+4. **Formalizing the gap**: Showing that local correctness ≠ global correctness in minimum-cost flow networks
 
-This represents a responsible approach by the author: recognizing the error, analyzing why it doesn't work, and formally withdrawing the paper.
+The formalization will help clarify exactly where and why the reduction fails.
 
 ## References
 
-1. Frederic Gillet. "Solving 3-SAT and 3-dimensional matching in polynomial time." arXiv:1310.1971 (withdrawn). https://arxiv.org/abs/1310.1971
-
-2. Fredkin, Edward; Toffoli, Tommaso (1982). "Conservative logic". International Journal of Theoretical Physics 21 (3-4): 219-253.
-
-3. Garey, Michael R.; Johnson, David S. "Computers and Intractability: A Guide to the Theory of NP-Completeness." W.H. Freeman, 1979.
-
-4. Gerhard J. Woeginger. "The P-versus-NP page." https://www.win.tue.nl/~gwoegi/P-versus-NP.htm
+1. Gillet, F. (2013). "Solving 3-SAT and 3-dimensional matching in polynomial time" arXiv:1310.1971 (withdrawn)
+2. Fredkin, E.; Toffoli, T. (1982). "Conservative logic", International Journal of Theoretical Physics 21 (3-4): 219–253
+3. Woeginger, G. "The P-versus-NP page" https://www.win.tue.nl/~gwoegi/P-versus-NP.htm
+4. Garey, M. R.; Johnson, D. S. (1979). "Computers and Intractability: A Guide to the Theory of NP-Completeness"
 
 ## See Also
 
-- [Original paper (PDF, v1)](https://arxiv.org/pdf/1310.1971v1)
-- [Parent issue #44](https://github.com/konard/p-vs-np/issues/44) - Test all P vs NP attempts formally
-- [Issue #103](https://github.com/konard/p-vs-np/issues/103) - This formalization task
+- [Coq formalization](coq/)
+- [Lean formalization](lean/)
+- [Isabelle formalization](isabelle/)

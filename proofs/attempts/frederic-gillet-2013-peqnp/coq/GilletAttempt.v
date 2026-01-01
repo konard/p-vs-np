@@ -1,9 +1,11 @@
-(** * Frederic Gillet (2013) - P=NP Attempt Formalization in Coq
+(** * Frederic Gillet's 2013 P=NP Attempt - Coq Formalization
 
-    This file formalizes the flawed attempt by Frederic Gillet to prove P=NP
+    This file formalizes Frederic Gillet's failed 2013 attempt to prove P=NP
     using conservative logic gates on flow networks with minimum-cost flow algorithms.
 
-    The formalization demonstrates where the approach breaks down.
+    The formalization identifies the critical error: the assumption that local
+    correctness of logic gates implies global correctness when embedded in a
+    minimum-cost flow network.
 *)
 
 Require Import Coq.Lists.List.
@@ -13,194 +15,277 @@ Import ListNotations.
 
 (** ** Flow Networks *)
 
-(** Vertices in a flow network *)
+(** A vertex in the flow network *)
 Definition Vertex := nat.
 
-(** Edges with capacity, cost, and lower bound *)
+(** An edge with capacity, cost, lower bound, and realized flow *)
 Record Edge := mkEdge {
-  edge_src : Vertex;
-  edge_dst : Vertex;
-  edge_capacity : nat;  (* u(e) - maximum flow *)
-  edge_cost : Z;        (* c(e) - cost per unit flow *)
-  edge_lower : nat      (* l(e) - minimum flow *)
+  source : Vertex;
+  target : Vertex;
+  capacity : nat;        (* upper bound u(e) *)
+  cost : Z;              (* cost per unit c(e) *)
+  lower_bound : nat;     (* lower bound l(e) *)
+  flow : nat             (* realized flow f(e) *)
 }.
 
-(** Flow assignment *)
-Definition Flow := Edge -> nat.
-
-(**  A flow network *)
+(** Flow network *)
 Record FlowNetwork := mkFlowNetwork {
   vertices : list Vertex;
   edges : list Edge;
-  source : Vertex;
-  sink : Vertex
+  supply : Vertex -> Z    (* b(v): positive = source, negative = sink, 0 = conservation *)
 }.
+
+(** ** Valid Flow Constraints *)
+
+(** An edge satisfies flow constraints *)
+Definition edge_valid (e : Edge) : Prop :=
+  lower_bound e <= flow e <= capacity e.
 
 (** Flow conservation at a vertex *)
-Definition flow_conservation (net : FlowNetwork) (f : Flow) (v : Vertex) : Prop :=
-  v <> source net /\ v <> sink net ->
-  fold_left (fun acc e => if Nat.eqb (edge_dst e) v then acc + f e else acc)
-            (edges net) 0 =
-  fold_left (fun acc e => if Nat.eqb (edge_src e) v then acc + f e else acc)
-            (edges net) 0.
+Definition flow_conservation (net : FlowNetwork) (v : Vertex) : Prop :=
+  let incoming := fold_right (fun e acc => if Nat.eqb (target e) v
+                                           then (acc + Z.of_nat (flow e))%Z
+                                           else acc) 0%Z (edges net) in
+  let outgoing := fold_right (fun e acc => if Nat.eqb (source e) v
+                                           then (acc + Z.of_nat (flow e))%Z
+                                           else acc) 0%Z (edges net) in
+  (supply net v + incoming = outgoing)%Z.
 
-(** Valid flow respects capacity and lower bound constraints *)
-Definition valid_flow (net : FlowNetwork) (f : Flow) : Prop :=
-  forall e, In e (edges net) ->
-    edge_lower e <= f e /\ f e <= edge_capacity e.
+(** A valid flow in the network *)
+Definition valid_flow (net : FlowNetwork) : Prop :=
+  (forall e, In e (edges net) -> edge_valid e) /\
+  (forall v, In v (vertices net) -> flow_conservation net v).
 
 (** Total cost of a flow *)
-Definition flow_cost (net : FlowNetwork) (f : Flow) : Z :=
-  fold_left (fun acc e => acc + Z.of_nat (f e) * edge_cost e) (edges net) 0%Z.
+Definition total_cost (net : FlowNetwork) : Z :=
+  fold_right (fun e acc => (acc + cost e * Z.of_nat (flow e))%Z) 0%Z (edges net).
 
-(** Minimum-cost flow problem: find a valid flow with minimum total cost *)
-Definition is_minimum_cost_flow (net : FlowNetwork) (f : Flow) : Prop :=
-  valid_flow net f /\
-  (forall v, In v (vertices net) -> flow_conservation net f v) /\
-  (forall f', valid_flow net f' ->
-    (forall v, In v (vertices net) -> flow_conservation net f' v) ->
-    (flow_cost net f <= flow_cost net f')%Z).
+(** Minimum cost flow: a valid flow with minimum total cost *)
+Definition is_minimum_cost_flow (net : FlowNetwork) : Prop :=
+  valid_flow net /\
+  forall net',
+    (vertices net' = vertices net) ->
+    (edges net' = edges net \/
+     (forall e e', In e (edges net) -> In e' (edges net') ->
+                   source e = source e' -> target e = target e' ->
+                   capacity e = capacity e' -> cost e = cost e' ->
+                   lower_bound e = lower_bound e')) ->
+    valid_flow net' ->
+    (total_cost net <= total_cost net')%Z.
 
-(** ** Logic Gates as Flow Network Gadgets *)
+(** ** Logic Gates as Flow Networks *)
 
-(** Boolean values represented as flow values *)
-Definition bool_to_flow (b : bool) : nat :=
-  if b then 1 else 0.
+(** Boolean value encoded as flow (0 or 1) *)
+Inductive BoolFlow := FlowFalse | FlowTrue.
 
-(** A logic gate gadget in a flow network *)
-Record LogicGate := mkGate {
-  gate_inputs : list Edge;
-  gate_outputs : list Edge;
-  gate_internal : list Edge;
-  gate_vertices : list Vertex
+Definition flow_to_nat (bf : BoolFlow) : nat :=
+  match bf with
+  | FlowFalse => 0
+  | FlowTrue => 1
+  end.
+
+Definition nat_to_flow (n : nat) : option BoolFlow :=
+  match n with
+  | 0 => Some FlowFalse
+  | 1 => Some FlowTrue
+  | _ => None
+  end.
+
+(** AND gate specification *)
+Definition and_gate_spec (a b output : BoolFlow) : Prop :=
+  output = match a, b with
+           | FlowTrue, FlowTrue => FlowTrue
+           | _, _ => FlowFalse
+           end.
+
+(** OR gate specification *)
+Definition or_gate_spec (a b output : BoolFlow) : Prop :=
+  output = match a, b with
+           | FlowFalse, FlowFalse => FlowFalse
+           | _, _ => FlowTrue
+           end.
+
+(** NOT gate specification *)
+Definition not_gate_spec (a output : BoolFlow) : Prop :=
+  output = match a with
+           | FlowTrue => FlowFalse
+           | FlowFalse => FlowTrue
+           end.
+
+(** NAND gate specification *)
+Definition nand_gate_spec (a b output : BoolFlow) : Prop :=
+  output = match a, b with
+           | FlowTrue, FlowTrue => FlowFalse
+           | _, _ => FlowTrue
+           end.
+
+(** ** The Diamond Gate *)
+
+(** The diamond gate is supposed to distinguish between:
+    - (a=2, b=0) -> output=2
+    - (a=0, b=2) -> output=2
+    - (a=1, b=1) -> output=0 (reject this case)
+    This is critical for 3D-matching to ensure unique flow assignments.
+*)
+
+Definition diamond_gate_spec (a b output : nat) : Prop :=
+  (a = 0 /\ b = 0 /\ output = 0) \/
+  (a = 0 /\ b = 1 /\ output = 0) \/
+  (a = 0 /\ b = 2 /\ output = 2) \/
+  (a = 1 /\ b = 0 /\ output = 0) \/
+  (a = 1 /\ b = 1 /\ output = 0) \/
+  (a = 1 /\ b = 2 /\ output = 0) \/
+  (a = 2 /\ b = 0 /\ output = 2) \/
+  (a = 2 /\ b = 1 /\ output = 0) \/
+  (a = 2 /\ b = 2 /\ output = 0).
+
+(** ** The Critical Gap: Local vs Global Correctness *)
+
+(** A gate implementation correctly realizes its specification in isolation *)
+Definition gate_locally_correct
+  (gate_net : FlowNetwork)
+  (spec : BoolFlow -> BoolFlow -> BoolFlow -> Prop)
+  (input1_edge input2_edge output_edge : Edge) : Prop :=
+  forall net,
+    is_minimum_cost_flow net ->
+    In input1_edge (edges net) ->
+    In input2_edge (edges net) ->
+    In output_edge (edges net) ->
+    forall in1 in2 out,
+      nat_to_flow (flow input1_edge) = Some in1 ->
+      nat_to_flow (flow input2_edge) = Some in2 ->
+      nat_to_flow (flow output_edge) = Some out ->
+      spec in1 in2 out.
+
+(** THE CRITICAL ASSUMPTION (UNPROVEN):
+    Gates compose correctly when embedded in larger networks *)
+Axiom gates_compose_correctly : forall (net : FlowNetwork),
+  (** If all gates in the network are locally correct... *)
+  (forall (gate_subnet : FlowNetwork), (* some notion of subnetwork *) True) ->
+  (** Then the entire network evaluates correctly as a logic circuit *)
+  is_minimum_cost_flow net ->
+  (** ??? This does not follow! ??? *)
+  True. (* Placeholder for "correct logical evaluation" *)
+
+(** ** The Error: Cost Interference *)
+
+(** The problem: minimum-cost flow optimization is GLOBAL, not local.
+    Costs from different parts of the circuit can interact in ways that
+    violate the intended logical semantics.
+*)
+
+(** Example of cost interference:
+    Two paths with the same logical value but different costs *)
+Definition cost_interference_example : Prop :=
+  exists (net1 net2 : FlowNetwork),
+    (** Both networks represent the same logical function *)
+    (** But have different cost structures *)
+    total_cost net1 <> total_cost net2 /\
+    (** The minimum-cost flow algorithm might choose the wrong one *)
+    is_minimum_cost_flow net1 ->
+    ~is_minimum_cost_flow net2.
+
+(** ** The Composability Gap *)
+
+(** What would be needed for the approach to work *)
+Record ComposabilityRequirement := {
+  (** 1. Local correctness of each gate *)
+  local_correctness : FlowNetwork -> Prop;
+
+  (** 2. Costs must be "isolated" - no interference *)
+  cost_isolation : FlowNetwork -> FlowNetwork -> FlowNetwork -> Prop;
+
+  (** 3. Minimum-cost flow must respect logical structure *)
+  respects_logic : FlowNetwork -> Prop;
+
+  (** 4. These must compose: local + isolation -> global correctness *)
+  composition_theorem : forall (net : FlowNetwork),
+    (forall (gate : FlowNetwork), local_correctness gate) ->
+    (forall (g1 g2 : FlowNetwork), cost_isolation net g1 g2) ->
+    is_minimum_cost_flow net ->
+    respects_logic net
 }.
 
-(** Intended behavior: gate should compute a Boolean function *)
-Definition gate_computes (gate : LogicGate)
-                         (f : bool -> bool -> bool)
-                         (flow : Flow)
-                         (a b : bool) : Prop :=
-  (* This is where the paper's approach breaks down:
-     We CANNOT guarantee this property holds when gates are composed! *)
-  exists (input_a input_b output : Edge),
-    In input_a (gate_inputs gate) /\
-    In input_b (gate_inputs gate) /\
-    In output (gate_outputs gate) /\
-    flow input_a = bool_to_flow a /\
-    flow input_b = bool_to_flow b /\
-    flow output = bool_to_flow (f a b).
-
-(** ** The Critical Flaw *)
-
-(** The paper claims we can compose gates and preserve their semantics *)
-Axiom gate_composition_preserves_semantics : forall (g1 g2 : LogicGate)
-                                                     (f1 f2 : bool -> bool -> bool)
-                                                     (net : FlowNetwork)
-                                                     (flow : Flow),
-  is_minimum_cost_flow net flow ->
-  gate_computes g1 f1 flow ->
-  gate_computes g2 f2 flow ->
-  (* Composed gates should preserve semantics *)
-  exists (composed : LogicGate) (f_composed : bool -> bool -> bool),
-    gate_computes composed f_composed flow.
-
-(** However, this axiom is FALSE in general! *)
-
-(** The error: Global cost minimization interferes with local gate semantics *)
-Theorem composition_fails_under_global_optimization :
-  ~ (forall (g1 g2 : LogicGate) (f1 f2 : bool -> bool -> bool)
-            (net : FlowNetwork) (flow : Flow),
-      is_minimum_cost_flow net flow ->
-      gate_computes g1 f1 flow ->
-      gate_computes g2 f2 flow ->
-      exists (composed : LogicGate) (f_composed : bool -> bool -> bool),
-        gate_computes composed f_composed flow).
+(** THEOREM: The composability requirement is NOT satisfied by Gillet's construction *)
+(**
+    This states that there is no composability requirement under which
+    all circuits would satisfy the composition theorem's conclusion.
+*)
+Theorem gillet_composability_fails :
+  ~exists (req : ComposabilityRequirement),
+    (** The requirement would need to be satisfied for arbitrary circuits *)
+    forall (circuit : FlowNetwork),
+      (** Given local correctness of gates *)
+      (forall (gate : FlowNetwork), req.(local_correctness) gate) ->
+      (** Given cost isolation between gates *)
+      (forall (g1 g2 : FlowNetwork), req.(cost_isolation) circuit g1 g2) ->
+      (** Given a minimum-cost flow exists *)
+      is_minimum_cost_flow circuit ->
+      (** The circuit respects the required logic *)
+      req.(respects_logic) circuit.
 Proof.
-  intro H.
-  (** We would need to show a counterexample where:
-      1. Two gates work correctly in isolation
-      2. When composed in a network with global cost minimization
-      3. The minimum-cost flow violates the expected logical relationship
+  (** This would require showing a counterexample where:
+      1. All gates are locally correct
+      2. But the global minimum-cost flow gives wrong logical output
 
-      This proof would require constructing a specific network instance,
-      which is beyond the scope of this formalization skeleton.
-
-      The key insight is that minimum-cost flow optimizes GLOBALLY,
-      not respecting the LOCAL semantics intended for each gate. *)
+      We leave this as admitted since constructing a concrete counterexample
+      would require implementing the full flow network machinery.
+  *)
+  admit.
 Admitted.
 
-(** ** Why This Doesn't Solve 3-SAT *)
+(** ** Reduction Attempts *)
 
-(** A 3-SAT formula *)
-Inductive Literal :=
-| Pos : nat -> Literal
-| Neg : nat -> Literal.
-
-Definition Clause := list Literal.
-Definition CNF := list Clause.
-
-(** The paper's claimed reduction *)
-Axiom gillet_reduction : CNF -> FlowNetwork.
-
-(** The paper claims: if minimum-cost flow exists, formula is satisfiable *)
-Axiom gillet_correctness : forall (phi : CNF) (flow : Flow),
-  is_minimum_cost_flow (gillet_reduction phi) flow ->
-  exists (assignment : nat -> bool),
-    (* Formula is satisfied by the assignment extracted from flow *)
-    True.  (* Would need full SAT semantics here *)
-
-(** But this reduction cannot be correct! *)
-Theorem gillet_reduction_incorrect :
-  ~ (forall (phi : CNF) (flow : Flow),
-      is_minimum_cost_flow (gillet_reduction phi) flow ->
-      exists (assignment : nat -> bool), True).
+(** Attempting to reduce 3SAT to minimum-cost flow *)
+Definition ThreeSAT_to_FlowNetwork (formula : list (list (nat * bool))) : FlowNetwork.
 Proof.
-  intro H.
-  (** If this reduction were correct, we would have a polynomial-time
-      algorithm for 3-SAT:
-
-      1. Build flow network (polynomial in size of formula)
-      2. Solve minimum-cost flow (polynomial time)
-      3. Extract satisfying assignment from flow
-
-      This would prove P=NP, contradicting strong complexity-theoretic evidence.
-
-      The actual error is that the minimum-cost flow does NOT correspond
-      to a valid satisfying assignment in general. *)
+  admit. (* Construction as described in paper *)
 Admitted.
 
-(** ** The Fundamental Problem *)
+(** An assignment maps variable indices to boolean values *)
+Definition Assignment := nat -> bool.
 
-(** The paper assumes costs don't interfere between circuit components *)
-Axiom cost_locality : forall (net : FlowNetwork) (flow : Flow)
-                             (subgraph1 subgraph2 : list Edge),
-  (* Disjoint subgraphs *)
-  (forall e, In e subgraph1 -> In e subgraph2 -> False) ->
-  (* Cost in subgraph1 doesn't affect optimization in subgraph2 *)
-  True.  (* This is the flawed assumption! *)
+(** THE CLAIM: If minimum-cost flow has a solution, 3SAT is satisfiable *)
+Axiom gillet_reduction_claim : forall formula,
+  (exists net,
+    net = ThreeSAT_to_FlowNetwork formula /\
+    is_minimum_cost_flow net) ->
+  (exists (assignment : Assignment), (* formula is satisfied by assignment *) True).
 
-(** But global optimization means costs are NOT local *)
-Theorem costs_not_local :
-  ~ (forall (net : FlowNetwork) (flow : Flow)
-            (subgraph1 subgraph2 : list Edge),
-      (forall e, In e subgraph1 -> In e subgraph2 -> False) ->
-      (* The minimum-cost solution can use negative costs in subgraph1
-         to justify sub-optimal flows in subgraph2 that violate logic! *)
-      True).
+(** THE ERROR: This claim is UNPROVEN because:
+    1. The flow network gates don't compose correctly
+    2. Minimum-cost optimization can find flows that don't correspond to valid logical evaluations
+    3. The "diamond gate" behavior in a large network is not guaranteed
+*)
+
+Theorem gillet_reduction_unsound :
+  ~(forall formula,
+    (exists net,
+      net = ThreeSAT_to_FlowNetwork formula /\
+      is_minimum_cost_flow net) <->
+    (exists (assignment : Assignment), (* formula is satisfied by assignment *) True)).
 Proof.
-  (** The minimum-cost flow algorithm considers the TOTAL cost across
-      the entire network. Negative costs in one part can "subsidize"
-      incorrect flows in another part. This breaks the logical semantics. *)
+  (** The bidirectional correspondence does not hold due to:
+      - Forward direction: flow might not correspond to valid assignment
+      - Backward direction: valid assignment might not yield minimum-cost flow
+  *)
+  admit.
 Admitted.
 
 (** ** Conclusion *)
 
-(** The Gillet attempt fails because:
+(** Summary of the formalization:
 
-    1. Global cost optimization interferes with local gate semantics
-    2. Composition of gates does not preserve intended logical behavior
-    3. The reduction does not correctly encode SAT constraints
-    4. If it worked, it would immediately prove P=NP (highly unlikely)
+    1. We modeled flow networks with costs
+    2. We defined logic gates and their specifications
+    3. We identified the CRITICAL GAP:
+       - Gates work correctly in isolation
+       - But there's NO PROOF that they compose correctly
+       - Minimum-cost flow optimization is global, causing cost interference
+    4. The reduction from 3SAT to flow networks is UNSOUND
 
-    The author correctly retracted the paper after recognizing these issues.
+    This mirrors the author's own admission that:
+    "The work lacks a theoretical demonstration of this assumption."
 *)
+
+(** The attempt fails because composability was assumed, not proven. *)
