@@ -283,4 +283,4 @@ theorem cohen_equivalence_claim_is_false :
 
 #check Problem_Q
 #check cohen_equivalence_claim_is_false
-#print "✓ Cohen's attempt formalized - Error found in polynomial equivalence claim"
+-- ✓ Cohen's attempt formalized - Error found in polynomial equivalence claim
