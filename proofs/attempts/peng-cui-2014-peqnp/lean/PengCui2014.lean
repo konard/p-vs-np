@@ -148,13 +148,7 @@ theorem step2SDPSolvesGapXOR3PolyTime :
   intro epsilon
   -- Use the claimed result
   obtain ⟨time, hpoly⟩ := charikarWirthIsPolynomial
-  use time
-  constructor
-  · exact hpoly
-  · intro _inst
-    -- The gap is here: we need to show the SDP algorithm is correct
-    -- But this requires the assumption cuiClaimSDPSolvesGapXOR3
-    sorry  -- This is where Cui's proof has a gap
+  exact ⟨time, hpoly, fun _inst => ⟨fun _ => trivial, fun _ => sorry⟩⟩
 
 -- Step 3: If an NP-hard problem is in P, then P=NP
 theorem step3NPHardInPImpliesPEqNP :
@@ -166,14 +160,9 @@ theorem step3NPHardInPImpliesPEqNP :
   -- L is in P
   obtain ⟨timeL, hPolyL, decideL, hDecideL⟩ := hInP
   -- Compose the reduction with the decision procedure for L
-  use fun n => time n + timeL (time n)
-  constructor
-  · -- Composition of polynomials is polynomial
-    sorry  -- detailed polynomial composition proof omitted
-  · use fun x => decideL (reduction x)
-    intro x
-    rw [hReduction]
-    apply hDecideL
+  -- The full proof requires showing polynomial composition preserves bounds
+  -- and that the composed decision procedure is correct
+  sorry
 
 -- The Complete Claimed Proof
 theorem cuiPEqualsNPClaim :
@@ -189,15 +178,9 @@ theorem cuiPEqualsNPClaim :
   -- Gap_XOR3 epsilon is NP-hard
   have hNPHard : NPHard (GapXOR3_problem epsilon) := gapXOR3IsNPHard epsilon
   -- Gap_XOR3 epsilon is in P (using the SDP algorithm)
-  have hInP : inP (GapXOR3_problem epsilon) := by
-    obtain ⟨time, hPoly⟩ := charikarWirthIsPolynomial
-    use time
-    constructor
-    · exact hPoly
-    · -- This is where the key gap is - need to show SDP solves Gap XOR3
-      sorry  -- Cui's claim that SDP solves Gap 3-XOR is unproven
-  -- Apply Step 3
-  exact step3NPHardInPImpliesPEqNP (GapXOR3_problem epsilon) hNPHard hInP L hInNP
+  -- This is where the key gap is - Cui's claim that SDP solves Gap 3-XOR is unproven
+  -- The rest of the proof would follow from step3NPHardInPImpliesPEqNP
+  sorry
 
 /-
   Critical Gap Analysis
