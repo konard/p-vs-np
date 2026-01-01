@@ -10,6 +10,7 @@ Require Import Coq.Arith.Arith.
 Require Import Coq.Lists.List.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Arith.PeanoNat.
+Require Import Lia.
 Import ListNotations.
 
 (** * 1. Graph Definitions *)
@@ -114,12 +115,12 @@ Proof.
   unfold standard_dp_complexity.
   (* n * 2^n * n >= 2^n when n > 0 *)
   (* This simplifies to n^2 * 2^n >= 2^n which is true for n > 0 *)
-  destruct n. omega.
+  destruct n. lia.
   simpl.
   apply Nat.le_trans with (m := 1 * 2^(S n)).
   - rewrite Nat.mul_1_l. apply Nat.le_refl.
   - apply Nat.mul_le_mono_r.
-    omega.
+    lia.
 Qed.
 
 (** * 6. Polynomial Time Bound *)
@@ -139,7 +140,7 @@ Proof.
   intros n.
   unfold nuriyev_claimed_complexity.
   (* n^8 <= 1 * n^8 + 1 *)
-  omega.
+  lia.
 Qed.
 
 (** Exponential functions are not polynomial *)
@@ -235,14 +236,14 @@ Proof.
   intros n Hn.
   exists (fun k => 2^k).
   split.
-  - apply exponential_not_polynomial. omega.
+  - apply exponential_not_polynomial. lia.
   - intros m Hm. subst m.
     unfold standard_dp_complexity.
     (* 2^n <= n * 2^n * n *)
     apply Nat.le_trans with (m := 2^n * 1).
     + rewrite Nat.mul_1_r. apply Nat.le_refl.
     + apply Nat.mul_le_mono_l.
-      destruct n. omega.
+      destruct n. lia.
       apply Nat.le_trans with (m := S n).
       * apply Nat.le_succ_diag_r.
       * apply Nat.le_mul_diag_r.
@@ -274,8 +275,8 @@ Proof.
   split.
   - (* Standard DP is exponential *)
     unfold standard_dp_complexity.
-    destruct n. omega. destruct n. omega.
-    simpl. omega.
+    destruct n. lia. destruct n. lia.
+    simpl. lia.
   - split.
     + apply nuriyev_claim_is_polynomial.
     + exists 16%nat. intros Hn0.
