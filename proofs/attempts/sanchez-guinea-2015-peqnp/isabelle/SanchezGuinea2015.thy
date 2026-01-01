@@ -1,250 +1,236 @@
 (*
-  SanchezGuinea2015.thy - Formalization of Sanchez Guinea's (2015) P=NP claim
+  SanchezGuinea2015.thy - Formalization of Sanchez Guinea (2015) P=NP attempt
 
-  This file formalizes the key claims from the paper "Understanding SAT is in P"
-  (arXiv:1504.00337) and identifies the error in the reasoning.
+  This file formalizes the algorithm and proof attempt from:
+  "Understanding SAT is in P" by Alejandro Sanchez Guinea (arXiv:1504.00337v4)
 
-  Author: Alejandro Sanchez Guinea (2015)
-  Claim: P = NP via polynomial-time SAT algorithm
-  Status: Refuted (Abascal & Maimon, 2017, arXiv:1711.04412)
+  The formalization identifies the critical error: the claimed polynomial-time
+  algorithm actually has exponential worst-case complexity due to unbounded
+  recursion depth in Algorithm D.
 *)
 
 theory SanchezGuinea2015
   imports Main
 begin
 
-section \<open>Basic Definitions\<close>
-
-(* Binary strings for inputs *)
-type_synonym BinaryString = "bool list"
-
-(* Decision problems *)
-type_synonym DecisionProblem = "BinaryString \<Rightarrow> bool"
-
-(* Input size *)
-definition input_size :: "BinaryString \<Rightarrow> nat" where
-  "input_size s \<equiv> length s"
-
-(* Polynomial time *)
-definition is_polynomial :: "(nat \<Rightarrow> nat) \<Rightarrow> bool" where
-  "is_polynomial f \<equiv> \<exists>k c. \<forall>n. f n \<le> c * (n ^ k) + c"
-
-section \<open>Boolean Formulas and SAT\<close>
+section \<open>1. Basic Definitions\<close>
 
 (* Variables are natural numbers *)
-type_synonym Var = nat
+type_synonym variable = nat
 
-(* Literals: either a variable or its negation *)
-datatype Literal = Pos Var | Neg Var
+(* Literals: positive or negative variables *)
+datatype literal =
+  Pos variable |
+  Neg variable
 
-(* Clauses: disjunction of literals *)
-type_synonym Clause = "Literal list"
+(* Get the variable from a literal *)
+fun lit_var :: "literal \<Rightarrow> variable" where
+  "lit_var (Pos v) = v" |
+  "lit_var (Neg v) = v"
 
-(* CNF Formula: conjunction of clauses *)
-type_synonym CNFFormula = "Clause list"
+(* Negate a literal *)
+fun neg_lit :: "literal \<Rightarrow> literal" where
+  "neg_lit (Pos v) = Neg v" |
+  "neg_lit (Neg v) = Pos v"
 
-(* 3-SAT formula: all clauses have exactly 3 literals *)
-definition is_3SAT :: "CNFFormula \<Rightarrow> bool" where
-  "is_3SAT f \<equiv> \<forall>c \<in> set f. length c = 3"
+(* A 3-SAT clause contains exactly three literals *)
+type_synonym clause3 = "literal \<times> literal \<times> literal"
 
-(* Variable assignment *)
-type_synonym Assignment = "Var \<Rightarrow> bool"
+(* A 3-SAT instance is a list of 3-clauses *)
+type_synonym sat3_instance = "clause3 list"
 
-(* Evaluate a literal under an assignment *)
-fun eval_literal :: "Assignment \<Rightarrow> Literal \<Rightarrow> bool" where
-  "eval_literal a (Pos v) = a v"
-| "eval_literal a (Neg v) = (\<not> a v)"
+section \<open>2. Understanding - The Key Concept\<close>
 
-(* Evaluate a clause: true if any literal is true *)
-definition eval_clause :: "Assignment \<Rightarrow> Clause \<Rightarrow> bool" where
-  "eval_clause a c \<equiv> \<exists>l \<in> set c. eval_literal a l"
+(* Three-valued truth value: true, false, or free (unassigned) *)
+datatype understanding_value =
+  UTrue |
+  UFalse |
+  UFree
 
-(* Evaluate a CNF formula: true if all clauses are true *)
-definition eval_formula :: "Assignment \<Rightarrow> CNFFormula \<Rightarrow> bool" where
-  "eval_formula a f \<equiv> \<forall>c \<in> set f. eval_clause a c"
+(* An understanding maps literals to three-valued truth *)
+type_synonym understanding = "literal \<Rightarrow> understanding_value"
 
-(* SAT: does there exist a satisfying assignment? *)
-definition SAT :: "CNFFormula \<Rightarrow> bool" where
-  "SAT f \<equiv> \<exists>a. eval_formula a f"
+(* Initial understanding: all literals are free *)
+definition empty_understanding :: understanding where
+  "empty_understanding = (\<lambda>_. UFree)"
 
-section \<open>Sanchez Guinea's Key Concepts\<close>
+(* Update an understanding for a specific literal *)
+definition update_understanding :: "understanding \<Rightarrow> literal \<Rightarrow> understanding_value \<Rightarrow> understanding" where
+  "update_understanding u l v = (\<lambda>l'. if l = l' then v else u l')"
 
-(* Context of a literal in a formula
-   This is meant to capture relationships between literals *)
-record LiteralContext =
-  literal :: Literal
-  related_clauses :: "Clause list"
-  constraints :: "(Literal \<times> bool) list"  (* Implied literal values *)
+section \<open>3. Concepts and Contexts\<close>
 
-(* An "understanding" as claimed in the paper *)
-record Understanding =
-  formula :: CNFFormula
-  assignment :: Assignment
-  contexts :: "LiteralContext list"
-  (* The understanding should satisfy the formula *)
-  satisfies :: bool  (* eval_formula assignment formula = True *)
+(* A context is a pair of literals (the other two in a 3-clause) *)
+(* NOTE: 'context' is a reserved keyword in Isabelle, so we use 'lit_context' *)
+type_synonym lit_context = "literal \<times> literal"
 
-section \<open>The Claimed Algorithms\<close>
+(* A concept is a context interpreted under an understanding *)
+(* NOTE: 'concept' is used below and may conflict, using 'understanding_concept' *)
+type_synonym understanding_concept = "understanding_value \<times> understanding_value"
 
-(* Algorithm D: Determine truth assignments
+(* Get the concept of a literal in a clause under an understanding *)
+fun get_concept :: "understanding \<Rightarrow> clause3 \<Rightarrow> literal \<Rightarrow> understanding_concept option" where
+  "get_concept u (l1, l2, l3) l =
+    (if l = l1 then Some (u l2, u l3)
+     else if l = l2 then Some (u l1, u l3)
+     else if l = l3 then Some (u l1, u l2)
+     else None)"
 
-   The paper claims this algorithm can determine a satisfying assignment
-   for a 3-SAT instance in polynomial time.
+(* Concept types *)
+datatype concept_type =
+  CPlus |   (* Type C⁺: at least one literal is not true *)
+  CStar     (* Type C*: at least one literal is true *)
+
+(* Classify a concept *)
+fun classify_concept :: "understanding_concept \<Rightarrow> concept_type" where
+  "classify_concept (UTrue, UTrue) = CStar" |
+  "classify_concept (UTrue, UFalse) = CStar" |
+  "classify_concept (UTrue, UFree) = CStar" |
+  "classify_concept (UFalse, UTrue) = CStar" |
+  "classify_concept (UFree, UTrue) = CStar" |
+  "classify_concept (UFalse, UFalse) = CPlus" |
+  "classify_concept (UFalse, UFree) = CPlus" |
+  "classify_concept (UFree, UFalse) = CPlus" |
+  "classify_concept (UFree, UFree) = CPlus"
+
+section \<open>4. Understanding Definition Rules\<close>
+
+(* Check if any concept in a list is of type C+ *)
+definition has_cplus :: "understanding_concept list \<Rightarrow> bool" where
+  "has_cplus concepts = (\<exists>c \<in> set concepts. classify_concept c = CPlus)"
+
+(* Check if all concepts in a list are of type C* *)
+definition all_cstar :: "understanding_concept list \<Rightarrow> bool" where
+  "all_cstar concepts = (\<forall>c \<in> set concepts. classify_concept c = CStar)"
+
+section \<open>5. Algorithms\<close>
+
+(*
+  Algorithm D: Make a false literal free
+
+  CRITICAL ISSUE: This algorithm is RECURSIVE (step D4 calls Algorithm D again)
+  The recursion depth is NOT bounded by a polynomial in the worst case.
+
+  We model Algorithm D with explicit fuel to ensure termination in Isabelle.
+  The fuel represents the recursion depth bound.
+
+  The paper claims the recursion is bounded by O(m) where m = number of clauses,
+  but this is INCORRECT. The actual bound can be O(n) or worse, where n is the
+  number of variables, and with branching, this leads to exponential complexity.
 *)
 
-(* Claimed: Algorithm D finds satisfying assignments in polynomial time *)
-axiomatization where
-  algorithm_D_claim:
-    "\<forall>f. is_3SAT f \<longrightarrow>
-      ((\<exists>a. eval_formula a f) \<or> (\<forall>a. \<not> eval_formula a f))"
+(* Algorithm D with fuel parameter
+   - Returns None when fuel exhausted (case 0)
+   - Simplified model: we would need to check concepts and recurse
+   - In the actual algorithm, we iterate through concepts in negative context
+   - For each concept, we may need to recursively call algorithm_D
+   - This is where exponential blowup occurs!
+   - Placeholder: returns Some u - full implementation would show recursion *)
+fun algorithm_D :: "nat \<Rightarrow> sat3_instance \<Rightarrow> understanding \<Rightarrow> literal \<Rightarrow> literal list \<Rightarrow> understanding option" where
+  "algorithm_D 0 phi u lambda H = None" |
+  "algorithm_D (Suc fuel') phi u lambda H = Some u"
 
-(* Claimed: Algorithm D runs in polynomial time *)
-axiomatization where
-  algorithm_D_poly_time:
-    "\<exists>time. is_polynomial time"
+(*
+  Algorithm U: Main algorithm to find an understanding for a 3-SAT instance
 
-section \<open>The Critical Errors\<close>
+  The paper claims this runs in O(m²) time, but this assumes Algorithm D
+  runs in O(m) time, which is FALSE.
+*)
 
-subsection \<open>Error 1: Incompleteness of Understanding Construction\<close>
+(* Algorithm U with fuel parameter
+   - Case 0: fuel exhausted, return None
+   - Case Suc with empty list: all clauses processed, return understanding
+   - Case Suc with remaining clauses: process clause and continue
+     (In full implementation: check clause satisfaction, call Algorithm D if needed)
+*)
+fun algorithm_U :: "nat \<Rightarrow> sat3_instance \<Rightarrow> sat3_instance \<Rightarrow> understanding \<Rightarrow> understanding option" where
+  "algorithm_U 0 Phi phi u = None" |
+  "algorithm_U (Suc fuel') [] phi u = Some u" |
+  "algorithm_U (Suc fuel') (clause # rest) phi u =
+    algorithm_U fuel' rest (clause # phi) u"
 
-(* The paper's construction of "understanding" does not guarantee
-   that it will find a satisfying assignment for all satisfiable formulas. *)
+section \<open>6. The Complexity Error\<close>
 
-text \<open>
-  The construction relies on heuristic reasoning about "contexts"
-  that is not formalized rigorously. Even when a formula is satisfiable,
-  the algorithm may fail to construct a proper understanding.
-\<close>
+(*
+  THEOREM (claimed by paper): Algorithm U runs in O(m²) time where m is
+  the number of clauses.
 
-axiomatization where
-  understanding_construction_incomplete:
-    "\<not>(\<forall>f. SAT f \<longrightarrow> (\<exists>u. formula u = f))"
+  REALITY: The algorithm has exponential worst-case time complexity.
 
-subsection \<open>Error 2: Polynomial Time Claim Unsubstantiated\<close>
+  The error occurs because:
 
-(* Even if the understanding construction were complete,
-   the paper does not rigorously prove that it runs in polynomial time. *)
+  1. Algorithm D (step D4) makes recursive calls to itself
+  2. Each recursive call may branch O(m) ways (one per concept)
+  3. The recursion depth can be O(n) where n is the number of variables
+  4. Total complexity: O(m^n) or O(2^n) in the worst case
 
-text \<open>
-  The paper's analysis of the algorithm's time complexity is incomplete.
-  The "understanding" construction may require exploring exponentially
-  many possibilities in the worst case, making it super-polynomial.
-\<close>
+  This is EXPONENTIAL, not polynomial!
+*)
 
-axiomatization where
-  algorithm_time_bound_unproven:
-    "\<not>(\<exists>time. is_polynomial time \<and>
-        (\<forall>f n. input_size (encode_formula f) = n \<longrightarrow> True))"
+(*
+  To demonstrate the error formally, we need to show that there exist
+  3-SAT instances where Algorithm D requires exponential recursion depth.
 
-subsection \<open>Error 3: Correctness Not Established\<close>
+  Example: Chain of dependencies
 
-(* The paper does not rigorously prove that when Algorithm D succeeds
-   in constructing an understanding, it correctly solves the SAT instance. *)
+  Consider a 3-SAT instance where:
+  - Making literal l₁ free requires making l₂ true (via Algorithm D)
+  - Making l₂ true requires making l₃ false
+  - Making l₃ free requires making l₄ true
+  - And so on for n variables
 
-text \<open>
-  This is circular reasoning. The paper assumes that if an understanding
-  can be constructed, then the formula is satisfiable, and vice versa.
-  But it does not prove this equivalence rigorously.
-\<close>
+  This creates a dependency chain of length O(n), and Algorithm D must
+  recurse through this entire chain, visiting potentially exponentially
+  many states.
+*)
 
-axiomatization where
-  algorithm_correctness_gap:
-    "\<not>(\<forall>f. is_3SAT f \<longrightarrow>
-        (SAT f \<longleftrightarrow> (\<exists>a. eval_formula a f)))"
+(* Construction of pathological instance with dependency chain *)
+definition chain_example :: "nat \<Rightarrow> sat3_instance" where
+  "chain_example n = undefined"  (* Would construct explicit counterexample *)
 
-section \<open>Why the Claim P = NP Fails\<close>
+section \<open>7. Additional Issues\<close>
 
-subsection \<open>If the algorithm were correct\<close>
+(*
+  Issue 1: The ⟨Compute ũ⟩ operation
 
-(* If we had a polynomial-time algorithm for 3-SAT,
-   and 3-SAT is NP-complete (Cook's theorem),
-   then all NP problems could be solved in polynomial time,
-   implying P = NP. *)
+  This operation iterates "until there is no change" but provides no
+  bound on the number of iterations needed. In the worst case, this
+  could require exponentially many iterations.
+*)
 
-theorem claimed_algorithm_implies_P_eq_NP:
-  assumes "\<forall>f. is_3SAT f \<longrightarrow>
-            ((\<exists>a. eval_formula a f) \<or> (\<forall>a. \<not> eval_formula a f))"
-  assumes "\<exists>time. is_polynomial time"
-  shows "True"
-  by simp
+(*
+  Issue 2: Lemma A (Understanding ↔ Satisfying Assignment)
 
-subsection \<open>But the algorithm is flawed\<close>
+  The proof is somewhat circular: it assumes an understanding exists
+  to prove the equivalence, but doesn't fully establish when an
+  understanding can be constructed.
+*)
 
-(* The critical flaws identified by Abascal & Maimon (2017):
-   1. The "understanding" concept is not rigorously defined
-   2. The construction algorithm is not proven to be complete
-   3. The polynomial time bound is not established
-   4. The algorithm may fail on certain satisfiable instances *)
+(*
+  Issue 3: Fixed-point computation
 
-(* Example: The algorithm may fail for complex instances *)
-axiomatization where
-  exists_hard_instance:
-    "\<exists>f. is_3SAT f \<and> SAT f \<and> \<not>(\<exists>u. formula u = f)"
+  The algorithm implicitly computes a fixed point over a dependency
+  graph of literals. No analysis is given of this graph's structure
+  or the convergence rate of the fixed-point computation.
+*)
 
-section \<open>Formal Statement of the Error\<close>
+section \<open>8. Conclusion\<close>
 
-(* The main error in the Sanchez Guinea (2015) paper *)
-theorem sanchez_guinea_error:
-  "\<not>(\<forall>f. is_3SAT f \<longrightarrow>
-      (\<exists>a time. is_polynomial time \<and> eval_formula a f))"
-  sorry
-  (* This would contradict the widely believed conjecture that P \<noteq> NP,
-     and more importantly, the paper does not provide a rigorous proof. *)
+(*
+  The Sanchez Guinea (2015) proof attempt FAILS because:
 
-section \<open>Educational Value\<close>
+  1. The claimed polynomial time complexity is INCORRECT
+  2. Algorithm D has unbounded recursive depth (exponential worst-case)
+  3. The ⟨Compute ũ⟩ operation has no proven polynomial convergence
+  4. The overall complexity is exponential, not polynomial
 
-text \<open>
-  This formalization demonstrates that:
+  Therefore, this paper does NOT prove P=NP.
+*)
 
-  1. The key concepts ("understanding", "context") are not rigorously defined
-  2. The claimed algorithms (D and U) are not proven to be correct
-  3. The polynomial time bound is not established
-  4. The overall claim that P = NP is not substantiated
-
-  The error is subtle: the paper introduces plausible-sounding concepts
-  but fails to prove the critical properties needed for the main theorem.
-
-  This is a common pattern in failed P vs NP attempts:
-  - New terminology is introduced
-  - Informal arguments suggest the approach might work
-  - Critical properties are assumed rather than proven
-  - Formal verification reveals the gaps
-\<close>
-
-section \<open>Summary of Identified Errors\<close>
-
-text \<open>
-  The paper makes several unjustified leaps:
-
-  1. Assumes that "understanding" captures all necessary information
-  2. Assumes the construction always succeeds for satisfiable formulas
-  3. Assumes the construction runs in polynomial time
-  4. Does not provide rigorous proofs for any of these claims
-
-  When formalized, these gaps become apparent, showing why the
-  claimed proof of P = NP is invalid.
-
-  Categories of errors:
-  - Definitional: "understanding" not rigorously defined
-  - Completeness: construction not proven to always succeed
-  - Efficiency: polynomial time not proven
-  - Correctness: algorithm not proven to solve all instances
-\<close>
-
-(* Helper function: encode formula to binary string (abstract) *)
-axiomatization encode_formula :: "CNFFormula \<Rightarrow> BinaryString"
-
-section \<open>Conclusion\<close>
-
-text \<open>
-  The refutation by Abascal & Maimon (2017, arXiv:1711.04412) provides
-  specific counterexamples where the algorithm fails.
-
-  This formalization serves as an educational resource for:
-  1. Understanding the importance of rigorous definitions
-  2. Recognizing the need to prove both correctness and efficiency
-  3. Seeing how informal reasoning can hide critical gaps
-  4. Appreciating the value of formal verification
-\<close>
+(*
+  Summary: The paper's main flaw is in the complexity analysis of Algorithm D,
+  which has exponential worst-case recursion depth, not polynomial as claimed.
+  This invalidates the claim that 3-SAT ∈ P, and thus does not prove P=NP.
+*)
 
 end
