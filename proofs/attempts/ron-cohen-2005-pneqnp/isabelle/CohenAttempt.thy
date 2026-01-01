@@ -37,16 +37,17 @@ record NondeterministicTM =
   ND_time :: TimeComplexity
 
 (* Polynomial equivalence between D and ND *)
-definition PolyEquivalent_D_ND :: bool where
+definition PolyEquivalent_D_ND :: "bool" where
   "PolyEquivalent_D_ND \<equiv>
-    (\<forall>problem. (\<exists>d. IsPolynomialTime (D_time d) \<and>
-                     (\<forall>x. problem x = D_compute d x)) \<longleftrightarrow>
-               (\<exists>nd. IsPolynomialTime (ND_time nd) \<and>
-                      (\<forall>x. problem x = ND_compute nd x)))"
+    (\<forall>problem :: DecisionProblem.
+      (\<exists>d :: DeterministicTM. IsPolynomialTime (D_time d) \<and>
+                              (\<forall>x. problem x = D_compute d x)) \<longleftrightarrow>
+      (\<exists>nd :: NondeterministicTM. IsPolynomialTime (ND_time nd) \<and>
+                                  (\<forall>x. problem x = ND_compute nd x)))"
 
 (* P ≠ NP is equivalent to D not polynomially equivalent to ND *)
-definition P_not_equals_NP :: bool where
-  "P_not_equals_NP \<equiv> \<not>PolyEquivalent_D_ND"
+definition P_not_equals_NP :: "bool" where
+  "P_not_equals_NP \<equiv> (\<not> PolyEquivalent_D_ND)"
 
 section \<open>Cohen's New Machine Models\<close>
 
@@ -101,10 +102,11 @@ text \<open>
 
 axiomatization where
   cohen_claim_1a:
-    "\<forall>problem d. IsPolynomialTime (D_time d) \<longrightarrow>
+    "\<forall>(problem :: DecisionProblem) (d :: DeterministicTM).
+       IsPolynomialTime (D_time d) \<longrightarrow>
        (\<forall>x. problem x = D_compute d x) \<longrightarrow>
-       (\<exists>d_new. IsPolynomialTime (D_new_time d_new) \<and>
-                (\<forall>x. problem x = D_compute d x))"
+       (\<exists>d_new :: D_new. IsPolynomialTime (D_new_time d_new) \<and>
+                         (\<forall>x. problem x = D_compute d x))"
 
 subsection \<open>Claim 1(b): D_new → D (THE ERROR IS HERE!)\<close>
 
@@ -149,9 +151,9 @@ text \<open>
 
 axiomatization where
   Q_solvable_poly_time_on_ND_new:
-    "\<exists>nd. IsPolynomialTime (ND_new_time nd) \<and> (\<forall>w. Problem_Q w \<longleftrightarrow> True)" and
+    "\<exists>nd :: ND_new. IsPolynomialTime (ND_new_time nd) \<and> (\<forall>w. Problem_Q w \<longleftrightarrow> True)" and
   Q_requires_exponential_on_D_new:
-    "\<forall>d. (\<forall>w. Problem_Q w \<longleftrightarrow> True) \<longrightarrow> IsExponentialTime (D_new_time d)"
+    "\<forall>d :: D_new. (\<forall>w. Problem_Q w \<longleftrightarrow> True) \<longrightarrow> IsExponentialTime (D_new_time d)"
 
 section \<open>The Critical Error Formalized\<close>
 
@@ -187,10 +189,11 @@ text \<open>
 \<close>
 
 theorem cohen_equivalence_claim_is_false:
-  "\<not>(\<forall>problem. (\<exists>d. IsPolynomialTime (D_time d) \<and>
-                      (\<forall>x. problem x = D_compute d x)) \<longleftrightarrow>
-                (\<exists>d_new. IsPolynomialTime (D_new_time d_new) \<and>
-                         (\<forall>x. problem x = True)))"
+  "\<not>(\<forall>(problem :: DecisionProblem).
+      (\<exists>d :: DeterministicTM. IsPolynomialTime (D_time d) \<and>
+                              (\<forall>x. problem x = D_compute d x)) \<longleftrightarrow>
+      (\<exists>d_new :: D_new. IsPolynomialTime (D_new_time d_new) \<and>
+                        (\<forall>x. problem x = True)))"
 proof -
   text \<open>
     The equivalence is ill-defined: for D_new, we must specify whether
