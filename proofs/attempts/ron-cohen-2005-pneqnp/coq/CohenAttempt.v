@@ -213,9 +213,9 @@ Axiom Q_requires_exponential_on_D_new :
 Theorem Cohen_equivalence_claim_is_false :
   ~ (forall (problem : DecisionProblem),
       (exists (d : DeterministicTM), IsPolynomialTime (D_time d) /\
-        forall x, problem x <-> D_compute d x = true) <->
+        forall x : string, problem x <-> D_compute d x = true) <->
       (exists (d_new : D_new), IsPolynomialTime (D_new_time d_new) /\
-        forall x, (* What does "problem x" mean for D_new? Which tape? *)
+        forall x : string, (* What does "problem x" mean for D_new? Which tape? *)
         True)).
 Proof.
   intro H_equiv_claim.
