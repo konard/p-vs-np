@@ -104,7 +104,7 @@ Each formalization explicitly comments on where the error occurs and why the pro
 ## Directory Structure
 
 ```
-proofs/attempts/kim2012/
+proofs/attempts/minseong-kim-2012-pneqnp/
 ├── README.md (this file)
 ├── coq/
 │   └── KimAttempt.v (Coq formalization showing the error)
