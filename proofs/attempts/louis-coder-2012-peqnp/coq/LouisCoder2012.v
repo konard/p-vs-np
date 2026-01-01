@@ -9,6 +9,7 @@
 Require Import Coq.Init.Nat.
 Require Import Coq.Lists.List.
 Require Import Coq.Bool.Bool.
+Require Import Coq.Arith.PeanoNat.
 Import ListNotations.
 
 (** * Basic Definitions *)
@@ -32,6 +33,9 @@ Record Clause3SAT (n : nat) : Type := mkClause {
 }.
 
 Arguments mkClause {n}.
+Arguments lit1 {n}.
+Arguments lit2 {n}.
+Arguments lit3 {n}.
 
 (** A 3-SAT formula is a list of clauses *)
 Definition Formula3SAT (n : nat) := list (Clause3SAT n).
@@ -128,10 +132,10 @@ Axiom counterexample_formula : forall n, n >= 4 -> Formula3SAT n.
 
 (** The counterexample has an Active array with the required property *)
 Axiom counterexample_has_active :
-  forall n, n >= 4 ->
+  forall n (H : n >= 4),
   exists active : ActiveArray n,
     exists c : Clause3SAT n,
-      active c = true /\ ~In c (counterexample_formula n (le_refl 4)).
+      active c = true /\ ~In c (counterexample_formula n H).
 
 (** But the counterexample is UNSAT *)
 Axiom counterexample_unsat :
@@ -144,8 +148,8 @@ Theorem louis_coder_algorithm_incorrect :
     ~is_satisfiable phi.
 Proof.
   exists 4.
-  exists (counterexample_formula 4 (le_refl 4)).
-  destruct (counterexample_has_active 4 (le_refl 4)) as [active [c [Hactive Hnotin]]].
+  exists (counterexample_formula 4 (Nat.le_refl 4)).
+  destruct (counterexample_has_active 4 (Nat.le_refl 4)) as [active [c [Hactive Hnotin]]].
   exists active.
   split.
   - exists c. split; assumption.
@@ -185,5 +189,3 @@ Qed.
   Therefore, the claim that this algorithm solves 3-SAT in polynomial time,
   and thus proves P=NP, is incorrect.
 *)
-
-End.
