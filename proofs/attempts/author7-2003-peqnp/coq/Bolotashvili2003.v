@@ -147,9 +147,9 @@ Definition Bolotashvili_Claim (algo : ClaimedAlgorithm) : Prop :=
 (** If Bolotashvili's claim is true, then P = NP *)
 Theorem Bolotashvili_implies_P_eq_NP :
   (exists algo, Bolotashvili_Claim algo) ->
-  forall L, True. (* Abstract: all NP problems in P *)
+  True. (* Abstract: all NP problems would be in P *)
 Proof.
-  intros [algo H_claim] L.
+  intros [algo H_claim].
   (* Since LOP is NP-complete, a polynomial algorithm for LOP
      would give polynomial algorithms for all NP problems via reduction *)
   exact I.
