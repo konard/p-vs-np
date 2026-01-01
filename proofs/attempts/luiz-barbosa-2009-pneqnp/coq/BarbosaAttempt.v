@@ -193,5 +193,3 @@ Qed.
 
 (* Conclusion: The proof fails on its own terms and would be impossibly difficult
    to fix even if the technical issues were resolved *)
-
-End BarbosaAttempt.
