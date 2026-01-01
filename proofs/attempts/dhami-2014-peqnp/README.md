@@ -1,135 +1,147 @@
-# Dhami (2014) P=NP Proof Attempt
+# Dhami et al. (2014) - P=NP Attempt
 
-**Attempt ID**: 97
+**Navigation:** [↑ Back to Repository Root](../../../README.md)
+
+---
+
+## Overview
+
+**Attempt ID**: 97 (from Woeginger's list)
 **Authors**: Pawan Tamta, B.P. Pande, H.S. Dhami
 **Year**: 2014
 **Claim**: P = NP
 **Paper**: "A Polynomial Time Solution to the Clique Problem"
-**arXiv**: http://arxiv.org/abs/1403.1178
-**Status**: **WITHDRAWN** (Paper withdrawn by authors)
+**arXiv**: [1403.1178](https://arxiv.org/abs/1403.1178) (withdrawn)
+**Refutation**: Cardenas et al., 2015 ([arXiv:1504.06890](https://arxiv.org/abs/1504.06890))
 
 ## Summary
 
-In February 2014, Pawan Tamta, B.P. Pande, and H.S. Dhami claimed to prove P=NP by constructing a polynomial-time algorithm for the Clique Problem. Their approach attempted to show that the Clique Problem has a reduction to the Maximum Flow Network Interdiction Problem, and they claimed to develop a polynomial-time algorithm for solving clique instances.
+In February 2014, Pawan Tamta, B.P. Pande, and H.S. Dhami claimed to prove P=NP by constructing a polynomial time algorithm for the Clique Problem, which is known to be NP-complete. Their approach was based on a reduction from the Clique Problem to the Maximum Flow Network Interdiction Problem.
 
-## Main Argument
+**Status**: The paper was **withdrawn by the authors** themselves, with the explicit comment on arXiv stating:
 
-The authors' approach can be summarized as:
+> "There is an error while applying the algorithm to the large size problems. This algorithm doesn't provide solution to all Clique problems"
 
-1. **Problem**: Solve the Clique Problem (known to be NP-complete) in polynomial time
-2. **Strategy**: Reduce the Clique Problem to the Maximum Flow Network Interdiction Problem
-3. **Claimed Result**: A polynomial-time algorithm that solves the Clique Problem
-4. **Implementation**: Developed a C program to validate their algorithm
+This admission by the authors themselves confirms that the proposed algorithm fails for certain problem instances.
+
+## The Main Argument
+
+### Claimed Approach
+
+1. **Reduction Strategy**: The authors claim that the Clique Problem can be reduced to the Maximum Flow Network Interdiction Problem
+2. **Algorithm Development**: They propose to develop a polynomial time algorithm based on this reduction
+3. **Conclusion**: Since they claim a polynomial time algorithm for an NP-complete problem (Clique), they conclude P = NP
 
 ### The Clique Problem
 
-Given an undirected graph G = (V, E) and an integer k, determine whether there exists a complete subgraph (clique) of size k in G. This is a classic NP-complete problem.
+The Clique Problem asks: Given an undirected graph G = (V, E) and an integer k, does G contain a clique of size at least k (i.e., a subset of k vertices where every pair is connected by an edge)?
 
-### Reduction Claim
+This problem is NP-complete, proven by Karp in 1972.
 
-The authors claimed that:
-- The Clique Problem can be reduced to the Maximum Flow Network Interdiction Problem
-- By solving this network optimization problem, they could solve the original Clique Problem
-- The resulting algorithm runs in polynomial time
+### Maximum Flow Network Interdiction Problem
 
-## Refutation
+The Maximum Flow Network Interdiction Problem involves finding optimal ways to disrupt flow in a network by removing edges or reducing capacities, subject to budget constraints. Various versions of this problem have different complexity characterizations.
 
-In April 2015, Hector A. Cardenas, Chester Holtz, Maria Janczak, Philip Meyers, and Nathaniel S. Potrepka published a refutation titled "A Refutation of the Clique-Based P=NP Proofs of LaPlante and Tamta-Pande-Dhami" (arXiv:1504.06890).
+## Known Refutation
 
-**Key Points from Refutation:**
-- The proposed algorithm does not correctly solve the Clique Problem in all cases
-- The reduction or algorithm contains fundamental errors
-- Neither author successfully established that P = NP
+In April 2015, Hector A. Cardenas, Chester Holtz, Maria Janczak, Philip Meyers, and Nathaniel S. Potrepka published a refutation titled "A Refutation of the Clique-Based P=NP Proofs of LaPlante and Tamta-Pande-Dhami" ([arXiv:1504.06890](https://arxiv.org/abs/1504.06890)).
 
-## The Error
+The refutation paper analyzes both the Dhami et al. paper and a similar attempt by LaPlante, concluding that:
 
-The authors themselves acknowledged the error by **withdrawing the paper** with the following comment:
+1. The algorithms presented in both papers are fundamentally flawed
+2. Neither author successfully established that P = NP
+3. The proposed reductions and algorithms fail to correctly solve the Clique Problem in general
 
-> "There is an error while applying the algorithm to the large size problems. This algorithm doesn't provide solution to all Clique problems."
+## The Error in the Proof
 
-### Analysis of the Flaw
+Based on the available evidence, the errors in this attempt include:
 
-The fundamental errors in this proof attempt include:
+### 1. Incomplete Algorithm (Confirmed by Authors)
 
-1. **Incomplete Algorithm**: The proposed algorithm fails on large-size problem instances
-2. **Incorrect Reduction**: The reduction to Maximum Flow Network Interdiction does not preserve the correctness of the Clique Problem solution
-3. **Limited Validation**: The C implementation only validated small instances, failing to discover that the algorithm breaks down for larger inputs
-4. **Generalization Error**: The algorithm does not provide a solution for all instances of the Clique Problem, violating the requirement for a general polynomial-time solution
+The authors themselves acknowledged in their arXiv comments that:
+- The algorithm fails on large-size problems
+- The algorithm does not provide solutions to all Clique problems
 
-### Why This Matters
+This is a **fundamental failure** - any claimed polynomial-time algorithm for an NP-complete problem must work for ALL instances, not just some subset.
 
-For a claim of P = NP via solving an NP-complete problem:
-- The algorithm must be **correct for ALL instances** of the problem
-- The algorithm must run in **polynomial time for ALL inputs**
-- A single counterexample where the algorithm fails or runs in exponential time is sufficient to refute the claim
+### 2. Invalid or Incorrect Reduction
 
-The authors' own admission that "this algorithm doesn't provide solution to all Clique problems" is a direct acknowledgment that their proof attempt failed.
+The reduction from the Clique Problem to the Maximum Flow Network Interdiction Problem appears to be either:
+- Incorrectly formulated
+- Not polynomial-time preserving
+- Not equivalence-preserving (i.e., it doesn't maintain the yes/no answer)
 
-## Formalization Strategy
+### 3. Lack of Rigorous Proof
 
-This directory contains formal verifications in Coq, Lean, and Isabelle that demonstrate:
+The paper lacks:
+- Formal correctness proofs for the algorithm
+- Rigorous complexity analysis
+- Proof that the reduction preserves problem instances correctly
+- Testing on comprehensive benchmark instances
 
-1. **Correct formalization of the Clique Problem** as an NP-complete decision problem
-2. **Properties required** for any valid polynomial-time algorithm
-3. **Verification framework** that would expose the error:
-   - Define what it means for an algorithm to solve the Clique Problem
-   - Require correctness on ALL instances
-   - Require polynomial-time bound on ALL instances
-4. **Gap identification**: Show that any claimed algorithm must satisfy these properties
+### 4. Typical Pitfalls in Failed P=NP Attempts
 
-### Formalization Goals
+This attempt exhibits common errors seen in many failed P=NP attempts:
+- **Algorithm works on special cases but not general instances**: Many heuristics work well on specific problem structures but fail on the general case
+- **Confusion between average-case and worst-case complexity**: An algorithm that works "often" is not sufficient
+- **Missing polynomial-time bound verification**: Claims of polynomial time without rigorous proof of time complexity
+- **Reduction errors**: Invalid problem transformations that don't preserve computational complexity
 
-- ✅ Define the Clique Problem formally
-- ✅ Define polynomial-time decidability
-- ✅ State the requirements for P = NP via solving Clique
-- ✅ Provide a framework that would reject incomplete algorithms
-- ✅ Document why partial algorithms (working only on some instances) fail
+## Formalization Goal
 
-## Historical Context
+The formal verification in this directory aims to:
 
-This proof attempt is entry #97 on Gerhard J. Woeginger's list of P vs NP proof attempts:
-- Source: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+1. **Formalize the Clique Problem** in Lean, Coq, and Isabelle
+2. **Formalize what it means for an algorithm to solve the Clique Problem**
+3. **Capture the claim**: If there exists a polynomial-time algorithm for Clique, then P = NP
+4. **Identify the gap**: Show that any claimed algorithm must work on ALL instances (universal quantification)
+5. **Demonstrate the failure mode**: Show that an algorithm working on only SOME instances is insufficient
 
-The quick refutation (within one year) and author withdrawal demonstrate the importance of:
-1. Rigorous testing on diverse problem instances
-2. Formal verification of claimed algorithms
-3. Peer review before claiming resolution of major problems
-4. Mathematical proofs of correctness, not just empirical validation
+## Key Lessons
 
-## Lessons Learned
+This attempt demonstrates several important principles:
 
-1. **Empirical validation is insufficient**: Testing on small instances does not prove an algorithm works for all inputs
-2. **Reductions must be proven correct**: Claiming a reduction exists requires rigorous proof
-3. **Polynomial time must be proven**: Observing polynomial behavior on small inputs doesn't guarantee polynomial behavior on all inputs
-4. **NP-complete problems are hard for a reason**: Decades of failed attempts suggest fundamental barriers exist
+1. **Universal vs. Existential Quantification**: Proving P=NP requires an algorithm that works for ALL instances (∀), not just some instances (∃)
+2. **Rigorous Verification is Essential**: Claims must be backed by formal proofs and comprehensive testing
+3. **NP-Complete Problems are Hard**: There are deep reasons why these problems have resisted polynomial-time solutions for decades
+4. **Reductions Must Preserve Complexity**: A reduction must work correctly AND preserve polynomial-time bounds in both directions
 
 ## References
 
-1. **Original Paper (WITHDRAWN)**: Pawan Tamta, B.P. Pande, H.S. Dhami. "A Polynomial Time Solution to the Clique Problem." arXiv:1403.1178 (2014). http://arxiv.org/abs/1403.1178
+### Original Paper
+- Tamta, P., Pande, B.P., Dhami, H.S. (2014). "A Polynomial Time Solution to the Clique Problem." arXiv:1403.1178 [cs.CC]. **[Withdrawn]**
 
-2. **Refutation**: Hector A. Cardenas, Chester Holtz, Maria Janczak, Philip Meyers, Nathaniel S. Potrepka. "A Refutation of the Clique-Based P=NP Proofs of LaPlante and Tamta-Pande-Dhami." arXiv:1504.06890 (2015). https://arxiv.org/abs/1504.06890
+### Refutation
+- Cardenas, H.A., Holtz, C., Janczak, M., Meyers, P., Potrepka, N.S. (2015). "A Refutation of the Clique-Based P=NP Proofs of LaPlante and Tamta-Pande-Dhami." arXiv:1504.06890 [cs.CC].
 
-3. **Woeginger's P vs NP Page**: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+### Background on Clique Problem
+- Karp, R.M. (1972). "Reducibility Among Combinatorial Problems." Complexity of Computer Computations, pp. 85-103.
+- Garey, M.R., Johnson, D.S. (1979). "Computers and Intractability: A Guide to the Theory of NP-Completeness." W.H. Freeman.
 
-## Directory Structure
+### P vs NP Problem
+- Cook, S.A. (1971). "The complexity of theorem-proving procedures." Proceedings of STOC.
+- Clay Mathematics Institute: [P vs NP Official Problem Description](https://www.claymath.org/millennium/p-vs-np/)
+
+## Formalization Structure
 
 ```
 proofs/attempts/dhami-2014-peqnp/
-├── README.md                          # This file
+├── README.md                    (this file)
 ├── coq/
-│   └── DhamiCliqueAttempt.v          # Coq formalization
+│   └── DhamiAttempt.v          (Coq formalization)
 ├── lean/
-│   └── DhamiCliqueAttempt.lean       # Lean formalization
+│   └── DhamiAttempt.lean       (Lean 4 formalization)
 └── isabelle/
-    └── DhamiCliqueAttempt.thy        # Isabelle/HOL formalization
+    └── DhamiAttempt.thy        (Isabelle/HOL formalization)
 ```
 
-## Related Work
+## Status
 
-- **Clique Problem NP-completeness**: Karp, Richard M. "Reducibility among combinatorial problems." (1972)
-- **Maximum Flow**: Ford, L.R.; Fulkerson, D.R. "Maximal flow through a network." (1956)
-- **Network Interdiction**: Multiple papers on network interdiction problems (generally NP-hard themselves)
+- ✅ Documentation: Complete
+- 🚧 Lean formalization: In progress
+- 🚧 Coq formalization: In progress
+- 🚧 Isabelle formalization: In progress
 
 ---
 
-**Note**: This formalization is part of a systematic effort to formally verify P vs NP proof attempts and identify errors using machine-checked proofs. See parent issue #44 and the repository root for more context.
+**Note**: This formalization is for educational purposes to understand why certain approaches to P vs NP fail. The goal is to build intuition about the problem and common pitfalls in attempted proofs.
