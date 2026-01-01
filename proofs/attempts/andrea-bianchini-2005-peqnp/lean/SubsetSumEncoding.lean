@@ -89,9 +89,9 @@ def dpSubsetSumTime (nums : List Nat) (target : Nat) : Nat :=
 /-- The DP algorithm is pseudopolynomial -/
 theorem dp_is_pseudopolynomial :
     isPseudopolynomial dpSubsetSumTime := by
+  unfold isPseudopolynomial dpSubsetSumTime
   intro nums target
-  unfold dpSubsetSumTime isPseudopolynomial
-  -- dpSubsetSumTime nums target = nums.length * target ≤ nums.length * target
+  -- Goal: nums.length * target ≤ nums.length * target
   exact Nat.le_refl _
 
 /-- Key insight: The DP algorithm is NOT polynomial in binary input size
