@@ -22,7 +22,7 @@ but never proves Task B itself can be computed in polynomial time.
 /-! ## Basic Definitions -/
 
 /-- A Boolean variable is represented by a natural number -/
-def Var := ℕ
+def Var := Nat
 
 /-- A literal is either a positive or negative variable -/
 inductive Literal where
