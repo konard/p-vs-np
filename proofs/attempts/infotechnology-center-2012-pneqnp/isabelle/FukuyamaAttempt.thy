@@ -219,8 +219,11 @@ theorem fukuyama_attempt_fails:
 proof
   assume "\<exists>pf::bool. (\<forall>sigma. \<exists>n. \<forall>z. f sigma z = n) \<and>
                       (\<exists>prob. NP_class prob \<and> \<not> P prob)"
-  then obtain pf where lemma: "\<forall>sigma. \<exists>n. \<forall>z. f sigma z = n"
+  then obtain pf where h: "(\<forall>sigma. \<exists>n. \<forall>z. f sigma z = n) \<and>
+                           (\<exists>prob. NP_class prob \<and> \<not> P prob)"
     by auto
+  then have lemma: "\<forall>sigma. \<exists>n. \<forall>z. f sigma z = n"
+    by simp
 
   (* But Lemma 5.3 is false given f_depends_on_z *)
   have "\<not>(\<forall>sigma. \<exists>n. \<forall>z. f sigma z = n)"
