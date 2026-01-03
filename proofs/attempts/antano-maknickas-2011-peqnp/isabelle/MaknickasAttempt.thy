@@ -12,139 +12,139 @@ theory MaknickasAttempt
   imports Main "HOL-Library.Rewrite"
 begin
 
-section ‹Boolean SAT Formalization›
+section \<open>Boolean SAT Formalization\<close>
 
-text ‹A literal is either a positive or negative variable›
+text \<open>A literal is either a positive or negative variable\<close>
 datatype literal = Pos nat | Neg nat
 
-text ‹A clause is a list of literals (representing their disjunction)›
+text \<open>A clause is a list of literals (representing their disjunction)\<close>
 type_synonym clause = "literal list"
 
-text ‹A CNF formula is a list of clauses (representing their conjunction)›
+text \<open>A CNF formula is a list of clauses (representing their conjunction)\<close>
 type_synonym cnf = "clause list"
 
-text ‹An assignment maps variable indices to Boolean values›
+text \<open>An assignment maps variable indices to Boolean values\<close>
 type_synonym assignment = "nat ⇒ bool"
 
-text ‹Evaluate a literal under an assignment›
+text \<open>Evaluate a literal under an assignment\<close>
 fun eval_literal :: "assignment ⇒ literal ⇒ bool" where
   "eval_literal a (Pos n) = a n" |
   "eval_literal a (Neg n) = (¬ a n)"
 
-text ‹Evaluate a clause (disjunction of literals)›
+text \<open>Evaluate a clause (disjunction of literals)\<close>
 fun eval_clause :: "assignment ⇒ clause ⇒ bool" where
   "eval_clause a [] = False" |  (* empty clause is unsatisfiable *)
   "eval_clause a (l # ls) = (eval_literal a l ∨ eval_clause a ls)"
 
-text ‹Evaluate a CNF formula (conjunction of clauses)›
+text \<open>Evaluate a CNF formula (conjunction of clauses)\<close>
 fun eval_cnf :: "assignment ⇒ cnf ⇒ bool" where
   "eval_cnf a [] = True" |  (* empty formula is tautology *)
   "eval_cnf a (c # cs) = (eval_clause a c ∧ eval_cnf a cs)"
 
-text ‹A CNF formula is satisfiable if there exists a satisfying assignment›
+text \<open>A CNF formula is satisfiable if there exists a satisfying assignment\<close>
 definition Satisfiable :: "cnf ⇒ bool" where
   "Satisfiable f ≡ ∃a. eval_cnf a f"
 
-section ‹Maknickas's LP Relaxation Approach›
+section \<open>Maknickas's LP Relaxation Approach\<close>
 
-text ‹Real-valued assignment (LP relaxation of Boolean variables)›
+text \<open>Real-valued assignment (LP relaxation of Boolean variables)\<close>
 type_synonym real_assignment = "nat ⇒ real"
 
-text ‹A real assignment is non-negative›
+text \<open>A real assignment is non-negative\<close>
 definition NonNegative :: "real_assignment ⇒ bool" where
   "NonNegative ra ≡ ∀n. ra n ≥ 0"
 
-text ‹Sum of real values for variables in a clause
-     Note: Maknickas's formulation ignores negation!›
+text \<open>Sum of real values for variables in a clause
+     Note: Maknickas's formulation ignores negation!\<close>
 fun clause_sum :: "real_assignment ⇒ clause ⇒ real" where
   "clause_sum ra [] = 0" |
   "clause_sum ra (Pos n # rest) = ra n + clause_sum ra rest" |
   "clause_sum ra (Neg n # rest) = ra n + clause_sum ra rest"  (* Ignores negation! *)
 
-text ‹Maknickas's LP constraint for a k-clause: sum ≤ k›
+text \<open>Maknickas's LP constraint for a k-clause: sum ≤ k\<close>
 definition lp_constraint_for_clause :: "real_assignment ⇒ clause ⇒ bool" where
   "lp_constraint_for_clause ra c ≡ clause_sum ra c ≤ real (length c)"
 
-text ‹LP feasibility: assignment satisfies all constraints›
+text \<open>LP feasibility: assignment satisfies all constraints\<close>
 definition LPFeasible :: "cnf ⇒ real_assignment ⇒ bool" where
   "LPFeasible f ra ≡ NonNegative ra ∧ (∀c ∈ set f. lp_constraint_for_clause ra c)"
 
-section ‹The Proposed Recovery Function›
+section \<open>The Proposed Recovery Function\<close>
 
-text ‹Maknickas's floor-and-modulo function to convert real to Boolean
-     Convention: even floor → True, odd floor → False›
+text \<open>Maknickas's floor-and-modulo function to convert real to Boolean
+     Convention: even floor → True, odd floor → False\<close>
 definition floor_mod2 :: "real ⇒ bool" where
   "floor_mod2 r ≡ (floor r mod 2 = 0)"
 
-text ‹Recovery: convert real assignment to Boolean assignment›
+text \<open>Recovery: convert real assignment to Boolean assignment\<close>
 definition recover_assignment :: "real_assignment ⇒ assignment" where
   "recover_assignment ra ≡ λn. floor_mod2 (ra n)"
 
-section ‹The Critical Gap: LP Solution Doesn't Guarantee SAT Solution›
+section \<open>The Critical Gap: LP Solution Doesn't Guarantee SAT Solution\<close>
 
-text ‹Maknickas's implicit claim (UNPROVEN and FALSE):›
+text \<open>Maknickas's implicit claim (UNPROVEN and FALSE):\<close>
 axiomatization where
   maknickas_claim: "∀f ra. LPFeasible f ra ⟶ eval_cnf (recover_assignment ra) f"
 
-section ‹Counterexample: LP constraint doesn't encode disjunction properly›
+section \<open>Counterexample: LP constraint doesn't encode disjunction properly\<close>
 
-text ‹Example clause: (X₁ ∨ X₂ ∨ X₃)›
+text \<open>Example clause: (X₁ ∨ X₂ ∨ X₃)\<close>
 definition example_clause :: clause where
   "example_clause = [Pos 1, Pos 2, Pos 3]"
 
-text ‹LP solution with all variables at 1.0
-     This satisfies the LP constraint: 1 + 1 + 1 = 3 ≤ 3 ✓›
+text \<open>LP solution with all variables at 1.0
+     This satisfies the LP constraint: 1 + 1 + 1 = 3 ≤ 3 ✓\<close>
 definition bad_lp_solution :: real_assignment where
   "bad_lp_solution = (λn. 1)"
 
-text ‹The bad LP solution is feasible›
+text \<open>The bad LP solution is feasible\<close>
 lemma bad_lp_is_feasible: "LPFeasible [example_clause] bad_lp_solution"
   unfolding LPFeasible_def NonNegative_def lp_constraint_for_clause_def
   unfolding bad_lp_solution_def example_clause_def
   by auto
 
-text ‹But the recovered Boolean assignment doesn't satisfy the clause!
+text \<open>But the recovered Boolean assignment doesn't satisfy the clause!
      floor(1.0) = 1, which is odd, so floor_mod2 returns False
-     All three variables become False, making the clause False›
+     All three variables become False, making the clause False\<close>
 lemma bad_recovery_unsatisfies:
   "¬ eval_clause (recover_assignment bad_lp_solution) example_clause"
   unfolding recover_assignment_def bad_lp_solution_def floor_mod2_def example_clause_def
   by auto
 
-section ‹The Fundamental Problem›
+section \<open>The Fundamental Problem\<close>
 
-text ‹LP feasibility doesn't imply satisfiability›
+text \<open>LP feasibility doesn't imply satisfiability\<close>
 theorem lp_relaxation_gap:
   "¬ (∀f. (∃ra. LPFeasible f ra) ⟶ Satisfiable f)"
 proof -
-  text ‹We have an LP-feasible solution for our example›
+  text \<open>We have an LP-feasible solution for our example\<close>
   have lp_exists: "∃ra. LPFeasible [example_clause] bad_lp_solution"
     using bad_lp_is_feasible by auto
 
-  text ‹But if the general claim held, this would imply satisfiability›
-  text ‹However, we can show the recovered assignment doesn't work›
+  text \<open>But if the general claim held, this would imply satisfiability\<close>
+  text \<open>However, we can show the recovered assignment doesn't work\<close>
 
-  text ‹The proof would proceed by showing our example is unsatisfiable
-       under the recovered assignment, contradicting the claim›
+  text \<open>The proof would proceed by showing our example is unsatisfiable
+       under the recovered assignment, contradicting the claim\<close>
   sorry
 qed
 
-section ‹Additional Problems›
+section \<open>Additional Problems\<close>
 
-text ‹Problem 2: Negation is completely ignored
-     The formulation treats (Xᵢ) and (¬Xᵢ) identically!›
+text \<open>Problem 2: Negation is completely ignored
+     The formulation treats (Xᵢ) and (¬Xᵢ) identically!\<close>
 definition negation_example :: cnf where
   "negation_example = [[Pos 1], [Neg 1]]"  (* X₁ ∧ ¬X₁ - unsatisfiable! *)
 
-text ‹But the LP constraints are identical for both clauses›
+text \<open>But the LP constraints are identical for both clauses\<close>
 lemma negation_ignored:
   "lp_constraint_for_clause ra [Pos 1] = lp_constraint_for_clause ra [Neg 1]"
   unfolding lp_constraint_for_clause_def
   by auto
 
-section ‹Conclusion: The Proof Attempt Fails›
+section \<open>Conclusion: The Proof Attempt Fails\<close>
 
-text ‹
+text \<open>
   The fundamental errors in Maknickas (2011):
 
   1. LP RELAXATION GAP: The LP constraints don't faithfully encode Boolean SAT
@@ -154,19 +154,19 @@ text ‹
   5. NO SOUNDNESS PROOF: The claim that LP solution → SAT solution is never proven
 
   Therefore, this is NOT a valid proof of P=NP.
-›
+\<close>
 
-text ‹The bidirectional equivalence Maknickas needs is false›
+text \<open>The bidirectional equivalence Maknickas needs is false\<close>
 theorem maknickas_approach_fails:
   "¬ (∀f. (∃ra. LPFeasible f ra) = Satisfiable f)"
 proof -
-  text ‹The forward direction fails as shown in lp_relaxation_gap›
+  text \<open>The forward direction fails as shown in lp_relaxation_gap\<close>
   have "¬ (∀f. (∃ra. LPFeasible f ra) ⟶ Satisfiable f)"
     by (rule lp_relaxation_gap)
   thus ?thesis by auto
 qed
 
-text ‹
+text \<open>
   Summary: This formalization demonstrates that Maknickas's approach cannot prove P=NP
   because the LP relaxation fundamentally changes the problem being solved.
 
@@ -179,6 +179,6 @@ text ‹
   The FATAL FLAW: Step 4 doesn't work! The LP solution doesn't necessarily
   correspond to a satisfying Boolean assignment. This is a well-known issue
   with LP relaxation - it's used for approximation algorithms, not exact solutions.
-›
+\<close>
 
 end
