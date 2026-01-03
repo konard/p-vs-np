@@ -247,7 +247,6 @@ proof -
     understanding is equivalent to solving SAT.
   \<close>
   sorry
-qed
 
 subsection \<open>Summary of the Error\<close>
 
