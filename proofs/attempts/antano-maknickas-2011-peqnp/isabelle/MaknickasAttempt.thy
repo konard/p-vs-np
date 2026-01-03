@@ -9,7 +9,7 @@
 *)
 
 theory MaknickasAttempt
-  imports Main "HOL-Library.Rewrite"
+  imports Complex_Main "HOL-Library.Rewrite"
 begin
 
 section \<open>Boolean SAT Formalization\<close>
