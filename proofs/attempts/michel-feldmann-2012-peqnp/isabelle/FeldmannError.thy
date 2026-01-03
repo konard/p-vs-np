@@ -246,7 +246,8 @@ proof -
     understand the formula well enough to construct the LP - but that
     understanding is equivalent to solving SAT.
   \<close>
-  sorry
+  show ?thesis sorry
+qed
 
 subsection \<open>Summary of the Error\<close>
 
