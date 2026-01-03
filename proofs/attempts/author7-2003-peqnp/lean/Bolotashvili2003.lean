@@ -41,28 +41,32 @@ def isPolynomial (f : Nat → Nat) : Prop :=
 
 -- * The Claimed Polynomial-Time Algorithm
 
--- Abstract representation of the claimed algorithm
-structure ClaimedAlgorithm where
-  -- Step 1: Initialize with some heuristic ordering
-  initialize : (n : Nat) → WeightMatrix n → Permutation n
-  -- Step 2: Use facets to improve the solution
-  improveWithFacets : (n : Nat) → WeightMatrix n → Permutation n → Permutation n
-  -- Step 3: Check for optimality using facets
-  checkOptimal : (n : Nat) → WeightMatrix n → Permutation n → Bool
-  -- Claimed: number of iterations is polynomial
-  iterationBound : Nat → Nat
-  iterationBoundPoly : isPolynomial iterationBound
+-- Abstract representation of the claimed algorithm components
+axiom AlgorithmInitialize : ∀ {n : Nat}, WeightMatrix n → Permutation n
+axiom AlgorithmImproveWithFacets : ∀ {n : Nat}, WeightMatrix n → Permutation n → Permutation n
+axiom AlgorithmCheckOptimal : ∀ {n : Nat}, WeightMatrix n → Permutation n → Bool
+axiom AlgorithmIterationBound : Nat → Nat
+
+-- The claimed algorithm is represented as axioms (abstract functions)
+axiom AlgorithmInitializeImpl : {n : Nat} → WeightMatrix n → Permutation n
+axiom AlgorithmImproveWithFacetsImpl : {n : Nat} → WeightMatrix n → Permutation n → Permutation n
+axiom AlgorithmCheckOptimalImpl : {n : Nat} → WeightMatrix n → Permutation n → Bool
+axiom AlgorithmIterationBoundImpl : Nat → Nat
+axiom AlgorithmIterationBoundPolyImpl : isPolynomial AlgorithmIterationBoundImpl
+
+-- The claimed algorithm is defined as having these properties
+def ClaimedAlgorithm : Type := Unit  -- placeholder, represents abstract algorithm
 
 -- * The Core Claim
 
 -- Bolotashvili's main claim: LOP is solvable in polynomial time
-def BolotashviliClaim (algo : ClaimedAlgorithm) : Prop :=
+def BolotashviliClaim : Prop :=
   ∀ (n : Nat) (matrix : WeightMatrix n),
     ∃ (steps : Nat),
       -- Algorithm completes in polynomial steps
-      steps ≤ algo.iterationBound n ∧
+      steps ≤ AlgorithmIterationBoundImpl n ∧
       -- And produces an optimal solution
-      let perm := algo.improveWithFacets n matrix (algo.initialize n matrix)
+      let perm := AlgorithmImproveWithFacetsImpl matrix (AlgorithmInitializeImpl matrix)
       isPermutation perm ∧
       ∀ perm' : Permutation n,
         isPermutation perm' →
@@ -72,9 +76,9 @@ def BolotashviliClaim (algo : ClaimedAlgorithm) : Prop :=
 
 -- If Bolotashvili's claim is true, then P = NP
 theorem Bolotashvili_implies_P_eq_NP :
-  (∃ algo, BolotashviliClaim algo) →
+  BolotashviliClaim →
   ∀ L : Prop, True := by
-  intro ⟨algo, h_claim⟩ L
+  intro h_claim L
   -- Since LOP is NP-complete, a polynomial algorithm for LOP
   -- would give polynomial algorithms for all NP problems via reduction
   trivial
@@ -168,8 +172,8 @@ inductive ProofGap where
       -- Each "polynomial" step actually does exponential work
 
 -- At least one of these gaps must exist
-axiom proof_has_gap (algo : ClaimedAlgorithm) :
-  ¬BolotashviliClaim algo ∨
+axiom proof_has_gap :
+  ¬BolotashviliClaim ∨
   ∃ gap : ProofGap, True
 
 -- * Most Likely Error
