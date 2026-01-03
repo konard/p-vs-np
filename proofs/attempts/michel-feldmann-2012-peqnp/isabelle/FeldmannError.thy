@@ -8,12 +8,12 @@ text \<open>
   This theory formalizes the critical error in Michel Feldmann's 2012 paper
   "Solving satisfiability by Bayesian inference" (arXiv:1205.6658v5).
 
-  @{bold "Main Result"}: We show that the claimed polynomial-time construction
+  Main Result: We show that the claimed polynomial-time construction
   of the LP system from a SAT formula either:
   \<^item> Requires exponential time to construct, OR
   \<^item> Is incomplete and doesn't correctly encode the SAT problem
 
-  @{bold "The Core Issue"}: Feldmann confuses two different computational tasks:
+  The Core Issue: Feldmann confuses two different computational tasks:
   \<^item> Checking if a given LP system is feasible (polynomial-time)
   \<^item> Constructing the correct LP system from a SAT instance (NOT proven polynomial)
 \<close>
@@ -112,7 +112,7 @@ definition feldmann_full_claim :: "construction \<Rightarrow> bool" where
 subsection \<open>The Critical Error\<close>
 
 text \<open>
-  @{bold "Problem 1"}: Determining Working Unknowns May Require Exponential Work
+  Problem 1: Determining Working Unknowns May Require Exponential Work
 
   To construct the LP system, Feldmann needs to determine which "working unknowns"
   to include (Definition 3 in the paper). The paper claims this set has polynomial
@@ -138,7 +138,7 @@ lemma partial_reqs_grows:
   sorry
 
 text \<open>
-  @{bold "Problem 2"}: Construction Algorithm Missing
+  Problem 2: Construction Algorithm Missing
 
   The paper claims the construction produces polynomial-sized LP systems,
   but never provides an algorithm for this construction.
@@ -151,10 +151,11 @@ text \<open>
 \<close>
 
 definition must_track :: "formula \<Rightarrow> partial_req \<Rightarrow> bool" where
-  "must_track f req \<equiv> True (* This unknown appears in C(f) - but how to compute? *)"
+  "must_track f req \<equiv> True"
+  (* This unknown appears in C(f) - but how to compute this in polynomial time? *)
 
 text \<open>
-  @{bold "Problem 3"}: Verification Requires Exponential Work
+  Problem 3: Verification Requires Exponential Work
 
   Feldmann's Proposition 6 states: "the LP system Eq. (10) determines the truth table"
 
@@ -162,13 +163,13 @@ text \<open>
 \<close>
 
 definition verify_lp_correct :: "formula \<Rightarrow> LP_system \<Rightarrow> bool" where
-  "verify_lp_correct f lp \<equiv>
-    (\<forall>\<alpha>. True (* Should check assignment consistent with LP system *))"
+  "verify_lp_correct f lp \<equiv> (\<forall>\<alpha>. True)"
+  (* Should check assignment consistent with LP system *)
 
 subsection \<open>Main Theorem: The Gap in Feldmann's Proof\<close>
 
 text \<open>
-  @{bold "Theorem"}: Construction Cannot Be Both Correct and Polynomial-Time
+  Theorem: Construction Cannot Be Both Correct and Polynomial-Time
 
   If a construction satisfies Feldmann's equivalence claim and produces
   polynomial-sized LP systems, it cannot be polynomial-time computable
@@ -210,7 +211,7 @@ proof -
 subsection \<open>The Circular Reasoning\<close>
 
 text \<open>
-  @{bold "Feldmann's Argument Structure"}:
+  Feldmann's Argument Structure:
 
   1. Given SAT formula f
   2. Construct LP system C(f) with "working unknowns"
@@ -218,7 +219,7 @@ text \<open>
   4. Check LP feasibility in polynomial time
   5. Conclude: Solved SAT in polynomial time
 
-  @{bold "The Hidden Gap"}: How is step 2 computed?
+  The Hidden Gap: How is step 2 computed?
 
   The paper proves steps 3-5 are correct, but NEVER proves step 2
   can be done in polynomial time!
@@ -250,18 +251,18 @@ qed
 subsection \<open>Summary of the Error\<close>
 
 text \<open>
-  @{bold "Feldmann's Category Mistake"}
+  Feldmann's Category Mistake
 
   Feldmann confuses two distinct computational tasks:
 
-  1. @{bold "Problem Representation"} (SAT → LP):
+  1. Problem Representation (SAT → LP):
      - Converting a SAT formula to an LP system
      - NOT proven polynomial-time
      - Requires determining working unknowns
      - Must verify consistency equations are complete
      - Paper provides NO algorithm for this
 
-  2. @{bold "Problem Solution"} (LP feasibility):
+  2. Problem Solution (LP feasibility):
      - Checking if the LP system is feasible
      - PROVEN polynomial-time (Khachiyan 1979, Karmarkar 1984)
      - Assumes the LP system is already given
@@ -272,14 +273,14 @@ text \<open>
 
   But NEVER proves: The LP system CAN be constructed in polynomial time.
 
-  @{bold "The Hidden Complexity"}
+  The Hidden Complexity
 
   The construction hides exponential work in:
   \<^item> Enumerating "working unknowns" (potentially exponential)
   \<^item> Verifying "consistency equations" are sufficient (requires all assignments)
   \<^item> Ensuring the LP encoding is correct (circular: requires solving SAT)
 
-  @{bold "Analogy"}
+  Analogy
 
   This is like claiming:
   \<^item> "I can verify a solution to SAT in polynomial time" (TRUE - this defines NP)
@@ -294,21 +295,21 @@ subsection \<open>Conclusion\<close>
 text \<open>
   The formalization exposes the fundamental gap in Feldmann's proof:
 
-  @{bold "The Claim"}: P = NP via Bayesian inference applied to 3-SAT
+  The Claim: P = NP via Bayesian inference applied to 3-SAT
 
-  @{bold "The Argument"}:
+  The Argument:
   \<^item> Convert 3-SAT to LP (Step A)
   \<^item> Check LP feasibility in polynomial time (Step B)
   \<^item> Therefore 3-SAT is in P, so P = NP
 
-  @{bold "The Error"}:
+  The Error:
   \<^item> Step B is correct (Khachiyan 1979, known result)
   \<^item> Step A is NOT proven polynomial-time
   \<^item> No algorithm provided for the construction
   \<^item> The construction implicitly requires solving SAT
   \<^item> The proof is incomplete and circular
 
-  @{bold "Conclusion"}: The proof does NOT establish P = NP.
+  Conclusion: The proof does NOT establish P = NP.
 
   The error is a common pattern in failed P vs NP attempts:
   moving the exponential complexity into an unexamined "setup" phase
