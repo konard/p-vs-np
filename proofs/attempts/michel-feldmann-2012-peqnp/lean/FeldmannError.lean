@@ -19,11 +19,6 @@ The paper proves Task A is easy, claims Task B produces polynomial-sized output,
 but never proves Task B itself can be computed in polynomial time.
 -/
 
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Data.Finset.Basic
-import Mathlib.Logic.Basic
-import Mathlib.Init.Data.Nat.Basic
-
 /-! ## Basic Definitions -/
 
 /-- A Boolean variable is represented by a natural number -/
