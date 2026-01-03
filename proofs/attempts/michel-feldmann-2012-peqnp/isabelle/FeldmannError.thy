@@ -233,7 +233,8 @@ lemma construction_requires_tracked_unknowns:
 
 lemma tracking_requires_sat_knowledge:
   assumes "feldmann_claim C"
-  shows "True (* To determine tracked requirements, must understand f's structure *)"
+  shows "True"
+  (* To determine tracked requirements, we must understand the formula's structure *)
 proof -
   text \<open>
     The determination of which partial requirements to track requires
