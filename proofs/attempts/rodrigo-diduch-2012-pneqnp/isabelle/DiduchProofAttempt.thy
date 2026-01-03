@@ -205,15 +205,9 @@ proof -
     qed
 
     text \<open>But SAT has a super-polynomial lower bound\<close>
-    from H_SAT_in_P obtain tm where H_poly: "IsPolynomialTime (timeComplexity tm)"
-                                 and H_decides: "\<forall>x. SAT x = compute tm x"
-      unfolding InP_def by sorry  \<comment> \<open>witness extraction - technical detail\<close>
-
-    text \<open>This contradicts the lower bound\<close>
-    have "\<not>IsPolynomialTime (timeComplexity tm)"
-      using H_lower_bound H_decides unfolding HasSuperPolynomialLowerBound_def by blast
-
-    with H_poly show False by simp
+    text \<open>INCOMPLETE: Would need to extract witness and show contradiction\<close>
+    show False
+      sorry  \<comment> \<open>Gap: extracting witness and deriving contradiction\<close>
   qed
 qed
 
