@@ -49,7 +49,8 @@ theorem singleton_is_clique (G : Graph) (v : Fin G.vertices) :
 structure CliquePartition (G : Graph) where
   partition : List (List (Fin G.vertices))
   all_cliques : ∀ S ∈ partition, isClique G S
-  covers_all : ∀ v : Fin G.vertices, ∃! S, S ∈ partition ∧ v ∈ S
+  covers_all : ∀ v : Fin G.vertices, ∃ S, S ∈ partition ∧ v ∈ S ∧
+    ∀ S', S' ∈ partition → v ∈ S' → S' = S
 
 def CliquePartition.size (cp : CliquePartition G) : Nat :=
   cp.partition.length
@@ -72,13 +73,12 @@ def ProperColoring (G : Graph) (coloring : Fin G.vertices → Nat) : Prop :=
   ∀ u v, G.edge u v = true → coloring u ≠ coloring v
 
 def chromaticNumber (G : Graph) (k : Nat) : Prop :=
-  ∃ coloring : Fin G.vertices → Nat,
+  (∃ coloring : Fin G.vertices → Nat,
     ProperColoring G coloring ∧
-    (∀ v, coloring v < k) ∧
-    (∀ coloring' : Fin G.vertices → Nat,
-      ProperColoring G coloring' →
-      ∀ v, coloring' v < k →
-      k ≤ (List.finRange G.vertices).map coloring' |>.maximum? |>.getD 0 + 1)
+    (∀ v, coloring v < k)) ∧
+  (∀ k', k' < k →
+    ¬∃ coloring : Fin G.vertices → Nat,
+      ProperColoring G coloring ∧ (∀ v, coloring v < k'))
 
 -- Key theorem: Clique cover of G equals chromatic number of complement(G)
 -- This is a well-known result in graph theory
@@ -156,10 +156,9 @@ def PolynomialTime {α β : Type} (f : α → β) (size : α → Nat) : Prop :=
 
 -- Clique partition is NP-complete
 axiom clique_partition_NP_complete :
-  ∀ (solver : Graph → CliquePartition ·),
-    (∀ G : Graph, (solver G).partition.length =
-      (Classical.choice (minCliquePartitionNumber G ·.some)).size) →
-    ¬PolynomialTime solver Graph.vertices
+  ∀ (solver : (G : Graph) → CliquePartition G),
+    (∀ G : Graph, ∃ k, minCliquePartitionNumber G k ∧ (solver G).size = k) →
+    ¬PolynomialTime (fun G => (solver G).size) Graph.vertices
 
 -- Main result: Plotnikov's algorithm cannot exist
 theorem plotnikov_algorithm_cannot_exist :

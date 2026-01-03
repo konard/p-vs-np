@@ -66,8 +66,7 @@ Proof.
   - intros u v' Hu Hv' Hneq.
     simpl in Hu, Hv'.
     destruct Hu as [Hequ | Hfu]; destruct Hv' as [Heqv' | Hfv].
-    + rewrite Hequ in Hneq. rewrite Heqv' in Hneq.
-      exfalso. apply Hneq. reflexivity.
+    + subst. exfalso. apply Hneq. reflexivity.
     + inversion Hfv.
     + inversion Hfu.
     + inversion Hfu.
@@ -168,7 +167,7 @@ Axiom dilworth_theorem : forall (P : Poset) (n : nat),
     length chains = n) <->
   (exists antichain : list (carrier P),
     is_antichain antichain /\ length antichain = n /\
-    (forall antichain', is_antichain antichain' ->
+    (forall antichain' : list (carrier P), is_antichain antichain' ->
       length antichain' <= n)).
 
 (** * Plotnikov's Algorithm (Claimed) *)
