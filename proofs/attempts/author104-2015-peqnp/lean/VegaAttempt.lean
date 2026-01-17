@@ -65,7 +65,7 @@ theorem type_mismatch :
     ∀ (L_P : Language) (L_sim : PairLanguage),
     -- We cannot directly compare these types
     True := by
-  intro L_P L_sim
+  intro _ _
   -- The types Language and PairLanguage are different.
   -- We cannot say L_P = L_sim or even compare them directly.
   trivial
@@ -75,13 +75,11 @@ theorem type_mismatch :
 /-- For any language L in P, we can construct a "verifier" that ignores
     the certificate and just decides membership. -/
 theorem P_verifier_ignores_certificate :
-    ∀ (L : Language) (decide : Instance → Bool),
-    (∀ x, L x ↔ decide x = true) →
-    ∃ (verify : Verifier), ∀ x c, verify x c = decide x := by
-  intro L decide h_decide
-  exists (fun x _ => decide x)
-  intro x c
-  rfl
+    ∀ (L : Language) (d : Instance → Bool),
+    (∀ x, L x ↔ d x = true) →
+    ∃ (verify : Verifier), ∀ x c, verify x c = d x := by
+  intro _ d _
+  exact ⟨fun x _ => d x, fun _ _ => rfl⟩
 
 /-- This means the "shared certificate" condition in ∼P is meaningless
     for languages in P. -/
@@ -94,11 +92,10 @@ theorem shared_certificate_vacuous :
     ∃ (z : Certificate), (fun x' _ => d1 x') x z = true ∧ (fun y' _ => d2 y') y z = true := by
   intro L1 L2 d1 d2 h1 h2 x y hx hy
   -- Pick any certificate, say the empty string
-  exists ("" : String)
-  constructor
-  · simp
+  refine ⟨"", ?_, ?_⟩
+  · simp only []
     exact (h1 x).mp hx
-  · simp
+  · simp only []
     exact (h2 y).mp hy
 
 -- Vega's Theorem 6.1: ∼HORNSAT ∈ ∼P
@@ -111,59 +108,65 @@ axiom HORNSAT_in_P : InP HORNSAT
 def sim_HORNSAT : PairLanguage :=
   fun (x, y) => x = y ∧ HORNSAT x
 
-/-- Vega's Theorem 6.1 states ∼HORNSAT ∈ ∼P
-    However, the proof reveals a flaw in the definition. -/
+/-
+  Vega's Theorem 6.1 states ∼HORNSAT ∈ ∼P
+
+  However, the proof reveals a flaw in the definition.
+
+  PROOF BREAKDOWN: When trying to prove the backward direction of the
+  biconditional, we cannot establish x = y from the hypothesis that
+  both HORNSAT x and HORNSAT y hold with a shared certificate.
+
+  The shared certificate is vacuous (any certificate works for problems in P),
+  so we have no information to prove x = y.
+
+  This is marked with 'sorry' to indicate the unprovable step.
+-/
 theorem Vega_Theorem_6_1 : InEquivalentP sim_HORNSAT := by
   unfold InEquivalentP
   -- Use HORNSAT for both L1 and L2
-  exists HORNSAT, HORNSAT
-
+  refine ⟨HORNSAT, HORNSAT, ?_, ?_, ?_, ?_, ?_⟩
   -- Get the decider for HORNSAT
-  obtain ⟨decide, hdecide⟩ := HORNSAT_in_P
-
-  -- Create "verifiers" that ignore certificates
-  exists (fun x _ => decide x), (fun y _ => decide y)
-
-  constructor
-  · exists decide
-    exact hdecide
-  constructor
-  · exists decide
-    exact hdecide
+  · obtain ⟨d, hd⟩ := HORNSAT_in_P
+    exact ⟨fun x _ => d x, fun y _ => d y⟩
+  · exact HORNSAT_in_P
+  · exact HORNSAT_in_P
   · intro x y
     unfold sim_HORNSAT
+    obtain ⟨d, hd⟩ := HORNSAT_in_P
     constructor
-    · -- Forward direction
-      intro ⟨heq, hx⟩
+    -- Forward direction: (x = y ∧ HORNSAT x) → (HORNSAT x ∧ HORNSAT y ∧ ∃ z, ...)
+    · intro ⟨heq, hx⟩
       subst heq
+      refine ⟨hx, hx, "", ?_, ?_⟩
+      · simp only []
+        exact (hd x).mp hx
+      · simp only []
+        exact (hd x).mp hx
+    -- Backward direction: (HORNSAT x ∧ HORNSAT y ∧ ∃ z, ...) → (x = y ∧ HORNSAT x)
+    · intro ⟨hx, _, _, _, _⟩
       constructor
-      · exact (hdecide x).mp hx
-      constructor
-      · exact (hdecide x).mp hx
-      · -- Certificate exists (any string works)
-        exists ("" : String)
-        constructor <;> exact (hdecide x).mp hx
-    · -- Backward direction
-      intro ⟨hx, hy, z, _, _⟩
-      constructor
-      · -- PROBLEM: We cannot prove x = y from the available assumptions!
-        -- The definition doesn't guarantee x = y, only that they
-        -- both satisfy HORNSAT and share some certificate (which is vacuous).
-        sorry
-      · exact (hdecide x).mpr hx
+      -- PROBLEM: We cannot prove x = y from the available assumptions!
+      -- The definition doesn't guarantee x = y, only that they
+      -- both satisfy HORNSAT and share some certificate (which is vacuous).
+      --
+      -- This is the FUNDAMENTAL ERROR in Vega's proof: the definition of ∼P
+      -- does not capture the diagonal structure needed for ∼HORNSAT.
+      · sorry
+      · exact hx
 
 -- The Error Revealed
-
-/-- The proof of Theorem 6.1 breaks down because:
-
-    1. The definition of InEquivalentP doesn't capture the constraint
-       that x and y must be equal (for ∼HORNSAT).
-
-    2. Even if we fix this, showing one P-complete problem is in ∼P
-       doesn't prove ∼P = P because:
-       - The types don't match (pairs vs. single instances)
-       - The reduction notions are different
-       - We'd need to show ALL of P is in ∼P and vice versa -/
+--
+-- The proof of Theorem 6.1 breaks down because:
+--
+-- 1. The definition of InEquivalentP doesn't capture the constraint
+--    that x and y must be equal (for ∼HORNSAT).
+--
+-- 2. Even if we fix this, showing one P-complete problem is in ∼P
+--    doesn't prove ∼P = P because:
+--    - The types don't match (pairs vs. single instances)
+--    - The reduction notions are different
+--    - We'd need to show ALL of P is in ∼P and vice versa
 
 -- Vega's Theorem 6.2: ∼P = P
 
@@ -178,44 +181,44 @@ theorem cannot_compare_P_and_simP :
   trivial
 
 -- Vega's Theorem 5.3: ∼P = NP
-
-/-- Similarly, the claim ∼P = NP suffers from the same type mismatch.
-
-    Even if we tried to encode it as:
-    "For every L ∈ NP, the language {(x,x) : x ∈ L} is in ∼P"
-
-    This doesn't capture the computational complexity of NP.
-    It's just a syntactic pairing. -/
+--
+-- Similarly, the claim ∼P = NP suffers from the same type mismatch.
+--
+-- Even if we tried to encode it as:
+-- "For every L ∈ NP, the language {(x,x) : x ∈ L} is in ∼P"
+--
+-- This doesn't capture the computational complexity of NP.
+-- It's just a syntactic pairing.
 
 -- Conclusion
-
-/-- The formalization reveals that Vega's proof attempt fails because:
-
-    1. Definition 3.1 is ill-formed:
-       - It treats problems in P as if they need verifiers with certificates
-       - For problems in P, any certificate works (the condition is vacuous)
-
-    2. Type mismatch:
-       - P and NP contain languages over single instances
-       - ∼P contains languages over pairs
-       - Cannot meaningfully compare them
-
-    3. Insufficient reduction framework:
-       - E-reduction is not comparable to polynomial-time or log-space reductions
-       - Showing one complete problem is in a class doesn't prove equality
-
-    4. No computational complexity barrier is overcome:
-       - The construction is purely syntactic
-       - Doesn't address why NP might be harder than P
-       - Doesn't overcome known barriers (relativization, natural proofs, etc.)
-
-    A corrected approach would need to:
-    - Define ∼P properly (if it can be done meaningfully)
-    - Establish proper isomorphisms between P, NP, and ∼P
-    - Use standard reduction notions
-    - Address known complexity-theoretic barriers
-
-    The current formalization fails at step 1: the definition itself is flawed. -/
+--
+-- The formalization reveals that Vega's proof attempt fails because:
+--
+-- 1. Definition 3.1 is ill-formed:
+--    - It treats problems in P as if they need verifiers with certificates
+--    - For problems in P, any certificate works (the condition is vacuous)
+--
+-- 2. Type mismatch:
+--    - P and NP contain languages over single instances
+--    - ∼P contains languages over pairs
+--    - Cannot meaningfully compare them
+--
+-- 3. Insufficient reduction framework:
+--    - E-reduction is not comparable to polynomial-time or log-space reductions
+--    - Showing one complete problem is in a class doesn't prove equality
+--
+-- 4. No computational complexity barrier is overcome:
+--    - The construction is purely syntactic
+--    - Doesn't address why NP might be harder than P
+--    - Doesn't overcome known barriers (relativization, natural proofs, etc.)
+--
+-- A corrected approach would need to:
+-- - Define ∼P properly (if it can be done meaningfully)
+-- - Establish proper isomorphisms between P, NP, and ∼P
+-- - Use standard reduction notions
+-- - Address known complexity-theoretic barriers
+--
+-- The current formalization fails at step 1: the definition itself is flawed.
 
 #check Vega_Theorem_6_1
 #check type_mismatch

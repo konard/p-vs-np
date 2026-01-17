@@ -167,7 +167,8 @@ Proof.
          The definition doesn't guarantee x = y, only that they
          both satisfy HORNSAT and share some certificate (which is vacuous). *)
       admit.
-    + apply Hdecide. assumption.
+    + (* Goal: HORNSAT x, which is exactly Hx *)
+      exact Hx.
 Admitted.
 
 (** ** The Error Revealed *)
