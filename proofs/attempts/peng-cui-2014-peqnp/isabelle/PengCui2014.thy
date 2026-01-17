@@ -26,22 +26,22 @@ definition input_size :: "binary_string \<Rightarrow> nat" where
 
 (* Polynomial time bound *)
 definition is_polynomial :: "(nat \<Rightarrow> nat) \<Rightarrow> bool" where
-  "is_polynomial f \<longleftrightarrow> (\<exists>k c. \<forall>n. f n \<le> c * (n ^ k) + c)"
+  "is_polynomial f \<equiv> (\<exists>k c. \<forall>n. f n \<le> c * (n ^ k) + c)"
 
 (* Complexity class P *)
 definition in_P :: "decision_problem \<Rightarrow> bool" where
-  "in_P L \<longleftrightarrow> (\<exists>time. is_polynomial time \<and>
-    (\<exists>decide. \<forall>x. L x \<longleftrightarrow> decide x))"
+  "in_P L \<equiv> (\<exists>time. is_polynomial time \<and>
+    (\<exists>decide. \<forall>x. L x = decide x))"
 
 (* Certificate for NP *)
 type_synonym certificate = "binary_string"
 
 (* Complexity class NP (via certificates) *)
 definition in_NP :: "decision_problem \<Rightarrow> bool" where
-  "in_NP L \<longleftrightarrow> (\<exists>verify cert_size time.
+  "in_NP L \<equiv> (\<exists>verify cert_size time.
     is_polynomial cert_size \<and>
     is_polynomial time \<and>
-    (\<forall>x. L x \<longleftrightarrow> (\<exists>c. length c \<le> cert_size (length x) \<and> verify x c)))"
+    (\<forall>x. L x = (\<exists>c. length c \<le> cert_size (length x) \<and> verify x c)))"
 
 (* NP-hardness via polynomial-time reductions *)
 definition NP_hard :: "decision_problem \<Rightarrow> bool" where
@@ -51,7 +51,7 @@ definition NP_hard :: "decision_problem \<Rightarrow> bool" where
 
 (* NP-completeness *)
 definition NP_complete :: "decision_problem \<Rightarrow> bool" where
-  "NP_complete L \<longleftrightarrow> in_NP L \<and> NP_hard L"
+  "NP_complete L \<equiv> in_NP L \<and> NP_hard L"
 
 section \<open>3-XOR Problem Definition\<close>
 
