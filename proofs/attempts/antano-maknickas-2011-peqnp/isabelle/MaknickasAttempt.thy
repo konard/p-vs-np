@@ -127,7 +127,6 @@ proof -
   text \<open>The proof would proceed by showing our example is unsatisfiable
        under the recovered assignment, contradicting the claim\<close>
   sorry
-qed
 
 section \<open>Additional Problems\<close>
 
