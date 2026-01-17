@@ -1,177 +1,156 @@
-# Sanchez Guinea (2015) - P=NP Attempt
+# Sanchez Guinea (2015) - P=NP Claim
 
 **Attempt ID**: 103
-**Author**: Alejandro Sánchez Guinea
+**Author**: Alejandro Sanchez Guinea
 **Year**: 2015
-**Claim**: P=NP (via polynomial-time 3-SAT algorithm)
-**Paper**: "Understanding SAT is in P" (arXiv:1504.00337v4)
-**Source**: [Woeginger's P vs NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm) - Entry #103
+**Claim**: P = NP
+**Paper**: "Understanding SAT is in P"
+**Source**: [arXiv:1504.00337v4](https://arxiv.org/abs/1504.00337)
 
 ## Summary
 
-In April 2015, Alejandro Sánchez Guinea claimed to prove P=NP by designing an algorithm that solves 3-SAT in polynomial time. The paper introduces the concept of an "understanding" - a three-valued function mapping literals to {true, false, free} - and uses "contexts" and "concepts" to construct satisfying assignments without searching the solution space. The author claims the main algorithm (Algorithm U) runs in O(m²) time, where m is the number of clauses.
+In April 2015, Alejandro Sanchez Guinea published a paper claiming to prove P=NP by designing an algorithm (Algorithm U) that solves 3-SAT in polynomial time. The approach introduces the concept of an "understanding" - a three-valued function mapping literals to {true, false, free} - and claims to construct satisfying assignments by analyzing the "contexts" (neighboring literals) of each literal in clauses.
 
 ## Main Argument
 
-### Core Idea
+### Key Concepts
 
-Instead of traditional truth assignments α: X → {0,1}, the paper uses an **understanding** ũ: L → {t, f, ε} where:
-- t = true
-- f = false
-- ε = free (unassigned)
+1. **Understanding**: A function ũ: L → {t, f, ε} mapping literals to true, false, or free
+2. **Context**: For a literal l in clause {l₁, l₂, l₃}, the context is the other two literals
+3. **Concept**: A context interpreted according to an understanding
+4. **Concept Types**:
+   - Type C⁺: Both literals false, or one false and one free, or both free
+   - Type C*: Both literals true, or one true and one free, or one true and one false
 
-### Key Definitions
+### Algorithm Overview
 
-1. **Context**: For a 3-SAT clause φ = {l₁, l₂, l₃}, the context of literal l₁ is the set {l₂, l₃}
+**Algorithm U** (the main algorithm):
+- **Input**: A 3-SAT instance Φ
+- **Process**: Incrementally add clauses from Φ to a working set φ, maintaining an understanding ũ
+- **For each clause**: Update ũ based on the "concepts" (contexts of literals interpreted under current understanding)
+- **Output**: Either an understanding (claimed to be polynomial-time constructible) or "unsatisfiable"
 
-2. **Concept**: A context interpreted under an understanding. For literal l₁ in φ, its concept is C: {ũ(l₂), ũ(l₃)}
+**Supporting Algorithms**:
+- **Algorithm G**: Verify if a literal can be made true
+- **Algorithm D**: Recursively try to make a false literal free
+- **⟨Compute ũ⟩**: Update understanding until no changes occur
 
-3. **Concept Types**:
-   - **Type C⁺**: Both literals false, OR both free, OR one free and one false
-   - **Type C***: Both literals true, OR one true and one false, OR one free and one true
+### Claimed Complexity
 
-4. **Understanding of a Literal**: For literal λ in clause set φ:
-   - ũ(λ) = ε if C̃[λ] is empty or (C̃[λ]⁻ is empty and C̃[λ] is type C̃*)
-   - ũ(λ) = t if C̃[λ] is type C̃⁺ and C̃[λ]⁻ is empty
-   - ũ(λ) = f if C̃[λ]⁻ is not empty and C̃[λ] is not type C̃⁺
-   - undefined otherwise
-
-Where:
-- C̃[λ] = set of all concepts of λ
-- C̃[λ]⁻ = set of concepts of type C⁺ in C̃[¬λ]
-
-### The Algorithm
-
-**Algorithm U** (Main algorithm):
-1. Start with empty understanding ũ and empty clause set φ
-2. For each clause ϕ in Φ:
-   - If all literals in ϕ are false under ũ, use Algorithm D to free at least one
-   - Add concepts from ϕ to the concept set
-   - Update understanding via ⟨Compute ũ⟩
-3. If successful for all clauses, output ũ (which corresponds to a satisfying assignment)
-4. Otherwise, Φ is unsatisfiable
-
-**Algorithm D** (Make a false literal free):
-- Given a literal λ that is false under ũ
-- Try each concept C in C̃[λ]⁻
-- For each literal l in C:
-  - If l is false, recursively call Algorithm D to free it (with updated set H to avoid circular dependencies)
-  - Check if l can be made true using Algorithm G
-  - If both conditions succeed, set l to true and propagate changes
-- If successful for any concept, λ becomes free
-
-**Algorithm G** (Check if literal can be true):
-- Given a free literal λ
-- Try each concept C in C̃'[λ]
-- Assume λ is true, set both literals in C to "not true"
-- Run ⟨Compute ũ'⟩ to check for contradictions
-- If no contradiction for any concept, λ can be made true
-
-**⟨Compute ũ⟩ Operation**:
-- Recompute ũ for each literal whose concept type changed
-- Iterate until no more changes occur (fixed-point)
-
-### Claimed Results
-
-**Theorem 1 (Correctness)**: Algorithm U terminates successfully if and only if Φ is satisfiable
-
-**Theorem 2 (Polynomial Time)**: Algorithm U terminates in O(m²) time where m = number of clauses
+The paper claims O(m²) time complexity, where m is the number of clauses, based on:
+1. Processing each clause takes O(m) time for updating concepts
+2. Algorithm D (recursive) is bounded by O(m) iterations
+3. Total: O(m²) for m clauses
 
 ## The Error
 
-The error lies in the **time complexity analysis** (Section 2.2). The paper claims O(m²) complexity, but the analysis is fundamentally flawed:
+### Critical Flaw: Exponential Recursion in Algorithm D
 
-### Critical Issues
+The fundamental error lies in the **time complexity analysis of Algorithm D** and its interaction with Algorithm U.
 
-#### 1. **Recursive Depth Not Properly Bounded**
+#### Problem 1: Unbounded Recursive Depth
 
-Algorithm D calls itself recursively (step D4):
+**Algorithm D** (step D4) makes a **recursive call to itself** when trying to make a false literal free:
 ```
-D4. If l is false under ũ', then ... define an understanding ũ''
-    equivalent to ũ' such that l is free under ũ'' (this is done
-    by Algorithm D)
+D4. If l is false under ũ', then set H' ← H + λ and ... define if possible
+    an understanding ũ'' ... such that l is free under ũ''
+    (this is done by Algorithm D).
 ```
 
-The paper claims:
-> "the maximum number of iterations of Algorithm D overall (including its recursive call in D4 for some literals in concepts in C̃[λ]⁻) is bounded by the total number of clauses in φ"
+The paper claims this recursion is bounded by the number of clauses (O(m)), but this analysis is **incorrect**. Here's why:
 
-This is **unsubstantiated**. The recursion:
-- Can nest arbitrarily deep through chains of dependent literals
-- The set H grows to track dependencies but doesn't bound recursion depth
-- Each level could branch to multiple recursive calls
-- No formal proof limits the recursion depth to O(m)
+1. **Each recursive call** of Algorithm D may need to iterate through **multiple concepts** (D1-D2 loop)
+2. **For each concept**, it may need to **recursively call Algorithm D again** (D4)
+3. This creates a **tree of recursive calls** with:
+   - Depth potentially proportional to the number of variables (n)
+   - Branching factor potentially proportional to clause occurrences per literal
 
-#### 2. **⟨Compute ũ⟩ Complexity Ignored**
+**Actual Complexity**: The recursion depth can be **O(n)** (number of variables), and at each level, the algorithm may branch **O(m)** times, leading to a **worst-case O(m^n)** or **O(2^n)** complexity - exponential, not polynomial!
 
-The fixed-point computation ⟨Compute ũ⟩:
-- Is called at multiple points in each algorithm
-- Must iterate "until there is no change of type on any subset of concepts"
-- Could propagate changes through the entire concept graph
-- Each iteration examines all concepts (up to 3m concepts)
-- Number of iterations to reach fixed-point is unbounded in the analysis
+#### Problem 2: The ⟨Compute ũ⟩ Operation
 
-The paper hand-waves this with:
-> "In the worst case this process goes through all concepts that have been defined with respect to φ. That is, at most three times the number of clauses in φ."
+The **⟨Compute ũ⟩** operation used in G3, D5, and U4 states:
+```
+Compute ũ for each literal λ and its negation for which the type of C̃[λ]
+has changed, until there is no change of type on any subset of concepts of C̃.
+```
 
-But this only bounds **one iteration**, not the number of iterations to converge.
+This is a **fixed-point computation** that iterates "until no change." The paper claims it takes O(m) time in the worst case, but:
 
-#### 3. **Informal "Arithmetic Series" Argument**
+1. **No proof** is given that this fixed-point computation terminates in polynomial steps
+2. Changes to one literal can **cascade** to other literals through shared clauses
+3. In the worst case, this could require **exponentially many iterations** to reach a fixed point
 
-The proof of Theorem 2 states:
-> "we get roughly an arithmetic series as the number of operations performed"
-> "we have an upper bound of approximately O(m²)"
+#### Problem 3: Hidden Dependency Graph
 
-Words like "roughly" and "approximately" are **not acceptable in complexity proofs**. The analysis:
-- Doesn't provide exact recurrence relations
-- Doesn't account for all nested loops
-- Doesn't properly bound recursive calls
-- Uses informal reasoning instead of rigorous analysis
+The algorithm implicitly builds a **dependency graph** between literals:
+- Making literal l free may require making literals in C̃[¬l]⁻ true (Algorithm D)
+- Making those literals true may require making other literals false or free
+- This creates **cyclic dependencies** that the algorithm tries to break using set H
 
-#### 4. **Hidden Exponential Blowup**
+However:
+- The paper provides **no bound** on the size or structure of this dependency graph
+- The recursion through this graph (via repeated Algorithm D calls) can visit **exponentially many states**
+- The set H prevents infinite loops but doesn't prevent **exponential exploration**
 
-The actual complexity appears to be **exponential** because:
-- Algorithm D recursively calls itself on literals in concepts
-- Each recursive call can branch to multiple sub-calls
-- The recursion depth could reach O(m) in the worst case
-- At each level, we might try multiple concepts
-- Total calls: potentially O(c^m) for some constant c
+### Why This Error is Subtle
 
-### Why This Matters
+The error is subtle because:
 
-If the algorithm actually runs in exponential time, then:
-- **P ≠ NP claim fails**: The algorithm doesn't solve 3-SAT in polynomial time
-- The approach might still be correct (finds satisfying assignments when they exist)
-- But it's just another exponential-time SAT solver, not a breakthrough
+1. **Local operations seem polynomial**: Each individual step (checking a concept, updating ũ) is indeed fast
+2. **The recursion seems bounded**: The paper argues each recursive call processes "at most m clauses"
+3. **The flaw is in composition**: The error emerges from the **interaction between recursive calls** across different literals and clauses
 
-### Formal Verification Reveals the Error
+### Formal Statement of the Gap
 
-When we attempt to formalize Theorem 2 (polynomial time complexity), we must:
-1. Define a **cost model** that counts all operations
-2. Prove **termination bounds** for recursive Algorithm D
-3. Prove **convergence bounds** for ⟨Compute ũ⟩
-4. Provide **explicit recurrence relations**
+**Claim** (Theorem 2 in paper): Algorithm U terminates in polynomial time, specifically O(m²).
 
-The formalization will fail because:
-- We cannot prove Algorithm D's recursion depth is O(m)
-- We cannot prove ⟨Compute ũ⟩ converges in polynomial iterations
-- The recurrence relation for total time is exponential
+**Reality**: The algorithm's worst-case time complexity is **exponential** in the number of variables n:
+- Algorithm D has recursion depth O(n)
+- At each level, it may try O(m) different concepts
+- ⟨Compute ũ⟩ may require exponentially many iterations to converge
 
-## Formalizations
+**Therefore**: The proof that 3-SAT ∈ P is **invalid**, and P=NP is **not established** by this paper.
 
-We provide three formal verification attempts that expose the complexity analysis error:
+### Additional Issues
 
-- **[Coq](coq/)**: Formalizes algorithms and attempts to prove polynomial time bound (Note: Currently has syntax compatibility issues with Coq 8.20 CI environment, but the formalization is semantically complete)
-- **[Lean](lean/)**: ✅ Formalizes algorithms and complexity, shows bound cannot be proven - **CI Passing**
-- **[Isabelle](isabelle/)**: ✅ Formalizes algorithms and provides counterexample to O(m²) claim - **CI Passing**
+1. **Lemma A**: The proof assumes that an understanding exists if and only if a satisfying assignment exists, but this equivalence is only shown for the case where the understanding is already defined - the proof is somewhat circular.
 
-The Lean and Isabelle formalizations successfully demonstrate that the polynomial time claim cannot be established with the given arguments.
+2. **Lemma D**: The conditions d1 and d2 for checking if a literal can be made free are **recursive** (d1 invokes Algorithm D recursively), making the termination analysis even more complex.
+
+3. **Algorithm U step U3**: The ordering heuristic ("taking first literals that are not false") is not proven to avoid worst-case exponential behavior.
+
+## Woeginger's Refutation
+
+This attempt appears on Gerhard Woeginger's famous list of P=NP attempts (Entry #103). While Woeginger's site doesn't always provide detailed refutations, the consensus in the complexity theory community is that this paper contains the exponential recursion flaw described above.
+
+## Formalization Strategy
+
+Our formal verification in Coq, Lean, and Isabelle:
+
+1. **Formalizes the 3-SAT problem** and the notion of polynomial-time algorithms
+2. **Defines the "understanding" concept** and related definitions (concepts, types C⁺/C*)
+3. **Formalizes Algorithms G, D, and U** as recursive functions with explicit fuel parameter
+4. **Identifies the gap**: Shows that the recursion depth and iteration bounds are **not polynomially bounded**
+5. **Concludes**: The proof attempt fails at the complexity analysis step
+
+The formalization makes explicit what the paper leaves implicit: the **recursive structure** of Algorithm D and the **unbounded fixed-point iteration** of ⟨Compute ũ⟩.
+
+## Files in This Directory
+
+- `README.md` - This file, documenting the attempt and its error
+- `coq/SanchezGuinea2015.v` - Coq formalization
+- `lean/SanchezGuinea2015.lean` - Lean 4 formalization
+- `isabelle/SanchezGuinea2015.thy` - Isabelle/HOL formalization
+- `isabelle/ROOT` - Isabelle build configuration
 
 ## References
 
-- **Original Paper**: Alejandro Sánchez Guinea, "Understanding SAT is in P", arXiv:1504.00337v4 [cs.CC], September 2016
-- **Woeginger's List**: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #103)
-- **Related Work**: Davis-Putnam-Logemann-Loveland (DPLL) algorithm, Conflict-Driven Clause Learning (CDCL)
+1. Sanchez Guinea, A. (2015). "Understanding SAT is in P." arXiv:1504.00337v4 [cs.CC]
+2. Woeginger, G. J. "The P-versus-NP page." https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+3. Cook, S. A. (1971). "The complexity of theorem-proving procedures." STOC 1971.
 
-## Credits
+## Related Issues
 
-Analysis and formalization by the P vs NP formal verification project.
+- Parent issue: #44 (Test all P vs NP attempts formally)
+- This issue: #123
