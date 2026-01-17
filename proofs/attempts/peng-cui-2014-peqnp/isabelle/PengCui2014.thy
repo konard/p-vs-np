@@ -36,12 +36,20 @@ definition in_P :: "decision_problem \<Rightarrow> bool" where
 (* Certificate for NP *)
 type_synonym certificate = "binary_string"
 
+(* Certificate size function type *)
+type_synonym cert_size_fn = "nat \<Rightarrow> nat"
+
+(* Verifier record for NP witnesses *)
+record np_verifier =
+  verify_fn :: "binary_string \<Rightarrow> binary_string \<Rightarrow> bool"
+  verifier_time :: "nat \<Rightarrow> nat"
+
 (* Complexity class NP (via certificates) *)
 definition in_NP :: "decision_problem \<Rightarrow> bool" where
-  "in_NP L \<equiv> (\<exists>verify cert_size time.
-    is_polynomial cert_size \<and>
-    is_polynomial time \<and>
-    (\<forall>x. L x = (\<exists>c. length c \<le> cert_size (length x) \<and> verify x c)))"
+  "in_NP L \<equiv> (\<exists>(v::np_verifier) (csize::cert_size_fn).
+    is_polynomial csize \<and>
+    is_polynomial (verifier_time v) \<and>
+    (\<forall>x. L x = (\<exists>c. length c \<le> csize (length x) \<and> verify_fn v x c)))"
 
 (* A polynomial-time reduction from L1 to L2 exists *)
 definition poly_reduces_to :: "decision_problem \<Rightarrow> decision_problem \<Rightarrow> bool" where
