@@ -45,9 +45,9 @@ definition in_NP :: "decision_problem \<Rightarrow> bool" where
 
 (* NP-hardness via polynomial-time reductions *)
 definition NP_hard :: "decision_problem \<Rightarrow> bool" where
-  "NP_hard L \<equiv> (\<forall>L'. (in_NP L') \<longrightarrow>
+  "NP_hard L \<equiv> (\<forall>L'. in_NP L' \<longrightarrow>
     (\<exists>reduction time. is_polynomial time \<and>
-      (\<forall>x. L' x \<longleftrightarrow> L (reduction x))))"
+      (\<forall>x. L' x = L (reduction x))))"
 
 (* NP-completeness *)
 definition NP_complete :: "decision_problem \<Rightarrow> bool" where
