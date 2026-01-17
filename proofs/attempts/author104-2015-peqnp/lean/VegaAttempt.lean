@@ -26,7 +26,15 @@ def Verifier := Instance → Certificate → Bool
 -- Complexity Classes
 
 /-- A language L is in P if there exists a polynomial-time decider.
-    For this formalization, we abstract away the polynomial-time constraint. -/
+    For this formalization, we abstract away the polynomial-time constraint.
+
+    Note: We provide the decider as data (not just existence in Prop) to avoid
+    the Prop-to-Type elimination issue in subsequent proofs. -/
+structure InPWitness (L : Language) where
+  decider : Instance → Bool
+  spec : ∀ x, L x ↔ decider x = true
+
+/-- A language L is in P (Prop version) -/
 def InP (L : Language) : Prop :=
   ∃ (decide : Instance → Bool), ∀ x, L x ↔ decide x = true
 
@@ -62,7 +70,7 @@ def InEquivalentP (L : PairLanguage) : Prop :=
     while languages in ∼P are predicates on pairs of instances.
     These are fundamentally different types! -/
 theorem type_mismatch :
-    ∀ (L_P : Language) (L_sim : PairLanguage),
+    ∀ (_ : Language) (_ : PairLanguage),
     -- We cannot directly compare these types
     True := by
   intro _ _
@@ -75,8 +83,8 @@ theorem type_mismatch :
 /-- For any language L in P, we can construct a "verifier" that ignores
     the certificate and just decides membership. -/
 theorem P_verifier_ignores_certificate :
-    ∀ (L : Language) (d : Instance → Bool),
-    (∀ x, L x ↔ d x = true) →
+    ∀ (_ : Language) (d : Instance → Bool),
+    (∀ x, _ x ↔ d x = true) →
     ∃ (verify : Verifier), ∀ x c, verify x c = d x := by
   intro _ d _
   exact ⟨fun x _ => d x, fun _ _ => rfl⟩
@@ -100,9 +108,14 @@ theorem shared_certificate_vacuous :
 
 -- Vega's Theorem 6.1: ∼HORNSAT ∈ ∼P
 
-/-- Let's model HORNSAT (abstractly) as a language in P -/
+/-- Let's model HORNSAT (abstractly) as a language in P.
+    We provide a witness with the decider to avoid Prop-to-Type elimination issues. -/
 axiom HORNSAT : Language
-axiom HORNSAT_in_P : InP HORNSAT
+axiom HORNSAT_witness : InPWitness HORNSAT
+
+/-- HORNSAT is in P (derived from witness) -/
+theorem HORNSAT_in_P : InP HORNSAT :=
+  ⟨HORNSAT_witness.decider, HORNSAT_witness.spec⟩
 
 /-- Vega's ∼HORNSAT: pairs (φ, φ) where φ ∈ HORNSAT -/
 def sim_HORNSAT : PairLanguage :=
@@ -125,15 +138,17 @@ def sim_HORNSAT : PairLanguage :=
 theorem Vega_Theorem_6_1 : InEquivalentP sim_HORNSAT := by
   unfold InEquivalentP
   -- Use HORNSAT for both L1 and L2
-  refine ⟨HORNSAT, HORNSAT, ?_, ?_, ?_, ?_, ?_⟩
-  -- Get the decider for HORNSAT
-  · obtain ⟨d, hd⟩ := HORNSAT_in_P
-    exact ⟨fun x _ => d x, fun y _ => d y⟩
+  -- Use the witness to get the decider directly (avoiding Prop-to-Type elimination)
+  let d := HORNSAT_witness.decider
+  let hd := HORNSAT_witness.spec
+  refine ⟨HORNSAT, HORNSAT, fun x _ => d x, fun y _ => d y, ?_, ?_, ?_⟩
+  -- Prove InP HORNSAT (first conjunct)
   · exact HORNSAT_in_P
+  -- Prove InP HORNSAT (second conjunct)
   · exact HORNSAT_in_P
+  -- Prove the biconditional for all x, y
   · intro x y
     unfold sim_HORNSAT
-    obtain ⟨d, hd⟩ := HORNSAT_in_P
     constructor
     -- Forward direction: (x = y ∧ HORNSAT x) → (HORNSAT x ∧ HORNSAT y ∧ ∃ z, ...)
     · intro ⟨heq, hx⟩
