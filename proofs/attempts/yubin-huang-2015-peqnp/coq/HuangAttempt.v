@@ -58,6 +58,17 @@ Fixpoint hasAcceptingPath (tree : ComputationTree) : bool :=
 
   A nondeterministic move is a configuration with more than one child.
 *)
+(**
+  Helper function to find the minimum count among children.
+  We use a fold to compute the minimum of all recursive calls.
+*)
+Fixpoint list_min (l : list nat) (default : nat) : nat :=
+  match l with
+  | [] => default
+  | [x] => x
+  | x :: xs => Nat.min x (list_min xs default)
+  end.
+
 Fixpoint countNondeterministicMoves (tree : ComputationTree) : nat :=
   match tree with
   | Accept => 0
@@ -66,9 +77,9 @@ Fixpoint countNondeterministicMoves (tree : ComputationTree) : nat :=
       match children with
       | [] => 0
       | [single] => countNondeterministicMoves single
-      | _ :: _ :: _ => 1 + (fold_left Nat.min
-                              (map countNondeterministicMoves children)
-                              (countNondeterministicMoves (hd Reject children)))
+      | c1 :: c2 :: rest =>
+          (* Multiple children = nondeterministic branch *)
+          1 + list_min (map countNondeterministicMoves (c1 :: c2 :: rest)) 0
       end
   end.
 
