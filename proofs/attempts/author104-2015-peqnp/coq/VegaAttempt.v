@@ -154,11 +154,11 @@ Proof.
   split.
   - (* Forward direction *)
     intros [Heq Hx]. subst y.
-    split. { apply Hdecide. assumption. }
-    split. { apply Hdecide. assumption. }
+    split. { assumption. }
+    split. { assumption. }
     (* Certificate exists (any string works) *)
     exists ""%string.
-    split; apply Hdecide; assumption.
+    split; simpl; apply Hdecide; assumption.
   - (* Backward direction *)
     intros [Hx [Hy [z [_ _]]]].
     split.
