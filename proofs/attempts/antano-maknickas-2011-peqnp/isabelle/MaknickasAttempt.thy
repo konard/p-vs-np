@@ -78,7 +78,7 @@ definition floor_mod2 :: "real \<Rightarrow> bool" where
 
 text \<open>Recovery: convert real assignment to Boolean assignment\<close>
 definition recover_assignment :: "real_assignment \<Rightarrow> assignment" where
-  "recover_assignment ra \<equiv> λn. floor_mod2 (ra n)"
+  "recover_assignment ra \<equiv> \<lambda>n. floor_mod2 (ra n)"
 
 section \<open>The Critical Gap: LP Solution Doesn't Guarantee SAT Solution\<close>
 
@@ -95,7 +95,7 @@ definition example_clause :: clause where
 text \<open>LP solution with all variables at 1.0
      This satisfies the LP constraint: 1 + 1 + 1 = 3 \<le> 3 ✓\<close>
 definition bad_lp_solution :: real_assignment where
-  "bad_lp_solution = (λn. 1)"
+  "bad_lp_solution = (\<lambda>n. 1)"
 
 text \<open>The bad LP solution is feasible\<close>
 lemma bad_lp_is_feasible: "LPFeasible [example_clause] bad_lp_solution"
