@@ -116,16 +116,8 @@ section \<open>The Fundamental Problem\<close>
 text \<open>LP feasibility doesn't imply satisfiability\<close>
 theorem lp_relaxation_gap:
   "\<not> (\<forall>f. (\<exists>ra. LPFeasible f ra) \<longrightarrow> Satisfiable f)"
-proof -
-  text \<open>We have an LP-feasible solution for our example\<close>
-  have lp_exists: "\<exists>ra. LPFeasible [example_clause] bad_lp_solution"
-    using bad_lp_is_feasible by auto
-
-  text \<open>But if the general claim held, this would imply satisfiability\<close>
-  text \<open>However, we can show the recovered assignment doesn't work\<close>
-
-  text \<open>The proof would proceed by showing our example is unsatisfiable
-       under the recovered assignment, contradicting the claim\<close>
+  \<comment> \<open>Proof sketch: We have an LP-feasible solution for example_clause (bad_lp_solution),
+      but the recovered assignment doesn't satisfy the clause, contradicting the claim\<close>
   sorry
 
 section \<open>Additional Problems\<close>
