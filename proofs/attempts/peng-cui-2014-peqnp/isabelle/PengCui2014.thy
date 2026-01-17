@@ -43,11 +43,15 @@ definition in_NP :: "decision_problem \<Rightarrow> bool" where
     is_polynomial time \<and>
     (\<forall>x. L x = (\<exists>c. length c \<le> cert_size (length x) \<and> verify x c)))"
 
+(* A polynomial-time reduction from L1 to L2 exists *)
+definition poly_reduces_to :: "decision_problem \<Rightarrow> decision_problem \<Rightarrow> bool" where
+  "poly_reduces_to L1 L2 \<equiv>
+    (\<exists>(reduction::binary_string \<Rightarrow> binary_string) time. is_polynomial time \<and>
+      (\<forall>(x::binary_string). L1 x = L2 (reduction x)))"
+
 (* NP-hardness via polynomial-time reductions *)
 definition NP_hard :: "decision_problem \<Rightarrow> bool" where
-  "NP_hard L \<equiv> (\<forall>(L'::decision_problem). in_NP L' \<longrightarrow>
-    (\<exists>(reduction::binary_string \<Rightarrow> binary_string) time. is_polynomial time \<and>
-      (\<forall>(x::binary_string). L' x = L (reduction x))))"
+  "NP_hard L \<equiv> (\<forall>(L2::decision_problem). in_NP L2 \<longrightarrow> poly_reduces_to L2 L)"
 
 (* NP-completeness *)
 definition NP_complete :: "decision_problem \<Rightarrow> bool" where
@@ -184,7 +188,7 @@ proof -
   (* L is NP-hard, so L' reduces to L *)
   obtain reduction time where
     red_props: "is_polynomial time \<and> (\<forall>x. L' x \<longleftrightarrow> L (reduction x))"
-    using assms(1) assms(3) unfolding NP_hard_def by blast
+    using assms(1) assms(3) unfolding NP_hard_def poly_reduces_to_def by blast
   (* L is in P *)
   obtain time_L decide_L where
     L_props: "is_polynomial time_L \<and> (\<forall>x. L x \<longleftrightarrow> decide_L x)"
