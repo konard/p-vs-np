@@ -36,8 +36,12 @@ inductive ComputationTree where
   | reject : ComputationTree
   | branch : Configuration → List ComputationTree → ComputationTree
 
-/-- Check if a computation tree has an accepting path -/
-def hasAcceptingPath : ComputationTree → Bool
+/-- Check if a computation tree has an accepting path
+
+    Note: We use `partial` because proving termination requires showing that
+    children are structurally smaller, which is complex for the `.any` combinator.
+    In a full formalization, we would use well-founded recursion or fuel. -/
+partial def hasAcceptingPath : ComputationTree → Bool
   | .accept => true
   | .reject => false
   | .branch _ children => children.any hasAcceptingPath
@@ -50,7 +54,12 @@ def hasAcceptingPath : ComputationTree → Bool
 
   A nondeterministic move is a configuration with more than one child.
 -/
-def countNondeterministicMoves : ComputationTree → Nat
+/-- Count the minimum number of nondeterministic moves in an accepting path.
+
+    Note: We use `partial` because the recursive calls through `.map` and `.foldl`
+    cannot be automatically verified for structural recursion by Lean.
+    In a full formalization, we would use well-founded recursion. -/
+partial def countNondeterministicMoves : ComputationTree → Nat
   | .accept => 0
   | .reject => 0
   | .branch _ children =>
@@ -149,6 +158,24 @@ axiom huang_hierarchy_collapse_claim : ∀ i : Nat, ∀ L : Language,
   IF the hierarchy collapse were true, we could prove NP ⊆ P.
   But the hierarchy collapse is the unjustified assumption.
 -/
+/-- Helper: repeatedly collapse the hierarchy from level k down to 0.
+
+    This demonstrates that IF the hierarchy collapse axiom were true,
+    we could reduce any L_k to L_0. The key insight is that this requires
+    k applications of the collapse, but each application is assumed to
+    preserve polynomial time - which is the unjustified assumption. -/
+theorem collapse_to_L_0
+  (Hcollapse : ∀ i : Nat, ∀ L : Language,
+    LanguageClass_i (i + 1) L → LanguageClass_i i L)
+  (L : Language) (k : Nat) (Hk : LanguageClass_i k L) : L_0 L := by
+  induction k with
+  | zero => exact Hk
+  | succ k' ih =>
+    -- First collapse from (k'+1) to k'
+    have Hk' : LanguageClass_i k' L := Hcollapse k' L Hk
+    -- Then use induction hypothesis to collapse from k' to 0
+    exact ih Hk'
+
 theorem hierarchy_collapse_implies_NP_subset_P
   (Hcollapse : ∀ i : Nat, ∀ L : Language,
     LanguageClass_i (i + 1) L → LanguageClass_i i L) :
@@ -157,12 +184,7 @@ theorem hierarchy_collapse_implies_NP_subset_P
   -- By NP_in_some_L_k, L is in some L_k
   obtain ⟨k, Hk⟩ := NP_in_some_L_k L
   -- By repeated application of Hcollapse, we can reduce k to 0
-  have L_0_L : L_0 L.language := by
-    induction k with
-    | zero => exact Hk
-    | succ k' ih =>
-      apply Hcollapse
-      exact Hk
+  have L_0_L : L_0 L.language := collapse_to_L_0 Hcollapse L.language k Hk
   -- By L_0_equals_P, L is in P
   exact L_0_equals_P L.language |>.mp L_0_L
 

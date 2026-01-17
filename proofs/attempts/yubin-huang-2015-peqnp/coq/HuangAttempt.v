@@ -195,6 +195,32 @@ Axiom huang_hierarchy_collapse_claim : forall i : nat, forall L : Language,
 (** * 10. Consequence: If Hierarchy Collapses, Then NP ⊆ P *)
 
 (**
+  Helper lemma: repeatedly collapse the hierarchy from level k down to 0.
+
+  This demonstrates that IF the hierarchy collapse axiom were true,
+  we could reduce any L_k to L_0. The key insight is that this requires
+  k applications of the collapse, but each application is assumed to
+  preserve polynomial time - which is the unjustified assumption.
+*)
+Lemma collapse_to_L_0 :
+  forall (Hcollapse : forall i : nat, forall L : Language,
+    LanguageClass_i (S i) L -> LanguageClass_i i L),
+  forall (L : Language) (k : nat),
+    LanguageClass_i k L -> L_0 L.
+Proof.
+  intros Hcollapse L k.
+  induction k as [| k' IHk].
+  - (* Base case: k = 0, already at L_0 *)
+    intro H. exact H.
+  - (* Inductive case: k = S k' *)
+    intro Hk.
+    (* First collapse from (S k') to k' using Hcollapse *)
+    apply IHk.
+    apply Hcollapse.
+    exact Hk.
+Qed.
+
+(**
   IF the hierarchy collapse were true, we could prove NP ⊆ P.
   But the hierarchy collapse is the unjustified assumption.
 *)
@@ -210,9 +236,7 @@ Proof.
   (* By repeated application of Hcollapse, we can reduce k to 0 *)
   assert (L_0_L : L_0 (np_language L)).
   {
-    induction k.
-    - exact Hk.
-    - apply Hcollapse. exact Hk.
+    apply (collapse_to_L_0 Hcollapse _ k Hk).
   }
   (* By L_0_equals_P, L is in P *)
   apply L_0_equals_P in L_0_L.
