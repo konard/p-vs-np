@@ -153,9 +153,9 @@ Proof.
   intro L.
   (* An NP machine running in time T(n) can make at most T(n) moves total,
      so it can make at most T(n) nondeterministic moves. *)
-  destruct (np_timeComplexity L) as [T].
   destruct (np_isPoly L) as [c [k Hpoly]].
   (* The maximum number of nondeterministic moves is bounded by c * n^k *)
+  exists (c * (1 ^ k)).
   admit. (* This requires reasoning about the structure of NP machines *)
 Admitted.
 
