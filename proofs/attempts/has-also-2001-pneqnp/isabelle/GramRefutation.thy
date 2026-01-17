@@ -105,10 +105,21 @@ lemma NP_needs_poly_certificates:
 proof -
   from assms obtain v certSize where
     "IsPolynomialTime (verifier_timeComplexity v)" and
-    "IsPolynomialTime certSize" and
-    "\<forall>x. problem x = (\<exists>cert. length cert \<le> certSize (length x) \<and> verify v x cert)"
+    h_poly: "IsPolynomialTime certSize" and
+    h_correct: "\<forall>x. problem x = (\<exists>cert. length cert \<le> certSize (length x) \<and> verify v x cert)"
     unfolding InNP_def by auto
-  then show ?thesis by auto
+  show ?thesis
+  proof (intro exI conjI)
+    show "IsPolynomialTime certSize" using h_poly .
+    show "\<forall>x. problem x \<longrightarrow> (\<exists>cert. length cert \<le> certSize (length x))"
+    proof (intro allI impI)
+      fix x
+      assume "problem x"
+      then have "\<exists>cert. length cert \<le> certSize (length x) \<and> verify v x cert"
+        using h_correct by simp
+      then show "\<exists>cert. length cert \<le> certSize (length x)" by auto
+    qed
+  qed
 qed
 
 section \<open>EXPTIME-Complete Problems\<close>
@@ -204,7 +215,7 @@ proof
   (* The contradiction is clear: cert cannot be both polynomial and exponential size *)
   then show False
     (* Proof sketch complete - contradiction established *)
-    using [[quick_and_dirty]] by simp
+    sorry
 qed
 
 section \<open>Corollary: Gram's Claim is False\<close>
@@ -247,7 +258,7 @@ proof
   (* certificates to encode their computation traces *)
 
   (* We use the certificate size argument from above *)
-  show False using [[quick_and_dirty]] EXP_not_subset_NP by simp
+  show False sorry
 qed
 
 section \<open>Summary and Conclusions\<close>

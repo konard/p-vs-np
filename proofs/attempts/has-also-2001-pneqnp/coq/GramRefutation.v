@@ -209,11 +209,9 @@ Admitted. (* The proof outline is correct; full formalization needs more lemmas 
   Therefore: Gram's claim is false
 *)
 Theorem Gram_2001_claim_is_false :
-  let gram_claim := forall problem, InEXP problem -> InNP problem in
-  ~ gram_claim.
+  ~ (forall problem, InEXP problem -> InNP problem).
 Proof.
-  intro gram_claim.
-  exact (EXP_not_subset_NP gram_claim).
+  exact EXP_not_subset_NP.
 Qed.
 
 (** * Alternative Refutation via Time Hierarchy *)
