@@ -67,7 +67,7 @@ definition lp_constraint_for_clause :: "real_assignment \<Rightarrow> clause \<R
 
 text \<open>LP feasibility: assignment satisfies all constraints\<close>
 definition LPFeasible :: "cnf \<Rightarrow> real_assignment \<Rightarrow> bool" where
-  "LPFeasible f ra \<equiv> NonNegative ra \<and> (\<forall>c ∈ set f. lp_constraint_for_clause ra c)"
+  "LPFeasible f ra \<equiv> NonNegative ra \<and> (\<forall>c \<in> set f. lp_constraint_for_clause ra c)"
 
 section \<open>The Proposed Recovery Function\<close>
 
