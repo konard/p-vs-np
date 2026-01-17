@@ -6,7 +6,7 @@ This document summarizes the errors and gaps identified during the formal verifi
 
 ### Location
 - **Coq**: `VegaDelgado2012.v:89` - `vega_delgado_critical_step` (marked as `Admitted`)
-- **Lean**: `VegaDelgado2012.lean:91` - `vega_delgado_critical_step` (marked as `axiom`)
+- **Lean**: `VegaDelgado2012.lean:133` - `vega_delgado_critical_step` (marked as `axiom`)
 - **Isabelle**: `VegaDelgado2012.thy:129` - `vega_delgado_critical_step` (ends with `oops`)
 
 ### The Claim
@@ -42,7 +42,7 @@ This is the **PRIMARY ERROR** that invalidates the entire proof.
 
 ### Location
 - **Coq**: `VegaDelgado2012.v:152` - `vega_delgado_insufficient` (marked as `Admitted`)
-- **Lean**: `VegaDelgado2012.lean:123` - `vega_delgado_insufficient` (marked as `axiom`)
+- **Lean**: `VegaDelgado2012.lean:186` - `vega_delgado_insufficient` (marked as `axiom`)
 - **Isabelle**: `VegaDelgado2012.thy:165` - `vega_delgado_insufficient` (ends with `oops`)
 
 ### The Claim
