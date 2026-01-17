@@ -45,7 +45,7 @@ definition in_NP :: "decision_problem \<Rightarrow> bool" where
 
 (* NP-hardness via polynomial-time reductions *)
 definition NP_hard :: "decision_problem \<Rightarrow> bool" where
-  "NP_hard L \<longleftrightarrow> (\<forall>L'::decision_problem. in_NP L' \<longrightarrow>
+  "NP_hard L \<longleftrightarrow> (\<forall>(L'::decision_problem). in_NP L' \<longrightarrow>
     (\<exists>reduction time. is_polynomial time \<and>
       (\<forall>x. L' x \<longleftrightarrow> L (reduction x))))"
 
