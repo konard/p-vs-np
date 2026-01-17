@@ -10,8 +10,9 @@
 
 Require Import Coq.Strings.String.
 Require Import Coq.Init.Nat.
-Require Import Coq.Sets.Ensembles.
+Require Import Coq.Lists.List.
 Require Import Coq.Logic.Classical_Prop.
+Import ListNotations.
 
 (** * Complexity Class Definitions *)
 
@@ -54,7 +55,7 @@ Definition InNP (problem : DecisionProblem) : Prop :=
   exists (ntm : NondeterministicTM),
     IsPolynomialTime (nd_timeComplexity ntm) /\
     forall x : string,
-      problem x <-> exists result, In result (nd_compute ntm x) /\ result = true.
+      problem x <-> exists result, List.In result (nd_compute ntm x) /\ result = true.
 
 (**
   The class UP (Unambiguous Polynomial time):
@@ -65,7 +66,7 @@ Definition InUP (problem : DecisionProblem) : Prop :=
     IsPolynomialTime (nd_timeComplexity ntm) /\
     forall x : string,
       (* If the problem accepts, there is exactly one accepting path *)
-      (problem x <-> exists! result, In result (nd_compute ntm x) /\ result = true).
+      (problem x <-> exists! result, List.In result (nd_compute ntm x) /\ result = true).
 
 (** The class EXP (EXPTIME): problems decidable in exponential time *)
 Definition InEXP (problem : DecisionProblem) : Prop :=
