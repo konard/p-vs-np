@@ -1,112 +1,106 @@
-# Yubin Huang (2015) - P=NP Proof Attempt
+# Yubin Huang (2015) - P=NP Attempt
 
-**Attempt ID**: 105 (from Woeginger's list)
+**Attempt ID**: 105 (Woeginger's list entry #110)
 **Author**: Yubin Huang
 **Year**: 2015
 **Claim**: P = NP
-**Source**: [PeerJ Preprints](https://peerj.com/preprints/1455/)
+**Paper**: [Testing a new idea to solve the P = NP problem with mathematical induction](https://peerj.com/preprints/1455/)
+**Status**: Refuted
 
 ## Summary
 
-In October 2015, Yubin Huang published "Testing a new idea to solve the P = NP problem with mathematical induction" as a PeerJ Preprint. The paper attempts to prove that P = NP by constructing a hierarchy of language classes between P and NP, and showing that every language in NP eventually falls into P through this hierarchy.
-
-The key idea is to use a **filter function** C(M,w) that counts the number of nondeterministic configurations in the shortest accepting computation path of a nondeterministic Turing machine M on input w. By limiting this count, Huang defines a hierarchy of classes Li, where each class contains languages with at most i nondeterministic moves.
+In October 2015, Yubin Huang published a preprint claiming to prove P = NP by introducing a method to reduce nondeterministic computation complexity. The main claim is: "For any language L accepted by a non-deterministic Turing machine in polynomial time, there exists a deterministic Turing machine that accepts L in polynomial time."
 
 ## Main Argument
 
-### Key Definitions
+The proof attempt is based on the following approach:
 
-1. **Filter Function C(M,w)**: For a nondeterministic Turing machine M and input w, C(M,w) is the number of configurations that have more than one child (i.e., nondeterministic moves) in the shortest accept computation path.
+1. **Filter Function**: Define a filter function `C(M,w)` that measures the number of nondeterministic moves in a Turing machine `M` on input `w`. Specifically, `C(M,w)` counts the number of configurations that have more than one child (nondeterministic moves) in the shortest accept computation path.
 
-2. **Language Classes Li(M)**: For a nondeterministic Turing machine M accepting language L(M), the subset Li(M) consists of all inputs w where C(M,w) ≤ i.
+2. **Restricted Turing Machines**: Construct a "restricted Turing machine" whose maximum number of nondeterministic moves in the accept computation tree of inputs is limited.
 
-3. **Hierarchy Li**: The i-th level of the hierarchy is Li = {Li(M) | M is a nondeterministic TM accepting an NP language}.
+3. **Hierarchy of Classes**: Establish a hierarchy of language classes `L_i(M)` associated with natural numbers between P and NP:
+   - Each class `L_i(M)` contains languages with at most `i` nondeterministic moves
+   - P forms the lowest hierarchy level (L_0)
+   - Any language in NP is accepted by machines in each of these classes
 
-### Proof Strategy
+4. **Key Claim**: Attempt to show that `L_{i+1}`, which seems more powerful, can be proved to be a subset of `L_i`, ultimately collapsing the hierarchy to show NP ⊆ P.
 
-Huang's argument proceeds as follows:
-
-1. **Hierarchy Construction**: Define a hierarchy L0, L1, L2, ... where Li contains languages decidable with at most i nondeterministic moves.
-
-2. **Deterministic Simulation**: Claim that for each level i, a nondeterministic multi-tape Turing machine can be used to "simulate the (i+1)-th nondeterministic move deterministically in multiple work tapes, to reduce one (the last) nondeterministic move."
-
-3. **Hierarchy Collapse**: Argue that Li+1 ⊆ Li for all i ∈ ℕ.
-
-4. **P = NP Conclusion**: Since:
-   - NP = ⋃i∈ℕ Li (every NP language is in some Li)
-   - Li ⊆ P for all i (claimed from the hierarchy collapse)
-   - Therefore NP ⊆ P
-   - Combined with P ⊆ NP, this gives P = NP
-
-### Important Note
-
-The author explicitly notes that this proof attempt does not provide an efficient algorithm for solving NP-complete problems, only a theoretical equivalence.
+5. **Multi-tape Simulation**: Use a multi-tape Turing machine to simulate and reduce nondeterministic moves.
 
 ## The Error
 
-The critical flaw in Huang's argument lies in the **deterministic simulation claim** (Step 2). The argument that one can "simulate the (i+1)-th nondeterministic move deterministically in multiple work tapes" fundamentally misunderstands the nature of nondeterminism.
+The fundamental error in this proof attempt lies in the **unjustified hierarchy collapse**. The proof makes several critical mistakes:
 
-### Why the Simulation Fails
+### 1. **Invalid Reduction Argument**
 
-1. **Exponential Branching**: When a nondeterministic Turing machine makes a nondeterministic choice, it can have exponentially many possible computation paths (up to 2^p(n) paths for polynomial p(n)). "Simulating" this deterministically requires exploring all these paths.
+The claim that `L_{i+1} ⊆ L_i` is not rigorously proven. The author suggests that a more powerful machine (allowing more nondeterministic moves) can be simulated by a less powerful one, but this is precisely what needs to be proven, not assumed.
 
-2. **Polynomial Time Bound Violation**: Even if you use multiple work tapes to track different nondeterministic branches, you still need to:
-   - Enumerate all possible nondeterministic choices
-   - Simulate each branch
-   - Check if any branch accepts
+**Why this fails**: Simply defining a hierarchy doesn't prove it collapses. The author needs to show that for each nondeterministic move, there exists a deterministic simulation that doesn't increase the complexity beyond polynomial bounds. This is exactly the hard part of the P vs NP problem.
 
-   This enumeration itself takes exponential time, not polynomial time.
+### 2. **Circular Reasoning**
 
-3. **No Reduction in Complexity**: Moving the "last" nondeterministic move to be handled deterministically doesn't reduce the overall complexity. You're still solving the same hard problem - you've just reorganized when you handle the nondeterminism, not eliminated its computational cost.
+The proof essentially assumes what it tries to prove. By claiming that languages with more nondeterministic moves can be reduced to languages with fewer moves while maintaining polynomial time, the author is assuming that nondeterminism doesn't add computational power - which is equivalent to assuming P = NP.
 
-4. **False Hierarchy Collapse**: The claim that Li+1 ⊆ Li is unsupported. In fact, adding more nondeterministic moves typically increases the power of the computation model (at least up to polynomial many moves), not decreases it. The languages in Li+1 are potentially more complex than those in Li.
+### 3. **Missing Polynomial Time Bound**
 
-### Fundamental Issue
+Even if each nondeterministic move could be eliminated, the proof doesn't establish that doing so maintains polynomial time complexity. Each "level" reduction might multiply the time complexity, potentially leading to exponential time overall.
 
-The error is a **confusion between nondeterministic and deterministic computation models**. The proof essentially assumes that nondeterminism can be "eliminated" one step at a time without increasing time complexity, which is precisely what the P vs NP question asks! This is circular reasoning - it assumes what it's trying to prove.
+**Critical gap**: If eliminating one nondeterministic move requires trying multiple paths, and there are `k` such moves, the total time could be `O(b^k)` where `b` is the branching factor - exponential, not polynomial.
 
-Specifically:
-- If we could deterministically simulate one nondeterministic move in polynomial time, we could iterate this process to simulate all nondeterministic moves.
-- But this is equivalent to solving NP problems in polynomial time, which is exactly what P = NP means.
-- The proof assumes the ability to do this simulation (implicitly assuming P = NP) to prove P = NP.
+### 4. **Ignoring Known Barriers**
+
+The proof attempt doesn't address any of the known barriers to resolving P vs NP:
+- **Relativization**: The technique would need to work in all oracle worlds
+- **Natural Proofs**: The approach appears to be "natural" in the Razborov-Rudich sense
+- **Algebrization**: The method doesn't account for algebrization barriers
+
+### 5. **Lack of Rigorous Formalization**
+
+The preprint lacks:
+- Precise mathematical definitions of the hierarchy
+- Formal proof of the subset relationships
+- Explicit construction of the deterministic machines
+- Time complexity analysis
 
 ## Formalization Goal
 
-This formalization aims to:
+Our goal is to formalize this proof attempt in Coq, Lean, and Isabelle until we hit the fundamental gap. We expect to be able to formalize:
 
-1. **Define the hierarchy**: Formalize the Li classes and the filter function C(M,w)
-2. **Model the claim**: Express Huang's claim that Li+1 ⊆ Li
-3. **Identify the gap**: Show where the "deterministic simulation" step fails or requires unjustified assumptions
-4. **Demonstrate the circularity**: Prove that the simulation assumption is equivalent to assuming P = NP
+✅ The definition of the filter function `C(M,w)`
+✅ The hierarchy of language classes `L_i`
+✅ The statement that `L_0 = P`
+✅ The claim that every language in NP is in some `L_k`
 
-## Related Work
+We expect to **fail** when trying to prove:
 
-This type of error - attempting to eliminate nondeterminism incrementally without accounting for the exponential blowup - is a common pattern in failed P vs NP proofs. The **relativization barrier** (Baker-Gill-Solovay, 1975) shows that such direct simulation arguments cannot work, as there exist oracles relative to which P ≠ NP.
+❌ `L_{i+1} ⊆ L_i` with polynomial time preservation
+❌ The collapse of the hierarchy to `L_0`
+❌ NP ⊆ P
+
+## Implementation
+
+- **Coq**: [coq/HuangAttempt.v](coq/HuangAttempt.v)
+- **Lean**: [lean/HuangAttempt.lean](lean/HuangAttempt.lean)
+- **Isabelle**: [isabelle/HuangAttempt.thy](isabelle/HuangAttempt.thy)
 
 ## References
 
-- Huang, Y. (2015). "Testing a new idea to solve the P = NP problem with mathematical induction". PeerJ Preprints 3:e1455v1. https://peerj.com/preprints/1455/
-- Woeginger, G. J. "The P-versus-NP page". Entry #105. https://www.win.tue.nl/~gwoegi/P-versus-NP.htm
-- Baker, T., Gill, J., & Solovay, R. (1975). "Relativizations of the P =? NP Question". SIAM Journal on Computing, 4(4), 431-442.
+1. **Original Paper**: Huang, Y. (2015). "Testing a new idea to solve the P = NP problem with mathematical induction." PeerJ Preprints. https://peerj.com/preprints/1455/
 
-## Status
+2. **Woeginger's List**: Entry #110. https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
 
-- [x] Folder structure created
-- [x] README.md with detailed analysis
-- [ ] Coq formalization
-- [ ] Lean formalization
-- [ ] Isabelle formalization
-- [ ] Error documentation complete
+3. **Parent Issue**: #44 - Test all P vs NP attempts formally
 
-## Directory Structure
+## Related Work
 
-```
-proofs/attempts/yubin-huang-2015-peqnp/
-├── README.md (this file)
-├── coq/
-│   └── YubinHuang2015.v
-├── lean/
-│   └── YubinHuang2015.lean
-└── isabelle/
-    └── YubinHuang2015.thy
-```
+This attempt is similar to other failed P = NP proofs that try to:
+- Establish hierarchies between P and NP
+- Show that nondeterministic moves can be systematically eliminated
+- Use induction without properly accounting for time complexity
+
+The key lesson: **Defining a hierarchy doesn't prove it collapses**, and eliminating nondeterminism typically requires exponential search.
+
+---
+
+*Formalized as part of the P vs NP educational research repository.*
