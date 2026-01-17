@@ -22,13 +22,13 @@ but never proves Task B itself can be computed in polynomial time.
 /-! ## Basic Definitions -/
 
 /-- A Boolean variable is represented by a natural number -/
-def Var := Nat
+abbrev Var := Nat
 
 /-- A literal is either a positive or negative variable -/
 inductive Literal where
   | pos : Var → Literal
   | neg : Var → Literal
-  deriving DecidableEq, Repr
+deriving DecidableEq, Repr
 
 /-- A clause is a list of literals (disjunction) -/
 def Clause := List Literal
@@ -69,16 +69,16 @@ def PartialReq := List (Var × Bool)
 /-- Working unknowns are the partial requirements tracked in the LP system
     Definition 3 in Feldmann's paper -/
 structure WorkingUnknowns where
-  numVars : ℕ
-  numClauses : ℕ
+  numVars : Nat
+  numClauses : Nat
   trackedReqs : List PartialReq
 
 /-! ## Linear Programming System -/
 
 /-- An abstract representation of an LP system Ap = b with p ≥ 0 -/
 structure LPSystem where
-  numVars : ℕ
-  numConstraints : ℕ
+  numVars : Nat
+  numConstraints : Nat
 
 /-- LP feasibility is decidable in polynomial time (Khachiyan 1979, Karmarkar 1984) -/
 axiom lpFeasible : LPSystem → Prop
@@ -107,11 +107,11 @@ axiom PolynomialTimeComputable : {α β : Type} → (α → β) → Prop
 
 /-- Feldmann's full claim requires polynomial-time construction -/
 def FeldmannFullClaim (C : Construction) : Prop :=
-  FeldmannClaim C ∧ PolynomialSize C ∧ PolynomialTimeComputable C
+  FeldmannClaim C ∧ PolynomialSize C ∧ @PolynomialTimeComputable Formula LPSystem C
 
 /-! ## The Critical Error -/
 
-/-- ** Problem 1: Working Unknowns May Require Exponential Space
+/- ** Problem 1: Working Unknowns May Require Exponential Space
 
     To construct the LP system, Feldmann needs to determine the "working unknowns"
     (Definition 3). The paper claims this is polynomial (Proposition 2) but provides
@@ -119,21 +119,20 @@ def FeldmannFullClaim (C : Construction) : Prop :=
 -/
 
 /-- Number of possible partial requirements with k literals from n variables -/
-def numPartialReqs : ℕ → ℕ → ℕ
+def numPartialReqs : Nat → Nat → Nat
   | _, 0 => 1
   | n, k+1 => numPartialReqs n k + n * 2 * numPartialReqs (n-1) k
 
 /-- For 3-SAT, we need partial requirements with up to 3 literals -/
-def workingUnknownsBound (n : ℕ) : ℕ := numPartialReqs n 3
+def workingUnknownsBound (n : Nat) : Nat := numPartialReqs n 3
 
 /-- The number of partial requirements grows combinatorially -/
-lemma partialReqs_grows : ∀ n ≥ 3, workingUnknownsBound n ≥ 2 * n := by
-  intro n hn
+theorem partialReqs_grows (n : Nat) (hn : n ≥ 3) : workingUnknownsBound n ≥ 2 * n := by
   unfold workingUnknownsBound numPartialReqs
   -- The actual bound requires combinatorial analysis
   sorry
 
-/-- ** Problem 2: Construction Requires Determining Which Unknowns to Track
+/- ** Problem 2: Construction Requires Determining Which Unknowns to Track
 
     The paper doesn't provide an algorithm for determining which partial requirements
     need to be tracked. This determination requires understanding the formula structure,
@@ -146,7 +145,7 @@ def mustTrack (f : Formula) (req : PartialReq) : Prop :=
   -- The paper gives no polynomial-time algorithm for this
   True
 
-/-- ** Problem 3: Verifying Correctness Requires Checking All Assignments
+/- ** Problem 3: Verifying Correctness Requires Checking All Assignments
 
     Feldmann's Proposition 6 says the LP system "determines the truth table".
     But verifying this requires checking consistency with all 2^n assignments!
@@ -162,8 +161,7 @@ def verifyLPCorrect (f : Formula) (lp : LPSystem) : Prop :=
 
 /-! ## Main Theorem: The Gap in Feldmann's Proof -/
 
-/-- ** Theorem: Construction Cannot Be Both Correct and Polynomial-Time
-
+/-- Theorem: Construction Cannot Be Both Correct and Polynomial-Time.
     If a construction satisfies Feldmann's equivalence claim and produces
     polynomial-sized LP systems, it cannot be polynomial-time computable
     (unless P = NP, which is unproven).
@@ -172,7 +170,7 @@ theorem feldmann_construction_impossible
   (C : Construction)
   (hClaim : FeldmannClaim C)
   (hPoly : PolynomialSize C) :
-  ¬ PolynomialTimeComputable C := by
+  ¬ @PolynomialTimeComputable Formula LPSystem C := by
   intro hComp
   /-
   Proof idea:
@@ -194,7 +192,7 @@ theorem feldmann_construction_impossible
 
 /-! ## The Circular Reasoning -/
 
-/-- ** The Hidden Circularity
+/- The Hidden Circularity:
 
     Feldmann's argument structure:
     1. Given SAT formula f
@@ -208,24 +206,22 @@ theorem feldmann_construction_impossible
     The paper proves steps 3-5, but never proves step 2 is polynomial-time!
 -/
 
-/-- To construct the LP system, we must determine tracked unknowns -/
-lemma construction_requires_tracked_unknowns
+/-- To construct the LP system, we must determine tracked unknowns.
+    These are the unknowns used in C(f), but how do we compute this list? -/
+theorem construction_requires_tracked_unknowns
   (C : Construction) (f : Formula) :
   ∃ wu : WorkingUnknowns,
-    wu.numVars = f.clauses.length ∧
-    -- These are the unknowns used in C(f)
-    -- But how do we compute this list?
-    True := by
+    wu.numVars = f.clauses.length ∧ True := by
   sorry
 
 /-- The determination of which unknowns to track requires understanding
-    the formula's structure, which is equivalent to solving SAT -/
-lemma tracking_requires_sat_knowledge
+    the formula's structure, which is equivalent to solving SAT.
+    To determine which partial requirements to track,
+    we must understand f's satisfiability structure.
+    This is circular: we're trying to solve SAT! -/
+theorem tracking_requires_sat_knowledge
   (C : Construction) (f : Formula)
   (hClaim : FeldmannClaim C) :
-  -- To determine which partial requirements to track,
-  -- we must understand f's satisfiability structure
-  -- This is circular: we're trying to solve SAT!
   True := by
   sorry
 
@@ -270,7 +266,7 @@ Feldmann proves the verification is easy but doesn't prove construction is easy.
 
 /-! ## Conclusion -/
 
-/--
+/-
 The formalization exposes the fundamental gap in Feldmann's proof:
 
 **The Claim**: P = NP via Bayesian inference applied to 3-SAT
