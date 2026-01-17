@@ -110,9 +110,9 @@ Lemma shared_certificate_vacuous :
     forall x y,
       L1 x -> L2 y ->
       (* There always exists a certificate z (we can use any z) *)
-      exists z,
-        let M1 := fun x' _ => d1 x' in
-        let M2 := fun y' _ => d2 y' in
+      exists (z : Certificate),
+        let M1 := fun (x' : Instance) (_ : Certificate) => d1 x' in
+        let M2 := fun (y' : Instance) (_ : Certificate) => d2 y' in
         M1 x z = true /\ M2 y z = true.
 Proof.
   intros L1 L2 d1 d2 H1 H2 x y Hx Hy.
