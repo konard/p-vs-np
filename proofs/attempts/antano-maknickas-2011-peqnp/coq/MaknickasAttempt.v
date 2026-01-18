@@ -12,6 +12,7 @@ From Stdlib Require Import List.
 From Stdlib Require Import Reals.
 From Stdlib Require Import Lra.
 From Stdlib Require Import Classical_Prop.
+From Stdlib Require Import ZArith.
 Import ListNotations.
 
 (** ** Boolean SAT Formalization *)
