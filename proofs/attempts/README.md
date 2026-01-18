@@ -16,7 +16,7 @@ The goal is to formally verify each published P vs NP proof attempt to:
 Each attempt has its own folder: `{author-slug}-{year}-{claim}/`
 
 For example:
-- `swart-1986-peqnp/` - Ted Swart's 1986 P=NP attempt
+- `ted-swart-1986-87-peqnp/` - Ted Swart's 1986 P=NP attempt
 - `deolalikar-2010-pneqnp/` - Vinay Deolalikar's 2010 P≠NP attempt
 
 ### Folder Contents
@@ -44,21 +44,11 @@ There are **111 P vs NP proof attempts** cataloged from Woeginger's list:
 
 ### Full List
 
-The complete list of attempts is available in:
-- Raw JSON data: `experiments/pvsnp_attempts.json` (not committed to repo)
-- Parsing script: `experiments/parse_pvsnp_attempts_v3.py`
+The complete list of attempts is available at [Woeginger's P vs NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm).
 
-### Creating Issues
+### Issue Tracking
 
-Each attempt should have a corresponding GitHub issue as a sub-issue of [#44](https://github.com/konard/p-vs-np/issues/44).
-
-To create issues for all attempts, use:
-
-```bash
-python3 experiments/create_attempt_issues.py
-```
-
-**Note**: This creates 111 issues. Make sure you're ready before running with option 3!
+Each attempt has a corresponding GitHub issue as a sub-issue of [#44](https://github.com/konard/p-vs-np/issues/44). Issues were created using the `gh` CLI tool directly.
 
 ## Verification Approach
 
@@ -98,5 +88,5 @@ When adding a new attempt formalization:
 
 ---
 
-*Last updated: 2025-10-17*
+*Last updated: 2026-01-18*
 *Total attempts cataloged: 111*
