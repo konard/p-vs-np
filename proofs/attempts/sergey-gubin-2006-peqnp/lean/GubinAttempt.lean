@@ -141,10 +141,10 @@ theorem gubin_ATSP_formulation_is_polynomial (g : DiGraph) :
 
 /-- CRITICAL CLAIM 1: LP extreme points correspond to ATSP tours -/
 def HasATSPCorrespondence (g : DiGraph) : Prop :=
-  (∀ tour : ASTour g, ∃ ep : ExtremePoint (gubinATSPFormulation g),
+  (∀ tour : ATSPTour g, ∃ ep : ExtremePoint (gubinATSPFormulation g),
     ep.isIntegral = true) ∧
   (∀ ep : ExtremePoint (gubinATSPFormulation g),
-    ep.isIntegral = true → ∃ tour : ASTour g, True)
+    ep.isIntegral = true → ∃ tour : ATSPTour g, True)
 
 /-- CRITICAL CLAIM 2: All extreme points are integral -/
 def AllExtremePointsIntegral (g : DiGraph) : Prop :=
@@ -350,9 +350,8 @@ theorem gubin_fails_fundamentally :
 
 -- This file compiles successfully
 -- It demonstrates that both of Gubin's approaches have fatal errors
-#print "✓ Gubin attempt formalization compiled"
-#print "✓ Error 1: LP extreme points are not always integral (Hofman 2006)"
-#print "✓ Error 2: SAT to 2-SAT reduction has exponential blowup (Christopher et al. 2008)"
-#print "✓ Both approaches fail to establish P = NP"
+-- Error 1: LP extreme points are not always integral (Hofman 2006)
+-- Error 2: SAT to 2-SAT reduction has exponential blowup (Christopher et al. 2008)
+-- Both approaches fail to establish P = NP
 
 end GubinAttempt
