@@ -35,6 +35,8 @@ Axiom p_vs_np_decidable : P_equals_NP \/ P_not_equals_NP.
 Axiom ZFC : Type.
 Axiom ZFC_axioms : ZFC -> Prop.
 Axiom ZFC_consistent : Prop.
+Axiom standard_ZFC : ZFC.
+Axiom standard_ZFC_satisfies_axioms : ZFC_axioms standard_ZFC.
 
 (** * Proof Theory Concepts *)
 
@@ -113,8 +115,8 @@ Axiom exotic_agrees_in_standard_model :
   Andreas Blass identifies this as containing a critical error!
 *)
 Axiom da_costa_doria_corollary_4_6_claim :
-  TheoryConsistentWith ZFC_axioms (exotic_statement exotic_P_equals_NP) ->
-  TheoryConsistentWith ZFC_axioms P_equals_NP.
+  TheoryConsistentWith standard_ZFC (exotic_statement exotic_P_equals_NP) ->
+  TheoryConsistentWith standard_ZFC P_equals_NP.
 
 (**
   The gap: The exotic formulation's consistency doesn't automatically transfer
@@ -122,8 +124,8 @@ Axiom da_costa_doria_corollary_4_6_claim :
 *)
 Theorem gap_in_corollary_4_6 :
   ~ (forall (ef : ExoticFormulation),
-      TheoryConsistentWith ZFC_axioms (exotic_statement ef) ->
-      TheoryConsistentWith ZFC_axioms (standardPart ef)).
+      TheoryConsistentWith standard_ZFC (exotic_statement ef) ->
+      TheoryConsistentWith standard_ZFC (standardPart ef)).
 Proof.
   intro H.
   (* The exotic formulation's consistency is by construction *)
@@ -140,14 +142,14 @@ Admitted.
   But they never prove ZFC + [P=NP]' is ω-consistent!
 *)
 Axiom da_costa_doria_2006_claim :
-  OmegaConsistent ZFC_axioms (exotic_statement exotic_P_equals_NP) ->
-  TheoryConsistentWith ZFC_axioms P_equals_NP.
+  OmegaConsistent standard_ZFC (exotic_statement exotic_P_equals_NP) ->
+  TheoryConsistentWith standard_ZFC P_equals_NP.
 
 (**
   The critical missing proof: They never establish ω-consistency.
 *)
 Theorem omega_consistency_not_established :
-  ~ (OmegaConsistent ZFC_axioms (exotic_statement exotic_P_equals_NP)).
+  ~ (OmegaConsistent standard_ZFC (exotic_statement exotic_P_equals_NP)).
 Proof.
   intro H.
   (* No proof of ω-consistency has been provided in either paper *)
@@ -188,8 +190,8 @@ Admitted.
 *)
 Theorem non_refutability_not_independence :
   ~ (forall (stmt : Prop),
-      ~ Refutable ZFC_axioms (exotic_statement (make_exotic stmt)) ->
-      Independent ZFC_axioms stmt).
+      ~ Refutable standard_ZFC (exotic_statement (make_exotic stmt)) ->
+      Independent standard_ZFC stmt).
 Proof.
   intro H.
   (* Counterexample: provable statements can be made "exotic" *)
@@ -202,8 +204,8 @@ Admitted.
   The key error: Non-refutability of [P=NP]' doesn't prove independence of P=NP.
 *)
 Theorem exotic_non_refutability_insufficient :
-  ~ Refutable ZFC_axioms (exotic_statement exotic_P_equals_NP) ->
-  ~ (Independent ZFC_axioms P_equals_NP).
+  ~ Refutable standard_ZFC (exotic_statement exotic_P_equals_NP) ->
+  ~ (Independent standard_ZFC P_equals_NP).
 Proof.
   intros h_not_refute h_independent.
   (* The exotic formulation's properties are by construction *)
@@ -258,13 +260,13 @@ Record DaCostaDoriaArgument : Type := {
   exotic_def : ExoticFormulation;
 
   (* Step 2: Show [P=NP]' is not refutable (by construction) *)
-  not_refutable : ~ Refutable ZFC_axioms (exotic_statement exotic_def);
+  not_refutable : ~ Refutable standard_ZFC (exotic_statement exotic_def);
 
   (* Step 3: INVALID - Claim this implies ZFC + [P=NP] is consistent *)
-  claim_consistency : TheoryConsistentWith ZFC_axioms P_equals_NP;
+  claim_consistency : TheoryConsistentWith standard_ZFC P_equals_NP;
 
   (* Step 4: INVALID - Conclude P≠NP is not provable *)
-  claim_independence : Independent ZFC_axioms P_equals_NP
+  claim_independence : Independent standard_ZFC P_equals_NP
 }.
 
 (**
@@ -287,9 +289,9 @@ Admitted.
 
 Theorem da_costa_doria_attempt_summary :
   (* The exotic formulation is non-refutable by construction *)
-  (~ Refutable ZFC_axioms (exotic_statement exotic_P_equals_NP)) /\
+  (~ Refutable standard_ZFC (exotic_statement exotic_P_equals_NP)) /\
   (* But this doesn't prove independence of standard P=NP *)
-  (~ (Independent ZFC_axioms P_equals_NP)) /\
+  (~ (Independent standard_ZFC P_equals_NP)) /\
   (* The argument contains critical gaps *)
   (~ (exists (arg : DaCostaDoriaArgument), True)).
 Proof.
