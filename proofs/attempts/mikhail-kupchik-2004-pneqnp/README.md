@@ -6,7 +6,7 @@
 
 ## Metadata
 
-- **Attempt ID**: 10 (from Woeginger's list)
+- **Attempt ID**: 13 (from Woeginger's list, as of January 2026)
 - **Author**: Mikhail N. Kupchik
 - **Year**: 2004 (Spring)
 - **Claim**: P ≠ NP
@@ -31,7 +31,7 @@ The proof attempt was originally published as three PDF files:
 
 ### References
 
-- Listed on Gerhard J. Woeginger's P-versus-NP page: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #10)
+- Listed on Gerhard J. Woeginger's P-versus-NP page: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #13, as of January 2026)
 
 ## Proof Strategy
 
@@ -119,4 +119,6 @@ This formalization framework is provided for research and educational purposes. 
 - [All P vs NP Attempts](../)
 - [Main Repository](../../../README.md)
 
-**Last Updated**: October 2025
+**Last Updated**: January 2026
+
+**Note on Woeginger's List Numbering**: This attempt was originally listed as entry #10 in Woeginger's P vs NP page, but the list was later renumbered and as of January 2026, Mikhail N. Kupchik's attempt is entry #13. The folder was renamed from `author10-2004-pneqnp` to `mikhail-kupchik-2004-pneqnp` to reflect the author's name and updated entry number.
