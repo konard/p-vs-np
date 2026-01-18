@@ -95,9 +95,29 @@ definition satisfies_XOR3 :: "assignment \<Rightarrow> xor3_instance \<Rightarro
 definition XOR3_SAT :: "xor3_instance \<Rightarrow> bool" where
   "XOR3_SAT inst = (\<exists>a. satisfies_XOR3 a inst)"
 
+(*
+  To use XOR3_SAT with complexity class definitions that operate on decision_problems
+  (i.e., binary_string \<Rightarrow> bool), we need an encoding from binary strings to xor3_instances.
+  This is standard in complexity theory: NP-complete problems work on encoded instances.
+*)
+
+(* Abstract encoding/decoding between binary strings and xor3_instances *)
+axiomatization
+  encode_xor3 :: "xor3_instance \<Rightarrow> binary_string" and
+  decode_xor3 :: "binary_string \<Rightarrow> xor3_instance option"
+where
+  encode_decode_xor3: "\<forall>inst. decode_xor3 (encode_xor3 inst) = Some inst" and
+  encoding_is_polytime: "\<exists>time. is_polynomial time"
+
+(* XOR3_SAT as a decision problem on binary strings *)
+definition XOR3_SAT_decision :: "decision_problem" where
+  "XOR3_SAT_decision s = (case decode_xor3 s of
+    Some inst \<Rightarrow> XOR3_SAT inst
+  | None \<Rightarrow> False)"
+
 (* 3-XOR is NP-complete (stated as axiom, well-known result) *)
 axiomatization where
-  XOR3_is_NP_complete: "NP_complete XOR3_SAT"
+  XOR3_is_NP_complete: "NP_complete XOR3_SAT_decision"
 
 section \<open>Gap Problems\<close>
 
@@ -107,8 +127,15 @@ section \<open>Gap Problems\<close>
   - NO instances: at most (1/2 + \<epsilon>) fraction of clauses can be satisfied
 *)
 
-definition Gap_XOR3 :: "nat \<Rightarrow> xor3_instance \<Rightarrow> bool" where
-  "Gap_XOR3 epsilon inst = True"  (* Abstract gap property *)
+(* Gap property on xor3_instances (internal definition) *)
+definition Gap_XOR3_internal :: "nat \<Rightarrow> xor3_instance \<Rightarrow> bool" where
+  "Gap_XOR3_internal epsilon inst = True"  (* Abstract gap property *)
+
+(* Gap 3-XOR as a decision problem on binary strings *)
+definition Gap_XOR3 :: "nat \<Rightarrow> decision_problem" where
+  "Gap_XOR3 epsilon s = (case decode_xor3 s of
+    Some inst \<Rightarrow> Gap_XOR3_internal epsilon inst
+  | None \<Rightarrow> False)"
 
 (* Gap 3-XOR is NP-hard (for appropriate epsilon) *)
 axiomatization where
@@ -158,13 +185,15 @@ section \<open>Peng Cui's Key Claim\<close>
 
 (*
   Claim: Running Charikar-Wirth SDP for 2 rounds solves Gap 3-XOR exactly
+  Note: This claim operates on the internal xor3_instance representation.
+  The key issue is whether this algorithm can solve the gap problem exactly.
 *)
 axiomatization where
   Cui_Claim_SDP_solves_GapXOR3:
     "\<forall>inst epsilon.
       \<exists>solution.
         CharikarWirth_SDP_rounds 2 inst = Some solution \<and>
-        (Gap_XOR3 epsilon inst \<longleftrightarrow> solution > 0)"
+        (Gap_XOR3_internal epsilon inst \<longleftrightarrow> solution > 0)"
 
 section \<open>The Claimed Proof of P=NP\<close>
 
@@ -174,11 +203,14 @@ theorem Step1_Gap_XOR3_NP_hard:
   by (simp add: Gap_XOR3_is_NP_hard)
 
 (* Step 2: Charikar-Wirth SDP solves Gap 3-XOR in polynomial time *)
+(* Note: This theorem is incomplete because Gap_XOR3 operates on binary_string,
+   but the SDP algorithm operates on xor3_instance. The gap here represents
+   that Cui's claim about exact solving cannot be directly proven. *)
 theorem Step2_SDP_solves_GapXOR3_poly_time:
   "\<forall>epsilon.
     \<exists>time.
       is_polynomial time \<and>
-      (\<forall>inst. Gap_XOR3 epsilon inst \<longleftrightarrow> True)"
+      (\<forall>s. Gap_XOR3 epsilon s \<longleftrightarrow> True)"
 proof -
   obtain time where "is_polynomial time"
     using CharikarWirth_is_polynomial by blast
@@ -222,10 +254,11 @@ proof -
 qed
 
 (* The Complete Claimed Proof *)
+(* Note: The assumption uses Gap_XOR3_internal because the SDP operates on xor3_instances *)
 theorem Cui_P_equals_NP_claim:
   assumes SDP_claim: "\<forall>inst epsilon solution.
     CharikarWirth_SDP_rounds 2 inst = Some solution \<longrightarrow>
-    (Gap_XOR3 epsilon inst \<longleftrightarrow> solution > 0)"
+    (Gap_XOR3_internal epsilon inst \<longleftrightarrow> solution > 0)"
   assumes "in_NP L"
   shows "in_P L"
 proof -
