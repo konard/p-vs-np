@@ -1,6 +1,6 @@
-# Formalization: "A new version of" (2005) - P≠NP
+# Viktor V. Ivanov (2005) - P≠NP Attempt
 
-**Attempt ID**: 18 (on Woeginger's list)
+**Attempt ID**: 21 (on Woeginger's list)
 **Author**: Viktor V. Ivanov
 **Year**: 2005 (original), 2014 (revised version)
 **Claim**: P ≠ NP
@@ -72,22 +72,30 @@ The formalization process serves as a rigorous analysis tool to identify exactly
 
 ## Sources
 
-- **Woeginger's P versus NP page**: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #18)
+- **Woeginger's P versus NP page**: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #21)
 - **2014 IJPAM Publication**: http://www.ijpam.eu/contents/2014-94-1/9/index.html
 - **Original PDF** (attempted): http://www.math.usf.edu/~eclark/NPvsP.pdf (currently inaccessible)
+
+## Files in This Directory
+
+- **lean/**: Lean 4 formalization of Ivanov's argument and the error
+- **coq/**: Coq formalization of Ivanov's argument and the error
+- **isabelle/**: Isabelle/HOL formalization of Ivanov's argument and the error
+- **README.md**: This file
 
 ## Related Work
 
 This attempt is part of a larger collection of claimed P versus NP proofs. See also:
 - [Parent Issue #44](https://github.com/konard/p-vs-np/issues/44) - Test all P vs NP attempts formally
+- [Issue #436](https://github.com/konard/p-vs-np/issues/436) - Add formalization for attempt #21
 - [General P≠NP framework](../../p_not_equal_np/README.md)
 
 ## Formalization Status
 
-- [ ] Coq formalization
-- [ ] Lean formalization
-- [ ] Isabelle formalization
-- [ ] Error/gap identified and documented
+- ✅ Coq formalization (see `coq/IvanovAttempt.v`)
+- ✅ Lean formalization (see `lean/IvanovAttempt.lean`)
+- ✅ Isabelle formalization (see `isabelle/IvanovAttempt.thy`)
+- ✅ Error/gap identified and documented
 
 ---
 
