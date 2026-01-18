@@ -296,10 +296,10 @@ Theorem da_costa_doria_attempt_summary :
   (~ (exists (arg : DaCostaDoriaArgument), True)).
 Proof.
   split.
-  - exact (exotic_not_refutable ZFC_axioms).
+  - exact (exotic_not_refutable standard_ZFC).
   split.
   - apply exotic_non_refutability_insufficient.
-    exact (exotic_not_refutable ZFC_axioms).
+    exact (exotic_not_refutable standard_ZFC).
   - exact da_costa_doria_argument_incomplete.
 Qed.
 
