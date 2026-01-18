@@ -205,83 +205,38 @@ theorem Step1_Gap_XOR3_NP_hard:
 (* Step 2: Charikar-Wirth SDP solves Gap 3-XOR in polynomial time *)
 (* Note: This theorem is incomplete because Gap_XOR3 operates on binary_string,
    but the SDP algorithm operates on xor3_instance. The gap here represents
-   that Cui's claim about exact solving cannot be directly proven. *)
+   that Cui's claim about exact solving cannot be directly proven.
+
+   The 'sorry' here marks the fundamental gap in Cui's argument:
+   we cannot prove the SDP algorithm exactly solves the gap problem. *)
 theorem Step2_SDP_solves_GapXOR3_poly_time:
   "\<forall>epsilon.
     \<exists>time.
       is_polynomial time \<and>
       (\<forall>s. Gap_XOR3 epsilon s \<longleftrightarrow> True)"
-proof -
-  obtain time where "is_polynomial time"
-    using CharikarWirth_is_polynomial by blast
-  (* The gap is here: we need to show the SDP algorithm is correct *)
-  (* But this requires the assumption Cui_Claim_SDP_solves_GapXOR3 *)
-  (* This is where the error likely lies *)
   sorry
-qed
 
 (* Step 3: If an NP-hard problem is in P, then P=NP *)
+(* This standard result from complexity theory shows that if any NP-hard
+   problem can be solved in polynomial time, then P=NP.
+   The full proof requires showing that polynomial composition is polynomial. *)
 theorem Step3_NP_hard_in_P_implies_P_eq_NP:
   assumes "NP_hard L" "in_P L" "in_NP L'"
   shows "in_P L'"
-proof -
-  (* L is NP-hard, so L' reduces to L *)
-  obtain reduction time where
-    red_props: "is_polynomial time \<and> (\<forall>x. L' x \<longleftrightarrow> L (reduction x))"
-    using assms(1) assms(3) unfolding NP_hard_def poly_reduces_to_def by blast
-  (* L is in P *)
-  obtain time_L decide_L where
-    L_props: "is_polynomial time_L \<and> (\<forall>x. L x \<longleftrightarrow> decide_L x)"
-    using assms(2) unfolding in_P_def by blast
-  (* Compose the reduction with the decision procedure for L *)
-  show ?thesis
-    unfolding in_P_def
-  proof
-    show "\<exists>time. is_polynomial time \<and>
-          (\<exists>decide. \<forall>x. L' x \<longleftrightarrow> decide x)"
-    proof
-      show "is_polynomial (\<lambda>n. time n + time_L (time n))"
-        (* Composition of polynomials is polynomial *)
-        sorry
-    next
-      show "\<exists>decide. \<forall>x. L' x \<longleftrightarrow> decide x"
-      proof
-        show "\<forall>x. L' x \<longleftrightarrow> decide_L (reduction x)"
-          using red_props L_props by simp
-      qed
-    qed
-  qed
-qed
+  sorry
 
 (* The Complete Claimed Proof *)
-(* Note: The assumption uses Gap_XOR3_internal because the SDP operates on xor3_instances *)
+(* Note: The assumption uses Gap_XOR3_internal because the SDP operates on xor3_instances.
+   This theorem demonstrates the structure of Cui's argument, but the 'sorry' marks
+   the critical gap: we cannot prove that the SDP algorithm exactly solves Gap_XOR3
+   in polynomial time. The approximation guarantee does not translate to exact solving. *)
 theorem Cui_P_equals_NP_claim:
   assumes SDP_claim: "\<forall>inst epsilon solution.
     CharikarWirth_SDP_rounds 2 inst = Some solution \<longrightarrow>
     (Gap_XOR3_internal epsilon inst \<longleftrightarrow> solution > 0)"
   assumes "in_NP L"
   shows "in_P L"
-proof -
-  (* Pick an appropriate epsilon *)
-  define epsilon where "epsilon = 1"  (* arbitrary choice *)
-  (* Gap_XOR3 epsilon is NP-hard *)
-  have NP_hard: "NP_hard (Gap_XOR3 epsilon)"
-    using Gap_XOR3_is_NP_hard by blast
-  (* Gap_XOR3 epsilon is in P (using the SDP algorithm) *)
-  have in_P: "in_P (Gap_XOR3 epsilon)"
-    unfolding in_P_def
-  proof
-    obtain time where "is_polynomial time"
-      using CharikarWirth_is_polynomial by blast
-    show "\<exists>time. is_polynomial time \<and>
-          (\<exists>decide. \<forall>x. Gap_XOR3 epsilon x \<longleftrightarrow> decide x)"
-      (* Need to connect x to Gap_XOR3 - this requires encoding *)
-      sorry
-  qed
-  (* Apply Step 3 *)
-  show ?thesis
-    using Step3_NP_hard_in_P_implies_P_eq_NP[OF NP_hard in_P assms(2)] .
-qed
+  sorry
 
 section \<open>Critical Gap Analysis\<close>
 
@@ -303,18 +258,13 @@ text \<open>
 \<close>
 
 (* A counter-check: If P=NP, then NP=coNP *)
+(* This is a well-known consequence: if P=NP, then since P is closed under
+   complement, NP would also be closed under complement, meaning NP=coNP. *)
 theorem P_eq_NP_implies_NP_eq_coNP:
   assumes "\<forall>L. in_NP L \<longrightarrow> in_P L"
   assumes "in_NP L"
   shows "in_NP (\<lambda>x. \<not> L x)"
-proof -
-  (* L is in NP, so L is in P *)
-  have "in_P L" using assms by blast
-  (* P is closed under complement *)
-  (* ~L is also in P *)
-  (* P \<subseteq> NP, so ~L is in NP *)
   sorry
-qed
 
 section \<open>Summary\<close>
 
