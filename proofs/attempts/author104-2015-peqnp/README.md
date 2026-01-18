@@ -1,4 +1,4 @@
-# Formalization: Vega (2015) - P = NP via equivalent-P
+# Formalization: Frank Vega (2015) - P = NP via equivalent-P
 
 **Navigation:** [↑ Back to Repository Root](../../../README.md) | [All Proof Attempts](../)
 
@@ -10,23 +10,23 @@
 **Claim**: P = NP
 **Paper**: "Solution of P versus NP Problem"
 **Source**: [HAL Archive hal-01161668](https://hal.science/hal-01161668)
-**Woeginger's List**: Entry #104
+**Woeginger's List**: Entry #104 at https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
 
 ## Summary
 
 In June 2015, Frank Vega introduced a new complexity class called **equivalent-P** (denoted ∼P), which has a close relation to the P versus NP question. The class ∼P contains languages of ordered pairs of instances where each instance belongs to a specific problem in P, such that the two instances share the same solution (certificate).
 
-Vega attempts to demonstrate that:
-1. ∼P = NP (Theorem 5.3)
-2. ∼P = P (Theorem 6.2)
+Vega's argument proceeds in three steps:
+1. Define the complexity class ∼P
+2. Show that ∼P = NP (Theorem 5.3)
+3. Show that ∼P = P (Theorem 6.2)
+4. Conclude that P = NP (Theorem 6.3)
 
-From these two claims, he concludes P = NP (Theorem 6.3).
+## Main Definitions
 
-## The Main Argument
+### Equivalent-P (∼P) Class
 
-### Definition of ∼P (equivalent-P)
-
-Given two languages L₁ and L₂ in P with verifiers M₁ and M₂, a language L belongs to ∼P if:
+**Definition 3.1**: Given two languages L₁ and L₂ in P with verifiers M₁ and M₂, a language L belongs to ∼P if:
 
 ```
 L = {(x, y) : ∃z such that M₁(x,z) = "yes" and M₂(y,z) = "yes" where x ∈ L₁ and y ∈ L₂}
@@ -34,120 +34,122 @@ L = {(x, y) : ∃z such that M₁(x,z) = "yes" and M₂(y,z) = "yes" where x ∈
 
 In other words, ∼P contains ordered pairs of problem instances from P that share the same certificate.
 
-### Key Reductions
+### E-reduction
 
-1. **∼ONE-IN-THREE 3SAT**: Defined as {(φ,φ) : φ ∈ ONE-IN-THREE 3SAT}, claimed to be NP-complete
-2. **3XOR-2SAT**: Pairs (ψ,ϕ) where ψ ∈ XOR 3SAT and ϕ ∈ 2SAT with same satisfying assignment
-3. **∼HORNSAT**: Defined as {(φ,φ) : φ ∈ HORNSAT}, claimed to be P-complete
+**Definition 4.1**: A language L₁ is e-reducible to a language L₂, written L₁ ≤∼ L₂, if there exist two logarithmic-space computable functions f and g such that for all x and y:
 
-### Proof Structure
+```
+(x, y) ∈ L₁ if and only if (f(x), g(y)) ∈ L₂
+```
 
-1. Show ∼P is closed under e-reductions (Theorem 4.2)
-2. Reduce ∼ONE-IN-THREE 3SAT to 3XOR-2SAT (Theorem 5.2)
-3. Show 3XOR-2SAT ∈ ∼P, conclude ∼P = NP (Theorem 5.3)
-4. Show ∼HORNSAT ∈ ∼P, conclude ∼P = P (Theorem 6.2)
-5. Conclude P = NP (Theorem 6.3)
+## Main Argument
 
-## The Critical Error
+### Step 1: ∼P = NP (Theorem 5.3)
 
-### Main Flaw: Circular Definition and Category Error
+Vega defines:
+- **∼ONE-IN-THREE 3SAT** = {(φ, φ) : φ ∈ ONE-IN-THREE 3SAT}
+- **3XOR-2SAT** = {(ψ, φ) : ψ ∈ XOR 3SAT and φ ∈ 2SAT with same satisfying assignment}
 
-The proof contains a fundamental logical error in the definition and application of ∼P:
+He shows ∼ONE-IN-THREE 3SAT ≤∼ 3XOR-2SAT (Theorem 5.2) and claims this implies ∼P = NP.
 
-#### 1. Definition Inconsistency
+### Step 2: ∼P = P (Theorem 6.2)
 
-The definition of ∼P (Definition 3.1) states that a language L belongs to ∼P when:
-- L consists of ordered pairs (x, y)
-- There exist TWO languages L₁ and L₂ in P
-- There exists a shared certificate z
+Vega defines:
+- **∼HORNSAT** = {(φ, φ) : φ ∈ HORNSAT}
 
-However, Vega's key examples violate this definition:
+He shows ∼HORNSAT ∈ ∼P (Theorem 6.1) and claims this implies ∼P = P.
 
-**∼HORNSAT = {(φ,φ) : φ ∈ HORNSAT}**
+### Step 3: P = NP (Theorem 6.3)
 
-This is NOT a language of pairs from two different problems in P sharing a certificate. Rather, it's a language of identical pairs from a single problem. The definition requires L₁ and L₂ to be given first, then L is defined based on them. But ∼HORNSAT doesn't fit this pattern—it's defined by taking diagonal pairs from a single language.
+From ∼P = NP and ∼P = P, Vega concludes P = NP.
 
-#### 2. The Diagonal Construction Fallacy
+## The Critical Errors
+
+The proof contains multiple fundamental flaws that invalidate the argument:
+
+### 1. Definition Inconsistency and Ill-Formed Definition
+
+The definition of ∼P (Definition 3.1) is problematic:
+
+**Confusion Between Verifiers and Deciders**: The definition states that M₁ and M₂ are "verifiers" of L₁ and L₂ where L₁, L₂ ∈ P. However:
+- Problems in P are decidable in polynomial time by deterministic Turing machines
+- They don't require certificates or verifiers in the NP sense
+- For any L ∈ P, we can define a "verifier" M that ignores the certificate z and simply decides x ∈ L
+
+This makes the certificate z either **meaningless** (if ignored) or introduces a **non-standard constraint** unrelated to computational complexity.
+
+### 2. The Diagonal Construction Fallacy
 
 Vega uses diagonal constructions {(φ,φ) : φ ∈ L} for both:
 - ∼ONE-IN-THREE 3SAT (to show ∼P = NP)
 - ∼HORNSAT (to show ∼P = P)
 
-This creates a category error:
-- These are not examples of "two instances from different problems sharing a certificate"
-- They are trivial examples where "one instance shares a certificate with itself"
-- Any language L can be embedded as {(x,x) : x ∈ L}, which doesn't create a meaningful new complexity class
+**Problem**: These are NOT examples of "two instances from different problems sharing a certificate"—they are trivial examples where "one instance shares a certificate with itself." This doesn't create a meaningful new complexity class, as any language L can be embedded as {(x,x) : x ∈ L}.
 
-#### 3. The Transitivity Trap
+### 3. Type Mismatch
+
+The complexity classes are incomparable:
+- **∼P** consists of languages over ordered pairs (x, y)
+- **P and NP** consist of languages over single strings
+
+The claim ∼P = NP confuses:
+- The class of languages {(x, x) : x ∈ L} for L ∈ NP
+- The class NP itself
+
+### 4. Insufficient Closure Arguments
+
+Theorems 5.3 and 6.2 each show one problem is in ∼P but don't establish that ∼P equals P or NP. The logic "if a complete problem is in C, then C equals the class" requires:
+- C is closed under reductions (✓ shown in Theorem 4.2)
+- The reduction type matches (✗ e-reductions ≠ polynomial-time reductions ≠ log-space reductions)
+- The language types match (✗ pairs ≠ single instances)
+
+### 5. The Transitivity Trap
 
 The proof attempts to show:
 - NP ⊆ ∼P (via ∼ONE-IN-THREE 3SAT)
 - P ⊆ ∼P (via ∼HORNSAT)
 
-Even if both were true, this would only show that both P and NP are subsets of ∼P. This does NOT imply P = NP. It would only show that ∼P is a common upper bound, which could simply mean ∼P is large (potentially equal to NP or even larger).
+Even if both were true, this would only show that both P and NP are subsets of ∼P—NOT that P = NP. It would only show that ∼P is a common upper bound.
 
-#### 4. The Verifier Confusion
+### 6. No Meaningful Complexity Barrier Overcome
 
-Definition 3.1 requires that L₁ and L₂ be in P and have verifiers M₁ and M₂. However:
-- Problems in P are decision problems that can be *decided* in polynomial time
-- The use of "verifiers" suggests NP (where verification is the key concept)
-- The definition conflates "being in P" with "having a polynomial-time verifier"
-
-While every problem in P trivially has a polynomial-time verifier (ignore the certificate, just solve the problem), this is not the standard way to characterize P, and it obscures what ∼P actually represents.
-
-#### 5. Incorrect Claim: ∼P = NP
-
-Theorem 5.3 claims ∼P = NP based on:
-- Showing ∼ONE-IN-THREE 3SAT ∈ ∼P
-- Using closure under reductions
-
-**Problem**: The proof only shows NP has *some* problems that can be embedded in ∼P via the diagonal construction. It does NOT show:
-- That every problem in NP is in ∼P
-- That every problem in ∼P is in NP
-
-The correct conclusion would be that ∼ONE-IN-THREE 3SAT ∈ ∼P, not that all of NP equals ∼P.
-
-#### 6. Incorrect Claim: ∼P = P
-
-Theorem 6.2 claims ∼P = P based on:
-- Showing ∼HORNSAT ∈ ∼P
-- Using closure under reductions
-
-**Problem**: The same error as above—showing one P-complete problem can be embedded in ∼P does not prove ∼P = P.
-
-### What ∼P Actually Represents
-
-If we interpret the definition strictly, ∼P appears to be related to:
-- Languages of pairs that share solutions
-- This is similar to the complexity class of finding common satisfying assignments
-- It's unclear what the complexity of ∼P actually is without a proper analysis
-
-The diagonal examples {(x,x) : x ∈ L} are degenerate cases that don't illuminate the structure of ∼P.
+The construction essentially creates syntactic pairs without addressing why problems in NP are believed to be harder than problems in P. The known barriers (relativization, natural proofs, algebrization) are not addressed.
 
 ## Formalization Goals
 
-Our formalization will:
+The formalizations in Coq, Lean, and Isabelle aim to:
 
-1. **Define ∼P precisely** in each proof assistant
-2. **Formalize the diagonal construction** {(x,x) : x ∈ L}
-3. **Show the gap**: Proving L has an embedding into ∼P does NOT imply L = ∼P
-4. **Demonstrate the error**: Show that the argument structure "L₁ ⊆ ∼P and L₂ ⊆ ∼P implies L₁ = L₂" is invalid
-5. **Characterize ∼P properly**: Determine what ∼P actually is (likely ∼P = NP, but via different reasoning)
+1. Define the complexity class ∼P as stated in Definition 3.1
+2. Attempt to formalize the key theorems (4.2, 5.2, 5.3, 6.1, 6.2, 6.3)
+3. Identify where the formalization breaks down or reveals the error
+4. Make the type mismatches and logical gaps explicit
+5. Show the gap: Proving L has an embedding into ∼P does NOT imply L = ∼P
+
+The formalization should reveal that the definition of ∼P is either:
+- Vacuous (if certificates can be ignored), or
+- Incomparable to P and NP (if certificates matter)
+
+In either case, the claimed equalities ∼P = P and ∼P = NP cannot be established in the way presented in the paper.
 
 ## Files
 
-- `coq/VegaEquivalentP.v` - Coq formalization showing the flaw
-- `lean/VegaEquivalentP.lean` - Lean 4 formalization showing the flaw
-- `isabelle/VegaEquivalentP.thy` - Isabelle/HOL formalization showing the flaw
+- [`ERROR_ANALYSIS.md`](ERROR_ANALYSIS.md) - Detailed error analysis
+- [`coq/VegaAttempt.v`](coq/VegaAttempt.v) - Coq formalization (original)
+- [`coq/VegaEquivalentP.v`](coq/VegaEquivalentP.v) - Alternative Coq formalization
+- [`lean/VegaAttempt.lean`](lean/VegaAttempt.lean) - Lean 4 formalization (original)
+- [`lean/VegaEquivalentP.lean`](lean/VegaEquivalentP.lean) - Alternative Lean formalization
+- [`isabelle/VegaAttempt.thy`](isabelle/VegaAttempt.thy) - Isabelle/HOL formalization (original)
+- [`isabelle/VegaEquivalentP.thy`](isabelle/VegaEquivalentP.thy) - Alternative Isabelle formalization
 
 ## Known Refutation
 
-This proof has not been accepted by the complexity theory community. The main issues are:
+This proof attempt does not appear to have been formally published in a peer-reviewed venue. It was uploaded to HAL (an open preprint archive) in June 2015.
 
-1. **Definitional problems**: The definition of ∼P and its diagonal embeddings are not properly justified
-2. **Logical gap**: The transition from "some problems in P and NP can be embedded in ∼P" to "P = ∼P = NP" is unjustified
-3. **Lack of peer review**: Published only as a preprint, not peer-reviewed
-4. **No response to barriers**: Does not address known barriers (relativization, natural proofs, algebrization)
+The error is a definitional one: the complexity class ∼P is not well-defined in a way that makes it meaningfully comparable to P and NP. The attempt to bridge these classes through specific problem instances (∼HORNSAT, ∼ONE-IN-THREE 3SAT) fails because:
+
+1. The reduction types don't match the standard reductions for P and NP
+2. The language types (pairs vs. single instances) don't match
+3. The notion of "shared certificate" for problems in P is vacuous
 
 ## Complexity Theory Lessons
 
@@ -161,15 +163,16 @@ This attempt illustrates several common pitfalls in P vs NP attempts:
 
 ## References
 
-- Vega, F. (2015). "Solution of P versus NP Problem." HAL preprint hal-01161668. https://hal.science/hal-01161668
-- Woeginger, G. J. "The P-versus-NP page." https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+- Frank Vega, "Solution of P versus NP Problem", HAL preprint hal-01161668, June 2015
+- https://hal.science/hal-01161668
+- Woeginger's P vs NP page: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
 
 ## Status
 
 - ✅ Paper analyzed
-- 🚧 Coq formalization: In progress
-- 🚧 Lean formalization: In progress
-- 🚧 Isabelle formalization: In progress
+- 🚧 Coq formalization: Has compilation errors (type unification issue)
+- ✅ Lean formalization: Complete
+- ✅ Isabelle formalization: Complete
 - ✅ Error identified and documented
 
 ---
