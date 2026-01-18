@@ -3,14 +3,3 @@ Your prepared branch: issue-14-b991bfef
 Your prepared working directory: /tmp/gh-issue-solver-1760419538232
 
 Proceed.
-
----
-
-Issue to solve: https://github.com/konard/p-vs-np/issues/449
-Your prepared branch: issue-449-9ee200cdce20
-Your prepared working directory: /tmp/gh-issue-solver-1768771967275
-
-Proceed.
-
-
-Run timestamp: 2026-01-18T21:32:49.042Z
