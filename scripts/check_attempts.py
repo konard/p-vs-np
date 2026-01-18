@@ -12,7 +12,7 @@ Requirements per formalization (as specified in Issue #44):
 4. Formal refutation (Coq/Lean/Isabelle) - Proof of the refutation
 
 Usage:
-    python3 scripts/check_attempts.py [--json] [--verbose]
+    python3 scripts/check_attempts.py [--json] [--verbose] [--markdown] [--create-issues]
 
 Source: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
 """
@@ -22,9 +22,11 @@ import re
 import sys
 import json
 import argparse
+import subprocess
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
+from datetime import datetime
 
 
 # Reference list from Woeginger's P vs NP page (as of 2026-01)
@@ -346,6 +348,332 @@ def find_unmapped_folders(repo_root: Path) -> list[str]:
     return sorted(existing_folders - mapped_folders)
 
 
+def check_folder_structure_consistency(repo_root: Path, results: list) -> list[dict]:
+    """Check if all attempt folders have consistent structure."""
+    issues = []
+    expected_structure = ["README.md", "lean/", "coq/", "isabelle/"]
+
+    for r in results:
+        if not r.has_folder or not r.folder_name:
+            continue
+
+        folder_path = repo_root / "proofs" / "attempts" / r.folder_name
+        folder_issues = []
+
+        # Check for expected structure
+        if not r.has_readme:
+            folder_issues.append("Missing README.md")
+        if not r.has_lean:
+            folder_issues.append("Missing lean/ folder or .lean files")
+        if not r.has_coq:
+            folder_issues.append("Missing coq/ folder or .v files")
+        if not r.has_isabelle:
+            folder_issues.append("Missing isabelle/ folder or .thy files")
+        if not r.has_paper:
+            folder_issues.append("Missing paper/ folder")
+
+        if folder_issues:
+            issues.append({
+                "number": r.number,
+                "author": r.author,
+                "year": r.year,
+                "folder": r.folder_name,
+                "issues": folder_issues,
+                "completeness_score": r.completeness_score,
+            })
+
+    return issues
+
+
+def generate_markdown_report(results: list, unmapped: list[str], repo_root: Path) -> str:
+    """Generate a markdown document with comparison table."""
+    total = len(results)
+    mapped = sum(1 for r in results if r.folder_name is not None)
+    with_folders = sum(1 for r in results if r.has_folder)
+    with_readme = sum(1 for r in results if r.has_readme)
+    with_paper = sum(1 for r in results if r.has_paper)
+    with_lean = sum(1 for r in results if r.has_lean)
+    with_coq = sum(1 for r in results if r.has_coq)
+    with_isabelle = sum(1 for r in results if r.has_isabelle)
+    with_refutation = sum(1 for r in results if r.lean_has_refutation or r.coq_has_refutation or r.isabelle_has_refutation)
+    avg_score = sum(r.completeness_score for r in results) / len(results) if results else 0
+
+    md = []
+    md.append("# P vs NP Proof Attempts Status Report")
+    md.append("")
+    md.append(f"*Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*")
+    md.append("")
+    md.append("Reference: [Woeginger's P vs NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm)")
+    md.append("")
+
+    # Summary table
+    md.append("## Summary")
+    md.append("")
+    md.append("| Metric | Count | Percentage |")
+    md.append("|--------|-------|------------|")
+    md.append(f"| Total attempts on Woeginger's list | {total} | 100% |")
+    md.append(f"| Mapped to repository folders | {mapped} | {mapped*100//total}% |")
+    md.append(f"| With existing folders | {with_folders} | {with_folders*100//total}% |")
+    md.append(f"| With README.md | {with_readme} | {with_readme*100//total}% |")
+    md.append(f"| With original paper | {with_paper} | {with_paper*100//total}% |")
+    md.append(f"| With Lean formalization | {with_lean} | {with_lean*100//total}% |")
+    md.append(f"| With Coq formalization | {with_coq} | {with_coq*100//total}% |")
+    md.append(f"| With Isabelle formalization | {with_isabelle} | {with_isabelle*100//total}% |")
+    md.append(f"| With formal refutation | {with_refutation} | {with_refutation*100//total}% |")
+    md.append(f"| **Average completeness score** | **{avg_score:.1f}%** | - |")
+    md.append("")
+
+    # Full comparison table
+    md.append("## All Attempts Comparison")
+    md.append("")
+    md.append("| # | Status | Score | Author | Year | Claim | Folder | README | Paper | Lean | Coq | Isabelle | Refutation |")
+    md.append("|---|--------|-------|--------|------|-------|--------|--------|-------|------|-----|----------|------------|")
+
+    for r in results:
+        check = "x"
+        cross = " "
+        has_refutation = r.lean_has_refutation or r.coq_has_refutation or r.isabelle_has_refutation
+        folder_link = f"[{r.folder_name[:20]}...](proofs/attempts/{r.folder_name})" if r.folder_name and len(r.folder_name) > 23 else (f"[{r.folder_name}](proofs/attempts/{r.folder_name})" if r.folder_name else "-")
+
+        md.append(f"| {r.number} | {r.status_emoji} | {r.completeness_score}% | {r.author[:25]}{'...' if len(r.author) > 25 else ''} | {r.year} | {r.claim} | {folder_link} | {check if r.has_readme else cross} | {check if r.has_paper else cross} | {check if r.has_lean else cross} | {check if r.has_coq else cross} | {check if r.has_isabelle else cross} | {check if has_refutation else cross} |")
+
+    md.append("")
+
+    # Missing attempts section
+    missing_attempts = [r for r in results if r.folder_name is None]
+    if missing_attempts:
+        md.append("## Missing Attempts (Not Yet Mapped)")
+        md.append("")
+        md.append("These attempts from Woeginger's list do not have corresponding folders in the repository:")
+        md.append("")
+        md.append("| # | Author | Year | Claim | Action Needed |")
+        md.append("|---|--------|------|-------|---------------|")
+        for r in missing_attempts:
+            md.append(f"| {r.number} | {r.author} | {r.year} | {r.claim} | Create folder and formalization |")
+        md.append("")
+        md.append(f"**Total missing: {len(missing_attempts)}**")
+        md.append("")
+
+    # Incomplete attempts section
+    incomplete = [r for r in results if r.has_folder and r.completeness_score < 90]
+    if incomplete:
+        md.append("## Incomplete Attempts (Need More Work)")
+        md.append("")
+        md.append("| # | Status | Score | Author | Year | Missing Components |")
+        md.append("|---|--------|-------|--------|------|-------------------|")
+
+        for r in sorted(incomplete, key=lambda x: x.completeness_score):
+            missing = []
+            if not r.readme_has_detailed_description:
+                missing.append("detailed description")
+            if not r.readme_has_error_explanation:
+                missing.append("error explanation")
+            if not r.has_paper:
+                missing.append("paper")
+            if not r.has_lean:
+                missing.append("Lean")
+            if not r.has_coq:
+                missing.append("Coq")
+            if not r.has_isabelle:
+                missing.append("Isabelle")
+            if not (r.lean_has_refutation or r.coq_has_refutation or r.isabelle_has_refutation):
+                missing.append("formal refutation")
+
+            md.append(f"| {r.number} | {r.status_emoji} | {r.completeness_score}% | {r.author[:25]} | {r.year} | {', '.join(missing)} |")
+
+        md.append("")
+
+    # Structure consistency check
+    structure_issues = check_folder_structure_consistency(repo_root, results)
+    if structure_issues:
+        md.append("## Folder Structure Issues")
+        md.append("")
+        md.append("The following attempts have inconsistent folder structures:")
+        md.append("")
+        md.append("| # | Author | Folder | Issues |")
+        md.append("|---|--------|--------|--------|")
+        for issue in structure_issues:
+            md.append(f"| {issue['number']} | {issue['author'][:20]} | {issue['folder'][:30]} | {', '.join(issue['issues'])} |")
+        md.append("")
+
+    # Unmapped folders
+    if unmapped:
+        md.append("## Unmapped Folders")
+        md.append("")
+        md.append("These folders exist in the repository but are not in Woeginger's list:")
+        md.append("")
+        for folder in unmapped:
+            md.append(f"- `{folder}`")
+        md.append("")
+
+    # Legend
+    md.append("## Legend")
+    md.append("")
+    md.append("| Symbol | Meaning |")
+    md.append("|--------|---------|")
+    md.append("| x | Present |")
+    md.append("| (blank) | Missing |")
+    md.append("")
+    md.append("### Status Icons")
+    md.append("")
+    md.append("| Icon | Meaning | Score Range |")
+    md.append("|------|---------|-------------|")
+    md.append("| :white_check_mark: | Complete | 90-100% |")
+    md.append("| :yellow_circle: | Nearly complete | 70-89% |")
+    md.append("| :orange_circle: | In progress | 50-69% |")
+    md.append("| :red_circle: | Started | 1-49% |")
+    md.append("| :white_large_square: | Not started | 0% |")
+    md.append("")
+
+    # Requirements reference
+    md.append("## Requirements per Formalization")
+    md.append("")
+    md.append("Each attempt should have:")
+    md.append("")
+    md.append("1. **README.md** - Detailed description of how the attempt was structured, core idea, intended solution, and error explanations")
+    md.append("2. **paper/** folder - Original papers (or documentation in README.md)")
+    md.append("3. **lean/** folder - Lean formalization with full proof draft and error comments")
+    md.append("4. **coq/** folder - Coq formalization with full proof draft and error comments")
+    md.append("5. **isabelle/** folder - Isabelle formalization with full proof draft and error comments")
+    md.append("6. **Formal refutation** - Formal proof of the refutation in at least one proof assistant")
+    md.append("")
+
+    return "\n".join(md)
+
+
+def create_github_issue(title: str, body: str, labels: list[str] = None) -> bool:
+    """Create a GitHub issue using gh CLI."""
+    cmd = ["gh", "issue", "create", "--title", title, "--body", body]
+    if labels:
+        for label in labels:
+            cmd.extend(["--label", label])
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        if result.returncode == 0:
+            print(f"  Created: {result.stdout.strip()}")
+            return True
+        else:
+            print(f"  Failed: {result.stderr.strip()}")
+            return False
+    except subprocess.TimeoutExpired:
+        print("  Timeout creating issue")
+        return False
+    except Exception as e:
+        print(f"  Error: {e}")
+        return False
+
+
+def create_issues_for_missing(results: list, dry_run: bool = False) -> tuple[int, int]:
+    """Create GitHub issues for missing and incomplete attempts."""
+    created = 0
+    failed = 0
+
+    # Issues for missing attempts (not mapped)
+    missing_attempts = [r for r in results if r.folder_name is None]
+    print(f"\nCreating issues for {len(missing_attempts)} missing attempts...")
+
+    for r in missing_attempts:
+        title = f"Add formalization for attempt #{r.number}: {r.author} ({r.year}) - {r.claim}"
+        body = f"""## Missing Attempt Formalization
+
+This attempt from [Woeginger's P vs NP list](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm) needs to be formalized.
+
+### Attempt Details
+- **Number**: #{r.number}
+- **Author**: {r.author}
+- **Year**: {r.year}
+- **Claim**: {r.claim}
+
+### Required Work
+
+1. Create folder `proofs/attempts/[author-name]-{r.year.split('-')[0]}-{'peqnp' if r.claim == 'P=NP' else 'pneqnp'}/`
+2. Add `README.md` with:
+   - Description of the attempt's core idea
+   - How it intended to solve P vs NP
+   - Detailed error explanation
+3. Add `paper/` folder with original paper (if available)
+4. Add Lean formalization in `lean/` folder
+5. Add Coq formalization in `coq/` folder
+6. Add Isabelle formalization in `isabelle/` folder
+7. Include formal refutation proof
+
+### Reference
+- Woeginger's list entry #{r.number}
+- Related to issue #44
+"""
+        print(f"  #{r.number}: {r.author} ({r.year})")
+        if not dry_run:
+            if create_github_issue(title, body, ["attempt-formalization"]):
+                created += 1
+            else:
+                failed += 1
+        else:
+            print(f"    [DRY RUN] Would create issue: {title}")
+            created += 1
+
+    # Issues for incomplete attempts
+    incomplete = [r for r in results if r.has_folder and r.completeness_score < 90]
+    print(f"\nCreating issues for {len(incomplete)} incomplete attempts...")
+
+    for r in incomplete:
+        missing = []
+        if not r.readme_has_detailed_description:
+            missing.append("detailed description in README")
+        if not r.readme_has_error_explanation:
+            missing.append("error explanation in README")
+        if not r.has_paper:
+            missing.append("paper/ folder")
+        if not r.has_lean:
+            missing.append("Lean formalization")
+        if not r.has_coq:
+            missing.append("Coq formalization")
+        if not r.has_isabelle:
+            missing.append("Isabelle formalization")
+        if not (r.lean_has_refutation or r.coq_has_refutation or r.isabelle_has_refutation):
+            missing.append("formal refutation proof")
+
+        title = f"Complete formalization for attempt #{r.number}: {r.author} ({r.year}) - Score: {r.completeness_score}%"
+        body = f"""## Incomplete Attempt Formalization
+
+This attempt needs additional work to be complete.
+
+### Attempt Details
+- **Number**: #{r.number}
+- **Author**: {r.author}
+- **Year**: {r.year}
+- **Claim**: {r.claim}
+- **Current Score**: {r.completeness_score}%
+- **Folder**: `proofs/attempts/{r.folder_name}/`
+
+### Missing Components
+
+{chr(10).join(f'- [ ] {m}' for m in missing)}
+
+### Current Status
+- README.md: {'Present' if r.has_readme else 'Missing'}
+- Paper: {'Present' if r.has_paper else 'Missing'}
+- Lean: {'Present' if r.has_lean else 'Missing'}
+- Coq: {'Present' if r.has_coq else 'Missing'}
+- Isabelle: {'Present' if r.has_isabelle else 'Missing'}
+- Refutation: {'Present' if (r.lean_has_refutation or r.coq_has_refutation or r.isabelle_has_refutation) else 'Missing'}
+
+### Reference
+- Related to issue #44
+"""
+        print(f"  #{r.number}: {r.author} - {r.completeness_score}% complete")
+        if not dry_run:
+            if create_github_issue(title, body, ["attempt-formalization"]):
+                created += 1
+            else:
+                failed += 1
+        else:
+            print(f"    [DRY RUN] Would create issue: {title}")
+            created += 1
+
+    return created, failed
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Check P vs NP proof attempts against Woeginger's list"
@@ -354,6 +682,11 @@ def main():
     parser.add_argument('--verbose', '-v', action='store_true', help='Show detailed output')
     parser.add_argument('--missing-only', action='store_true', help='Show only missing attempts')
     parser.add_argument('--incomplete-only', action='store_true', help='Show only incomplete attempts')
+    parser.add_argument('--markdown', '-m', action='store_true', help='Generate markdown report')
+    parser.add_argument('--markdown-file', type=str, default='ATTEMPTS_STATUS.md', help='Output file for markdown report (default: ATTEMPTS_STATUS.md)')
+    parser.add_argument('--create-issues', action='store_true', help='Create GitHub issues for missing/incomplete attempts')
+    parser.add_argument('--dry-run', action='store_true', help='Show what issues would be created without creating them')
+    parser.add_argument('--check-structure', action='store_true', help='Check folder structure consistency')
     args = parser.parse_args()
 
     repo_root = find_repository_root()
@@ -365,6 +698,38 @@ def main():
 
     # Find unmapped folders
     unmapped = find_unmapped_folders(repo_root)
+
+    # Handle create-issues mode
+    if args.create_issues or args.dry_run:
+        created, failed = create_issues_for_missing(results, dry_run=args.dry_run)
+        print(f"\nSummary: {created} issues {'would be ' if args.dry_run else ''}created, {failed} failed")
+        return
+
+    # Handle markdown mode
+    if args.markdown:
+        md_content = generate_markdown_report(results, unmapped, repo_root)
+        output_path = repo_root / args.markdown_file
+        output_path.write_text(md_content, encoding='utf-8')
+        print(f"Markdown report generated: {output_path}")
+        return
+
+    # Handle structure check mode
+    if args.check_structure:
+        issues = check_folder_structure_consistency(repo_root, results)
+        if issues:
+            print("Folder Structure Issues Found:")
+            print("-" * 60)
+            for issue in issues:
+                print(f"\n#{issue['number']}: {issue['author']} ({issue['year']})")
+                print(f"  Folder: {issue['folder']}")
+                print(f"  Score: {issue['completeness_score']}%")
+                print(f"  Issues:")
+                for i in issue['issues']:
+                    print(f"    - {i}")
+            print(f"\nTotal: {len(issues)} folders with structure issues")
+        else:
+            print("All folders have consistent structure!")
+        return
 
     if args.json:
         output = {

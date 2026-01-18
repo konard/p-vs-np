@@ -41,6 +41,21 @@ python3 scripts/check_attempts.py --missing-only
 
 # Show only incomplete attempts
 python3 scripts/check_attempts.py --incomplete-only
+
+# Generate markdown report (writes to ATTEMPTS_STATUS.md)
+python3 scripts/check_attempts.py --markdown
+
+# Generate markdown to custom file
+python3 scripts/check_attempts.py --markdown --markdown-file my_report.md
+
+# Check folder structure consistency
+python3 scripts/check_attempts.py --check-structure
+
+# Create GitHub issues for missing and incomplete attempts (dry run)
+python3 scripts/check_attempts.py --dry-run
+
+# Create GitHub issues for missing and incomplete attempts
+python3 scripts/check_attempts.py --create-issues
 ```
 
 ### Output
@@ -51,6 +66,8 @@ The script produces:
 - **Missing Attempts** - Attempts from Woeginger's list not yet mapped to the repository
 - **Incomplete Attempts** - Mapped attempts that need additional work
 - **Unmapped Folders** - Repository folders not matching any attempt in Woeginger's list
+- **Markdown Report** - A comprehensive markdown document with comparison tables (when using `--markdown`)
+- **GitHub Issues** - Automatically created issues for tracking missing/incomplete work (when using `--create-issues`)
 
 ### Completeness Score
 
