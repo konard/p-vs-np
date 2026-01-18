@@ -1,0 +1,4 @@
+session "PengCui2014" = HOL +
+  options [timeout = 1800, quick_and_dirty]
+  theories
+    PengCui2014
