@@ -70,10 +70,10 @@ def InEquivalentP (L : PairLanguage) : Prop :=
     while languages in ∼P are predicates on pairs of instances.
     These are fundamentally different types! -/
 theorem type_mismatch :
-    ∀ (_ : Language) (_ : PairLanguage),
+    ∀ (_L_P : Language) (_L_sim : PairLanguage),
     -- We cannot directly compare these types
     True := by
-  intro _ _
+  intro _L_P _L_sim
   -- The types Language and PairLanguage are different.
   -- We cannot say L_P = L_sim or even compare them directly.
   trivial
@@ -83,10 +83,10 @@ theorem type_mismatch :
 /-- For any language L in P, we can construct a "verifier" that ignores
     the certificate and just decides membership. -/
 theorem P_verifier_ignores_certificate :
-    ∀ (_ : Language) (d : Instance → Bool),
-    (∀ x, _ x ↔ d x = true) →
+    ∀ (L : Language) (d : Instance → Bool),
+    (∀ x, L x ↔ d x = true) →
     ∃ (verify : Verifier), ∀ x c, verify x c = d x := by
-  intro _ d _
+  intro _L d _hL
   exact ⟨fun x _ => d x, fun _ _ => rfl⟩
 
 /-- This means the "shared certificate" condition in ∼P is meaningless
