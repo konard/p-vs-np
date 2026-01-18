@@ -46,21 +46,21 @@ jobs:
       if: steps.check-rocq.outputs.has_files == 'true'
       uses: coq-community/docker-coq-action@v1
       with:
-        coq_version: '8.20'
+        custom_image: 'rocq/rocq-prover:9.0'
         custom_script: |
           startGroup "Rocq version"
-            coqc --version
+            rocq --version || coqc --version
           endGroup
           startGroup "Verify Rocq files"
             if [ -f "_CoqProject" ]; then
               echo "Building Rocq project with _CoqProject..."
-              coq_makefile -f _CoqProject -o Makefile.coq
+              rocq_makefile -f _CoqProject -o Makefile.coq 2>/dev/null || coq_makefile -f _CoqProject -o Makefile.coq
               make -f Makefile.coq
             else
               echo "Verifying Rocq files..."
               find . -name "*.v" -type f | while read -r file; do
                 echo "Checking: $file"
-                coqc "$file" && echo "✓ $file verified successfully" || exit 1
+                (rocqc "$file" 2>/dev/null || coqc "$file") && echo "✓ $file verified successfully" || exit 1
               done
             fi
             echo "✓ All Rocq files verified successfully!"

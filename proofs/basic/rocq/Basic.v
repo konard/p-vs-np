@@ -6,8 +6,8 @@
   future P vs NP related proofs.
 *)
 
-Require Import Rocq.Arith.Arith.
-Require Import Rocq.Lists.List.
+From Stdlib Require Import Arith.
+From Stdlib Require Import List.
 Import ListNotations.
 
 (** * Basic Logical Proofs *)

@@ -11,11 +11,11 @@
   3. Tests to verify the logical consistency of the formalization
 *)
 
-Require Import Rocq.Arith.Arith.
-Require Import Rocq.Lists.List.
-Require Import Rocq.Strings.String.
-Require Import Rocq.Logic.Classical_Prop.
-Require Import Lia.
+From Stdlib Require Import Arith.
+From Stdlib Require Import List.
+From Stdlib Require Import String.
+From Stdlib Require Import Classical_Prop.
+From Stdlib Require Import Lia.
 Import ListNotations.
 Open Scope string_scope.
 

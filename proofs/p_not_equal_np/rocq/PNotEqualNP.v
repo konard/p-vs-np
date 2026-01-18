@@ -6,10 +6,10 @@
   and criteria that any proof of P ≠ NP must satisfy.
 *)
 
-Require Import Rocq.Strings.String.
-Require Import Rocq.Init.Nat.
-Require Import Rocq.Sets.Ensembles.
-Require Import Rocq.Logic.Classical_Prop.
+From Stdlib Require Import String.
+From Stdlib Require Import PeanoNat.
+From Stdlib Require Import Ensembles.
+From Stdlib Require Import Classical_Prop.
 
 (** * Basic Complexity Theory Definitions *)
 

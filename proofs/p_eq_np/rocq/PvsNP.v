@@ -5,9 +5,9 @@
   including definitions of complexity classes and basic verification tests.
 *)
 
-Require Import Rocq.Arith.Arith.
-Require Import Rocq.Lists.List.
-Require Import Rocq.Logic.FunctionalExtensionality.
+From Stdlib Require Import Arith.
+From Stdlib Require Import List.
+From Stdlib Require Import FunctionalExtensionality.
 Import ListNotations.
 
 (** * 1. Basic Definitions *)

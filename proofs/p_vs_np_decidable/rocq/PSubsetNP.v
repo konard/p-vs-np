@@ -8,8 +8,8 @@
   This is a fundamental result in computational complexity theory.
 *)
 
-Require Import Rocq.Arith.Arith.
-Require Import Rocq.Strings.String.
+From Stdlib Require Import Arith.
+From Stdlib Require Import String.
 Open Scope string_scope.
 
 (** * 1. Basic Definitions *)

@@ -1,5 +1,7 @@
 # Solution Strategies for Formal Test of P = NP
 
+**Language:** [English](SOLUTION_STRATEGIES.md) | [Русский (Russian)](SOLUTION_STRATEGIES.ru.md)
+
 **Navigation:** [↑ Back to Repository Root](README.md) | [Problem Description](P_VS_NP_TASK_DESCRIPTION.md) | [Tools & Methodologies](TOOLS_AND_METHODOLOGIES.md) | [Solution Plan](DETAILED_SOLUTION_PLAN.md) | [Formal Proofs](README.md#-formal-verification)
 
 ---
