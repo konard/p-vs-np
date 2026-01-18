@@ -232,12 +232,12 @@ Record Model : Type := {
 Record ValidIndependenceProof (stmt : Prop) : Type := {
   (* Model where stmt is true *)
   model_true : Model;
-  model_true_satisfies_ZFC : (satisfies model_true) ZFC_axioms;
+  model_true_satisfies_ZFC : (satisfies model_true) standard_ZFC;
   model_true_satisfies_stmt : True;  (* stmt holds in model_true *)
 
   (* Model where stmt is false *)
   model_false : Model;
-  model_false_satisfies_ZFC : (satisfies model_false) ZFC_axioms;
+  model_false_satisfies_ZFC : (satisfies model_false) standard_ZFC;
   model_false_refutes_stmt : True  (* ~stmt holds in model_false *)
 }.
 
