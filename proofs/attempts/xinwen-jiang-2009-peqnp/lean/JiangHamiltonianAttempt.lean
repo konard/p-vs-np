@@ -322,8 +322,8 @@ by
 
 -- This file compiles successfully
 -- It demonstrates that Jiang's argument has multiple unproven critical claims
-#print "✓ Jiang Hamiltonian Circuit attempt formalization compiled"
-#print "✓ Errors identified: vague definitions, possible misclassification, no rigorous proof"
-#print "✓ Experimental validation is not a substitute for mathematical proof"
+-- ✓ Jiang Hamiltonian Circuit attempt formalization compiled
+-- ✓ Errors identified: vague definitions, possible misclassification, no rigorous proof
+-- ✓ Experimental validation is not a substitute for mathematical proof
 
 end JiangHamiltonianAttempt
