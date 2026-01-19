@@ -79,14 +79,8 @@ def isSatisfiable (f : ThreeSATFormula) : Prop :=
 
 /-! ## Polynomial Time Computation -/
 
-/-- A function is computable in polynomial time -/
-structure PolynomialTime (α β : Type) where
-  /-- The algorithm -/
-  algorithm : α → β
-  /-- Polynomial bound on running time -/
-  poly : Nat → Nat
-  /-- The algorithm runs in time bounded by poly(input_size) -/
-  time_bound : ∀ x, True  -- Simplified: actual time complexity analysis
+/-- A predicate stating a function is computable in polynomial time -/
+axiom polynomial_time {α β : Type} : (α → β) → Prop
 
 /-! ## Han Xiao Wen's Claims -/
 
@@ -131,8 +125,8 @@ structure ClaimedThreeSATSolver where
 -/
 theorem deterministic_and_nondeterministic_contradiction :
   ∀ (isDet isNondet : Prop),
-  (isDet → ∀ config, ∃! next, True) →  -- Deterministic: unique next step
-  (isNondet → ∀ config, ∃ nexts : List Config, nexts.length > 1) →  -- Nondet: multiple paths
+  (isDet → ∀ (config : Type), ∃ (next : Type), True) →  -- Deterministic: unique next step
+  (isNondet → ∀ (config : Type), ∃ (nexts : List Type), nexts.length > 1) →  -- Nondet: multiple paths
   ¬(isDet ∧ isNondet) := by
   intros isDet isNondet hDet hNondet
   intro ⟨hIsD, hIsN⟩
@@ -186,7 +180,7 @@ structure ValidPEqualsNPProof where
   correctness : ∀ f, algorithm f = true ↔ isSatisfiable f
 
   /-- Polynomial time: algorithm runs in polynomial time -/
-  polyTimeProof : PolynomialTime ThreeSATFormula Bool
+  polyTimeProof : polynomial_time algorithm
 
   /-- Verification: either implementation or formal proof -/
   verification : Prop
@@ -226,7 +220,7 @@ structure OracleTuringMachine where
 -/
 theorem oracle_simulation_requires_polynomial_time :
   (∃ otm : OracleTuringMachine, True) →  -- Oracle machines exist (trivially)
-  (∃ polySimulation : PolynomialTime ThreeSATFormula Bool, True) →  -- Poly-time simulation
+  (∃ (solver : ThreeSATFormula → Bool), polynomial_time solver) →  -- Poly-time simulation
   ∃ proof : ValidPEqualsNPProof, True := by  -- This would prove P=NP
   sorry
 
@@ -235,8 +229,8 @@ theorem oracle_simulation_requires_polynomial_time :
 -/
 theorem han_never_proves_polynomial_simulation :
   ∀ kra : KnowledgeRecognitionAlgorithm,
-  ¬∃ polyProof : PolynomialTime ThreeSATFormula Bool,
-    True := by  -- No such proof exists in the papers
+  ¬∃ (solver : ThreeSATFormula → Bool), polynomial_time solver := by
+  -- No such proof exists in the papers
   sorry
 
 /-! ## Summary of Errors -/
