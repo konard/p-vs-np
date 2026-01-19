@@ -212,9 +212,8 @@ axiom refutation_counter_example :
 theorem aslam_counting_is_false :
   ¬(∀ g : BipartiteGraph, aslamCountingFunction g = countPerfectMatchings g) := by
   intro h_claim
-  obtain ⟨ce, h_diff⟩ := refutation_counter_example
-  have := h_claim ce.graph
-  exact h_diff this
+  obtain ⟨ce, _⟩ := refutation_counter_example
+  exact ce.algorithmFails (h_claim ce.graph)
 
 /-- Corollary: Aslam's representation claim is also false -/
 theorem aslam_representation_is_false :
@@ -236,7 +235,7 @@ axiom complete_bipartite_matching_count :
 /-- Exponential information cannot be compressed polynomially in general -/
 theorem no_polynomial_compression_of_factorial :
   ¬∃ (compress : Nat → List Nat),
-    (∀ n : Nat, compress n |>.length ≤ n ^ 45) ∧
+    (∀ n : Nat, (compress n).length ≤ n ^ 45) ∧
     (∀ n : Nat, ∃ (decompress : List Nat → Nat),
       decompress (compress n) = factorial n) := by
   sorry  -- Information-theoretic argument
@@ -266,17 +265,18 @@ theorem single_counter_example_refutes :
 theorem polynomial_compression_suspect :
   (∀ n : Nat, (aslamAlgorithm { leftNodes := n, rightNodes := n,
                                  hasEdge := fun _ _ => true,
-                                 leftValid := by intros; simp,
-                                 rightValid := by intros; simp }).elements.length ≤ n ^ 45) ∧
+                                 leftValid := by intros; trivial,
+                                 rightValid := by intros; trivial }).elements.length ≤ n ^ 45) ∧
   (∃ n : Nat, countPerfectMatchings { leftNodes := n, rightNodes := n,
                                        hasEdge := fun _ _ => true,
-                                       leftValid := by intros; simp,
-                                       rightValid := by intros; simp } = factorial n) := by
+                                       leftValid := by intros; trivial,
+                                       rightValid := by intros; trivial } = factorial n) := by
   constructor
   · intro n
     exact (aslamAlgorithm _).isPolynomialSize
   · obtain ⟨n, g, _, _, _, h_count⟩ := complete_bipartite_matching_count 10
     exists 10
+    exact h_count
 
 /- ## 9. Summary -/
 
