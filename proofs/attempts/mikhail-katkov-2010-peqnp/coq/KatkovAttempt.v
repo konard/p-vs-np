@@ -92,15 +92,15 @@ Definition is_global_minimizer (n : nat) (alpha : R) (Q : Matrix n) (x : nat -> 
 (* ===== Sum-of-Squares (SOS) Framework ===== *)
 
 (* A polynomial is a sum of squares *)
-Parameter is_sum_of_squares : forall n, ((nat -> R) -> R) -> Prop.
+Parameter is_sum_of_squares : forall (n_dim : nat), ((nat -> R) -> R) -> Prop.
 
 (* SOS lower bound (f^sos) computed via SDP in polynomial time *)
-Parameter sos_lower_bound : forall n, R -> Matrix n -> R.
+Parameter sos_lower_bound : forall (n_dim : nat), R -> Matrix n_dim -> R.
 
 (* Lemma 3.3 (Katkov): For SOS polynomials, f^sos = f* *)
-Axiom katkov_lemma_3_3 : forall n alpha Q bqp,
-  is_sum_of_squares n (katkov_relaxation n alpha Q) ->
-  sos_lower_bound n alpha Q = relaxation_minimum n alpha bqp.
+Axiom katkov_lemma_3_3 : forall (n_dim : nat) (alpha : R) (Q : Matrix n_dim) (bqp : BQP n_dim),
+  is_sum_of_squares n_dim (katkov_relaxation n_dim alpha Q) ->
+  sos_lower_bound n_dim alpha Q = relaxation_minimum n_dim alpha bqp.
 
 (* SDP can be solved in polynomial time (known result from [Par03]) *)
 Axiom sdp_polynomial_time : forall n, True.  (* Placeholder *)
