@@ -103,7 +103,7 @@ Axiom katkov_lemma_3_3 : forall (n_dim : nat) (alpha : R) (Q : Matrix n_dim) (bq
   sos_lower_bound n_dim alpha Q = relaxation_minimum n_dim alpha bqp.
 
 (* SDP can be solved in polynomial time (known result from [Par03]) *)
-Axiom sdp_polynomial_time : forall n, True.  (* Placeholder *)
+Axiom sdp_polynomial_time : forall (n_dim : nat), True.  (* Placeholder *)
 
 (* ===== Katkov's Key Claims ===== *)
 
