@@ -14,12 +14,11 @@ proofs/attempts/<author-year-claim>/
 ├── README.md           # Description of the attempt and identified errors
 ├── lean/
 │   └── YourTheory.lean
-├── rocq/
-│   └── YourTheory.v
-└── isabelle/
-    ├── ROOT            # REQUIRED: Session configuration
-    └── YourTheory.thy
+└── rocq/
+    └── YourTheory.v
 ```
+
+> **Note:** Isabelle/HOL support has been sunset. Existing Isabelle proofs are archived in [`./archive/isabelle/`](archive/isabelle/) for reference. New formalizations should use Lean or Rocq.
 
 ### Lean 4 Guidelines
 
@@ -37,31 +36,6 @@ Simply add your `.lean` file in the appropriate directory and it will be automat
 - Do not use `#print "string"` - this is not valid Lean 4 syntax
 - Avoid reserved keywords as field names (e.g., `from`, `to`)
 
-### Isabelle Guidelines
-
-**No central ROOT file!** Each theory directory must have its own ROOT file.
-
-Create a ROOT file in your `isabelle/` directory:
-```
-session "YourSessionName" = HOL +
-  options [timeout = 300, quick_and_dirty]
-  theories
-    YourTheory
-```
-
-**If your theory requires additional libraries**, update the parent session:
-- `HOL-Library` for `FSet`, `Multiset`, `FuncSet`, etc.
-- `HOL-Analysis` for `Analysis`, `Probability`, etc.
-- `HOL-Combinatorics` for combinatorics libraries
-
-Example:
-```
-session "YourSessionName" = "HOL-Library" +
-  options [timeout = 300, quick_and_dirty]
-  theories
-    YourTheory
-```
-
 ### Rocq Guidelines
 
 Add your `.v` file to the appropriate directory. Update the local `_CoqProject` file if one exists.
@@ -69,7 +43,7 @@ Add your `.v` file to the appropriate directory. Update the local `_CoqProject` 
 ### Code Quality
 
 **For formalizations demonstrating failed proof attempts:**
-- Using `sorry` (Lean), `Admitted` (Rocq), or `oops` (Isabelle) is acceptable to mark where proofs cannot be completed
+- Using `sorry` (Lean) or `Admitted` (Rocq) is acceptable to mark where proofs cannot be completed
 - Add clear comments explaining why the proof fails at that point
 - The goal is to demonstrate the error in the original proof attempt, not to complete an impossible proof
 
@@ -77,7 +51,6 @@ Add your `.v` file to the appropriate directory. Update the local `_CoqProject` 
 
 All proof files are verified by GitHub Actions:
 - Lean: `lake build`
-- Isabelle: `isabelle build -D .` (auto-discovers all ROOT files)
 - Rocq: Standard rocq compile compilation
 
 Ensure your code compiles locally before submitting.
@@ -88,7 +61,7 @@ Use clear, descriptive commit messages:
 ```
 feat: Add [Author] [Year] P=[NP/P≠NP] formalization
 
-- Add formalization in [Lean/Rocq/Isabelle]
+- Add formalization in [Lean/Rocq]
 - Identify error: [brief description of the error]
 - Document the gap in the proof
 ```
