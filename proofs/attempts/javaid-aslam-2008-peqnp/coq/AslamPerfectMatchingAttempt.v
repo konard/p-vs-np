@@ -268,7 +268,7 @@ Axiom complete_bipartite_matching_count :
 (* Exponential information cannot be compressed polynomially in general *)
 Theorem no_polynomial_compression_of_factorial :
   ~ exists (compress : nat -> list nat),
-    (forall n : nat, length (compress n) <= n ^ 45) /\
+    (forall n : nat, List.length (compress n) <= n ^ 45) /\
     (forall n : nat, exists (decompress : list nat -> nat),
       decompress (compress n) = fact n).
 Proof.
