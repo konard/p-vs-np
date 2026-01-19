@@ -26,6 +26,13 @@ Import ListNotations.
 
 Module AslamPerfectMatchingAttempt.
 
+(* Factorial function *)
+Fixpoint fact (n : nat) : nat :=
+  match n with
+  | 0 => 1
+  | S n' => n * fact n'
+  end.
+
 (* ## 1. Basic Complexity Definitions *)
 
 Definition Language := String.string -> bool.
