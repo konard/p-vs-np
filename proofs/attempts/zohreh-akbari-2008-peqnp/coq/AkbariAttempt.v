@@ -201,8 +201,7 @@ Record HiddenExponentialAlgorithm : Type := {
   hea_actualComplexity : TimeComplexity;
   hea_looksPolynomial : isPolynomial hea_apparentComplexity;
   hea_actuallyExponential : isExponential hea_actualComplexity;
-  hea_hidden : forall G k, hea_actualComplexity (numVertices G) >=
-                           hea_apparentComplexity (numVertices G)
+  hea_hidden : forall n : nat, hea_actualComplexity n >= hea_apparentComplexity n
 }.
 
 (** Hidden exponential complexity doesn't prove P = NP *)
