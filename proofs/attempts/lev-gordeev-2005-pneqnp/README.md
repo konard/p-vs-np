@@ -6,12 +6,12 @@
 
 ## Metadata
 
-- **Attempt ID**: 21 (from Woeginger's list)
+- **Attempt ID**: 24 (from Woeginger's list)
 - **Author**: Lev Gordeev
 - **Year**: Summer 2005
 - **Claim**: P ≠ NP
 - **Status**: Incomplete/Flawed
-- **Source**: [Woeginger's P vs NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm), Entry #21
+- **Source**: [Woeginger's P vs NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm), Entry #24
 
 ## Overview
 
@@ -142,7 +142,7 @@ This formalization demonstrates:
 ## References
 
 ### Primary Sources
-- **Woeginger, G.** (continuously updated). "The P versus NP page." Entry #21.
+- **Woeginger, G.** (continuously updated). "The P versus NP page." Entry #24.
   - URL: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
 
 - **Gordeev, L.** (2020). "On P Versus NP." arXiv:2005.00809
