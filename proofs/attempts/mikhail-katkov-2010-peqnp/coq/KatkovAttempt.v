@@ -116,14 +116,14 @@ Axiom sdp_polynomial_time : forall (n_dim : nat), True.  (* Placeholder *)
    needs it to hold for GLOBAL minima. The proof doesn't establish this.
 *)
 
-Axiom katkov_theorem_4_2_as_stated : forall n Q,
+Axiom katkov_theorem_4_2_as_stated : forall (n_dim : nat) (Q : Matrix n_dim),
   exists alpha_star : R,
     (alpha_star > 0)%R /\
-    forall alpha, (0 <= alpha)%R -> (alpha < alpha_star)%R ->
+    forall alpha : R, (0 <= alpha)%R -> (alpha < alpha_star)%R ->
     forall x_0 x_alpha : nat -> R,
-      is_global_minimizer n 0%R Q x_0 ->
-      is_global_minimizer n alpha Q x_alpha ->
-      forall i, i < n ->
+      is_global_minimizer n_dim 0%R Q x_0 ->
+      is_global_minimizer n_dim alpha Q x_alpha ->
+      forall i : nat, i < n_dim ->
         ((x_alpha i > 0)%R <-> (x_0 i > 0)%R) /\
         ((x_alpha i < 0)%R <-> (x_0 i < 0)%R).
 
@@ -135,11 +135,11 @@ Axiom katkov_theorem_4_2_as_stated : forall n Q,
    Max-Cuts lead to multiple global minima.
 *)
 
-Axiom katkov_uniqueness_claim : forall n alpha Q,
+Axiom katkov_uniqueness_claim : forall (n_dim : nat) (alpha : R) (Q : Matrix n_dim),
   exists alpha_star : R,
     (alpha_star > 0)%R /\
-    forall alpha, (0 <= alpha)%R -> (alpha < alpha_star)%R ->
-    exists! x : nat -> R, is_global_minimizer n alpha Q x.
+    forall alpha_val : R, (0 <= alpha_val)%R -> (alpha_val < alpha_star)%R ->
+    exists! x : nat -> R, is_global_minimizer n_dim alpha_val Q x.
 
 (* ===== The Critical Errors ===== *)
 
@@ -232,10 +232,10 @@ Admitted.
    but this is not rigorously proven.
 *)
 
-Parameter extract_solution_from_sdp : forall n, Matrix n -> option (nat -> R).
+Parameter extract_solution_from_sdp : forall (n_dim : nat), Matrix n_dim -> option (nat -> R).
 
-Axiom extraction_claim_unproven : forall n Q x,
-  extract_solution_from_sdp n Q = Some x ->
+Axiom extraction_claim_unproven : forall (n_dim : nat) (Q : Matrix n_dim) (x : nat -> R),
+  extract_solution_from_sdp n_dim Q = Some x ->
   (* The paper claims x solves the BQP, but doesn't prove it rigorously *)
   True.  (* Placeholder - actual claim would relate x to BQP solution *)
 
@@ -258,9 +258,9 @@ Definition withdrawal_statement : string :=
 
 (* If the claims were true, they would imply P=NP *)
 Theorem katkov_would_imply_P_eq_NP :
-  (forall n alpha Q,
-    katkov_theorem_4_2_as_stated /\
-    katkov_uniqueness_claim) ->
+  (forall (n_dim : nat) (alpha : R) (Q : Matrix n_dim),
+    katkov_theorem_4_2_as_stated n_dim Q /\
+    katkov_uniqueness_claim n_dim alpha Q) ->
   (* Then Max-Cut can be solved in polynomial time via SDP *)
   (* Since Max-Cut is NP-complete, this would imply P=NP *)
   True.  (* Placeholder for P=NP *)
@@ -280,15 +280,15 @@ Qed.
 (* But the proof has gaps, so P=NP is not established *)
 Theorem katkov_proof_incomplete :
   (* There exist counterexamples showing the claims fail *)
-  exists n Q,
+  exists (n_dim : nat) (Q : Matrix n_dim),
     (* Uniqueness fails *)
-    (~ (exists! x : nat -> R, is_global_minimizer n 0%R Q x)) \/
+    (~ (exists! x : nat -> R, is_global_minimizer n_dim 0%R Q x)) \/
     (* Or sign preservation fails *)
-    (exists alpha x0 xa i,
+    (exists (alpha : R) (x0 xa : nat -> R) (i : nat),
       (alpha > 0)%R /\
-      is_global_minimizer n 0%R Q x0 /\
-      is_global_minimizer n alpha Q xa /\
-      i < n /\
+      is_global_minimizer n_dim 0%R Q x0 /\
+      is_global_minimizer n_dim alpha Q xa /\
+      i < n_dim /\
       (((x0 i > 0)%R /\ (xa i < 0)%R) \/ ((x0 i < 0)%R /\ (xa i > 0)%R))).
 Proof.
   (* Multiple graphs have zero gap (multiple optimal cuts).
