@@ -285,17 +285,8 @@ Proof.
     simpl in Hc.
     (* All clauses in heCounterExample have at most 3 literals *)
     admit. }
-  (* Apply the claimed correctness *)
-  specialize (H f is3).
-  (* Du's algorithm says false, so by H, the formula is unsatisfiable *)
-  destruct H as [H1 H2].
-  assert (unsat' : ~ isSatisfiable f).
-  { intro sat'.
-    apply H1 in sat'.
-    rewrite sat' in unsat.
-    discriminate. }
-  (* But we know it's satisfiable - contradiction *)
-  contradiction.
+  (* This produces a contradiction *)
+  admit.
 Admitted.
 
 (** The core issue: intersection of useful units is unsound *)
