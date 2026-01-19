@@ -261,9 +261,7 @@ Record ValidCliqueProof : Type := {
   (* REQUIREMENT 1: Polynomial time bound *)
   vcp_isPoly : isPolynomial vcp_timeComplexity;
   (* REQUIREMENT 2: Correctness for ALL instances *)
-  vcp_correct : forall G k, vcp_algorithm G k = true <-> CliqueProblem G k;
-  (* REQUIREMENT 3: Actual runtime matches claimed bound *)
-  vcp_runtimeBound : forall G k, True  (* Simplified *)
+  vcp_correct : forall G k, vcp_algorithm G k = true <-> CliqueProblem G k
 }.
 
 (** A valid proof would indeed prove P = NP *)
