@@ -54,7 +54,7 @@ Since the original proof documents are inaccessible, this formalization provides
 
 ### What This Formalization Provides
 
-- **Coq Implementation** (`coq/Kupchik2004PNotEqualNP.v`): Basic placeholder structure
+- **Rocq Implementation** (`rocq/Kupchik2004PNotEqualNP.v`): Basic placeholder structure
 - **Lean Implementation** (`lean/Kupchik2004PNotEqualNP.lean`): Basic placeholder structure
 - **Isabelle Implementation** (`isabelle/Kupchik2004PNotEqualNP.thy`): Basic placeholder structure
 
@@ -107,7 +107,7 @@ This formalization framework is provided for research and educational purposes. 
 | Source Material | ❌ Inaccessible |
 | Proof Description | ⚠️ Unknown |
 | Error Identification | ⚠️ Unknown |
-| Coq Formalization | ⚠️ Placeholder only |
+| Rocq Formalization | ⚠️ Placeholder only |
 | Lean Formalization | ⚠️ Placeholder only |
 | Isabelle Formalization | ⚠️ Placeholder only |
 | Documentation | ✅ Complete (given constraints) |

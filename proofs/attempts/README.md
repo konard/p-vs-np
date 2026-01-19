@@ -26,7 +26,7 @@ Each attempt folder contains:
 ```
 attempt-folder/
 ├── README.md          # Description of the attempt and known errors
-├── coq/              # Coq formalization
+├── rocq/              # Rocq formalization
 │   └── *.v
 ├── lean/             # Lean 4 formalization
 │   └── *.lean

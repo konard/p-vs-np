@@ -150,7 +150,7 @@ This directory contains formalizations in three proof assistants that expose the
 
 ### Implementations
 
-1. **[Coq](coq/DaCostaDoriaAttempt.v)** - Coq formalization showing the gaps in the argument
+1. **[Rocq](rocq/DaCostaDoriaAttempt.v)** - Rocq formalization showing the gaps in the argument
 2. **[Lean 4](lean/DaCostaDoriaAttempt.lean)** - Lean formalization with detailed error analysis
 3. **[Isabelle/HOL](isabelle/DaCostaDoriaAttempt.thy)** - Isabelle formalization demonstrating the missing steps
 
@@ -251,16 +251,16 @@ Da Costa & Doria's approach doesn't engage with these barriers, as it attempts t
 
 ## Verification Status
 
-- ✅ **Coq**: Formalization complete - Shows gaps and invalid steps
+- ✅ **Rocq**: Formalization complete - Shows gaps and invalid steps
 - ✅ **Lean 4**: Formalization complete - Identifies missing proofs
 - ✅ **Isabelle/HOL**: Formalization complete - Demonstrates incompleteness
 
 ## How to Verify
 
-### Coq
+### Rocq
 ```bash
-cd coq
-coqc DaCostaDoriaAttempt.v
+cd rocq
+rocq compile DaCostaDoriaAttempt.v
 ```
 
 ### Lean 4

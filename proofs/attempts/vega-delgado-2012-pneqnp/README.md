@@ -60,7 +60,7 @@ Frank Vega Delgado has submitted multiple papers over the years claiming solutio
 
 The goal of this formalization is to:
 
-1. Formalize the structure of the claimed proof in Coq, Lean, and Isabelle
+1. Formalize the structure of the claimed proof in Rocq, Lean, and Isabelle
 2. Identify precisely where the proof breaks down or requires unjustified assumptions
 3. Make explicit the gaps in reasoning that prevent the proof from being valid
 4. Document the error in a rigorous, machine-checkable way
@@ -85,8 +85,8 @@ When formalizing this proof attempt, we expect to encounter one or more of the f
 ```
 vega-delgado-2012-pneqnp/
 ├── README.md (this file)
-├── coq/
-│   └── VegaDelgado2012.v         - Coq formalization
+├── rocq/
+│   └── VegaDelgado2012.v         - Rocq formalization
 ├── lean/
 │   └── VegaDelgado2012.lean      - Lean 4 formalization
 └── isabelle/

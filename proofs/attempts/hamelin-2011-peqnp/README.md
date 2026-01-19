@@ -58,7 +58,7 @@ Neither of these conditions is established in the paper:
 
 ## Formal Verification Task
 
-This directory contains formalizations in multiple proof assistants (Coq, Lean, Isabelle) that:
+This directory contains formalizations in multiple proof assistants (Rocq, Lean, Isabelle) that:
 
 1. Define the maximum clique problem formally
 2. Establish that vertices in graphs can belong to exponentially many cliques
@@ -67,7 +67,7 @@ This directory contains formalizations in multiple proof assistants (Coq, Lean, 
 
 ## Files
 
-- **`coq/Hamelin2011.v`** - Coq formalization of the error
+- **`rocq/Hamelin2011.v`** - Rocq formalization of the error
 - **`lean/Hamelin2011.lean`** - Lean formalization of the error
 - **`isabelle/Hamelin2011.thy`** - Isabelle/HOL formalization of the error
 
@@ -93,7 +93,7 @@ This directory contains formalizations in multiple proof assistants (Coq, Lean, 
 ## Status
 
 - ✅ README documentation: Complete
-- ✅ Coq formalization: Complete
+- ✅ Rocq formalization: Complete
 - ✅ Lean formalization: Complete
 - ✅ Isabelle formalization: Complete
 - ✅ Error identified and formalized
