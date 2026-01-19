@@ -251,8 +251,8 @@ Axiom extraction_claim_unproven : forall (n_dim : nat) (Q : Matrix n_dim) (x : n
 
 Axiom paper_withdrawn_2011_04_04 : True.
 
-Definition withdrawal_statement : string :=
-  "The community convinced me that this peace of crank was written by crackpot trisector. I apologize for disturbing community.".
+(* Withdrawal statement: "The community convinced me that this peace of crank
+   was written by crackpot trisector. I apologize for disturbing community." *)
 
 (* ===== Implications ===== *)
 
