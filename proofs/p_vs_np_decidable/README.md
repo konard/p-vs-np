@@ -99,7 +99,7 @@ theorem pSubsetNP : ∀ L : ClassP, ∃ L' : ClassNP, ∀ s : String, L.language
 **Proof style**: Gallina with tactics
 
 **Example**:
-```coq
+```rocq
 Theorem pSubsetNP : forall L : ClassP, exists L' : ClassNP,
   forall s : string, p_language L s = np_language L' s.
 Proof.
@@ -173,7 +173,7 @@ Each file can be checked independently:
 lake build
 
 # Rocq
-coqc proofs/p_vs_np_decidable/rocq/PSubsetNP.v
+rocq compile proofs/p_vs_np_decidable/rocq/PSubsetNP.v
 
 # Isabelle/HOL
 isabelle build -d . PSubsetNP

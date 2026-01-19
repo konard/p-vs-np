@@ -64,7 +64,7 @@ Without access to the full proof text, likely issues include:
 
 This directory contains formal specifications that:
 
-1. **Encode the claimed proof approach** in Coq, Lean, and Isabelle
+1. **Encode the claimed proof approach** in Rocq, Lean, and Isabelle
 2. **Identify the gap or error** through formalization attempts
 3. **Document where the proof breaks down** when subjected to formal verification
 
@@ -79,7 +79,7 @@ The formalization process serves as a rigorous analysis tool to identify exactly
 ## Files in This Directory
 
 - **lean/**: Lean 4 formalization of Ivanov's argument and the error
-- **coq/**: Coq formalization of Ivanov's argument and the error
+- **rocq/**: Rocq formalization of Ivanov's argument and the error
 - **isabelle/**: Isabelle/HOL formalization of Ivanov's argument and the error
 - **README.md**: This file
 
@@ -92,7 +92,7 @@ This attempt is part of a larger collection of claimed P versus NP proofs. See a
 
 ## Formalization Status
 
-- ✅ Coq formalization (see `coq/IvanovAttempt.v`)
+- ✅ Rocq formalization (see `rocq/IvanovAttempt.v`)
 - ✅ Lean formalization (see `lean/IvanovAttempt.lean`)
 - ✅ Isabelle formalization (see `isabelle/IvanovAttempt.thy`)
 - ✅ Error/gap identified and documented

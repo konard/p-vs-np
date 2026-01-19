@@ -83,7 +83,7 @@ theorem P_vs_NP_decidable : PEqualsNP ∨ ¬PEqualsNP :=
 5. Therefore: (P = NP) ∨ (P ≠ NP)
 
 **Formalization Steps:**
-```coq
+```rocq
 Theorem decidability_by_contradiction : PEqualsNP \/ PNotEqualsNP.
 Proof.
   destruct (classic PEqualsNP) as [H | H].
@@ -360,7 +360,7 @@ Forcing is a technique used by Cohen to prove independence of the Continuum Hypo
 - **Type Theory**: Various typed lambda calculi
 
 **Formal Investigation:**
-```coq
+```rocq
 (* In Rocq with ZFC axioms *)
 Require Import Classical_Prop.
 Require Import ClassicalDescription.

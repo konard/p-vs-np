@@ -201,7 +201,7 @@ structure ClassP where
 - Polynomial lemmas proven using `lia` and `ring`
 
 **Example syntax**:
-```coq
+```rocq
 Record ClassP : Type := mkClassP {
   p_language : Language;
   p_decider : string -> nat;
@@ -320,7 +320,7 @@ Each file can be checked independently:
 lake build
 
 # Rocq
-coqc proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v
+rocq compile proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v
 
 # Isabelle/HOL
 isabelle build -d . PvsNPUndecidable

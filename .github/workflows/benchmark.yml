@@ -95,7 +95,7 @@ jobs:
     - name: Install Rocq and tools
       if: steps.check-rocq.outputs.has_files == 'true'
       run: |
-        opam install coq.latest -y
+        opam install rocq-prover -y || opam install coq -y
         opam install coq-mathcomp-ssreflect -y || true
         opam install coq-equations -y || true
 
@@ -109,16 +109,16 @@ jobs:
         # Measure build time
         START_TIME=$(date +%s)
         if [ -f "_CoqProject" ]; then
-          coq_makefile -f _CoqProject -o Makefile.coq
+          rocq makefile -f _CoqProject -o Makefile.coq || coq_makefile -f _CoqProject -o Makefile.coq
           make -f Makefile.coq -j$(nproc) 2>&1 | tee rocq-build.log
         else
-          time coqc *.v 2>&1 | tee rocq-build.log
+          time rocq compile *.v 2>&1 | tee rocq-build.log || time coqc *.v 2>&1 | tee rocq-build.log
         fi
         END_TIME=$(date +%s)
         BUILD_TIME=$((END_TIME - START_TIME))
 
         echo "- Build time: ${BUILD_TIME}s" >> rocq-benchmark-results.md
-        echo "- Rocq version: $(coqc --version | head -n1)" >> rocq-benchmark-results.md
+        echo "- Rocq version: $(rocq --version 2>/dev/null || coqc --version | head -n1)" >> rocq-benchmark-results.md
 
         # Count lines of code
         if command -v cloc &> /dev/null; then
@@ -170,12 +170,12 @@ jobs:
         echo "## Formal Verification Files" >> metrics.md
         echo "" >> metrics.md
         LEAN_FILES=$(find . -name "*.lean" -type f 2>/dev/null | wc -l)
-        COQ_FILES=$(find . -name "*.v" -type f 2>/dev/null | wc -l)
+        ROCQ_FILES=$(find . -name "*.v" -type f 2>/dev/null | wc -l)
         AGDA_FILES=$(find . -name "*.agda" -type f 2>/dev/null | wc -l)
         ISABELLE_FILES=$(find . -name "*.thy" -type f 2>/dev/null | wc -l)
 
         echo "- Lean files: $LEAN_FILES" >> metrics.md
-        echo "- Rocq files: $COQ_FILES" >> metrics.md
+        echo "- Rocq files: $ROCQ_FILES" >> metrics.md
         echo "- Agda files: $AGDA_FILES" >> metrics.md
         echo "- Isabelle files: $ISABELLE_FILES" >> metrics.md
         echo "" >> metrics.md

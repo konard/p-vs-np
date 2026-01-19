@@ -84,7 +84,7 @@ lake build
 - Standard library integration
 
 **Key Structures**:
-```coq
+```rocq
 Record ProofOfPNotEqualNP : Type := {
   proves : P_not_equals_NP;
   usesValidMethod : bool
@@ -93,8 +93,8 @@ Record ProofOfPNotEqualNP : Type := {
 
 **Verification**:
 ```bash
-cd coq
-coqc PNotEqualNP.v
+cd rocq
+rocq compile PNotEqualNP.v
 ```
 
 ### Isabelle/HOL Implementation (`isabelle/PNotEqualNP.thy`)

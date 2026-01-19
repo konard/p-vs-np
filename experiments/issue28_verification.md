@@ -22,7 +22,7 @@ This document systematically verifies all 10 claims made in Issue #28 by GPT-5 r
 - **Path discrepancy:** The issue claims files should be at `proofs/Basic.*` but README correctly references `proofs/basic/{assistant}/Basic.*`
 - **CI verification:** GitHub Actions workflows DO exist:
   - `.github/workflows/lean.yml`
-  - `.github/workflows/coq.yml`
+  - `.github/workflows/rocq.yml`
   - `.github/workflows/isabelle.yml`
   - `.github/workflows/verification.yml`
   - Recent runs show SUCCESS status

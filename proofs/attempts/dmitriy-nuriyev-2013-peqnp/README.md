@@ -93,7 +93,7 @@ Without access to the full paper implementation details, the exact line-by-line 
 
 Our formalization aims to:
 
-1. **Define the Hamiltonian Path problem formally** in Coq, Lean, and Isabelle
+1. **Define the Hamiltonian Path problem formally** in Rocq, Lean, and Isabelle
 2. **Model the claimed DP approach** abstractly to the extent possible
 3. **Identify the gap**: Show that either:
    - The state space is exponential (contradicting polynomial-time claim), OR
@@ -103,7 +103,7 @@ Our formalization aims to:
 
 ## Structure
 
-- `coq/` - Coq formalization of Hamiltonian Path and DP approach analysis
+- `rocq/` - Rocq formalization of Hamiltonian Path and DP approach analysis
 - `lean/` - Lean 4 formalization with similar structure
 - `isabelle/` - Isabelle/HOL formalization
 

@@ -173,7 +173,7 @@ Any ONE of these would be sufficient to invalidate the proof. The combination ma
 
 Our formalization will:
 
-1. **Coq**: Focus on the Time Hierarchy Theorem and density bounds (Sections 4.3-4.4)
+1. **Rocq**: Focus on the Time Hierarchy Theorem and density bounds (Sections 4.3-4.4)
 2. **Lean**: Formalize the threshold sampling algorithm and probability bounds (Section 4.5)
 3. **Isabelle**: Formalize the OWF construction and one-wayness argument (Sections 4.7-4.8)
 
@@ -223,9 +223,9 @@ Then:
 
 ## Formalization Progress
 
-- [ ] Coq: Basic definitions (DTIME, time-constructible, G¨odel numbering)
-- [ ] Coq: Time Hierarchy Theorem statement
-- [ ] Coq: Density function properties
+- [ ] Rocq: Basic definitions (DTIME, time-constructible, G¨odel numbering)
+- [ ] Rocq: Time Hierarchy Theorem statement
+- [ ] Rocq: Density function properties
 - [ ] Lean: Probability space for sampling
 - [ ] Lean: Threshold function definition
 - [ ] Lean: Threshold sampling algorithm

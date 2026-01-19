@@ -14,7 +14,7 @@ proofs/attempts/<author-year-claim>/
 ├── README.md           # Description of the attempt and identified errors
 ├── lean/
 │   └── YourTheory.lean
-├── coq/
+├── rocq/
 │   └── YourTheory.v
 └── isabelle/
     ├── ROOT            # REQUIRED: Session configuration
@@ -62,14 +62,14 @@ session "YourSessionName" = "HOL-Library" +
     YourTheory
 ```
 
-### Coq Guidelines
+### Rocq Guidelines
 
 Add your `.v` file to the appropriate directory. Update the local `_CoqProject` file if one exists.
 
 ### Code Quality
 
 **For formalizations demonstrating failed proof attempts:**
-- Using `sorry` (Lean), `Admitted` (Coq), or `oops` (Isabelle) is acceptable to mark where proofs cannot be completed
+- Using `sorry` (Lean), `Admitted` (Rocq), or `oops` (Isabelle) is acceptable to mark where proofs cannot be completed
 - Add clear comments explaining why the proof fails at that point
 - The goal is to demonstrate the error in the original proof attempt, not to complete an impossible proof
 
@@ -78,7 +78,7 @@ Add your `.v` file to the appropriate directory. Update the local `_CoqProject` 
 All proof files are verified by GitHub Actions:
 - Lean: `lake build`
 - Isabelle: `isabelle build -D .` (auto-discovers all ROOT files)
-- Coq: Standard coqc compilation
+- Rocq: Standard rocq compile compilation
 
 Ensure your code compiles locally before submitting.
 
@@ -88,7 +88,7 @@ Use clear, descriptive commit messages:
 ```
 feat: Add [Author] [Year] P=[NP/P≠NP] formalization
 
-- Add formalization in [Lean/Coq/Isabelle]
+- Add formalization in [Lean/Rocq/Isabelle]
 - Identify error: [brief description of the error]
 - Document the gap in the proof
 ```

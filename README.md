@@ -16,7 +16,7 @@ This repository contains extensive educational documentation for studying the P 
 
 See formal proofs in four proof assistants:
 - [Lean 4 proof](proofs/p_vs_np_decidable/lean/PSubsetNP.lean)
-- [Coq proof](proofs/p_vs_np_decidable/coq/PSubsetNP.v)
+- [Rocq proof](proofs/p_vs_np_decidable/rocq/PSubsetNP.v)
 - [Isabelle/HOL proof](proofs/p_vs_np_decidable/isabelle/PSubsetNP.thy)
 - [Agda proof](proofs/p_vs_np_decidable/agda/PSubsetNP.agda)
 - [Detailed documentation](proofs/p_vs_np_decidable/README.md)
@@ -158,7 +158,7 @@ The repository includes formal analysis of historical claimed proofs of P vs NP,
    - Claimed polynomial-size LP formulations for Hamiltonian cycle
    - Refuted by Yannakakis (STOC 1988): symmetric LP formulations require exponential size
    - See [detailed documentation](proofs/attempts/ted-swart-1986-87-peqnp/README.md)
-   - Formalized in Lean, Coq, and Isabelle/HOL
+   - Formalized in Lean, Rocq, and Isabelle/HOL
 
 All proof files are automatically verified by GitHub Actions workflows to ensure correctness. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
 
