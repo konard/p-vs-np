@@ -1,3 +1,0 @@
-session "Feinstein2003" = "HOL" +
-  theories
-    RestrictedModelError

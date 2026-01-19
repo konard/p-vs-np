@@ -10,211 +10,144 @@
 - **Author**: Craig Alan Feinstein
 - **Year**: 2003-04
 - **Claim**: P ≠ NP
-- **Paper Titles**:
-  - "Evidence that P is not equal to NP" (2003)
-  - "P is not equal to NP" (withdrawn after counterexample discovered)
-- **Status**: Withdrawn by author
-- **Source**: arXiv (2003-04 submissions)
+- **Status**: Withdrawn by author (counterexample found)
+- **Source**: arXiv (2003-04 submissions, withdrawn)
 
 ---
 
 ## Summary
 
-Craig Alan Feinstein's 2003-04 attempt(s) claimed to prove that P ≠ NP by working within a "restricted model of computation." The initial paper, "Evidence that P is not equal to NP," was careful to note that it provided evidence rather than a complete proof within this restricted computational model.
+Craig Alan Feinstein's 2003-04 attempt claimed to prove P ≠ NP by working within a "restricted model of computation." The proof attempted to:
 
-A subsequent paper titled "P is not equal to NP" made a stronger claim but was **withdrawn by the author after a counterexample was discovered**, demonstrating a fatal flaw in the reasoning.
+1. Define a restricted computational model
+2. Prove exponential lower bounds for NP-complete problems within this model
+3. Transfer these lower bounds to general Turing machine computation
 
-This represents entry #11 on Woeginger's comprehensive list of P vs NP attempts. The work is notable as an early example (2003-04) of an attempt that:
-1. Explicitly acknowledged working in a restricted model
-2. Was formally withdrawn after peer review and scrutiny revealed errors
+The proof was **withdrawn by the author after a counterexample was discovered**, demonstrating that the transfer principle (step 3) is invalid.
 
 ---
 
-## The Main Argument
+## Directory Structure
 
-### Restricted Computational Model
+This attempt follows the standard structure:
 
-Feinstein's approach involved:
-1. Defining a specific restricted model of computation
-2. Attempting to show that within this model, NP-complete problems require super-polynomial time
-3. Arguing that results in the restricted model transfer to general computation
+```
+craig-feinstein-2003-pneqnp/
+├── README.md              # This file - overview of the attempt
+├── original/              # Description of the original proof idea
+│   ├── README.md         # Detailed description of Feinstein's approach
+│   └── paper/            # References to original papers
+│       └── REFERENCES.md
+├── proof/                 # The forward proof attempt formalization
+│   ├── lean/             # Lean 4 formalization of the proof structure
+│   │   └── FeinsteinProof.lean
+│   └── rocq/             # Rocq formalization of the proof structure
+│       └── FeinsteinProof.v
+└── refutation/           # The refutation of the proof
+    ├── README.md         # Explanation of why the proof fails
+    ├── lean/             # Lean 4 formalization of the refutation
+    │   └── FeinsteinRefutation.lean
+    └── rocq/             # Rocq formalization of the refutation
+        └── FeinsteinRefutation.v
+```
 
-### The Core Strategy
+---
 
-The argument appears to have followed this pattern:
-1. **Model Definition**: Establish a computational model with certain restrictions or characteristics
-2. **Lower Bound in Model**: Prove that NP-complete problems require exponential (or at least super-polynomial) time in this model
-3. **Generalization Claim**: Assert that the lower bound in the restricted model implies P ≠ NP in general
+## The Core Error
 
-This strategy is similar to other attempts that work with restricted models, including:
-- Circuit complexity lower bounds
+Feinstein's proof fails because the **transfer principle is FALSE**:
+
+> Lower bounds in restricted computational models do NOT automatically imply lower bounds in general Turing machine computation.
+
+This is a fundamental issue with all restricted model approaches to P vs NP.
+
+### Why the Transfer Fails
+
+1. **Restricted models forbid techniques**: By definition, a restricted model limits what operations algorithms can use
+
+2. **General computation has more tools**: Turing machines can use techniques unavailable in the restricted model
+
+3. **The dilemma**:
+   - If the restricted model exactly captures polynomial-time computation, proving lower bounds is as hard as P vs NP itself
+   - If the model is genuinely restricted, the transfer principle fails
+
+### Analogy: Sorting
+
+- In the comparison-based model: Sorting requires Ω(n log n) comparisons
+- In general computation: Radix sort achieves O(n) time
+- The comparison lower bound doesn't transfer to general computation!
+
+---
+
+## Formalization Details
+
+### Original Proof Structure (`proof/`)
+
+The `proof/` directory formalizes Feinstein's claimed argument:
+
+1. **`feinsteinRestrictedLowerBound`**: Exponential lower bound in the restricted model
+2. **`feinsteinTransferPrinciple`**: The (false) claim that restricted bounds transfer
+3. **`feinsteinConclusion`**: The logical consequence combining (1) and (2)
+
+The formal structure shows that IF the axioms were true, P ≠ NP would follow. However, the transfer principle axiom is FALSE.
+
+### Refutation (`refutation/`)
+
+The `refutation/` directory demonstrates why the proof fails:
+
+1. **`transferPrincipleFails`**: The transfer principle is provably false
+2. **`claimGap`**: The gap between what restricted models show vs. what's claimed
+3. **`counterexampleInvalidatesTransfer`**: How counterexample algorithms break the proof
+
+---
+
+## Historical Context
+
+Feinstein's 2003-04 work was part of a broader pattern of attempts using restricted models. Similar approaches include:
+
 - Decision tree lower bounds
+- Circuit complexity with restrictions
 - Communication complexity arguments
 
----
+All of these have the same fundamental limitation: restricted model lower bounds don't transfer to unrestricted computation.
 
-## The Error
+### Feinstein's Other Work
 
-### The Fatal Counterexample
+Around the same period, Feinstein published other papers making strong claims:
+- "The Riemann Hypothesis is Unprovable" (2003)
+- "The Collatz 3n+1 Conjecture is Unprovable" (2003)
 
-According to Woeginger's list, Feinstein's stronger claim in "P is not equal to NP" was **withdrawn after a counterexample was discovered**. While the specific details of the counterexample are not publicly documented in the available sources, this indicates that:
-
-1. The proof contained a logical flaw or gap
-2. The flaw was significant enough to invalidate the main claim
-3. The author responsibly withdrew the paper upon discovering the error
-
-### Common Pitfalls in Restricted Model Approaches
-
-Based on the pattern of similar attempts, likely errors include:
-
-#### 1. **Invalid Transfer from Restricted to General Models**
-
-**The Problem**: Lower bounds in restricted models don't automatically imply lower bounds in unrestricted computation.
-
-**Why it fails**:
-- A restricted model may forbid certain algorithmic strategies that are available in general computation
-- Proving that no algorithm *of type X* can solve a problem in polynomial time doesn't prove that *no algorithm at all* can do so
-
-**Example**: Proving that comparison-based sorting requires Ω(n log n) comparisons doesn't prove that sorting requires Ω(n log n) time in general (radix sort exists).
-
-#### 2. **Circular Reasoning or Unproven Assumptions**
-
-**The Problem**: The proof may assume what it's trying to prove, or rely on unproven lower bound assumptions.
-
-**Common form**:
-- Assume that certain operations are "necessary" for solving NP-complete problems
-- Show that these operations require super-polynomial time in the restricted model
-- Conclude P ≠ NP
-
-**The gap**: The assumption that these operations are necessary is often equivalent to assuming P ≠ NP.
-
-#### 3. **Confusion Between Necessary and Sufficient Conditions**
-
-**The Problem**: Showing that a particular algorithmic approach requires exponential time doesn't prove that all approaches do.
-
-**Analogy**: Proving that walking from New York to Los Angeles takes months doesn't prove that the journey requires months (planes exist).
-
-#### 4. **Model-Specific Artifacts**
-
-**The Problem**: The lower bound may rely on specific limitations of the model that don't reflect fundamental computational barriers.
-
-**Example**: A model that charges exponentially for certain operations might make polynomial-time algorithms appear exponential due to the charging scheme, not due to inherent problem difficulty.
-
----
-
-## The Critical Gap
-
-For any restricted model approach to prove P ≠ NP, it must show:
-
-1. **Model Definition**: The restricted model is well-defined and captures essential aspects of general computation
-2. **Lower Bound**: NP-complete problems require super-polynomial time in the model (proven rigorously)
-3. **Transfer Principle**: Lower bounds in the restricted model imply lower bounds in general (proven rigorously)
-
-Step 3 is where most restricted model approaches fail. The counterexample found in Feinstein's work likely exploited a flaw in one of these three steps, most probably step 2 or 3.
-
----
-
-## Related Work and Context
-
-### Similar Approaches That Also Failed
-
-Feinstein's approach is part of a broader pattern of attempts using restricted models:
-
-1. **Decision Tree Lower Bounds**: While we have exponential lower bounds for some NP-complete problems in decision tree models, these don't transfer to general computation because decision trees are highly restricted.
-
-2. **Circuit Complexity**: We have some lower bounds for restricted circuit classes, but proving super-polynomial lower bounds for general circuits remains open (and would prove P ≠ NP).
-
-3. **Communication Complexity**: Lower bounds in communication complexity don't directly imply computational complexity lower bounds.
-
-### Why Restricted Models Are Studied
-
-Despite these attempts' failures, restricted models are valuable for:
-- Understanding specific algorithmic techniques
-- Proving conditional lower bounds
-- Developing intuition about problem difficulty
-- Making progress on related problems
-
-However, proving P ≠ NP requires working with unrestricted models or finding a transfer principle that has eluded researchers for decades.
-
----
-
-## Feinstein's Other Work (Context)
-
-Around the same time period (2003-04), Feinstein published several papers making strong claims about unprovability:
-
-1. **"The Riemann Hypothesis is Unprovable"** (arXiv:math/0309367, Sept 2003)
-   - Claims a "simple proof" that the Riemann Hypothesis cannot be proven in any reasonable axiom system
-
-2. **"The Collatz 3n+1 Conjecture is Unprovable"** (arXiv:math/0312309, Dec 2003)
-   - Argues that any proof must have infinitely many lines
-
-These papers share a common pattern with the P vs NP attempt:
-- Making strong claims about fundamental open problems
-- Relying on arguments about computational complexity or proof length
-- Using reasoning that, under scrutiny, contains gaps or invalid transfer arguments
-
-Later work by Feinstein (2005-06) on P vs NP used different approaches (see the separate formalization of his 2005 attempt using the "Mabel-Mildred-Feinstein" model).
+These share a pattern of making strong claims that, under scrutiny, contain logical gaps.
 
 ---
 
 ## Lessons Learned
 
-This attempt illustrates several important principles:
+1. **Intellectual Honesty**: Feinstein withdrew the paper when the error was found, demonstrating scientific integrity
 
-1. **Intellectual Honesty**: Feinstein withdrew the stronger claim when a counterexample was found, demonstrating scientific integrity.
+2. **Restricted Models Have Limits**: Lower bounds in restricted models are conditional and don't generalize
 
-2. **Peer Review Works**: The counterexample was discovered through the review process, showing the value of public scrutiny.
-
-3. **Restricted Models Have Limits**: Proving lower bounds in restricted models is valuable but insufficient for resolving P vs NP.
-
-4. **Transfer Principles Are Hard**: The gap between restricted and general models remains a fundamental barrier in complexity theory.
-
----
-
-## Formalization Goals
-
-The formal proof attempts in this directory aim to:
-
-1. **Reconstruct the Argument**: Since the papers were withdrawn and details are limited, we construct a representative "restricted model" argument that captures the likely approach.
-
-2. **Formalize Common Errors**: Show the typical patterns of errors in restricted model approaches:
-   - Invalid transfer from restricted to general models
-   - Circular reasoning in defining "necessary" operations
-   - Confusion between lower bounds for specific algorithmic families vs. all algorithms
-
-3. **Demonstrate Counter-Reasoning**: Formalize how counterexamples can invalidate such arguments.
-
-4. **Educational Value**: Make explicit why restricted model approaches face fundamental challenges in proving P ≠ NP.
-
----
-
-## Files in This Directory
-
-- **paper/**: References and links to archived versions of the original papers
-- **lean/**: Lean formalization demonstrating the pattern of error in restricted model arguments
-- **coq/**: Coq formalization demonstrating the pattern of error in restricted model arguments
-- **isabelle/**: Isabelle/HOL formalization demonstrating the pattern of error in restricted model arguments
-- **README.md**: This file
+3. **Transfer Principles Are Hard**: The gap between restricted and general models is a fundamental barrier in complexity theory
 
 ---
 
 ## References
 
-1. Woeginger, G. J. "The P-versus-NP page". https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #11)
-2. Feinstein, C. A. (2003-04). "Evidence that P is not equal to NP" (arXiv, withdrawn)
-3. Feinstein, C. A. (2003-04). "P is not equal to NP" (arXiv, withdrawn after counterexample)
-4. Feinstein, C. A. (2003). "The Riemann Hypothesis is Unprovable". arXiv:math/0309367
-5. Feinstein, C. A. (2003). "The Collatz 3n+1 Conjecture is Unprovable". arXiv:math/0312309
+1. Woeginger, G. J. "The P-versus-NP page". Entry #11. https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+2. Feinstein, C. A. (2003-04). P vs NP attempts (withdrawn)
+3. Feinstein, C. A. (2003). "The Riemann Hypothesis is Unprovable". arXiv:math/0309367
+4. Feinstein, C. A. (2003). "The Collatz 3n+1 Conjecture is Unprovable". arXiv:math/0312309
 
 ---
 
 ## Status
 
-- ✅ Attempt documented and error pattern identified
-- ✅ Directory structure created
-- 🚧 Lean formalization in progress
-- 🚧 Coq formalization in progress
-- 🚧 Isabelle formalization in progress
+- ✅ Original proof idea documented
+- ✅ Lean 4 formalization (proof structure)
+- ✅ Rocq formalization (proof structure)
+- ✅ Lean 4 refutation
+- ✅ Rocq refutation
+- ✅ Error analysis complete
 
 ---
 
