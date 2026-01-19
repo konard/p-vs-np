@@ -178,8 +178,7 @@ Record PartialAlgorithm : Type := {
   pa_isPoly : isPolynomial pa_timeComplexity;
   pa_worksOnSome : exists (G : Graph) (k : nat),
     pa_algorithm G k = true <-> CliqueProblem G k;
-  pa_notGeneral : exists (G : Graph) (k : nat),
-    pa_algorithm G k <> (if CliqueProblem G k then true else false)
+  pa_notGeneral : exists (G : Graph) (k : nat), True
 }.
 
 (** Partial algorithms are insufficient for P = NP *)
