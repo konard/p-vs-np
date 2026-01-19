@@ -155,7 +155,7 @@ Axiom aslam_representation_claim :
 (* CLAIM 2: Counting via MinSet Sequence is correct *)
 Definition aslamCountingFunction (g : BipartiteGraph) : nat :=
   let mss := aslamAlgorithm g in
-  length (mss_elements g mss). (* Simplified: actual claim is more complex *)
+  length (mss_elements mss). (* Simplified: actual claim is more complex *)
 
 Axiom aslam_counting_claim :
   forall g : BipartiteGraph,
