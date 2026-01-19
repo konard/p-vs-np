@@ -14,12 +14,13 @@ This repository contains extensive educational documentation for studying the P 
 
 **✅ PROVEN: P ⊆ NP** — Every problem solvable in polynomial time is also verifiable in polynomial time.
 
-See formal proofs in four proof assistants:
+See formal proofs in multiple proof assistants:
 - [Lean 4 proof](proofs/p_vs_np_decidable/lean/PSubsetNP.lean)
 - [Rocq proof](proofs/p_vs_np_decidable/rocq/PSubsetNP.v)
-- [Isabelle/HOL proof](proofs/p_vs_np_decidable/isabelle/PSubsetNP.thy)
 - [Agda proof](proofs/p_vs_np_decidable/agda/PSubsetNP.agda)
 - [Detailed documentation](proofs/p_vs_np_decidable/README.md)
+
+> **Note:** Isabelle/HOL proofs have been archived to [`./archive/isabelle/`](archive/isabelle/) as the project focuses on Rocq and Lean for CI/CD.
 
 **❓ THE QUESTION: Is NP ⊆ P true?**
 
@@ -110,13 +111,14 @@ The P versus NP problem asks whether every problem whose solution can be quickly
 
 ### 🔬 Formal Verification
 
-The repository includes formal verification frameworks in multiple proof assistants (Lean 4, Rocq, Isabelle/HOL, and Agda) organized into the following categories:
+The repository includes formal verification frameworks in multiple proof assistants (Lean 4, Rocq, and Agda) organized into the following categories:
+
+> **Note:** Isabelle/HOL support has been sunset. Existing Isabelle proofs are archived in [`./archive/isabelle/`](archive/isabelle/) for reference.
 
 #### Tutorial Proofs for Learning Proof Assistants (`proofs/basic/`)
 Bootstrap proof files demonstrating foundational formal verification concepts and serving as templates:
 - **[proofs/basic/lean/Basic.lean](proofs/basic/lean/Basic.lean)** - Lean 4 foundational proofs
 - **[proofs/basic/rocq/Basic.v](proofs/basic/rocq/Basic.v)** - Rocq foundational proofs
-- **[proofs/basic/isabelle/Basic.thy](proofs/basic/isabelle/Basic.thy)** - Isabelle/HOL foundational proofs
 - **[proofs/basic/agda/Basic.agda](proofs/basic/agda/Basic.agda)** - Agda foundational proofs
 
 These files serve as tutorials for researchers learning to use proof assistants and provide CI validation that the formal verification infrastructure is working correctly.
@@ -127,13 +129,13 @@ The repository contains four distinct proof frameworks exploring different aspec
 1. **[P = NP Formalization](proofs/p_eq_np/)** (`proofs/p_eq_np/`)
    - Framework for verifying hypothetical proofs that P equals NP
    - Implements four test methods for validating P = NP claims
-   - Available in Lean, Rocq, and Isabelle/HOL
+   - Available in Lean and Rocq
 
 2. **[P ≠ NP Formalization](proofs/p_not_equal_np/)** (`proofs/p_not_equal_np/`)
    - Framework for verifying proofs that P does not equal NP
    - See [detailed documentation](proofs/p_not_equal_np/README.md)
    - Includes four mathematically equivalent test methods
-   - Available in Lean, Rocq, Isabelle/HOL, and Agda
+   - Available in Lean, Rocq, and Agda
 
 3. **[P ⊆ NP Formal Proof & Classical Tautology](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
    - **Contains the formal proof that P ⊆ NP** ([detailed documentation](proofs/p_vs_np_decidable/README.md))
@@ -141,13 +143,13 @@ The repository contains four distinct proof frameworks exploring different aspec
    - See [detailed documentation](proofs/p_vs_np_decidable/README.md)
    - **Note:** "Decidable" here means the classical tautology that (P=NP) ∨ (P≠NP) holds, NOT algorithmic decidability
    - **The key question:** Is NP ⊆ P provable/unprovable? This determines whether P vs NP is provable/unprovable.
-   - Available in Lean, Rocq, Isabelle/HOL, and Agda
+   - Available in Lean, Rocq, and Agda
 
 4. **[Possible Independence from ZFC](proofs/p_vs_np_undecidable/)** (`proofs/p_vs_np_undecidable/`)
    - Framework for reasoning about potential independence from ZFC (meta-mathematical exploration)
    - See [detailed documentation](proofs/p_vs_np_undecidable/README.md)
    - Explores whether P vs NP could be independent of standard axiom systems
-   - Available in Lean, Rocq, Isabelle/HOL, and Agda
+   - Available in Lean, Rocq, and Agda
 
 #### Historical P vs NP Proof Attempts (`proofs/attempts/`)
 
@@ -158,7 +160,7 @@ The repository includes formal analysis of historical claimed proofs of P vs NP,
    - Claimed polynomial-size LP formulations for Hamiltonian cycle
    - Refuted by Yannakakis (STOC 1988): symmetric LP formulations require exponential size
    - See [detailed documentation](proofs/attempts/ted-swart-1986-87-peqnp/README.md)
-   - Formalized in Lean, Rocq, and Isabelle/HOL
+   - Formalized in Lean and Rocq
 
 All proof files are automatically verified by GitHub Actions workflows to ensure correctness. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
 

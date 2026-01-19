@@ -177,7 +177,7 @@ jobs:
         echo "- Lean files: $LEAN_FILES" >> metrics.md
         echo "- Rocq files: $ROCQ_FILES" >> metrics.md
         echo "- Agda files: $AGDA_FILES" >> metrics.md
-        echo "- Isabelle files: $ISABELLE_FILES" >> metrics.md
+        echo "- Isabelle files (archived): $ISABELLE_FILES" >> metrics.md
         echo "" >> metrics.md
 
         # Documentation files
