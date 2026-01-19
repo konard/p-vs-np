@@ -257,25 +257,33 @@ Axiom paper_withdrawn_2011_04_04 : True.
 (* ===== Implications ===== *)
 
 (* If the claims were true, they would imply P=NP *)
-Theorem katkov_would_imply_P_eq_NP :
-  (forall (n_dim : nat) (alpha : R) (Q : Matrix n_dim),
-    katkov_theorem_4_2_as_stated n_dim Q /\
-    katkov_uniqueness_claim n_dim alpha Q) ->
+Axiom katkov_would_imply_P_eq_NP :
+  (forall (n_dim : nat) (Q : Matrix n_dim),
+    (exists alpha_star : R,
+      (alpha_star > 0)%R /\
+      forall alpha : R, (0 <= alpha)%R -> (alpha < alpha_star)%R ->
+      forall x_0 x_alpha : nat -> R,
+        is_global_minimizer n_dim 0%R Q x_0 ->
+        is_global_minimizer n_dim alpha Q x_alpha ->
+        forall i : nat, i < n_dim ->
+          ((x_alpha i > 0)%R <-> (x_0 i > 0)%R) /\
+          ((x_alpha i < 0)%R <-> (x_0 i < 0)%R)) /\
+    (exists alpha_star : R,
+      (alpha_star > 0)%R /\
+      forall alpha_val : R, (0 <= alpha_val)%R -> (alpha_val < alpha_star)%R ->
+      exists! x : nat -> R, is_global_minimizer n_dim alpha_val Q x)) ->
   (* Then Max-Cut can be solved in polynomial time via SDP *)
   (* Since Max-Cut is NP-complete, this would imply P=NP *)
   True.  (* Placeholder for P=NP *)
-Proof.
-  intros H.
-  (* Algorithm would be:
-     1. Formulate Max-Cut as BQP (polynomial time)
-     2. Construct Q(α, x) (polynomial time)
-     3. Solve SDP to find f^sos (polynomial time by [Par03])
-     4. Extract binary solution (by uniqueness and sign preservation)
-     5. Return the cut
 
-     But the claims have gaps, so this doesn't work. *)
-  trivial.
-Qed.
+(* Algorithm would be:
+   1. Formulate Max-Cut as BQP (polynomial time)
+   2. Construct Q(α, x) (polynomial time)
+   3. Solve SDP to find f^sos (polynomial time by [Par03])
+   4. Extract binary solution (by uniqueness and sign preservation)
+   5. Return the cut
+
+   But the claims have gaps, so this doesn't work. *)
 
 (* But the proof has gaps, so P=NP is not established *)
 Theorem katkov_proof_incomplete :
