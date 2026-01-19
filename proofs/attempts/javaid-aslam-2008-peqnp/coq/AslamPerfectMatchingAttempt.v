@@ -234,9 +234,8 @@ Theorem aslam_counting_is_false :
 Proof.
   intro H_claim.
   destruct refutation_counter_example as [ce H_diff].
-  apply H_diff.
-  rewrite (H_claim (ce_graph ce)).
-  reflexivity.
+  apply (ce_algorithmFails ce).
+  apply H_claim.
 Qed.
 
 (* Corollary: Aslam's representation claim is also false *)
