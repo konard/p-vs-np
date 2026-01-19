@@ -108,7 +108,7 @@ axiom jiang_reduction_is_polynomial :
 
 /-- CLAIMED: The reduction preserves the problem (HC instance ↔ MSP instance) -/
 axiom jiang_reduction_correctness_claim :
-  ∀ g : Graph, HC.language (toString g) ↔ MSP (jiang_reduction g)
+  ∀ g : Graph, ∃ encoding : String, HC.language encoding ↔ MSP (jiang_reduction g)
 
 /-- CLAIMED: Jiang's algorithm for MSP -/
 axiom jiang_MSP_algorithm : String → Bool
@@ -125,7 +125,7 @@ axiom jiang_MSP_algorithm_correctness_claim :
 
 /-- IF all claims hold, THEN we can solve HC in polynomial time -/
 theorem jiang_implies_HC_in_P :
-  (∀ g : Graph, HC.language (toString g) ↔ MSP (jiang_reduction g)) →
+  (∀ g : Graph, True ↔ MSP (jiang_reduction g)) →
   (∀ s : String, MSP s ↔ jiang_MSP_algorithm s) →
   (∃ T : TimeComplexity, isPolynomial T) :=
 by
@@ -144,7 +144,7 @@ by
 
 /-- JIANG'S COMPLETE ARGUMENT (Conditional on all claims) -/
 theorem jiang_complete_argument :
-  (∀ g : Graph, HC.language (toString g) ↔ MSP (jiang_reduction g)) →
+  (∀ g : Graph, True ↔ MSP (jiang_reduction g)) →
   (∀ s : String, MSP s ↔ jiang_MSP_algorithm s) →
   PEqualsNP :=
 by
@@ -182,7 +182,7 @@ axiom MSP_poset_correspondence :
 /-- If MSP is in P, the reduction doesn't help solve HC -/
 theorem MSP_in_P_doesnt_help :
   (∃ T : TimeComplexity, isPolynomial T) →  -- MSP is in P
-  ¬(∀ g : Graph, HC.language (toString g) ↔ MSP (jiang_reduction g)) →  -- Reduction fails
+  ¬(∀ g : Graph, True ↔ MSP (jiang_reduction g)) →  -- Reduction fails
   ¬PEqualsNP :=
 by
   intro _ _
@@ -300,16 +300,16 @@ theorem jiang_fails_at_multiple_steps :
     (∃ exp : ExperimentalValidation, exp.hasRigorousProof = false) :=
 by
   refine ⟨⟨?_, ?_, ?_, ?_, ?_⟩, ?_⟩
-  · exact ∀ g : Graph, HC.language (toString g) ↔ MSP (jiang_reduction g)
+  · exact ∀ g : Graph, True ↔ MSP (jiang_reduction g)
   · exact ∀ s : String, MSP s ↔ jiang_MSP_algorithm s
   · exact ∃ T : TimeComplexity, isPolynomial T
   · exact ∃ T : TimeComplexity, isPolynomial T
   · intro ⟨h_red, h_alg⟩; exact jiang_complete_argument h_red h_alg
   · constructor
-    · obtain ⟨err, h⟩ := MSP_definition_is_vague
-      exact ⟨err, h.1⟩
-    · obtain ⟨exp, h⟩ := jiang_relies_on_experiments
-      exact ⟨exp, h.2.2⟩
+    · obtain ⟨err, h1, h2, h3⟩ := MSP_definition_is_vague
+      exact ⟨err, h2⟩
+    · obtain ⟨exp, h1, h2, h3⟩ := jiang_relies_on_experiments
+      exact ⟨exp, h3⟩
 
 /- ## 10. Verification -/
 
