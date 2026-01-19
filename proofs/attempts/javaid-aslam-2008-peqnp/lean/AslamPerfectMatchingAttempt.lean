@@ -20,6 +20,11 @@ namespace AslamPerfectMatchingAttempt
 
 /- ## 1. Basic Complexity Definitions -/
 
+/-- Factorial function -/
+def factorial : Nat → Nat
+  | 0 => 1
+  | n + 1 => (n + 1) * factorial n
+
 /-- Binary strings as decision problem inputs -/
 def Language := String → Bool
 
@@ -208,7 +213,8 @@ theorem aslam_counting_is_false :
   ¬(∀ g : BipartiteGraph, aslamCountingFunction g = countPerfectMatchings g) := by
   intro h_claim
   obtain ⟨ce, h_diff⟩ := refutation_counter_example
-  exact h_diff (h_claim ce.graph ▸ rfl)
+  have := h_claim ce.graph
+  exact h_diff this
 
 /-- Corollary: Aslam's representation claim is also false -/
 theorem aslam_representation_is_false :
@@ -225,14 +231,14 @@ axiom complete_bipartite_matching_count :
   ∀ n : Nat, ∃ g : BipartiteGraph,
     g.leftNodes = n ∧ g.rightNodes = n ∧
     (∀ i j : Nat, i < n → j < n → g.hasEdge i j) ∧
-    countPerfectMatchings g = Nat.factorial n
+    countPerfectMatchings g = factorial n
 
 /-- Exponential information cannot be compressed polynomially in general -/
 theorem no_polynomial_compression_of_factorial :
   ¬∃ (compress : Nat → List Nat),
     (∀ n : Nat, compress n |>.length ≤ n ^ 45) ∧
     (∀ n : Nat, ∃ (decompress : List Nat → Nat),
-      decompress (compress n) = Nat.factorial n) := by
+      decompress (compress n) = factorial n) := by
   sorry  -- Information-theoretic argument
 
 /-- This implies Aslam's approach cannot work for all graphs -/
@@ -260,12 +266,12 @@ theorem single_counter_example_refutes :
 theorem polynomial_compression_suspect :
   (∀ n : Nat, (aslamAlgorithm { leftNodes := n, rightNodes := n,
                                  hasEdge := fun _ _ => true,
-                                 leftValid := by intro; intro; intro; omega,
-                                 rightValid := by intro; intro; intro; omega }).elements.length ≤ n ^ 45) ∧
+                                 leftValid := by intros; simp,
+                                 rightValid := by intros; simp }).elements.length ≤ n ^ 45) ∧
   (∃ n : Nat, countPerfectMatchings { leftNodes := n, rightNodes := n,
                                        hasEdge := fun _ _ => true,
-                                       leftValid := by intro; intro; intro; omega,
-                                       rightValid := by intro; intro; intro; omega } = Nat.factorial n) := by
+                                       leftValid := by intros; simp,
+                                       rightValid := by intros; simp } = factorial n) := by
   constructor
   · intro n
     exact (aslamAlgorithm _).isPolynomialSize
