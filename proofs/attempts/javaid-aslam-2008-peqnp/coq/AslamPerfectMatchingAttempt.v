@@ -300,7 +300,7 @@ Theorem single_counter_example_refutes :
   (exists ce : CounterExample, ce_aslamCount ce <> ce_expectedCount ce) ->
   ~ (forall g : BipartiteGraph, aslamCountingFunction g = countPerfectMatchings g).
 Proof.
-  intro _.
+  intro H_ce.
   exact aslam_counting_is_false.
 Qed.
 
