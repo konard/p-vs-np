@@ -365,10 +365,10 @@ Claims the Riemann Hypothesis is unprovable using analogous arguments about anal
 
 ---
 
-**Note:** For the full original paper with all mathematical details, see [`paper/hofman-2006.pdf`](paper/hofman-2006.pdf).
+**Note:** For the full original paper with all mathematical details, see [`ORIGINAL.pdf`](ORIGINAL.pdf).
 
-For detailed refutations of the key claims, see [`../refutation/README.md`](../refutation/README.md).
+For detailed refutations of the key claims, see the **The Error** section in [`README.md`](README.md).
 
 For formal verification attempts, see:
-- Forward proof attempt: [`../proof/`](../proof/)
-- Refutation proofs: [`../refutation/`](../refutation/)
+- Forward proof attempt: [`lean/HofmanProofAttempt.lean`](lean/HofmanProofAttempt.lean), [`rocq/HofmanProofAttempt.v`](rocq/HofmanProofAttempt.v)
+- Refutation proofs: [`lean/HofmanRefutation.lean`](lean/HofmanRefutation.lean), [`rocq/HofmanRefutation.v`](rocq/HofmanRefutation.v)

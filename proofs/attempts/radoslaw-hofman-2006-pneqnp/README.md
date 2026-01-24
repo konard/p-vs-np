@@ -231,39 +231,31 @@ By formalizing the argument, we make explicit the hidden assumptions and invalid
 
 ## Directory Structure
 
-This attempt follows the standard repository structure:
+This attempt follows the simplified repository structure:
 
 ```
 radoslaw-hofman-2006-pneqnp/
-├── README.md                    # This file - overview of the attempt
-├── original/                    # Description of the original proof idea
-│   ├── README.md               # Detailed description of Hofman's approach
-│   └── paper/                  # Original paper
-│       └── hofman-2006.pdf    # arXiv:0704.0514v2
-├── proof/                       # Forward proof formalization
-│   ├── lean/                   # Lean 4 formalization
-│   │   └── HofmanProofAttempt.lean
-│   └── rocq/                   # Rocq (Coq) formalization
-│       └── HofmanProofAttempt.v
-└── refutation/                 # Refutation showing where the proof fails
-    ├── README.md               # Detailed error analysis
-    ├── lean/                   # Lean 4 refutation
-    │   └── HofmanRefutation.lean
-    └── rocq/                   # Rocq (Coq) refutation
-        └── HofmanRefutation.v
+├── README.md                         # This file - overview of the attempt
+├── ORIGINAL.md                       # Markdown reconstruction of the paper
+├── ORIGINAL.pdf                      # Original paper (arXiv:0704.0514v2)
+├── lean/                             # Lean 4 formalizations
+│   ├── HofmanProofAttempt.lean      # Forward proof attempt
+│   └── HofmanRefutation.lean        # Refutation showing errors
+└── rocq/                             # Rocq formalizations
+    ├── HofmanProofAttempt.v         # Forward proof attempt
+    └── HofmanRefutation.v           # Refutation showing errors
 ```
 
 ---
 
 ## Quick Links
 
-- **Original Proof Idea:** [`original/README.md`](original/README.md)
-- **Refutation Analysis:** [`refutation/README.md`](refutation/README.md)
-- **Original Paper:** [`original/paper/hofman-2006.pdf`](original/paper/hofman-2006.pdf)
-- **Lean Forward Proof:** [`proof/lean/HofmanProofAttempt.lean`](proof/lean/HofmanProofAttempt.lean)
-- **Lean Refutation:** [`refutation/lean/HofmanRefutation.lean`](refutation/lean/HofmanRefutation.lean)
-- **Rocq Forward Proof:** [`proof/rocq/HofmanProofAttempt.v`](proof/rocq/HofmanProofAttempt.v)
-- **Rocq Refutation:** [`refutation/rocq/HofmanRefutation.v`](refutation/rocq/HofmanRefutation.v)
+- **Original Paper (Markdown):** [`ORIGINAL.md`](ORIGINAL.md)
+- **Original Paper (PDF):** [`ORIGINAL.pdf`](ORIGINAL.pdf)
+- **Lean Forward Proof:** [`lean/HofmanProofAttempt.lean`](lean/HofmanProofAttempt.lean)
+- **Lean Refutation:** [`lean/HofmanRefutation.lean`](lean/HofmanRefutation.lean)
+- **Rocq Forward Proof:** [`rocq/HofmanProofAttempt.v`](rocq/HofmanProofAttempt.v)
+- **Rocq Refutation:** [`rocq/HofmanRefutation.v`](rocq/HofmanRefutation.v)
 
 ---
 
