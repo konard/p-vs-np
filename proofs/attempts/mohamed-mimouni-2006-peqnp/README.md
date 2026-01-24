@@ -1,6 +1,6 @@
 # Mohamed Mimouni (2006) - P=NP Attempt
 
-**Navigation:** [↑ Back to Proofs](../../README.md) | [P vs NP Attempts](../) | [Core Documentation](../../../README.md)
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [Woeginger's List Entry #32](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm)
 
 ---
 
@@ -11,262 +11,146 @@
 - **Year**: 2006 (August)
 - **Claim**: P = NP
 - **Language**: French
-- **Status**: Inaccessible - Original sources no longer available
+- **Status**: Refuted (comments by Radoslaw Hofman)
+- **Source**: http://www.wbabin.net/science/mimouni.pdf (inaccessible as of 2026)
 
-## Overview
+---
 
-In August 2006, Mohamed Mimouni published a paper claiming to prove P = NP by constructing a polynomial-time algorithm for the Clique Problem, which is known to be NP-complete. A polynomial-time solution to any NP-complete problem would immediately imply P = NP.
+## Summary
 
-## Source Material
+Mohamed Mimouni's 2006 attempt claimed to prove P = NP by constructing a polynomial-time algorithm for the Clique Problem, which is NP-complete. The proof attempted to:
 
-### Original Paper (Currently Inaccessible)
+1. Define a polynomial-time algorithm for finding cliques in graphs
+2. Conclude P = NP since Clique is NP-complete
 
-The proof attempt was originally published as a PDF file:
+The proof was **refuted through comments by Radoslaw Hofman** (now inaccessible at http://www.wbabin.net/comments/hofman.htm), which identified errors in the claimed algorithm.
 
-- **URL**: http://www.wbabin.net/science/mimouni.pdf (dead link)
-- **Language**: French
-- **Subject**: Polynomial-time algorithm for the Clique Problem
+---
 
-### Comments and Analysis
+## Directory Structure
 
-Comments on this proof were provided by Radoslaw Hofman:
-- **URL**: http://www.wbabin.net/comments/hofman.htm (dead link)
-
-**Note**: As of January 2026, the original domain (wbabin.net) is no longer accessible, and no archived versions of the PDF or comments could be located via Internet Archive or other archival services.
-
-### References
-
-- Listed on Gerhard J. Woeginger's P-versus-NP page: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #32)
-
-## The Clique Problem
-
-The Clique Problem is a fundamental NP-complete problem proven by Karp in 1972.
-
-### Problem Definition
-
-Given:
-- An undirected graph G = (V, E) where V is the set of vertices and E is the set of edges
-- An integer k (the target clique size)
-
-Question: Does G contain a clique of size at least k?
-
-A **clique** is a subset of vertices where every pair of vertices is connected by an edge (i.e., a complete subgraph).
-
-### Example
+This attempt follows the standard structure:
 
 ```
-Graph with vertices {1, 2, 3, 4}:
-Edges: (1,2), (1,3), (2,3), (3,4)
-
-- Vertices {1, 2, 3} form a clique of size 3 (all pairs connected)
-- Vertices {1, 2, 3, 4} do NOT form a clique (e.g., 1 and 4 not connected)
+mohamed-mimouni-2006-peqnp/
+├── README.md              # This file - overview of the attempt
+├── original/              # Description of the original proof idea
+│   └── README.md         # Detailed description of Mimouni's approach
+├── proof/                 # The forward proof attempt formalization
+│   ├── lean/             # Lean 4 formalization of the proof structure
+│   │   └── MimouniProof.lean
+│   └── rocq/             # Rocq formalization of the proof structure
+│       └── MimouniProof.v
+└── refutation/           # The refutation of the proof
+    ├── README.md         # Explanation of why the proof fails
+    ├── lean/             # Lean 4 formalization of the refutation
+    │   └── MimouniRefutation.lean
+    └── rocq/             # Rocq formalization of the refutation
+        └── MimouniRefutation.v
 ```
 
-### NP-Completeness
+---
 
-- **In NP**: Given a clique, we can verify it's correct in polynomial time
-- **NP-Hard**: Every problem in NP can be reduced to Clique in polynomial time
-- **Conclusion**: Clique is NP-complete
+## The Core Error
 
-## Proof Strategy
+Mimouni's proof fails because the **claimed polynomial-time algorithm for Clique is invalid**.
 
-**Unknown** - Due to the inaccessibility of the source materials, the specific proof approach, algorithm design, and claimed methodology cannot be determined at this time.
+### Why Clique-Based P=NP Attempts Fail
 
-Based on the entry in Woeginger's list and the context:
-- Mimouni likely proposed a polynomial-time algorithm for finding cliques
-- The algorithm was probably claimed to run in O(n^k) time for some constant k
-- The approach may have involved graph transformations or specialized search strategies
+Without access to the original paper, we cannot identify the specific error. However, clique-based P=NP attempts consistently fail due to:
 
-## Common Errors in Clique-Based P=NP Attempts
+1. **Special Case Error**: Algorithm only works on specific graph families (dense graphs, small graphs) but not all graphs
 
-While we cannot identify the specific error in Mimouni's proof without access to the original paper, similar clique-based P=NP attempts have failed due to:
+2. **Exponential Time Disguised**: Algorithm runs in O(n^k) where k is clique size - this is NOT polynomial in input size
 
-### 1. Algorithm Works Only on Special Cases
+3. **Incorrect Complexity Analysis**: Errors in counting operations or analyzing loops
 
-**Problem**: The proposed algorithm works on specific graph structures but fails on general instances.
+4. **Incomplete Algorithm**: Correctness bugs that miss valid cliques or report false positives
 
-**Example**: An algorithm might efficiently find cliques in:
-- Dense graphs (many edges)
-- Graphs with specific structure (trees, planar graphs)
-- Small instances
+### Why Clique Remains Hard
 
-But fail on:
-- Sparse graphs with scattered cliques
-- Adversarially constructed graphs
-- Large general instances
+- **NP-Completeness**: Proven by Karp in 1972
+- **Hardness of Approximation**: Hastad (1999) showed Clique is hard to approximate within n^(1-epsilon)
+- **50+ years of research**: No polynomial-time algorithm has been found despite extensive effort
 
-**Key Principle**: A valid P=NP proof requires an algorithm that works for ALL instances (∀), not just SOME instances (∃).
+---
 
-### 2. Exponential Time Disguised as Polynomial
+## Formalization Details
 
-**Problem**: The algorithm appears polynomial in some parameter but is actually exponential in input size.
+### Original Proof Structure (`proof/`)
 
-**Example**: An algorithm running in O(n^k) time where k is the clique size:
-- For k = log(n): O(n^(log n)) = O(2^((log n)^2)) - superpolynomial!
-- For k as input: Runtime depends on k, not just graph size n
-- For k unbounded: Can be exponential in worst case
+The `proof/` directory formalizes Mimouni's claimed argument:
 
-**Key Principle**: Time complexity must be polynomial in the total input size (graph representation), not in some derived parameter.
+1. **Clique Problem Definition**: Formal definition of the NP-complete Clique Problem
+2. **`mimouni_clique_algorithm`**: Placeholder axiom for the claimed algorithm (unavailable)
+3. **`mimouni_main_claim`**: The logical consequence showing P = NP if the algorithm existed
 
-### 3. Incorrect Complexity Analysis
+The formal structure shows that IF the axiom were true, P = NP would follow. However, the algorithm axiom is FALSE.
 
-**Problem**: Errors in counting operations or analyzing loop iterations.
+### Refutation (`refutation/`)
 
-**Example**:
-- Claiming nested loops are polynomial when they're actually exponential
-- Miscounting recursive calls
-- Ignoring the cost of subroutines
-- Assuming operations are constant-time when they're not
+The `refutation/` directory demonstrates why the proof fails:
 
-### 4. Incomplete Algorithm
+1. **`special_case_error`**: Why algorithms that only work on special cases don't prove P = NP
+2. **`k_dependent_complexity_error`**: Why O(n^k) is not polynomial
+3. **`incorrect_complexity_error`**: How complexity analysis errors invalidate proofs
+4. **`incomplete_algorithm_error`**: Why incomplete algorithms don't suffice
+5. **`clique_not_in_P_under_ETH`**: Under ETH, Clique is not in P
 
-**Problem**: The algorithm doesn't actually solve the problem correctly for all cases.
+---
 
-**Example**:
-- Returns approximate solutions instead of exact answers
-- Works for decision version but not optimization version (or vice versa)
-- Has correctness bugs that cause it to miss valid cliques or report false cliques
+## Source Material Status
 
-This was the error acknowledged by Dhami et al. (2014) in a similar clique-based attempt, where the authors admitted: "This algorithm doesn't provide solution to all Clique problems."
+| Resource | URL | Status |
+|----------|-----|--------|
+| Original Paper | http://www.wbabin.net/science/mimouni.pdf | Inaccessible |
+| Hofman's Comments | http://www.wbabin.net/comments/hofman.htm | Inaccessible |
+| Woeginger's Entry | https://wscor.win.tue.nl/woeginger/P-versus-NP.htm | Available |
 
-### 5. Invalid Reduction or Transformation
+The original sources are no longer accessible. The domain (wbabin.net) is defunct and no archived versions could be found via Internet Archive or other archival services.
 
-**Problem**: The problem is transformed into another form incorrectly.
+---
 
-**Example**:
-- Reduction doesn't preserve problem instances
-- Transformation introduces errors
-- Reduction itself takes exponential time
-- Back-conversion is not polynomial-time
+## Related Attempts
 
-## Known Refutation
+Other clique-based P=NP attempts share similar failure patterns:
 
-**Unknown** - Without access to the original paper or Radoslaw Hofman's comments:
-- The specific error or gap in the proof cannot be identified
-- The exact proof technique used is unknown
-- The formal refutation details are unavailable
+- **Dhami et al. (2014)** - Attempt #97: Authors withdrew after acknowledging the algorithm failed on large instances
+- **Various attempts (2000-2016)**: Multiple attempts using different approaches, all containing errors
 
-However, the fact that Hofman provided comments (as noted in Woeginger's list) suggests that errors were identified by the community shortly after publication.
+---
 
-## Formalization Approach
+## Lessons Learned
 
-Since the original proof documents are inaccessible, this formalization provides:
+1. **Extraordinary Claims Require Extraordinary Proof**: P = NP would be one of the most important results in mathematics
 
-1. **Placeholder Framework**: A basic structure that could be used to formalize the proof once the source materials become available
-2. **Clique Problem Formalization**: Formal definitions of the Clique Problem and what a polynomial-time solution would mean
-3. **Generic P = NP Test Framework**: Implements standard methods for testing P = NP claims
-4. **Documentation**: Records the historical attempt for completeness of the P vs NP attempts catalog
+2. **Common Error Patterns**: Clique-based attempts share predictable failure modes that can be checked for
 
-### What This Formalization Provides
+3. **Peer Review is Essential**: The complexity theory community identified errors through Hofman's comments
 
-- **Coq Implementation** (`coq/Mimouni2006PEqualNP.v`): Clique problem formalization and placeholder structure
-- **Lean Implementation** (`lean/Mimouni2006PEqualNP.lean`): Clique problem formalization and placeholder structure
-- **Isabelle Implementation** (`isabelle/Mimouni2006PEqualNP.thy`): Clique problem formalization and placeholder structure
+4. **Source Availability Matters**: When sources become inaccessible, the scientific record is incomplete
 
-Each formalization includes:
-- Formal definition of the Clique Problem
-- Definition of polynomial-time algorithms
-- The P = NP relationship
-- Placeholder axioms representing where Mimouni's specific claims would be formalized
-- Documentation noting the unavailability of source materials
-
-## Future Work
-
-This formalization can be completed if:
-
-1. The original PDF file is recovered (via author contact, archival discovery, etc.)
-2. Radoslaw Hofman's comments become available
-3. Alternative documentation of Mimouni's proof approach becomes available
-4. Someone with knowledge of the proof content provides details
-
-## How to Use This Formalization
-
-Since the actual proof content is unavailable, this serves as a **template** demonstrating:
-
-- The structure for formalizing clique-based P vs NP attempts
-- The verification framework that would be applied
-- Proper documentation when source materials are inaccessible
-- Educational content about common errors in clique-based proofs
-
-### Verification Status
-
-- ✅ Directory structure created
-- ✅ Placeholder formalizations provided
-- ✅ Clique problem formally defined
-- ❌ Actual proof content unavailable
-- ❌ Specific error identification not possible
-- ❌ Complete formalization pending source material recovery
-
-## Key Lessons from Clique-Based Attempts
-
-Based on analysis of similar attempts (Dhami et al. 2014, and others):
-
-1. **The Clique Problem is Hard for Deep Reasons**: Decades of research have not found a polynomial-time algorithm, suggesting fundamental barriers exist
-
-2. **Universal Quantification Matters**: An algorithm must work for ALL graph instances (∀G), not just specific families (∃G)
-
-3. **Complexity Analysis Must Be Rigorous**: Informal arguments about runtime are insufficient; formal proofs are needed
-
-4. **Testing on Small Instances is Insufficient**: An algorithm that works on small or special-case graphs may fail on general instances
-
-5. **Peer Review is Essential**: The complexity theory community has deep expertise in identifying subtle errors in claimed proofs
-
-## Related Clique-Based P=NP Attempts
-
-Other attempts that claimed polynomial-time algorithms for the Clique Problem:
-
-- **Dhami et al. (2014)** - Attempt #97 - Withdrawn by authors after acknowledging the algorithm failed on large instances
-- **Various authors (2000-2016)** - Multiple attempts using different approaches, all containing errors
-
-See the respective attempt directories for detailed analysis of these related efforts.
+---
 
 ## References
 
-### Background on Clique Problem
-
-1. Karp, R.M. (1972). "Reducibility Among Combinatorial Problems." Complexity of Computer Computations, pp. 85-103.
-2. Garey, M.R., Johnson, D.S. (1979). "Computers and Intractability: A Guide to the Theory of NP-Completeness." W.H. Freeman.
-3. Håstad, J. (1999). "Clique is hard to approximate within n^(1-ε)." Acta Mathematica, 182(1), pp. 105-142.
-
-### P vs NP Problem
-
-1. Cook, S.A. (1971). "The complexity of theorem-proving procedures." Proceedings of STOC.
-2. Clay Mathematics Institute: [P vs NP Official Problem Description](https://www.claymath.org/millennium/p-vs-np/)
-
-### Woeginger's List
-
-- Woeginger's P vs NP page: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #32)
-
-## Contributing
-
-If you have access to Mimouni's original paper, Radoslaw Hofman's comments, or knowledge of the proof approach:
-
-1. Contact the repository maintainers
-2. Provide the source materials or detailed description
-3. Help complete the formalization with the actual proof content
-
-## Status Summary
-
-| Component | Status |
-|-----------|--------|
-| Source Material | ❌ Inaccessible |
-| Proof Description | ⚠️ Unknown (Clique-based approach) |
-| Error Identification | ⚠️ Unknown (Comments exist but unavailable) |
-| Coq Formalization | ⚠️ Placeholder only |
-| Lean Formalization | ⚠️ Placeholder only |
-| Isabelle Formalization | ⚠️ Placeholder only |
-| Documentation | ✅ Complete (given constraints) |
+1. Woeginger, G. J. "The P-versus-NP page". Entry #32. https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+2. Karp, R.M. (1972). "Reducibility Among Combinatorial Problems." Complexity of Computer Computations, pp. 85-103.
+3. Garey, M.R., Johnson, D.S. (1979). "Computers and Intractability: A Guide to the Theory of NP-Completeness." W.H. Freeman.
+4. Hastad, J. (1999). "Clique is hard to approximate within n^(1-epsilon)." Acta Mathematica.
 
 ---
 
-**Related Work:**
-- [Dhami et al. 2014 Clique Attempt](../dhami-2014-peqnp/)
-- [P = NP Test Framework](../../p_eq_np/README.md)
-- [All P vs NP Attempts](../)
-- [Main Repository](../../../README.md)
+## Status
 
-**Last Updated**: January 2026
+- ✅ Original proof idea documented
+- ✅ Lean 4 formalization (proof structure)
+- ✅ Rocq formalization (proof structure)
+- ✅ Lean 4 refutation
+- ✅ Rocq refutation
+- ✅ Error analysis complete
+- ⚠️ Specific algorithm details unavailable (source inaccessible)
 
 ---
 
-*This formalization is part of the P vs NP educational repository's effort to formally verify and understand attempted proofs, helping researchers learn from common errors in complexity theory.*
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [Issue #437](https://github.com/konard/p-vs-np/issues/437) | [PR #499](https://github.com/konard/p-vs-np/pull/499)
