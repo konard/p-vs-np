@@ -91,7 +91,7 @@ This attempt exhibits common errors seen in many failed P=NP attempts:
 
 The formal verification in this directory aims to:
 
-1. **Formalize the Clique Problem** in Lean, Coq, and Isabelle
+1. **Formalize the Clique Problem** in Lean, Rocq, and Isabelle
 2. **Formalize what it means for an algorithm to solve the Clique Problem**
 3. **Capture the claim**: If there exists a polynomial-time algorithm for Clique, then P = NP
 4. **Identify the gap**: Show that any claimed algorithm must work on ALL instances (universal quantification)
@@ -127,8 +127,8 @@ This attempt demonstrates several important principles:
 ```
 proofs/attempts/dhami-2014-peqnp/
 ├── README.md                    (this file)
-├── coq/
-│   └── DhamiAttempt.v          (Coq formalization)
+├── rocq/
+│   └── DhamiAttempt.v          (Rocq formalization)
 ├── lean/
 │   └── DhamiAttempt.lean       (Lean 4 formalization)
 └── isabelle/
@@ -139,7 +139,7 @@ proofs/attempts/dhami-2014-peqnp/
 
 - ✅ Documentation: Complete
 - 🚧 Lean formalization: In progress
-- 🚧 Coq formalization: In progress
+- 🚧 Rocq formalization: In progress
 - 🚧 Isabelle formalization: In progress
 
 ---

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Mircea Alexandru Popescu Moscu's 2004 paper claims to prove P ≠ NP using an "invariance principle of complexity hierarchies" and a "convergence theorem." Our formalization in Coq, Lean, and Isabelle reveals **critical logical gaps and circular reasoning** that invalidate the proof.
+Mircea Alexandru Popescu Moscu's 2004 paper claims to prove P ≠ NP using an "invariance principle of complexity hierarchies" and a "convergence theorem." Our formalization in Rocq, Lean, and Isabelle reveals **critical logical gaps and circular reasoning** that invalidate the proof.
 
 ## The Core Claim
 
@@ -25,8 +25,8 @@ The paper makes two main claims:
 - So the proof assumes a property that can only be proven if we already know whether P = NP
 
 **Formalization Evidence**:
-In our Coq formalization (MoscuInvariance.v:91-120), we show:
-```coq
+In our Rocq formalization (MoscuInvariance.v:91-120), we show:
+```rocq
 Theorem Moscu_Claim_P_Closed_Implies_P_equals_NP :
   ClosedUnderNDExtension (fun p => InP p) ->
   forall problem, InP problem <-> InNP problem.
@@ -72,7 +72,7 @@ The convergence property has no bearing on P vs NP.
 **The Problem**: The proof requires accepting axioms that are equivalent to (or require proving) P ≠ NP itself.
 
 **Example Axiom**:
-```coq
+```rocq
 Axiom Moscu_Claim_P_Closed : ClosedUnderNDExtension (fun p => InP p).
 ```
 
@@ -83,7 +83,7 @@ To prove this axiom, one would need to:
 
 **Formalization Evidence**:
 From MoscuInvariance.v:272-282:
-```coq
+```rocq
 Theorem Moscu_Proof_Has_Unjustified_Assumptions :
   (ClosedUnderNDExtension (fun p => InP p) /\
    OpenUnderNDExtension (fun p => InNP p)) ->
@@ -94,9 +94,9 @@ The assumptions themselves embed the conclusion.
 
 ## Formalization Results
 
-All three formalizations (Coq, Lean, Isabelle) consistently identify the same gaps:
+All three formalizations (Rocq, Lean, Isabelle) consistently identify the same gaps:
 
-1. **Coq (MoscuInvariance.v)**:
+1. **Rocq (MoscuInvariance.v)**:
    - Lines 91-120: Shows the closure assumption leads to problems
    - Lines 227-235: Shows convergence doesn't help
    - Lines 272-282: Identifies unjustified assumptions
@@ -144,7 +144,7 @@ The formalization process successfully **identified the exact point where the pr
 ## Verification Status
 
 - ✓ Paper analyzed and understood
-- ✓ Main claims formalized in Coq, Lean, and Isabelle
+- ✓ Main claims formalized in Rocq, Lean, and Isabelle
 - ✓ Critical gaps identified and documented
 - ✓ Error is fundamental and cannot be fixed without a completely different approach
 - ✓ The formalization serves its purpose: revealing the error in the proof attempt
