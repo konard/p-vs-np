@@ -65,7 +65,7 @@ The preprint lacks:
 
 ## Formalization Goal
 
-Our goal is to formalize this proof attempt in Coq, Lean, and Isabelle until we hit the fundamental gap. We expect to be able to formalize:
+Our goal is to formalize this proof attempt in Rocq, Lean, and Isabelle until we hit the fundamental gap. We expect to be able to formalize:
 
 ✅ The definition of the filter function `C(M,w)`
 ✅ The hierarchy of language classes `L_i`
@@ -80,7 +80,7 @@ We expect to **fail** when trying to prove:
 
 ## Implementation
 
-- **Coq**: [coq/HuangAttempt.v](coq/HuangAttempt.v)
+- **Rocq**: [rocq/HuangAttempt.v](rocq/HuangAttempt.v)
 - **Lean**: [lean/HuangAttempt.lean](lean/HuangAttempt.lean)
 - **Isabelle**: [isabelle/HuangAttempt.thy](isabelle/HuangAttempt.thy)
 
