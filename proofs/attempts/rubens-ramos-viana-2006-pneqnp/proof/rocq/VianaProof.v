@@ -10,9 +10,9 @@
           See refutation/ for why this fails
 *)
 
-Require Import Coq.Init.Nat.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.micromega.Lia.
+Require Import Stdlib.Init.Nat.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.micromega.Lia.
 
 Module VianaProof.
 

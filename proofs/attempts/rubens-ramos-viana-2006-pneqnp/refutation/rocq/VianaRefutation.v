@@ -7,10 +7,10 @@
   3. Missing logic: no valid step from "hard function" to "P <> NP"
 *)
 
-Require Import Coq.Init.Nat.
-Require Import Coq.Strings.String.
-Require Import Coq.QArith.QArith.
-Require Import Coq.Logic.Classical_Prop.
+Require Import Stdlib.Init.Nat.
+Require Import Stdlib.Strings.String.
+Require Import Stdlib.QArith.QArith.
+Require Import Stdlib.Logic.Classical_Prop.
 
 Module VianaRefutation.
 
@@ -57,7 +57,7 @@ Definition Uncomputable (f : nat -> bool) : Prop :=
 (* Hard to compute: algorithms exist but are slow *)
 Definition HardToCompute (f : nat -> bool) : Prop :=
   exists (algorithm : nat -> bool), (forall n, algorithm n = f n) /\
-    (forall fastAlg : nat -> bool, exists n, True).  (* Simplified *)
+    (forall fastAlg : nat -> bool, exists (n : nat), True).  (* Simplified *)
 
 (* These are different concepts *)
 Axiom uncomputable_vs_hard :
