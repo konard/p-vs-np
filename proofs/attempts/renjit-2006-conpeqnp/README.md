@@ -11,228 +11,147 @@
 - **Year**: 2006 (November)
 - **Claim**: co-NP = NP
 - **Paper**: http://arxiv.org/abs/cs.CC/0611147
-- **Status**: Withdrawn by author (August 2009)
+- **Status**: **WITHDRAWN by author** (August 2009, after 9 revisions)
 
 ## Summary
 
-In November 2006, Raju Renjit G published a paper titled "coNP Is Equal To NP" on arXiv, claiming to prove that the complexity classes NP and co-NP are equal. This would be a major breakthrough in computational complexity theory if true, though not as strong as resolving P vs NP directly.
+In November 2006, Raju Renjit G published a paper claiming to prove **co-NP = NP**, meaning that the complexity classes NP and co-NP are equivalent. This would be a major breakthrough in computational complexity theory, though not as strong as resolving P vs NP directly.
 
-The paper went through 9 revisions over nearly three years before being **withdrawn by the author** on August 25, 2009, indicating fundamental flaws were discovered.
+The paper went through **9 revisions** over nearly three years before being **withdrawn by the author** on August 25, 2009. The withdrawal indicates that fundamental flaws were discovered that could not be repaired through revision.
 
-## Background: NP vs co-NP
-
-To understand this claim, we need to clarify the relationship between NP and co-NP:
+## What is NP vs co-NP?
 
 ### Complexity Classes
 
-- **NP**: Problems where solutions can be verified in polynomial time
-  - Example: SAT (Boolean satisfiability) - given a formula and an assignment, verify it satisfies the formula
-  - Example: CLIQUE - given a graph and a set of vertices, verify they form a clique
+- **NP**: Problems where "yes" answers can be verified in polynomial time
+  - Example: CLIQUE - given a set of vertices, verify they form a clique
+  - Certificate: The k vertices (polynomial size)
 
-- **co-NP**: Complements of NP problems - problems where "no" answers can be verified in polynomial time
-  - Example: UNSAT - verify a formula is unsatisfiable
-  - Example: NO-CLIQUE - verify a graph has no clique of size k
+- **co-NP**: Problems where "no" answers can be verified in polynomial time
+  - Example: NO-CLIQUE - verify a graph has no k-clique
+  - Certificate needed: Proof that no k vertices form a clique (hard!)
 
-### Open Question: NP vs co-NP
+### The Open Question
 
-It is currently unknown whether **NP = co-NP**. We know:
+Whether **NP = co-NP** is unknown, but most researchers believe they are different because:
 
-1. **P ⊆ NP ∩ co-NP**: If a problem is in P, both "yes" and "no" answers can be verified efficiently
-2. **NP = co-NP is weaker than P = NP**: If P = NP, then P = NP = co-NP
-3. **Most complexity theorists believe NP ≠ co-NP**: If NP = co-NP, this would be surprising and would collapse complexity hierarchies
+1. **Certificate Asymmetry**: Verifying existence (show one example) seems fundamentally easier than verifying non-existence (rule out all possibilities)
+2. **Polynomial Hierarchy**: If NP = co-NP, the polynomial hierarchy collapses
+3. **50+ Years of Research**: No symmetric certificate structures found despite extensive study
+4. **Oracle Results**: There exist oracles relative to which NP ≠ co-NP
 
-### Why This Matters
+## Structure
 
-If **NP = co-NP** were proven:
-- Every NP problem would have efficiently verifiable "no" certificates
-- The polynomial hierarchy would collapse to its first level (NP = co-NP = PH)
-- This would be a major breakthrough, though still weaker than resolving P vs NP
-- Many cryptographic assumptions would need reevaluation
+This formalization follows the new repository structure:
 
-However, **NP = co-NP** is generally believed to be false by the complexity theory community.
+### `original/`
+Contains description of the original proof idea, approach, and why it seemed promising. Since the paper was withdrawn and is no longer available, this is reconstructed from:
+- Available metadata (title, abstract, classification)
+- The paper's focus on the clique problem (mentioned in metadata)
+- The author's related 2005 P≠NP attempt (also clique-based, also withdrawn)
+- Common patterns in NP = co-NP attempts
 
-## Main Approach
+### `proof/`
+Contains our best-effort forward proof attempt, following the likely strategy:
+1. Focus on CLIQUE/NO-CLIQUE as canonical NP/co-NP-complete problems
+2. Claim polynomial certificates exist for NO-CLIQUE (unproven!)
+3. Attempt to generalize from CLIQUE to all NP problems (invalid!)
+4. Conclude NP = co-NP
 
-Based on available metadata, Renjit's 2006 paper claimed to:
+The formalizations mark WHERE the proof fails with:
+- Axioms for unproven claims
+- `sorry` / `Admitted` for gaps that cannot be filled
+- Comments explaining the impossibility
 
-1. **Develop a general theoretical result** about the relationship between NP and co-NP
-2. **Apply this result to the clique problem** as a concrete demonstration
-3. **Conclude that co-NP = NP** from this analysis
+### `refutation/`
+Contains formal refutation demonstrating why the proof fails:
+1. **Certificate Asymmetry**: Fundamental difference between verifying existence vs non-existence
+2. **Invalid Generalization**: NP-completeness preserves decidability, not certificate structure
+3. **Circular Reasoning**: Proposed verification reduces to another co-NP problem
+4. **Special Cases**: Methods working for special graphs don't constitute universal proof
 
-The paper is related to the author's earlier 2005 attempt (arXiv:cs/0502030) which claimed P ≠ NP, also focusing on the clique problem and also later withdrawn.
+## The Core Error: Certificate Asymmetry
 
-### The Clique Problem Context
+The fundamental challenge is the asymmetry between positive and negative witnesses:
 
-Both of Renjit's attempts focused on the **clique problem**:
-- **CLIQUE (NP-complete)**: Does graph G contain a clique of size k?
-- **NO-CLIQUE (co-NP-complete)**: Does graph G have no clique of size k?
+**CLIQUE (NP)**:
+- Instance: "Does graph G have a 5-clique?"
+- YES Certificate: List the 5 vertices (polynomial size: 5 log n bits)
+- Verification: Check all 10 edges exist (polynomial time: O(k²))
 
-By focusing on this problem pair, the paper likely attempted to show these complementary problems have the same computational complexity, generalizing to prove NP = co-NP.
+**NO-CLIQUE (co-NP)**:
+- Instance: "Does graph G have NO 5-clique?"
+- YES Certificate needed: Proof that no 5 vertices form a clique
+- Challenge: Must reason about all (n choose 5) possibilities (exponential!)
 
-## Common Pitfalls in NP = co-NP Claims
+For NP = co-NP to hold, we need polynomial-sized, polynomial-time verifiable certificates for BOTH directions for ALL problems in NP. The asymmetry suggests this is impossible.
 
-Attempts to prove NP = co-NP typically fail due to several issues:
+## Common Error Patterns
 
-### 1. Confusion Between Verification and Computation
+### 1. Invalid Generalization from One Problem
 
-A common error is confusing:
-- **Verification complexity**: How hard it is to check a solution (NP's domain)
-- **Search complexity**: How hard it is to find a solution (different question)
-- **Complement verification**: Verifying "no" answers (co-NP's domain)
+**Error**: Proving a property for CLIQUE doesn't extend to all NP problems.
 
-### 2. Asymmetry Problem
+**Why**: Even though CLIQUE is NP-complete, reductions preserve **decidability** (x ∈ L ⟺ f(x) ∈ CLIQUE), not **certificate structure**. A certificate for x doesn't transform to a certificate for f(x).
 
-For NP = co-NP to hold, we need:
-- Every efficiently verifiable "yes" certificate → efficiently verifiable "no" certificate
-- The challenge: "no" certificates often require checking ALL possible cases
+### 2. Unproven Existence Claims
 
-Example for SAT:
-- **SAT (NP)**: Certificate = satisfying assignment (easy to verify)
-- **UNSAT (co-NP)**: Certificate = proof of unsatisfiability (generally requires reasoning about exponentially many assignments)
+**Error**: Claiming polynomial NO-CLIQUE certificates exist without construction.
 
-### 3. Overlooking Completeness Proofs
+**Why**: Existence proofs aren't enough - must show certificates are polynomial-sized AND polynomial-time verifiable. All attempted constructions (vertex covers, edge covers, decompositions) either require exponential verification or are circular.
 
-NP-complete and co-NP-complete problems are universal for their classes:
-- Proving NP = co-NP requires showing that **every** NP problem has an efficiently verifiable complement
-- Focusing on one problem (like clique) without a universal argument is insufficient
+### 3. Circular Reasoning
 
-### 4. Complexity Barriers
+**Error**: "Verifying NO-CLIQUE" by reducing to another co-NP problem.
 
-Any proof of NP = co-NP must overcome known barriers:
-- **Relativization**: Techniques that relativize cannot prove NP = co-NP (there exist oracles where they differ)
-- **Natural proofs**: Broad classes of lower bound techniques face inherent barriers
-- **Algebrization**: Extension of the relativization barrier
+**Why**: This just restates the challenge without making progress.
 
-## Why the Paper Was Likely Flawed
+### 4. Special Cases vs Universal Proof
 
-Without access to the full paper content (now withdrawn), we can identify probable issues:
+**Error**: Methods working for special graphs (trees, planar, dense) don't prove the general result.
 
-### 1. Incomplete Generalization
+**Why**: Must work for ALL instances, including adversarially constructed ones.
 
-The paper likely:
-- Showed a specific property of the clique problem
-- Failed to generalize this properly to all NP/co-NP problems
-- Missed that showing one problem pair has a symmetry doesn't prove NP = co-NP
+## Why the Paper Was Withdrawn
 
-### 2. Algorithmic Classification Error
+The withdrawal after **9 revision attempts** over **3 years** strongly suggests:
 
-Similar to the author's 2005 attempt, the paper may have:
-- Attempted to classify "all algorithms" for a problem
-- Missed non-obvious algorithmic approaches
-- Used circular or ill-defined algorithm types
+1. **Fundamental Error Discovered**: Not a minor technical issue
+2. **Unrepairable Flaw**: Couldn't be fixed through revision
+3. **Scientific Integrity**: Author chose withdrawal over leaving flawed work online
+4. **Pattern**: Second withdrawal (2005 P≠NP also withdrawn, also clique-based)
 
-### 3. Certificate Confusion
+This indicates the author recognized the core claim was flawed, not just the proof details.
 
-The paper may have:
-- Confused the existence of short certificates with their efficient verifiability
-- Overlooked that co-NP certificates must prove non-existence (much harder)
-- Failed to account for the asymmetry between positive and negative witnesses
+## Formalization Files
 
-### 4. Logical Gap
+### Refutation (Why it fails)
+- `refutation/lean/RenjitRefutation.lean` - Lean 4 formalization of why NP = co-NP proofs fail
+- `refutation/rocq/RenjitRefutation.v` - Rocq formalization of the refutation
 
-Given the 9 revisions before withdrawal:
-- The author likely discovered a gap in the proof during revisions
-- The "general result" probably didn't generalize as claimed
-- The application to clique may have worked in special cases but not generally
+### Forward Proof (Where it fails)
+- `proof/lean/RenjitProof.lean` - Best-effort reconstruction showing gaps
+- `proof/rocq/RenjitProof.v` - Rocq version marking impossibilities
 
-## Formalization Strategy
+## Educational Value
 
-Our formal verification exposes common errors by:
+This formalization demonstrates:
 
-1. **Modeling NP and co-NP formally** with precise definitions
-2. **Formalizing the clique and no-clique problems** as NP-complete and co-NP-complete respectively
-3. **Representing what an NP = co-NP proof would require** (polynomial-time verifiable certificates for complements)
-4. **Identifying the gap** between showing a property for one problem vs proving it for the entire class
-5. **Demonstrating the asymmetry** between verifying existence and non-existence
-
-## Formalizations
-
-- [Coq formalization](coq/Renjit2006.v)
-- [Lean formalization](lean/Renjit2006.lean)
-- [Isabelle formalization](isabelle/Renjit2006.thy)
-
-Each formalization:
-- Defines NP and co-NP formally
-- Models the clique problem and its complement
-- Explores what proving NP = co-NP would entail
-- Identifies the formalization gap that prevents completing such a proof
-- Documents the asymmetry between positive and negative witnesses
+1. **Reconstructing Historical Attempts**: Analyzing proof strategies from limited information
+2. **Identifying Error Patterns**: Common mistakes in complexity proofs
+3. **Understanding Reductions**: What NP-completeness does and doesn't imply
+4. **Certificate Structures**: The fundamental asymmetry in NP vs co-NP
+5. **Formal Verification**: Using proof assistants to expose gaps in informal proofs
 
 ## References
 
-### Primary Source
-- **Renjit, R.** (2006). "coNP Is Equal To NP" (withdrawn). arXiv:cs.CC/0611147
-  - Original submission: November 29, 2006
-  - Withdrawn: August 25, 2009
-  - Versions: 9 revisions attempted
-
-### Related Work by Same Author
-- **Renjit Grover, R.** (2005). "Fixed Type Theorems" (withdrawn). arXiv:cs/0502030
-  - Also focused on clique problem, claimed P ≠ NP
-  - Also withdrawn by author
-  - See [../renjit-grover-2005-pneqnp/](../renjit-grover-2005-pneqnp/)
-
-### Background on NP vs co-NP
-
-- **Cook, S.** (1971). "The complexity of theorem-proving procedures." *STOC 1971*
-  - Original definition of NP and NP-completeness
-
-- **Karp, R.M.** (1972). "Reducibility among combinational problems." *Complexity of Computer Computations*
-  - Proved clique is NP-complete
-
-- **Stockmeyer, L.J.** (1976). "The polynomial-time hierarchy." *Theoretical Computer Science* 3(1): 1-22
-  - Relationship between NP, co-NP, and the polynomial hierarchy
-
-- **Schöning, U.** (1988). "Graph isomorphism is in the low hierarchy." *Journal of Computer and System Sciences* 37(3): 312-323
-  - Important results on co-NP
-
-### Complexity Theory Barriers
-
-- **Baker, T., Gill, J., Solovay, R.** (1975). "Relativizations of the P =? NP Question." *SIAM J. Comput.* 4(4): 431-442
-  - Relativization barrier
-
-- **Razborov, A., Rudich, S.** (1997). "Natural Proofs." *J. Comput. System Sci.* 54(1): 194-227
-  - Natural proofs barrier
-
-- **Aaronson, S., Wigderson, A.** (2008). "Algebrization: A New Barrier in Complexity Theory." *STOC 2008*
-  - Algebrization barrier
-
-### Standard References
-
-- **Arora, S., Barak, B.** (2009). *Computational Complexity: A Modern Approach*
-  - Comprehensive textbook on complexity theory, including NP vs co-NP
-
-- **Papadimitriou, C.H.** (1994). *Computational Complexity*
-  - Classic textbook with detailed treatment of complexity classes
-
-### Context
-
-- **Woeginger, G.J.** "The P-versus-NP page" - Entry #35
-  - https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
-
-## Lessons for Complexity Research
-
-This attempt illustrates several important points:
-
-1. **NP = co-NP is a major open problem**: It's not a trivial consequence of other results
-2. **Certificate asymmetry is fundamental**: Verifying existence ≠ verifying non-existence
-3. **Class-wide proofs need universal arguments**: Showing a property for one problem isn't enough
-4. **Barriers apply**: Any proof must overcome relativization and other known barriers
-5. **Author recognition of errors**: The withdrawal after 9 revisions shows scientific integrity
-
-## Status
-
-- ✅ Metadata collected from arXiv
-- ✅ Error analysis based on common pitfalls
-- ✅ Context established: NP vs co-NP problem
-- ✅ Relationship to author's 2005 attempt noted
-- ⚠️  Full paper content unavailable (withdrawn)
-- ✅ Coq formalization: Complete
-- ✅ Lean formalization: Complete
-- ✅ Isabelle formalization: Complete
+1. Woeginger, G. J. "The P-versus-NP page". Entry #35. https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+2. Karp, R.M. (1972). "Reducibility Among Combinatorial Problems." Complexity of Computer Computations.
+3. Baker, T., Gill, J., Solovay, R. (1975). "Relativizations of the P=?NP Question." SIAM Journal on Computing.
+4. Arora, S., Barak, B. (2009). "Computational Complexity: A Modern Approach." Cambridge University Press.
+5. Stockmeyer, L.J. (1976). "The polynomial-time hierarchy." Theoretical Computer Science.
+6. Related: Renjit (2005) "Fixed Type Theorems" arXiv:cs/0502030 (also withdrawn, also clique-based)
 
 ---
 
-**Note**: This is an educational formalization of a failed proof attempt. The paper was withdrawn by its author, indicating recognition of fundamental errors. The goal of this formalization is to understand common pitfalls in NP vs co-NP research, not to validate the original claim.
-
-**Navigation:** [↑ Back to Repository Root](../../../README.md) | [P vs NP Task Description](../../../P_VS_NP_TASK_DESCRIPTION.md)
+**Note**: The original paper is no longer available (withdrawn from arXiv). Our formalization is a reconstruction based on available metadata and common error patterns in such attempts. The goal is educational: understanding why such proofs fail helps avoid similar mistakes and appreciate the difficulty of these fundamental questions.
