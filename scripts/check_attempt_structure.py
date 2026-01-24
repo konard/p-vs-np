@@ -5,9 +5,15 @@ Script to verify P vs NP attempt structure and generate markdown lists.
 This script checks that each attempt follows the required directory structure:
 - README.md        (required - overview of the attempt)
 - ORIGINAL.md      (recommended - markdown reconstruction of paper)
-- ORIGINAL.pdf/html (recommended - original paper file)
-- lean/            (optional - Lean 4 formalizations)
-- rocq/            (optional - Rocq formalizations)
+- ORIGINAL.pdf     (recommended - original paper file)
+- proof/           (forward proof formalization)
+  - README.md      (recommended - explanation of proofs)
+  - lean/          (optional - Lean 4 formalizations)
+  - rocq/          (optional - Rocq formalizations)
+- refutation/      (refutation formalization)
+  - README.md      (recommended - explanation of failures)
+  - lean/          (optional - Lean 4 formalizations)
+  - rocq/          (optional - Rocq formalizations)
 
 Usage:
     python3 scripts/check_attempt_structure.py
@@ -43,10 +49,18 @@ class StructureValidation:
     has_original_md: bool = False
     has_original_file: bool = False  # PDF, HTML, or other original format
     original_file_ext: str = ""
-    has_lean: bool = False
-    has_rocq: bool = False
-    lean_files: List[str] = field(default_factory=list)
-    rocq_files: List[str] = field(default_factory=list)
+    has_proof: bool = False
+    has_proof_readme: bool = False
+    has_proof_lean: bool = False
+    has_proof_rocq: bool = False
+    proof_lean_files: List[str] = field(default_factory=list)
+    proof_rocq_files: List[str] = field(default_factory=list)
+    has_refutation: bool = False
+    has_refutation_readme: bool = False
+    has_refutation_lean: bool = False
+    has_refutation_rocq: bool = False
+    refutation_lean_files: List[str] = field(default_factory=list)
+    refutation_rocq_files: List[str] = field(default_factory=list)
     metadata: Optional[AttemptMetadata] = None
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
@@ -60,8 +74,18 @@ class StructureValidation:
         return (
             self.has_readme and
             self.has_original_md and
-            self.has_original_file
+            self.has_original_file and
+            self.has_proof and
+            self.has_refutation
         )
+
+    def has_lean(self) -> bool:
+        """Check if the attempt has any Lean formalization."""
+        return self.has_proof_lean or self.has_refutation_lean
+
+    def has_rocq(self) -> bool:
+        """Check if the attempt has any Rocq formalization."""
+        return self.has_proof_rocq or self.has_refutation_rocq
 
     def get_missing(self) -> List[str]:
         """List missing components."""
@@ -72,6 +96,14 @@ class StructureValidation:
             missing.append("ORIGINAL.md (recommended)")
         if not self.has_original_file:
             missing.append("ORIGINAL.pdf or ORIGINAL.html (recommended)")
+        if not self.has_proof:
+            missing.append("proof/ directory (recommended)")
+        elif not self.has_proof_readme:
+            missing.append("proof/README.md (recommended)")
+        if not self.has_refutation:
+            missing.append("refutation/ directory (recommended)")
+        elif not self.has_refutation_readme:
+            missing.append("refutation/README.md (recommended)")
         return missing
 
     def get_claim_emoji(self) -> str:
@@ -121,10 +153,10 @@ def parse_metadata_from_readme(readme_path: Path) -> Optional[AttemptMetadata]:
         'attempt_id': r'\*\*Attempt ID\*\*[:\s]*(\d+)',
     }
 
-    for field, pattern in patterns.items():
+    for fld, pattern in patterns.items():
         match = re.search(pattern, content, re.IGNORECASE)
         if match:
-            setattr(metadata, field, match.group(1).strip())
+            setattr(metadata, fld, match.group(1).strip())
 
     # Try to extract claim from folder name if not found
     if not metadata.claim:
@@ -167,33 +199,58 @@ def validate_attempt_structure(attempt_path: Path) -> StructureValidation:
             result.original_file_ext = ext
             break
 
-    # Check lean/ directory
-    lean_path = attempt_path / "lean"
-    if lean_path.exists() and lean_path.is_dir():
-        lean_files = list(lean_path.glob("*.lean"))
-        if lean_files:
-            result.has_lean = True
-            result.lean_files = [f.name for f in lean_files]
+    # Check proof/ directory
+    proof_path = attempt_path / "proof"
+    if proof_path.exists() and proof_path.is_dir():
+        result.has_proof = True
+        result.has_proof_readme = (proof_path / "README.md").exists()
 
-    # Check rocq/ directory
-    rocq_path = attempt_path / "rocq"
-    if rocq_path.exists() and rocq_path.is_dir():
-        rocq_files = list(rocq_path.glob("*.v"))
-        if rocq_files:
-            result.has_rocq = True
-            result.rocq_files = [f.name for f in rocq_files]
+        lean_path = proof_path / "lean"
+        if lean_path.exists() and lean_path.is_dir():
+            lean_files = list(lean_path.glob("*.lean"))
+            if lean_files:
+                result.has_proof_lean = True
+                result.proof_lean_files = [f.name for f in lean_files]
 
-    # Check for legacy/deprecated structures
+        rocq_path = proof_path / "rocq"
+        if rocq_path.exists() and rocq_path.is_dir():
+            rocq_files = list(rocq_path.glob("*.v"))
+            if rocq_files:
+                result.has_proof_rocq = True
+                result.proof_rocq_files = [f.name for f in rocq_files]
+
+    # Check refutation/ directory
+    refutation_path = attempt_path / "refutation"
+    if refutation_path.exists() and refutation_path.is_dir():
+        result.has_refutation = True
+        result.has_refutation_readme = (refutation_path / "README.md").exists()
+
+        lean_path = refutation_path / "lean"
+        if lean_path.exists() and lean_path.is_dir():
+            lean_files = list(lean_path.glob("*.lean"))
+            if lean_files:
+                result.has_refutation_lean = True
+                result.refutation_lean_files = [f.name for f in lean_files]
+
+        rocq_path = refutation_path / "rocq"
+        if rocq_path.exists() and rocq_path.is_dir():
+            rocq_files = list(rocq_path.glob("*.v"))
+            if rocq_files:
+                result.has_refutation_rocq = True
+                result.refutation_rocq_files = [f.name for f in rocq_files]
+
+    # Check for legacy structures (old formats) - These are WARNINGS, not errors
+    # Legacy: lean/ or rocq/ at root level (should be in proof/ and refutation/)
+    if (attempt_path / "lean").exists() and not result.has_proof:
+        result.warnings.append("Legacy: lean/ at root level. Consider moving to proof/lean/ and refutation/lean/")
+    if (attempt_path / "rocq").exists() and not result.has_proof:
+        result.warnings.append("Legacy: rocq/ at root level. Consider moving to proof/rocq/ and refutation/rocq/")
     if (attempt_path / "coq").exists():
         result.warnings.append("Legacy: coq/ should be renamed to rocq/")
     if (attempt_path / "isabelle").exists():
         result.warnings.append("Deprecated: isabelle/ - Isabelle support has been sunset")
     if (attempt_path / "original").exists():
-        result.warnings.append("Legacy: original/ folder - should be flattened to ORIGINAL.md and ORIGINAL.pdf")
-    if (attempt_path / "proof").exists():
-        result.warnings.append("Legacy: proof/ folder - should be merged into lean/ and rocq/")
-    if (attempt_path / "refutation").exists():
-        result.warnings.append("Legacy: refutation/ folder - should be merged into lean/ and rocq/")
+        result.warnings.append("Legacy: original/ folder. ORIGINAL.md and ORIGINAL.pdf should be at root level")
 
     return result
 
@@ -208,7 +265,7 @@ def find_attempts(base_path: Path) -> List[Path]:
     for item in attempts_path.iterdir():
         if item.is_dir() and not item.name.startswith('.'):
             # Skip known non-attempt items
-            if item.name not in ["README.md", "__pycache__"]:
+            if item.name not in ["README.md", "__pycache__", "ATTEMPTS.md"]:
                 attempts.append(item)
 
     return sorted(attempts)
@@ -236,14 +293,16 @@ def print_report(validations: List[StructureValidation]):
     print()
 
     if complete:
-        print("COMPLETE ATTEMPTS (has README.md, ORIGINAL.md, ORIGINAL.pdf)")
+        print("COMPLETE ATTEMPTS (has README.md, ORIGINAL.md, ORIGINAL.pdf, proof/, refutation/)")
         print("-" * 80)
         for v in complete:
             status = []
-            if v.has_lean:
-                status.append(f"Lean ({len(v.lean_files)})")
-            if v.has_rocq:
-                status.append(f"Rocq ({len(v.rocq_files)})")
+            if v.has_lean():
+                lean_count = len(v.proof_lean_files) + len(v.refutation_lean_files)
+                status.append(f"Lean ({lean_count})")
+            if v.has_rocq():
+                rocq_count = len(v.proof_rocq_files) + len(v.refutation_rocq_files)
+                status.append(f"Rocq ({rocq_count})")
             status_str = f" [{', '.join(status)}]" if status else ""
             print(f"  ✓ {v.path.name}{status_str}")
         print()
@@ -254,10 +313,10 @@ def print_report(validations: List[StructureValidation]):
         print("-" * 80)
         for v in partial:
             status = []
-            if v.has_lean:
-                status.append(f"Lean ({len(v.lean_files)})")
-            if v.has_rocq:
-                status.append(f"Rocq ({len(v.rocq_files)})")
+            if v.has_lean():
+                status.append("Lean")
+            if v.has_rocq():
+                status.append("Rocq")
             status_str = f" [{', '.join(status)}]" if status else ""
             print(f"  ~ {v.path.name}{status_str}")
             for missing in v.get_missing():
@@ -292,12 +351,18 @@ attempt-name/
 ├── README.md              # Overview of the attempt (REQUIRED)
 ├── ORIGINAL.md            # Markdown reconstruction of paper (recommended)
 ├── ORIGINAL.pdf           # Original paper PDF (recommended, can be .html/.tex)
-├── lean/                  # Lean 4 formalizations (optional)
-│   ├── ProofAttempt.lean
-│   └── Refutation.lean
-└── rocq/                  # Rocq formalizations (optional)
-    ├── ProofAttempt.v
-    └── Refutation.v
+├── proof/                 # Forward proof formalization (recommended)
+│   ├── README.md          # Explanation of proofs
+│   ├── lean/              # Lean 4 formalizations
+│   │   └── ProofAttempt.lean
+│   └── rocq/              # Rocq formalizations
+│       └── ProofAttempt.v
+└── refutation/            # Refutation formalization (recommended)
+    ├── README.md          # Explanation of failures
+    ├── lean/              # Lean 4 formalizations
+    │   └── Refutation.lean
+    └── rocq/              # Rocq formalizations
+        └── Refutation.v
 """)
 
 
@@ -363,9 +428,9 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
 
             # Formal column
             formal = []
-            if v.has_lean:
+            if v.has_lean():
                 formal.append("🔷")
-            if v.has_rocq:
+            if v.has_rocq():
                 formal.append("🔶")
             formal_str = " ".join(formal) if formal else "-"
 
@@ -385,8 +450,10 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
     total = len(validations)
     with_original_md = sum(1 for v in validations if v.has_original_md)
     with_original_file = sum(1 for v in validations if v.has_original_file)
-    with_lean = sum(1 for v in validations if v.has_lean)
-    with_rocq = sum(1 for v in validations if v.has_rocq)
+    with_lean = sum(1 for v in validations if v.has_lean())
+    with_rocq = sum(1 for v in validations if v.has_rocq())
+    with_proof = sum(1 for v in validations if v.has_proof)
+    with_refutation = sum(1 for v in validations if v.has_refutation)
 
     p_eq_np = sum(1 for v in validations if v.get_claim_emoji() == "✓")
     p_neq_np = sum(1 for v in validations if v.get_claim_emoji() == "✗")
@@ -398,6 +465,8 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
     lines.append(f"- **Claims unprovable:** {unprovable}")
     lines.append(f"- **With ORIGINAL.md:** {with_original_md}")
     lines.append(f"- **With original paper:** {with_original_file}")
+    lines.append(f"- **With proof/ directory:** {with_proof}")
+    lines.append(f"- **With refutation/ directory:** {with_refutation}")
     lines.append(f"- **With Lean formalization:** {with_lean}")
     lines.append(f"- **With Rocq formalization:** {with_rocq}")
     lines.append("")

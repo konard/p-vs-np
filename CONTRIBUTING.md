@@ -11,22 +11,29 @@ When adding a new formalization of a P vs NP proof attempt, follow these guideli
 Create your formalization in:
 ```
 proofs/attempts/<author-year-claim>/
-├── README.md           # Overview of the attempt and identified errors (REQUIRED)
-├── ORIGINAL.md         # Markdown reconstruction of the original paper (recommended)
-├── ORIGINAL.pdf        # Original paper PDF (recommended, can be .html/.tex)
-├── lean/               # Lean 4 formalizations (optional)
-│   ├── ProofAttempt.lean
-│   └── Refutation.lean
-└── rocq/               # Rocq formalizations (optional)
-    ├── ProofAttempt.v
-    └── Refutation.v
+├── README.md              # Overview of the attempt and identified errors (REQUIRED)
+├── ORIGINAL.md            # Markdown reconstruction of the original paper (recommended)
+├── ORIGINAL.pdf           # Original paper PDF (recommended, can be .html/.tex)
+├── proof/                 # Forward proof formalization (recommended)
+│   ├── README.md          # Explanation of proofs
+│   ├── lean/              # Lean 4 formalizations
+│   │   └── ProofAttempt.lean
+│   └── rocq/              # Rocq formalizations
+│       └── ProofAttempt.v
+└── refutation/            # Refutation formalization (recommended)
+    ├── README.md          # Explanation of failures
+    ├── lean/              # Lean 4 formalizations
+    │   └── Refutation.lean
+    └── rocq/              # Rocq formalizations
+        └── Refutation.v
 ```
 
 **File descriptions:**
 - **README.md** (required): Overview of the proof attempt, including metadata (author, year, claim), summary of the approach, and explanation of why it fails
 - **ORIGINAL.md** (recommended): Markdown conversion/reconstruction of the original paper text, translated to English if needed
 - **ORIGINAL.pdf** (recommended): The original paper in PDF format (or .html/.tex if PDF unavailable)
-- **lean/** and **rocq/**: Formalizations split into forward proof attempt and refutation
+- **proof/**: Contains the forward proof formalization (attempting to follow the original author's approach)
+- **refutation/**: Contains the refutation formalization (showing why the proof fails)
 
 You can validate your attempt structure by running:
 ```bash
