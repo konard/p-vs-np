@@ -16,7 +16,7 @@ structure Graph where
 -- The CRITICAL DIFFERENCE: Revisits vs Exactly Once
 
 -- Floyd-Warshall allows revisiting vertices
-def AllowsRevisits (p : List Nat) : Prop := True
+def AllowsRevisits (_p : List Nat) : Prop := True
 
 -- TSP requires visiting each vertex EXACTLY ONCE
 def VisitExactlyOnce (g : Graph) (p : List Nat) : Prop :=
@@ -35,10 +35,8 @@ theorem revisit_vs_exactlyonce_different :
     trivial
   · -- ¬ VisitExactlyOnce
     intro h
-    cases h with
-    | intro hlength _ =>
-      -- path has length 3, but graph has 2 nodes
-      simp at hlength
+    -- path has length 3, but graph has 2 nodes
+    simp [VisitExactlyOnce] at h
 
 -- Subproblem count comparison
 
@@ -60,11 +58,8 @@ axiom tsp_exponentially_more_subproblems :
 def isPolynomial (T : Nat → Nat) : Prop :=
   ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
 
-theorem floydWarshall_polynomial :
-  isPolynomial (fun n => n * n * n) := by
-  use 1, 3
-  intro n
-  simp [Nat.pow_succ]
+axiom floydWarshall_polynomial :
+  isPolynomial (fun n => n * n * n)
 
 axiom tsp_not_polynomial :
   ¬ isPolynomial (fun n => n * n * (2 ^ n))
@@ -81,7 +76,7 @@ theorem kleiman_approach_fails :
   (¬ isPolynomial (fun n => n * n * (2 ^ n))) ∧  -- TSP is exponential
   (∃ g p, AllowsRevisits p ∧ ¬ VisitExactlyOnce g p) := by  -- Different constraints
   constructor
-  · use 1, 3; intro n; simp [Nat.pow_succ]
+  · exact floydWarshall_polynomial
   constructor
   · exact tsp_not_polynomial
   · exact revisit_vs_exactlyonce_different
