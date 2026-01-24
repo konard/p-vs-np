@@ -66,12 +66,12 @@ Required argument:
 
 ## Directory Structure
 
-- **original/**: Description of Viana's proof idea and the original paper
-  - `README.md`: Overview of the claimed proof approach
-  - `ORIGINAL.md`: Summary of the original paper
-  - `paper/viana-2006.pdf`: Original arXiv paper
+- `README.md`: This file - overview of the attempt and its errors
+- `ORIGINAL.md`: Summary of the original paper content
+- `ORIGINAL.pdf`: Original arXiv paper (quant-ph/0612001)
 
 - **proof/**: Formalization of the claimed proof structure
+  - `README.md`: Explanation of what the forward proof captures
   - `lean/VianaProof.lean`: What Viana claimed (structure only)
   - `rocq/VianaProof.v`: What Viana claimed (structure only)
 
