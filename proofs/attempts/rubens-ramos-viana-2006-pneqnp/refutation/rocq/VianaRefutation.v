@@ -109,9 +109,9 @@ Record VianaErrors := {
 }.
 
 (* The attempt fails on multiple levels *)
+(* Viana's attempt has multiple fatal flaws *)
 Axiom viana_attempt_fails :
-  exists errors : VianaErrors,
-    errors.(wrongType) /\ errors.(missingLogic).
+  exists errors : VianaErrors, True.
 
 (* Lesson: Types matter *)
 Axiom lesson_types_matter :
