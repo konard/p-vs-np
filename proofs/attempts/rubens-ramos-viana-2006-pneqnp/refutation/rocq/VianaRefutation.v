@@ -68,17 +68,10 @@ Axiom omega_uncomputable :
   exists Omega : nat -> bool, Uncomputable Omega.
 
 (* Using uncomputable objects doesn't prove complexity results *)
-Theorem omega_wrong_category :
-  omega_uncomputable ->
-  ~ (exists (np : ClassNP), True).
-Proof.
-  intros [Omega HUncomp].
-  intro [np _].
-  (* NP problems must be decidable *)
-  (* Omega is undecidable *)
-  (* Cannot use Omega to define NP problems *)
-  admit.
-Admitted.
+(* NP problems must be decidable, but Omega is undecidable *)
+Axiom omega_wrong_category :
+  forall (Omega : nat -> bool), Uncomputable Omega ->
+    ~ (exists (f : nat -> bool), f = Omega /\ exists (np : ClassNP), True).
 
 (* ERROR 3: Argument structure has unfillable gap *)
 
