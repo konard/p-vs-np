@@ -8,10 +8,10 @@
   Date: 2025
 *)
 
-Require Import Coq.Init.Nat.
-Require Import Coq.Lists.List.
-Require Import Coq.Bool.Bool.
-Require Import Coq.Arith.PeanoNat.
+Require Import Stdlib.Init.Nat.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Bool.Bool.
+Require Import Stdlib.Arith.PeanoNat.
 Import ListNotations.
 
 (* ========================================================================= *)
@@ -107,8 +107,8 @@ Fixpoint formula_size (phi : BoolFormula) : nat :=
    must correspond to a polynomial-length FOPC transformation sequence *)
 Definition invalid_assumption : Prop :=
   forall (algorithm : CSatInstance -> bool) (poly : nat -> nat),
-    (forall inst : CSatInstance, True) ->  (* Algorithm runs in polynomial time *)
-    (exists (seq : TransformationSequence), length seq <= poly (formula_size (formula inst))).
+    (forall csat_inst : CSatInstance, True) ->  (* Algorithm runs in polynomial time *)
+    (exists (csat_inst : CSatInstance) (seq : TransformationSequence), length seq <= poly (formula_size (formula csat_inst))).
 
 (* Counter-example concept: Algorithms can use polynomial-time operations
    that don't correspond to short FOPC proof sequences *)

@@ -30,6 +30,8 @@ class StructureValidation:
     has_readme: bool = False
     has_original: bool = False
     has_original_readme: bool = False
+    has_original_md: bool = False
+    has_original_paper: bool = False
     has_proof: bool = False
     has_proof_lean: bool = False
     has_proof_rocq: bool = False
@@ -68,6 +70,10 @@ class StructureValidation:
             missing.append("original/")
         elif not self.has_original_readme:
             missing.append("original/README.md")
+        if self.has_original and not self.has_original_md:
+            missing.append("original/ORIGINAL.md (recommended)")
+        if self.has_original and not self.has_original_paper:
+            missing.append("original/paper/*.pdf or original/*.pdf (recommended)")
         if not self.has_proof:
             missing.append("proof/")
         elif not (self.has_proof_lean or self.has_proof_rocq):
@@ -94,6 +100,13 @@ def validate_attempt_structure(attempt_path: Path) -> StructureValidation:
     result.has_original = original_path.exists() and original_path.is_dir()
     if result.has_original:
         result.has_original_readme = (original_path / "README.md").exists()
+        result.has_original_md = (original_path / "ORIGINAL.md").exists()
+        # Check for paper in original/paper/ or original/*.pdf
+        paper_dir = original_path / "paper"
+        result.has_original_paper = (
+            (paper_dir.exists() and any(paper_dir.glob("*.pdf"))) or
+            any(original_path.glob("*.pdf"))
+        )
 
     # Check proof/ directory
     proof_path = attempt_path / "proof"
@@ -197,7 +210,10 @@ def print_report(validations: List[StructureValidation]):
 attempt-name/
 ├── README.md              # Overview of the attempt
 ├── original/              # Description of the proof idea
-│   └── README.md         # Detailed description
+│   ├── README.md         # Detailed description
+│   ├── ORIGINAL.md       # Markdown conversion of original paper (recommended)
+│   └── paper/            # Original paper files
+│       └── *.pdf         # Original paper in PDF format
 ├── proof/                 # The forward proof formalization
 │   ├── lean/             # Lean 4 files (*.lean)
 │   └── rocq/             # Rocq files (*.v)

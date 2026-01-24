@@ -9,10 +9,10 @@
   Date: 2025
 *)
 
-Require Import Coq.Init.Nat.
-Require Import Coq.Lists.List.
-Require Import Coq.Bool.Bool.
-Require Import Coq.Arith.PeanoNat.
+Require Import Stdlib.Init.Nat.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Bool.Bool.
+Require Import Stdlib.Arith.PeanoNat.
 Import ListNotations.
 
 (* ========================================================================= *)
