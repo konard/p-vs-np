@@ -1,8 +1,9 @@
 (*
-  HofmanAttempt.v - Formalization of Radoslaw Hofman's 2006 P≠NP attempt
+  HofmanProofAttempt.v - Formalization of Radoslaw Hofman's 2006 P≠NP attempt
+  (Forward Proof Components)
 
   This file formalizes the argument from Hofman's paper "Complexity Considerations, cSAT Lower Bound"
-  (arXiv:0704.0514) and identifies the logical gap in the proof.
+  (arXiv:0704.0514) and contains the main proof attempt components (Parts 1-7).
 
   Author: Formalization for p-vs-np repository
   Date: 2025
@@ -191,81 +192,10 @@ Admitted.
    - Other computational techniques *)
 
 (* ========================================================================= *)
-(* Part 8: Identifying the Logical Gap                                      *)
+(* End of Forward Proof Components                                          *)
 (* ========================================================================= *)
 
-(* The Invalid Assumption: Hofman assumes any polynomial-time algorithm
-   must correspond to a polynomial-length FOPC transformation sequence *)
-Definition invalid_assumption : Prop :=
-  forall (algorithm : CSatInstance -> bool) (poly : nat -> nat),
-    (forall inst : CSatInstance, True) ->  (* Algorithm runs in polynomial time *)
-    (exists (seq : TransformationSequence), length seq <= poly (formula_size (formula inst))).
-
-(* Counter-example concept: Algorithms can use polynomial-time operations
-   that don't correspond to short FOPC proof sequences *)
-Theorem invalid_assumption_is_false :
-  ~ invalid_assumption.
-Proof.
-  unfold invalid_assumption.
-  (* Full proof would construct counter-example *)
-  admit.
-Admitted.
-
-(* The core error: Confusing provability with computability
-   - Gödel's completeness: Every tautology has a proof
-   - Hofman's error: Assuming every fast algorithm has a short proof *)
-Theorem hofman_error_provability_vs_computability :
-  exists (phi : BoolFormula),
-    (* There exists a formula where: *)
-    (exists (longProof : TransformationSequence), length longProof >= 2^(numVars phi)) /\
-    (* The FOPC proof is exponentially long, BUT *)
-    (exists (fastAlgorithm : CSatInstance -> bool), True).
-    (* A fast algorithm might still exist (using non-FOPC techniques) *)
-Proof.
-  (* Conceptual demonstration of the gap *)
-  admit.
-Admitted.
-
-(* ========================================================================= *)
-(* Part 9: The 2SAT "Verification" Issue                                    *)
-(* ========================================================================= *)
-
-(* Hofman claims to verify his method by showing 2SAT ∈ P via polynomial FOPC sequence
-   But this is misleading: showing an upper bound exists doesn't prove lower bounds *)
-Theorem twosat_verification_misleading :
-  forall (phi : BoolFormula),  (* 2CNF formula *)
-  exists (seq : TransformationSequence),
-    length seq <= (numVars phi)^3 ->  (* Polynomial-length sequence exists *)
-    (* BUT this doesn't prove that exponential sequences are NECESSARY for 3SAT *)
-    True.
-Proof.
-  intro phi.
-  admit.
-Admitted.
-
-(* ========================================================================= *)
-(* Part 10: Conclusion                                                      *)
-(* ========================================================================= *)
-
-(* Summary of Hofman's error:
-   1. Correctly observes: Boolean algebra is complete (Gödel)
-   2. Correctly observes: Explicit FOPC transformations require exponential time
-   3. INCORRECTLY concludes: Therefore all deterministic algorithms require exponential time
-
-   The gap: (2) → (3) is unjustified. Algorithms can use computational techniques
-   that don't map to short FOPC proofs. This is the fundamental confusion between
-   proof complexity and computational complexity. *)
-
-Theorem hofman_proof_gap :
-  exists (problem : CSatInstance -> bool),
-    (* There exists a computational problem where: *)
-    (forall seq : TransformationSequence, length seq >= 2^10) /\
-    (* All FOPC transformation sequences are exponentially long, YET *)
-    (exists algorithm : CSatInstance -> bool, True).
-    (* A polynomial-time algorithm might exist (via non-FOPC methods) *)
-Proof.
-  (* Demonstrates the logical gap in Hofman's reasoning *)
-  admit.
-Admitted.
+(* For the refutation of Hofman's argument and identification of the logical gap,
+   see: HofmanRefutation.v *)
 
 (* End of formalization *)

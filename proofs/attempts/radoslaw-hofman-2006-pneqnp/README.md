@@ -229,13 +229,41 @@ By formalizing the argument, we make explicit the hidden assumptions and invalid
 
 ---
 
-## Files in This Directory
+## Directory Structure
 
-- **coq/**: Coq formalization of Hofman's argument and the error
-- **lean/**: Lean formalization of Hofman's argument and the error
-- **isabelle/**: Isabelle/HOL formalization of Hofman's argument and the error
-- **paper/**: Original paper PDF (arXiv:0704.0514v2)
-- **README.md**: This file
+This attempt follows the standard repository structure:
+
+```
+radoslaw-hofman-2006-pneqnp/
+├── README.md                    # This file - overview of the attempt
+├── original/                    # Description of the original proof idea
+│   ├── README.md               # Detailed description of Hofman's approach
+│   └── paper/                  # Original paper
+│       └── hofman-2006.pdf    # arXiv:0704.0514v2
+├── proof/                       # Forward proof formalization
+│   ├── lean/                   # Lean 4 formalization
+│   │   └── HofmanProofAttempt.lean
+│   └── rocq/                   # Rocq (Coq) formalization
+│       └── HofmanProofAttempt.v
+└── refutation/                 # Refutation showing where the proof fails
+    ├── README.md               # Detailed error analysis
+    ├── lean/                   # Lean 4 refutation
+    │   └── HofmanRefutation.lean
+    └── rocq/                   # Rocq (Coq) refutation
+        └── HofmanRefutation.v
+```
+
+---
+
+## Quick Links
+
+- **Original Proof Idea:** [`original/README.md`](original/README.md)
+- **Refutation Analysis:** [`refutation/README.md`](refutation/README.md)
+- **Original Paper:** [`original/paper/hofman-2006.pdf`](original/paper/hofman-2006.pdf)
+- **Lean Forward Proof:** [`proof/lean/HofmanProofAttempt.lean`](proof/lean/HofmanProofAttempt.lean)
+- **Lean Refutation:** [`refutation/lean/HofmanRefutation.lean`](refutation/lean/HofmanRefutation.lean)
+- **Rocq Forward Proof:** [`proof/rocq/HofmanProofAttempt.v`](proof/rocq/HofmanProofAttempt.v)
+- **Rocq Refutation:** [`refutation/rocq/HofmanRefutation.v`](refutation/rocq/HofmanRefutation.v)
 
 ---
 
@@ -255,9 +283,9 @@ By formalizing the argument, we make explicit the hidden assumptions and invalid
 
 - ✅ Paper analyzed and error identified
 - ✅ Comprehensive error explanation written
-- 🚧 Coq formalization in progress
-- 🚧 Lean formalization in progress
-- 🚧 Isabelle formalization in progress
+- ✅ Lean formalization complete (proof + refutation)
+- ✅ Rocq formalization complete (proof + refutation)
+- ✅ Restructured to new repository format
 
 ---
 
