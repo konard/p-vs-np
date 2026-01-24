@@ -119,7 +119,7 @@ To validly prove that exhaustive search is optimal for TSP (or any NP-complete p
 
 This repository contains formal proofs in three proof assistants that demonstrate the logical error:
 
-- **[Coq](coq/ValeyevAttempt.v)**: Formalization showing the circular reasoning
+- **[Rocq](rocq/ValeyevAttempt.v)**: Formalization showing the circular reasoning
 - **[Lean](lean/ValeyevAttempt.lean)**: Formalization showing the circular reasoning
 - **[Isabelle/HOL](isabelle/ValeyevAttempt.thy)**: Formalization showing the circular reasoning
 
