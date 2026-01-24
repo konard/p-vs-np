@@ -143,7 +143,7 @@ This directory contains formal verification attempts in three proof assistants t
 ```
 charles-sauerbier-2002-peqnp/
 ├── README.md (this file)
-├── coq/
+├── rocq/
 │   ├── Structures.v           # C/DNF and C/CNF structures
 │   ├── Algorithms.v            # The three algorithms
 │   ├── Example.v               # Appendix A counterexample
@@ -183,7 +183,7 @@ charles-sauerbier-2002-peqnp/
 ## Status
 
 - ✅ README documentation complete
-- 🚧 Coq formalization: In progress
+- 🚧 Rocq formalization: In progress
 - 🚧 Lean formalization: In progress
 - 🚧 Isabelle formalization: In progress
 - ⏳ Error identification: Pending formalization completion

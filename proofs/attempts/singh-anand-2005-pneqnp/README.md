@@ -89,7 +89,7 @@ The suggestion that problems might be "effectively solvable non-algorithmically"
 ## Formalization Status
 
 This directory contains formal verification attempts in:
-- **Coq** (`coq/`)
+- **Rocq** (`rocq/`)
 - **Lean** (`lean/`)
 - **Isabelle** (`isabelle/`)
 
