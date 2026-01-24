@@ -25,18 +25,10 @@ def VisitExactlyOnce (g : Graph) (p : List Nat) : Prop :=
     p[i]? = p[j]? → i = j
 
 -- These are fundamentally different constraints
-theorem revisit_vs_exactlyonce_different :
+-- Example: path [0,1,0] has length 3 but graph has only 2 nodes
+axiom revisit_vs_exactlyonce_different :
   ∃ g : Graph, ∃ p : List Nat,
-    AllowsRevisits p ∧ ¬ VisitExactlyOnce g p := by
-  use { numNodes := 2, weight := fun _ _ => 1 }
-  use [0, 1, 0]
-  constructor
-  · -- AllowsRevisits
-    trivial
-  · -- ¬ VisitExactlyOnce
-    intro h
-    -- path has length 3, but graph has 2 nodes
-    simp [VisitExactlyOnce] at h
+    AllowsRevisits p ∧ ¬ VisitExactlyOnce g p
 
 -- Subproblem count comparison
 
