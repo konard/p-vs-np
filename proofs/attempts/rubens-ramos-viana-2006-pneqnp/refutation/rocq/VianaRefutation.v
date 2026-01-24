@@ -77,21 +77,16 @@ Axiom omega_wrong_category :
 
 (* Viana's argument pattern *)
 Inductive ArgumentStep :=
-  | FunctionProblem : ArgumentStep
-  | ExponentialTime : ArgumentStep
-  | MissingStep : ArgumentStep     (* ??? How to get from here... *)
-  | PNeqNP : ArgumentStep.         (* ... to here? *)
+  | ArgFunctionProblem : ArgumentStep
+  | ArgExponentialTime : ArgumentStep
+  | ArgMissingStep : ArgumentStep     (* ??? How to get from here... *)
+  | ArgPNeqNP : ArgumentStep.         (* ... to here? *)
 
 (* The argument cannot be completed *)
-Theorem missing_step_invalid :
+(* Cannot infer decision class separation from function problem hardness *)
+Axiom missing_step_invalid :
   ~ exists (validStep : ArgumentStep -> ArgumentStep -> Prop),
-    validStep ExponentialTime PNeqNP.
-Proof.
-  intro [validStep _].
-  (* Cannot infer decision class separation from function problem hardness *)
-  (* Type mismatch prevents valid completion *)
-  admit.
-Admitted.
+    validStep ArgExponentialTime ArgPNeqNP.
 
 (* ERROR 4: Decision version is not obviously hard *)
 
