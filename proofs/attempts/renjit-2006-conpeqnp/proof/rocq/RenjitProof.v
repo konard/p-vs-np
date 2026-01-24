@@ -8,7 +8,7 @@
   follow plausible steps and marking where they cannot be completed.
 *)
 
-Require Import Bool.
+From Stdlib Require Import Bool.
 
 (* Abstract computational problem definitions *)
 Parameter Problem : Type.
@@ -100,22 +100,12 @@ Axiom claimed_generalization :
 
 (* ATTEMPTED CONCLUSION: From the (invalid) claims above *)
 Theorem attempted_proof_NP_eq_coNP :
-  claimed_no_clique_certificate ->
-  claimed_generalization ->
   NP_equals_coNP.
 Proof.
-  intros H_cert H_gen.
-  rewrite NP_equals_coNP_definition.
-  intro p.
-  split.
-  - (* Forward: InNP p -> InCoNP p *)
-    intro H_np.
-    (* Apply claimed generalization *)
-    destruct H_cert as [verifier [H_poly H_verifies]].
-    apply (H_gen (ex_intro _ verifier H_poly) p H_np).
-  - (* Backward: InCoNP p -> InNP p *)
-    intro H_conp.
-    (* This direction has similar (invalid) reasoning *)
+  (* This proof relies on the unproven axioms:
+     - claimed_no_clique_certificate (existence of polynomial NO-CLIQUE certificates)
+     - claimed_generalization (invalid extension from CLIQUE to all NP problems)
+     The proof cannot be completed because these axioms are either false or unproven *)
 Admitted.
 
 (* Why This Proof Fails *)
@@ -165,7 +155,7 @@ Admitted.
 (* This marks where the generalization fails *)
 Theorem reductions_dont_transfer_certificate_structure :
   forall (L : Problem) (f : nat -> nat),
-    (forall x, (exists cert, True) <-> (exists cert', True)) ->
+    (forall x : nat, (exists cert : nat, True) <-> (exists cert' : nat, True)) ->
     ~(forall p : Problem, True).
 Proof.
   (* Reductions f : L ≤ₚ CLIQUE satisfy: x ∈ L ⟺ f(x) ∈ CLIQUE

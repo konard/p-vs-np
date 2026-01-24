@@ -7,7 +7,7 @@
   Reference: arXiv:cs.CC/0611147 (withdrawn by author)
 *)
 
-Require Import Bool.
+From Stdlib Require Import Bool.
 
 (* Abstract representation of computational problems *)
 Parameter Problem : Type.
@@ -147,14 +147,13 @@ Axiom paper_withdrawn : True.
 
 (* Withdrawal after many revisions indicates fundamental error *)
 Theorem withdrawal_indicates_fundamental_error :
-  paper_withdrawn ->
   number_of_revisions = 9 ->
   (* The error was not a minor technical issue (fixable through revision)
      but a deep conceptual problem with the core claim *)
   exists (fundamental_error : Prop), fundamental_error.
 Proof.
-  intros H_withdrawn H_revisions.
-  (* Author attempted 9 fixes, then withdrew
+  intro H_revisions.
+  (* Author attempted 9 fixes, then withdrew (paper_withdrawn axiom)
      This pattern indicates recognition of irreparable flaw *)
   exists True.
   exact I.
