@@ -62,7 +62,7 @@ The formalizations in this directory aim to:
 
 This directory contains formal verification attempts in multiple proof assistants:
 
-- `coq/` - Coq formalization
+- `rocq/` - Rocq formalization
 - `lean/` - Lean 4 formalization
 - `isabelle/` - Isabelle/HOL formalization
 
@@ -101,7 +101,7 @@ This attempt illustrates several important lessons for P vs NP research:
 ## Status
 
 - ✅ README documentation: Complete
-- ✅ Coq formalization: Complete
+- ✅ Rocq formalization: Complete
 - ✅ Lean 4 formalization: Complete
 - ✅ Isabelle/HOL formalization: Complete
 

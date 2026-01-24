@@ -130,7 +130,7 @@ Hofman (2006) in "Why Linear Programming cannot solve large instances of NP-comp
 
 ## Formalization Files
 
-- **Coq**: `coq/MaknickasAttempt.v` - Formalizes the LP/ILP distinction and the error
+- **Rocq**: `rocq/MaknickasAttempt.v` - Formalizes the LP/ILP distinction and the error
 - **Lean**: `lean/MaknickasAttempt.lean` - Demonstrates the gap in the proof
 - **Isabelle**: `isabelle/MaknickasAttempt.thy` - Provides counterexample with fractional solutions
 
