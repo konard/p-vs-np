@@ -62,12 +62,12 @@ Theorem tsp_exponentially_more_subproblems :
     1000 * FloydWarshallSubproblems {| g_numNodes := n; g_weight := fun _ _ => 0 |}.
 Proof.
   exists 15. intro H. unfold TSPSubproblems, FloydWarshallSubproblems.
-  simpl.
   (* For n=15:
      TSP: 15 * 15 * 2^15 = 225 * 32768 = 7,372,800
      FW:  1000 * 15 * 15 * 15 = 1000 * 3375 = 3,375,000
-     7,372,800 > 3,375,000 *)
-  admit.  (* Arithmetic verification omitted *)
+     7,372,800 > 3,375,000
+     Arithmetic verification omitted to avoid stack overflow during computation *)
+  admit.
 Admitted.
 
 (* Polynomial vs Exponential *)
