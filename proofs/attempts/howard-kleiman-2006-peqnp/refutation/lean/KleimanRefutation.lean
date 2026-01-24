@@ -51,7 +51,7 @@ def isPolynomial (T : Nat → Nat) : Prop :=
   ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
 
 axiom floydWarshall_polynomial :
-  isPolynomial (fun n => n * n * n)
+  isPolynomial (fun n => n ^ 3)
 
 axiom tsp_not_polynomial :
   ¬ isPolynomial (fun n => n * n * (2 ^ n))
