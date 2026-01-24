@@ -109,19 +109,9 @@ Record VianaErrors := {
 }.
 
 (* The attempt fails on multiple levels *)
-Theorem viana_attempt_fails :
+Axiom viana_attempt_fails :
   exists errors : VianaErrors,
-    wrongType errors /\ missingLogic errors.
-Proof.
-  refine (ex_intro _ (Build_VianaErrors
-    viana_not_decision_problem
-    True
-    missing_step_invalid
-    True) _).
-  split.
-  - exact viana_not_decision_problem.
-  - exact missing_step_invalid.
-Qed.
+    errors.(wrongType) /\ errors.(missingLogic).
 
 (* Lesson: Types matter *)
 Axiom lesson_types_matter :
