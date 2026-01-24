@@ -56,11 +56,11 @@ axiom claimed_generalization : True
 
 /-- ATTEMPTED CONCLUSION: From the (invalid) claims above -/
 theorem attempted_proof_NP_eq_coNP :
-    claimed_no_clique_certificate →
-    claimed_generalization →
     NP_equals_coNP := by
-  intro _ _
-  -- This proof cannot be completed without the unproven axioms
+  -- This proof relies on the unproven axioms:
+  -- - claimed_no_clique_certificate (existence of polynomial NO-CLIQUE certificates)
+  -- - claimed_generalization (invalid extension from CLIQUE to all NP problems)
+  -- The proof cannot be completed because these axioms are either false or unproven
   sorry
 
 -- Why This Proof Fails
