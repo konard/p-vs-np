@@ -67,7 +67,7 @@ structure Graph where
 structure Path (g : Graph) where
   length : Nat
   nodes : Nat → Nat
-  valid : ∀ i : Nat, i < length → hasEdge g (nodes i) (nodes (i + 1)) = true
+  valid : ∀ i : Nat, i < length → g.hasEdge (nodes i) (nodes (i + 1)) = true
 
 /-- A Hamiltonian cycle: visits every node exactly once and returns to start -/
 structure HamiltonianCycle (g : Graph) where
@@ -75,7 +75,7 @@ structure HamiltonianCycle (g : Graph) where
   coversAllNodes : path.length = g.numNodes
   allDistinct : ∀ i j : Nat, i < path.length → j < path.length → i ≠ j →
     path.nodes i ≠ path.nodes j
-  returnToStart : hasEdge g (path.nodes (path.length - 1)) (path.nodes 0) = true
+  returnToStart : g.hasEdge (path.nodes (path.length - 1)) (path.nodes 0) = true
 
 /- ## 3. Hamiltonian Cycle Problem -/
 
