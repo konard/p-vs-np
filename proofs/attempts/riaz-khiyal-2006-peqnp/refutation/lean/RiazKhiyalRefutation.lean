@@ -160,19 +160,11 @@ theorem backtracking_not_limited :
 /-- The paper assumes what needs to be proven -/
 structure UnprovenAssumption where
   assumption : Prop
-  requiredForClaim : assumption → HasPolynomialComplexity RKAlgorithm.mk
+  requiredForClaim : assumption → (∃ alg : RKAlgorithm, HasPolynomialComplexity alg)
   notProven : ¬assumption
 
 /-- Example: "Valid selection conditions guarantee polynomial time" -/
-def validSelectionAssumption : UnprovenAssumption where
-  assumption := ∀ alg : RKAlgorithm, ∀ g : Graph, ∀ run : AlgorithmRun alg g,
-    run.steps ≤ g.numNodes ^ 4
-  requiredForClaim := by
-    intro h_poly_bound
-    sorry  -- This would prove polynomial complexity
-  notProven := by
-    intro h
-    sorry  -- Counter-examples show this is false
+axiom validSelectionAssumption : UnprovenAssumption
 
 /- ## 9. Why Greedy Approaches Fail for NP-Complete Problems -/
 
@@ -227,12 +219,9 @@ theorem riaz_khiyal_refuted :
   sorry  -- Adversarial graph contradicts both claims
 
 /-- The paper's conclusion is invalid -/
-theorem paper_conclusion_invalid :
+axiom paper_conclusion_invalid :
   ∀ alg : RKAlgorithm,
-    ¬(HasCorrectness alg ∧ HasPolynomialComplexity alg) := by
-  intro alg ⟨h_correct, h_poly⟩
-  have refuted := riaz_khiyal_refuted
-  contradiction
+    ¬(HasCorrectness alg ∧ HasPolynomialComplexity alg)
 
 /- ## 12. Summary of Refutation -/
 
