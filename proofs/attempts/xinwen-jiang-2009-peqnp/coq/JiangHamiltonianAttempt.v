@@ -130,7 +130,7 @@ Axiom jiang_reduction_is_polynomial :
 (* CLAIMED: The reduction preserves the problem (HC instance ↔ MSP instance) *)
 Axiom jiang_reduction_correctness_claim :
   forall g : Graph,
-    np_language HC (String.EmptyString) <-> MSP (jiang_reduction g).
+    np_language HC (String.EmptyString) = true <-> MSP (jiang_reduction g) = true.
 
 (* CLAIMED: Jiang's algorithm for MSP *)
 Axiom jiang_MSP_algorithm : String.string -> bool.
@@ -148,7 +148,7 @@ Axiom jiang_MSP_algorithm_correctness_claim :
 (* IF all claims hold, THEN we can solve HC in polynomial time *)
 Theorem jiang_implies_HC_in_P :
   (forall g : Graph,
-    np_language HC (String.EmptyString) <-> MSP (jiang_reduction g)) ->
+    np_language HC (String.EmptyString) = true <-> MSP (jiang_reduction g) = true) ->
   (forall s : String.string, MSP s = jiang_MSP_algorithm s) ->
   (exists T : TimeComplexity, isPolynomial T).
 Proof.
@@ -164,7 +164,7 @@ Axiom HC_in_P_implies_P_equals_NP :
 (* JIANG'S COMPLETE ARGUMENT (Conditional on all claims) *)
 Theorem jiang_complete_argument :
   (forall g : Graph,
-    np_language HC (String.EmptyString) <-> MSP (jiang_reduction g)) ->
+    np_language HC (String.EmptyString) = true <-> MSP (jiang_reduction g) = true) ->
   (forall s : String.string, MSP s = jiang_MSP_algorithm s) ->
   PEqualsNP.
 Proof.
@@ -206,7 +206,7 @@ Axiom MSP_poset_correspondence :
 Axiom MSP_in_P_doesnt_help :
   (exists T : TimeComplexity, isPolynomial T) ->
   ~ (forall g : Graph,
-    np_language HC (String.EmptyString) <-> MSP (jiang_reduction g)) ->
+    np_language HC (String.EmptyString) = true <-> MSP (jiang_reduction g) = true) ->
   ~ PEqualsNP.
 
 (* ERROR 3: Algorithm correctness relies on experimental validation, not proof *)
@@ -326,7 +326,7 @@ Theorem jiang_fails_at_multiple_steps :
 Proof.
   exists {|
     ja_hasReduction := forall g : Graph,
-      np_language HC (String.EmptyString) <-> MSP (jiang_reduction g);
+      np_language HC (String.EmptyString) = true <-> MSP (jiang_reduction g) = true;
     ja_hasAlgorithm := forall s : String.string, MSP s = jiang_MSP_algorithm s;
     ja_reductionPolynomial := exists T : TimeComplexity, isPolynomial T;
     ja_algorithmPolynomial := exists T : TimeComplexity, isPolynomial T;

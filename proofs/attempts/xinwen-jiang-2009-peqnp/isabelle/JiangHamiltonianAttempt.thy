@@ -37,14 +37,16 @@ record ClassP =
   p_language :: Language
   p_decider :: "string \<Rightarrow> nat"
   p_timeComplexity :: TimeComplexity
-  p_isPoly :: "isPolynomial p_timeComplexity"
+  p_isPoly :: bool
+  p_polyWitness :: "p_isPoly \<longrightarrow> isPolynomial p_timeComplexity"
   p_correct :: "\<forall>s. p_language s = (p_decider s > 0)"
 
 record ClassNP =
   np_language :: Language
   np_verifier :: "string \<Rightarrow> string \<Rightarrow> bool"
   np_timeComplexity :: TimeComplexity
-  np_isPoly :: "isPolynomial np_timeComplexity"
+  np_isPoly :: bool
+  np_polyWitness :: "np_isPoly \<longrightarrow> isPolynomial np_timeComplexity"
   np_correct :: "\<forall>s. np_language s = (\<exists>cert. np_verifier s cert)"
 
 record NPComplete =
