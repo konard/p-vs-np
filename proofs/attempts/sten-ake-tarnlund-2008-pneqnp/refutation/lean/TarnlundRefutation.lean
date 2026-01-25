@@ -50,7 +50,7 @@ def Provable (sys : FormalSystem) (_F : Formula) : Prop :=
 def TheoryB : FormalSystem :=
   { axioms := [], rules := [] }
 
-axiom UniversalTMAxiom : Formula
+noncomputable axiom UniversalTMAxiom : Formula
 
 def TheoryBPrime : FormalSystem :=
   { axioms := UniversalTMAxiom :: TheoryB.axioms,
@@ -78,9 +78,8 @@ def IsSoundForComplexity (sys : FormalSystem) : Prop :=
     Provable sys F →
     fact
 
-/-! ## Part 2: The Critical Missing Piece -/
+/-! ## Part 2: The Critical Missing Piece
 
-/--
 Tarnlund's error: He proved "SAT ∉ P" within a formal system TheoryB',
 but never proved that TheoryB' is SOUND for computational complexity claims.
 

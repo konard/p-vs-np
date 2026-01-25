@@ -64,7 +64,7 @@ def TheoryB : FormalSystem :=
   { axioms := [], rules := [] }
 
 /-- Universal Turing Machine axiom -/
-axiom UniversalTMAxiom : Formula
+noncomputable axiom UniversalTMAxiom : Formula
 
 /-- Theory B' (Theory B + Universal TM axiom) -/
 def TheoryBPrime : FormalSystem :=
