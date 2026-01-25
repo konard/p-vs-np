@@ -152,7 +152,7 @@ structure CircularConstruction where
 -- The trap: Properties of L often depend on L ∉ co-NP
 axiom language_construction_requires_assumption :
   -- Any language constructed to witness NP ≠ co-NP
-  ∀ (construction : Type) → (construction → Language),
+  ∀ (construction : Type), ∀ (f : construction → Language),
   -- Will have properties that depend on the conclusion
   True
 
@@ -224,6 +224,7 @@ theorem same_barriers_for_both_separations :
   -- Any technique overcoming barriers for one
   -- Would likely work for the other
   True := by
+  intro _
   trivial
 
 -- No known technique separates one but not the other
