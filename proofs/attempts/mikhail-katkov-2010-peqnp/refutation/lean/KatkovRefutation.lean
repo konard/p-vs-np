@@ -47,7 +47,6 @@ instance : LT Real where
 
 -- Matrix and summation
 axiom Matrix : Type → Type → Type → Type
-axiom Fin : Nat → Type
 axiom sum : {n : Nat} → (Fin n → Real) → Real
 
 -- Import proof attempt axioms
@@ -90,7 +89,7 @@ axiom katkov_uniqueness_claim : ∀ (n : Nat) (Q : Matrix (Fin n) (Fin n) ℝ),
   ∃ α_star : ℝ,
     Real.lt 0 α_star ∧
     ∀ α : ℝ, Real.le 0 α → Real.lt α α_star →
-    ∃! x : Fin n → ℝ, isGlobalMinimizer n α Q x
+    ∃! x, isGlobalMinimizer n α Q x
 
 /-- But uniqueness fails when multiple optimal cuts exist -/
 theorem uniqueness_not_proven :
@@ -120,7 +119,7 @@ theorem equation_24_fails_when_gap_zero :
     ∃ (n : Nat) (α : ℝ) (Q : Matrix (Fin n) (Fin n) ℝ),
       Real.lt 0 α ∧
       -- The uniqueness condition is violated
-      ¬(∃! x : Fin n → ℝ, isGlobalMinimizer n α Q x) := by
+      ¬(∃! x, isGlobalMinimizer n α Q x) := by
   sorry
 
 /-! ## Error 4: Bifurcations Are Possible -/

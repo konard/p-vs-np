@@ -41,7 +41,6 @@ instance : LT Real where
 
 -- Matrix axioms
 axiom Matrix : Type → Type → Type → Type
-axiom Fin : Nat → Type
 
 -- Summation
 axiom sum : {n : Nat} → (Fin n → Real) → Real
@@ -143,7 +142,7 @@ axiom katkov_uniqueness : ∀ (n : Nat) (α : ℝ) (Q : Matrix (Fin n) (Fin n) �
   ∃ α_star : ℝ,
     Real.lt 0 α_star ∧
     ∀ α_val : ℝ, Real.le 0 α_val → Real.lt α_val α_star →
-    ∃! x : Fin n → ℝ, isGlobalMinimizer n α_val Q x
+    ∃! x, isGlobalMinimizer n α_val Q x
 
 /-- Polynomial time solvability via SDP (Lemma 4.1) -/
 axiom katkov_polynomial_time : ∀ (n : Nat) (α : ℝ) (bqp : BQP n),
@@ -172,7 +171,7 @@ axiom maxcut_is_NP_complete : True
 
 /-- Katkov's conclusion: If the algorithm works, then P = NP -/
 axiom katkov_would_imply_P_eq_NP :
-  (∀ g n bqp, ∃ α x s,
+  (∀ g n (bqp : BQP n), ∃ α x s,
     Real.lt 0 α ∧
     isGlobalMinimizer n α bqp.Q x ∧
     cutWeight g s = maxCut g) →

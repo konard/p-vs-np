@@ -173,7 +173,7 @@ Axiom katkov_algorithm_claim : forall (G : WeightedGraph) (n : nat) (bqp : BQP n
 *)
 
 Axiom katkov_would_imply_P_eq_NP :
-  (forall G n bqp, exists alpha x s,
+  (forall G n (bqp : BQP n), exists alpha x s,
     (alpha > 0)%R /\
     is_global_minimizer n alpha (Q n bqp) x /\
     cut_weight G s = max_cut G) ->
