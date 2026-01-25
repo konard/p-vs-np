@@ -124,14 +124,14 @@ Proof.
       split.
       - exact Hpoly.
       - intro x. unfold Complement in Hdec.
-        specialize (Hdec x).
         destruct (M x) eqn:Hmx.
         + simpl. split; intro H.
-          * exfalso. apply Hdec. exact H.
+          * exfalso. apply (proj2 (Hdec x) Hmx). exact H.
           * discriminate.
         + simpl. split; intro H.
           * reflexivity.
-          * tauto.
+          * specialize (Hdec x). destruct Hdec as [_ H_back].
+            intro Hneg. apply Hneg. exact H.
     }
     (* P = NP, so L ∈ NP *)
     rewrite <- H_p_eq_np.
