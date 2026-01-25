@@ -122,7 +122,7 @@ To actually prove P = NP using a new complexity class C, you would need:
 
 ## Formalization Results
 
-Our formalizations in Coq, Lean, and Isabelle all demonstrate:
+Our formalizations in Rocq, Lean, and Isabelle all demonstrate:
 
 1. ✅ We can define InEquivalentP formally
 2. ✅ We can define DiagonalEmbedding formally
@@ -143,4 +143,4 @@ The formalization exposes the gap: the transition from "embeddings exist" to "cl
 ## References
 
 - Vega, F. (2015). "Solution of P versus NP Problem." HAL hal-01161668
-- Our formalizations: coq/VegaEquivalentP.v, lean/VegaEquivalentP.lean, isabelle/VegaEquivalentP.thy
+- Our formalizations: rocq/VegaEquivalentP.v, lean/VegaEquivalentP.lean, isabelle/VegaEquivalentP.thy
