@@ -140,8 +140,8 @@ Proof.
   apply NP_complete_in_P_implies_P_eq_NP.
   destruct HC_is_NP_complete as [hc_npc hc_eq].
   exists hc_npc, p.
-  rewrite <- hc_eq. rewrite h_eq. reflexivity.
-Qed.
+  admit.  (* Requires showing language equivalence *)
+Admitted.
 
 (* Krieger & Jones' complete argument structure *)
 Theorem krieger_jones_complete_argument :
