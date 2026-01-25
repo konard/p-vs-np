@@ -303,7 +303,8 @@ Proof.
   split.
   - exists {| items := [1; 2; 4]; target := 6 |}. trivial.
   - split.
-    + exact meek_showed_wrong_direction.
+    + destruct meek_showed_wrong_direction as [_ [H1 H2]].
+      split; assumption.
     + split.
       * exists (BaseConversionAlgorithm 2). trivial.
       * trivial.
