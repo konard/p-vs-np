@@ -68,7 +68,7 @@ According to the author's withdrawal notice on arXiv:
 This proof attempt demonstrates several important principles:
 
 1. **Hidden dependencies**: Complex mathematical arguments can have subtle dependencies that are easy to overlook in informal proofs
-2. **Value of formalization**: A formal proof in Coq, Lean, or Isabelle would likely have caught this dependency issue during type-checking or proof construction
+2. **Value of formalization**: A formal proof in Rocq, Lean, or Isabelle would likely have caught this dependency issue during type-checking or proof construction
 3. **Importance of independent verification**: The error was discovered after publication, emphasizing the need for rigorous peer review and formal verification
 4. **Circuit complexity challenges**: Proving lower bounds for circuit complexity remains extraordinarily difficult, with many subtle pitfalls
 
@@ -76,7 +76,7 @@ This proof attempt demonstrates several important principles:
 
 This directory contains formalizations in three proof assistants:
 
-- **[coq/](coq/)** - Coq formalization
+- **[rocq/](rocq/)** - Rocq formalization
 - **[lean/](lean/)** - Lean 4 formalization
 - **[isabelle/](isabelle/)** - Isabelle/HOL formalization
 
