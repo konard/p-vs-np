@@ -1,10 +1,11 @@
 (*
   TarnlundRefutation.v - Refutation of Tarnlund's 2008 P≠NP attempt
+Open Scope string_scope.
   Author: Formalization for p-vs-np repository
   Related: Issue #453
 *)
 
-Require Import TarnlundProof.
+From Stdlib Require Import TarnlundProof.
 
 Definition SoundnessProof (sys : FormalSystem) : Prop :=
   exists (_proof : unit), IsSoundForComplexity sys.

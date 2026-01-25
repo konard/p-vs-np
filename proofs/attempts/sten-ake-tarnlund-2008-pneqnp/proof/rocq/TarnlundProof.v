@@ -4,8 +4,9 @@
   Related: Issue #453
 *)
 
-Require Import String List Nat.
+From Stdlib Require Import String List Nat.
 
+Open Scope string_scope.
 Definition Language := string -> bool.
 Definition TimeComplexity := nat -> nat.
 
