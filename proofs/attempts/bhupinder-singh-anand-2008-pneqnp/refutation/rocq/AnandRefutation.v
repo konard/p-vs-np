@@ -8,10 +8,10 @@
    complexity theory.
 *)
 
-Require Import Coq.Logic.Classical.
-Require Import Coq.Sets.Ensembles.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Arith.Arith.
+Require Import Stdlib.Logic.Classical.
+Require Import Stdlib.Sets.Ensembles.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.Arith.Arith.
 
 (* Basic definitions for computational complexity classes *)
 

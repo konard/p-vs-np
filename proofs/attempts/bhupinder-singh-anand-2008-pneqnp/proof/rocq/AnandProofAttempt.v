@@ -8,9 +8,9 @@
    marking with Admitted the places where the logic breaks down.
 *)
 
-Require Import Coq.Logic.Classical.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Arith.Arith.
+Require Import Stdlib.Logic.Classical.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.Arith.Arith.
 
 (** * Basic Complexity Definitions *)
 
@@ -105,7 +105,9 @@ Proof.
   destruct H_sep as [L [H_np H_not_p]].
   assert (H_p : InP L).
   {
-    rewrite <- H_eq.
+    specialize (H_eq L).
+    destruct H_eq.
+    apply H.
     exact H_np.
   }
   contradiction.
