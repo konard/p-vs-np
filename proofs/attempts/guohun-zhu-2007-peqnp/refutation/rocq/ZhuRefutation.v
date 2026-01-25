@@ -13,6 +13,9 @@ Require Import Coq.Init.Nat.
 Require Import Coq.Arith.Arith.
 Require Import Coq.Lists.List.
 Require Import Coq.Logic.FunctionalExtensionality.
+Require Import Coq.micromega.Lia.
+
+Module ZhuAttempt.
 
 (** * Definitions *)
 
@@ -102,7 +105,7 @@ Proof.
     + (* k = 1: 2^1 = 2 = 2*1, contradiction with k >= 2 *)
       inversion H. inversion H1.
     + (* k >= 2: prove 2^(S(S k)) > 2*(S(S k)) *)
-      simpl. omega.
+      simpl. lia.
 Qed.
 
 (** Counterexample: Exponential growth vs. linear bound *)
@@ -115,9 +118,9 @@ Proof.
   (* For n = 12: n/4 = 3, n/2 = 6, 2^3 = 8 > 6 *)
   (* For n = 16: n/4 = 4, n/2 = 8, 2^4 = 16 > 8 *)
   (* In general, 2^(n/4) grows exponentially while n/2 grows linearly *)
-  destruct n; try omega.
-  destruct n; try omega.
-  destruct n; try omega.
+  destruct n; try lia.
+  destruct n; try lia.
+  destruct n; try lia.
   (* ... would need to continue or use more sophisticated proof *)
 Admitted.
 
@@ -147,7 +150,7 @@ Proof.
   intros n Hn Hmod Hcontra.
   (* This contradicts exponential_vs_linear *)
   assert (2^(n/4) > n/2) by (apply exponential_vs_linear; assumption).
-  omega.
+  lia.
 Qed.
 
 (** * Summary of Errors *)
@@ -168,7 +171,7 @@ Theorem counting_error : forall k : nat,
 Proof.
   intros k H Hcontra.
   assert (2^k > 2 * k) by (apply correct_matching_count; assumption).
-  omega.
+  lia.
 Qed.
 
 (**
