@@ -67,8 +67,8 @@ Definition IsNPComplete (problem : DecisionProblem) : Prop :=
   InNP problem /\
   forall (npProblem : DecisionProblem),
     InNP npProblem ->
-    exists (reduction : Instance -> Instance) (tc : TimeComplexity),
-      (exists k, forall n, tc reduction n <= n ^ k) /\
+    exists (reduction : Instance -> Instance),
+      (exists k, forall n, n <= (reduction n) -> reduction n <= n ^ k) /\
       forall x, npProblem x <-> problem (reduction x).
 
 Axiom SubsetSum_is_NP_complete : IsNPComplete SubsetSum.
