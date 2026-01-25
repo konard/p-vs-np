@@ -8,10 +8,10 @@
    to establish P ≠ NP) encounters fundamental difficulties and known barriers.
 *)
 
-Require Import Coq.Logic.Classical.
-Require Import Coq.Sets.Ensembles.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Arith.Arith.
+Require Import Stdlib.Logic.Classical.
+Require Import Stdlib.Sets.Ensembles.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.Arith.Arith.
 
 (* Basic definitions for computational complexity classes *)
 
@@ -100,7 +100,7 @@ Proof.
     unfold InCoNP.
     (* L ∈ NP and P = NP, so L ∈ P *)
     assert (H_p : InP L).
-    { rewrite <- H_p_eq_np. exact H_np. }
+    { apply H_p_eq_np. exact H_np. }
     (* P closed under complement, so L̄ ∈ P *)
     assert (H_comp_p : InP (Complement L)).
     { apply p_closed_under_complement. exact H_p. }

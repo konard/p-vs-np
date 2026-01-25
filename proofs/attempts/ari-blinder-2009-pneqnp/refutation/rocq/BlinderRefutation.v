@@ -13,9 +13,9 @@
    Status: Author retracted on March 10, 2010 after finding a flaw
 *)
 
-Require Import Coq.Logic.Classical.
-Require Import Coq.Sets.Ensembles.
-Require Import Coq.Arith.PeanoNat.
+Require Import Stdlib.Logic.Classical.
+Require Import Stdlib.Sets.Ensembles.
+Require Import Stdlib.Arith.PeanoNat.
 
 (* Basic definitions *)
 Definition Language := nat -> Prop.
