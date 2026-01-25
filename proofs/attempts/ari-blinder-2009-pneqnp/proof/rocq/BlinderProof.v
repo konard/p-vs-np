@@ -127,7 +127,7 @@ Proof.
         specialize (Hdec x).
         destruct (M x) eqn:Hmx.
         + simpl. split; intro H.
-          * exfalso. apply Hdec; auto. intro. discriminate.
+          * exfalso. apply Hdec. exact H.
           * discriminate.
         + simpl. split; intro H.
           * reflexivity.
