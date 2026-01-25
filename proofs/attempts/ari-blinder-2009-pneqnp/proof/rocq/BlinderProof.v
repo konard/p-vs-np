@@ -112,7 +112,7 @@ Proof.
     unfold InCoNP in H_conp.
     (* L̄ ∈ NP and P = NP, so L̄ ∈ P *)
     assert (H_comp_p : InP (Complement L)).
-    { rewrite <- H_p_eq_np. exact H_conp. }
+    { apply H_p_eq_np. exact H_conp. }
     (* P closed under complement, so L̄̄ = L ∈ P *)
     assert (H_comp_comp_eq : forall x, Complement (Complement L) x <-> L x).
     { intro x. unfold Complement. tauto. }
