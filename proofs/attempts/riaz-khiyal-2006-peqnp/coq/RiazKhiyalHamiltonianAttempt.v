@@ -214,7 +214,7 @@ Theorem riaz_khiyal_complete_argument :
 Proof.
   intros alg claim.
   apply HC_in_P_implies_P_equals_NP.
-  apply riaz_khiyal_implication.
+  apply (riaz_khiyal_implication alg).
   exact claim.
 Qed.
 

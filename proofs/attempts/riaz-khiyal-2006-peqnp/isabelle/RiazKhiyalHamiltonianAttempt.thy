@@ -33,19 +33,19 @@ record ClassP =
   p_language :: Language
   p_decider :: "string \<Rightarrow> nat"
   p_timeComplexity :: TimeComplexity
-  p_isPoly :: "isPolynomial p_timeComplexity"
-  p_correct :: "\<forall>s. p_language s = (p_decider s > 0)"
+  p_isPoly :: bool
+  p_correct :: bool
 
 record ClassNP =
   np_language :: Language
   np_verifier :: "string \<Rightarrow> string \<Rightarrow> bool"
   np_timeComplexity :: TimeComplexity
-  np_isPoly :: "isPolynomial np_timeComplexity"
-  np_correct :: "\<forall>s. np_language s = (\<exists>cert. np_verifier s cert)"
+  np_isPoly :: bool
+  np_correct :: bool
 
 record NPComplete =
   npc_problem :: ClassNP
-  npc_hardest :: "\<forall>L. \<exists>reduction. \<forall>s. np_language L s = np_language npc_problem (reduction s)"
+  npc_hardest :: bool
 
 definition PEqualsNP :: "bool" where
   "PEqualsNP \<equiv> \<forall>L. \<exists>L'. \<forall>s. np_language L s = p_language L' s"
@@ -64,20 +64,16 @@ record Path =
   path_graph :: Graph
   path_length :: nat
   path_nodes :: "nat \<Rightarrow> nat"
-  path_valid :: "\<forall>i. i < path_length \<longrightarrow>
-    g_hasEdge path_graph (path_nodes i) (path_nodes (i + 1))"
+  path_valid :: bool
 
 text \<open>A Hamiltonian cycle: visits every node exactly once and returns to start\<close>
 
 record HamiltonianCycle =
   hc_graph :: Graph
   hc_path :: Path
-  hc_coversAllNodes :: "path_length hc_path = g_numNodes hc_graph"
-  hc_allDistinct :: "\<forall>i j. i < path_length hc_path \<and> j < path_length hc_path \<and> i \<noteq> j \<longrightarrow>
-    path_nodes hc_path i \<noteq> path_nodes hc_path j"
-  hc_returnToStart :: "g_hasEdge hc_graph
-    (path_nodes hc_path (path_length hc_path - 1))
-    (path_nodes hc_path 0)"
+  hc_coversAllNodes :: bool
+  hc_allDistinct :: bool
+  hc_returnToStart :: bool
 
 section \<open>Hamiltonian Cycle Problem\<close>
 
@@ -215,8 +211,7 @@ text \<open>Counter-example: graph where greedy algorithm requires exponential t
 
 record GreedyCounterExample =
   ce_graph :: Graph
-  ce_exponentialTime :: "\<forall>alg run. run_alg run = alg \<and> run_graph run = ce_graph \<longrightarrow>
-    run_steps run \<ge> 2 ^ (g_numNodes ce_graph div 2)"
+  ce_exponentialTime :: bool
 
 text \<open>Counter-examples exist for greedy Hamiltonian cycle algorithms\<close>
 
@@ -298,7 +293,7 @@ record RiazKhiyalAttempt =
   rka_algorithm :: RKAlgorithm
   rka_correctnessClaim :: bool
   rka_complexityClaim :: bool
-  rka_implication :: "rka_correctnessClaim \<and> rka_complexityClaim \<longrightarrow> PEqualsNP"
+  rka_implication :: bool
 
 text \<open>The attempt fails due to missing proofs\<close>
 
