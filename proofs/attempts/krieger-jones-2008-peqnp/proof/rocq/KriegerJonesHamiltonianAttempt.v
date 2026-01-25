@@ -86,8 +86,8 @@ Record Path (g : Graph) := {
 (* A Hamiltonian circuit (cycle visiting each vertex exactly once) *)
 Record HamiltonianCircuit (g : Graph) := {
   hc_path : Path g;
-  hc_visitsAll : length (path_vertices hc_path) = g_numVertices g;
-  hc_allDistinct : NoDup (path_vertices hc_path);
+  hc_visitsAll : length (path_vertices g hc_path) = g_numVertices g;
+  hc_allDistinct : NoDup (path_vertices g hc_path);
   hc_isCycle : True  (* Simplified: last vertex connects back to first *)
 }.
 
