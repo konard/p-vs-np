@@ -4,8 +4,8 @@
   This file demonstrates the encoding complexity barrier.
 **)
 
-Require Import Nat.
-Require Import Arith.
+From Stdlib Require Import Nat.
+From Stdlib Require Import Arith.
 
 Module VallsRefutation.
 

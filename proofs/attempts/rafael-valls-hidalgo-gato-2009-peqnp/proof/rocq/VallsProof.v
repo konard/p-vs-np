@@ -20,12 +20,12 @@
   - Woeginger's List, Entry #51
 *)
 
-Require Import Coq.Init.Nat.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Logic.Classical_Prop.
-Require Import Coq.Lists.List.
-Require Import Coq.Strings.String.
-Require Import Coq.micromega.Lia.
+Require Import Stdlib.Init.Nat.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.Logic.Classical_Prop.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Strings.String.
+Require Import Stdlib.micromega.Lia.
 Import ListNotations.
 
 Module VallsHidalgoGatoAttempt.
@@ -135,7 +135,7 @@ Definition encodeSATtoGF2 (sat : SATFormula) (gf : GaloisField) : EquationSystem
 Theorem standard_encoding_high_degree :
   forall (sat : SATFormula) (gf : GaloisField),
   let sys := encodeSATtoGF2 sat gf in
-  sys_maxDegree sys = sat_numVars sat.
+  sys_maxDegree gf sys = sat_numVars sat.
 Proof.
   intros. simpl. reflexivity.
 Qed.
@@ -154,10 +154,15 @@ Definition linearizedEncoding (sat : SATFormula) (gf : GaloisField) : EquationSy
 (* Linearization causes exponential blowup in size *)
 Theorem linearization_exponential_blowup :
   forall (sat : SATFormula) (gf : GaloisField),
+  sat_numVars sat >= 1 ->
   let sys := linearizedEncoding sat gf in
-  sys_numVars sys >= 2 ^ sat_numVars sat.
+  sys_numVars gf sys >= 2 ^ sat_numVars sat.
 Proof.
-  intros. simpl. lia.
+  intros sat gf H_sat. unfold linearizedEncoding. simpl.
+  destruct (sat_numVars sat) eqn:E.
+  - lia. (* Contradiction: sat_numVars sat >= 1 but = 0 *)
+  - assert (S n * 2 ^ S n >= 2 ^ S n) by lia.
+    exact H.
 Qed.
 
 (* ## 6. Solving Polynomial Systems: Complexity *)
@@ -165,13 +170,13 @@ Qed.
 (* Linear systems over GF(q): Gaussian elimination is polynomial *)
 Axiom linear_systems_polynomial :
   forall (gf : GaloisField) (sys : EquationSystem gf),
-  sys_maxDegree sys = 1 ->
+  sys_maxDegree gf sys = 1 ->
   exists T : TimeComplexity, isPolynomial T.
 
 (* General polynomial systems: NP-hard or worse *)
 Axiom polynomial_systems_hard :
   forall (gf : GaloisField) (sys : EquationSystem gf),
-  sys_maxDegree sys >= 2 ->
+  sys_maxDegree gf sys >= 2 ->
   ~ (exists T : TimeComplexity, isPolynomial T /\ True).  (* Simplified *)
 
 (* ## 7. Valls Hidalgo-Gato's Critical Claims *)
@@ -187,8 +192,8 @@ Axiom valls_algorithm_claim :
 Axiom valls_encoding_claim :
   forall (sat : SATFormula) (gf : GaloisField),
   let sys := encodeSATtoGF2 sat gf in
-  sys_numEquations sys <= sat_numClauses sat * sat_numVars sat /\
-  sys_maxDegree sys <= sat_numVars sat.
+  sys_numEquations gf sys <= sat_numClauses sat * sat_numVars sat /\
+  sys_maxDegree gf sys <= sat_numVars sat.
 
 (* ## 8. The Encoding-Solving Dilemma *)
 
@@ -197,14 +202,14 @@ Theorem encoding_or_solving_expensive :
   forall (sat : SATFormula) (gf : GaloisField),
   let sys := encodeSATtoGF2 sat gf in
   (* High degree (exponential to solve) OR exponential encoding *)
-  (sys_maxDegree sys >= sat_numVars sat) \/
+  (sys_maxDegree gf sys >= sat_numVars sat) \/
   (exists linear_sys : EquationSystem gf,
-    sys_maxDegree linear_sys = 1 /\
-    sys_numVars linear_sys >= 2 ^ sat_numVars sat).
+    sys_maxDegree gf linear_sys = 1 /\
+    sys_numVars gf linear_sys >= 2 ^ sat_numVars sat).
 Proof.
-  intros.
+  intros sat gf.
   left.
-  apply standard_encoding_high_degree.
+  simpl. lia.
 Qed.
 
 (* Valls' claim requires both polynomial encoding AND polynomial solving *)
@@ -212,9 +217,9 @@ Definition VallsClaim : Prop :=
   forall (sat : SATFormula),
   exists (gf : GaloisField) (sys : EquationSystem gf) (T : TimeComplexity),
     isPolynomial T /\
-    sys_numEquations sys <= sat_numClauses sat * sat_numVars sat * sat_numVars sat /\
-    sys_numVars sys <= sat_numVars sat * sat_numVars sat /\
-    sys_maxDegree sys <= 3.
+    sys_numEquations gf sys <= sat_numClauses sat * sat_numVars sat * sat_numVars sat /\
+    sys_numVars gf sys <= sat_numVars sat * sat_numVars sat /\
+    sys_maxDegree gf sys <= 3.
 
 (* ## 9. Why The Claim Implies P=NP *)
 
@@ -246,7 +251,7 @@ Axiom no_polynomial_encoding_and_solving : ~ VallsClaim.
 (* Known theoretical barrier: Gröbner basis complexity *)
 Axiom groebner_basis_exponential :
   forall (gf : GaloisField) (sys : EquationSystem gf),
-  sys_maxDegree sys >= 2 ->
+  sys_maxDegree gf sys >= 2 ->
   exists (instance : EquationSystem gf),
     forall (T : TimeComplexity),
       isPolynomial T -> False.  (* Cannot solve in polynomial time *)
@@ -255,7 +260,7 @@ Axiom groebner_basis_exponential :
 Theorem SAT_encoding_high_degree :
   forall (sat : SATFormula) (gf : GaloisField),
   let sys := encodeSATtoGF2 sat gf in
-  sys_maxDegree sys = sat_numVars sat.
+  sys_maxDegree gf sys = sat_numVars sat.
 Proof.
   intros. simpl. reflexivity.
 Qed.
@@ -265,17 +270,17 @@ Qed.
 (* The gap: algorithm works only for linear systems *)
 Theorem algorithm_restricted_to_linear :
   (forall (gf : GaloisField) (sys : EquationSystem gf),
-    sys_maxDegree sys = 1 ->
+    sys_maxDegree gf sys = 1 ->
     exists T : TimeComplexity, isPolynomial T) /\
   ~ (forall (gf : GaloisField) (sys : EquationSystem gf),
-    sys_maxDegree sys >= 2 ->
+    sys_maxDegree gf sys >= 2 ->
     exists T : TimeComplexity, isPolynomial T).
 Proof.
   split.
   - exact linear_systems_polynomial.
   - intro h_contra.
     (* This contradicts known hardness results *)
-    assert (h_ex : exists gf sys, sys_maxDegree sys >= 2) by
+    assert (h_ex : exists gf sys, sys_maxDegree gf sys >= 2) by
       (exists {| gf_order := 2; gf_isPrimePower := I |},
               {| sys_numEquations := 1; sys_numVars := 1; sys_maxDegree := 3;
                  sys_equations := fun _ => {| poly_degree := 3; poly_numVars := 1; poly_coeffs := fun _ => 0 |} |};
@@ -291,11 +296,11 @@ Qed.
 Theorem polynomial_encoding_requires_high_degree :
   forall (sat : SATFormula) (gf : GaloisField),
   let sys := encodeSATtoGF2 sat gf in
-  (sys_numVars sys <= sat_numVars sat * sat_numVars sat) ->
-  (sys_maxDegree sys >= sat_numVars sat).
+  (sys_numVars gf sys <= sat_numVars sat * sat_numVars sat) ->
+  (sys_maxDegree gf sys >= sat_numVars sat).
 Proof.
-  intros sat gf h_size.
-  apply standard_encoding_high_degree.
+  intros sat gf sys h_size.
+  simpl. lia.
 Qed.
 
 (* ## 12. Key Lessons *)
@@ -304,10 +309,10 @@ Qed.
 Theorem encoding_complexity_matters :
   exists (sat : SATFormula) (gf : GaloisField),
   let sys := encodeSATtoGF2 sat gf in
-  (sys_numVars sys <= sat_numVars sat * sat_numVars sat /\
-   sys_maxDegree sys = sat_numVars sat) \/
-  (sys_maxDegree sys <= 2 /\
-   sys_numVars sys >= 2 ^ sat_numVars sat).
+  (sys_numVars gf sys <= sat_numVars sat * sat_numVars sat /\
+   sys_maxDegree gf sys = sat_numVars sat) \/
+  (sys_maxDegree gf sys <= 2 /\
+   sys_numVars gf sys >= 2 ^ sat_numVars sat).
 Proof.
   exists {| sat_numVars := 10; sat_numClauses := 10 |}.
   exists {| gf_order := 2; gf_isPrimePower := I |}.
@@ -318,7 +323,7 @@ Qed.
 (* Lesson 2: Linear algebra ≠ polynomial algebra *)
 Theorem linear_vs_polynomial :
   (forall gf : GaloisField, forall sys : EquationSystem gf,
-    sys_maxDegree sys = 1 -> exists T : TimeComplexity, isPolynomial T) /\
+    sys_maxDegree gf sys = 1 -> exists T : TimeComplexity, isPolynomial T) /\
   ~ (forall gf : GaloisField, forall sys : EquationSystem gf,
     exists T : TimeComplexity, isPolynomial T).
 Proof.
@@ -326,7 +331,7 @@ Proof.
   - exact linear_systems_polynomial.
   - intro h_all.
     (* Create a counterexample with degree >= 2 *)
-    assert (h_ex : exists gf sys, sys_maxDegree sys >= 2) by
+    assert (h_ex : exists gf sys, sys_maxDegree gf sys >= 2) by
       (exists {| gf_order := 2; gf_isPrimePower := I |},
               {| sys_numEquations := 1; sys_numVars := 1; sys_maxDegree := 3;
                  sys_equations := fun _ => {| poly_degree := 3; poly_numVars := 1; poly_coeffs := fun _ => 0 |} |};
@@ -334,8 +339,8 @@ Proof.
     destruct h_ex as [gf [sys h_deg]].
     specialize (h_all gf sys).
     destruct h_all as [T h_poly].
-    eapply polynomial_systems_hard; eauto.
-    split; eauto.
+    apply (polynomial_systems_hard gf sys h_deg).
+    exists T. split; auto.
 Qed.
 
 (* ## 13. Structure of The Attempt *)
@@ -346,11 +351,11 @@ Record VallsAttempt := {
     exists T : TimeComplexity, isPolynomial T;
   va_encodingClaim : forall (sat : SATFormula),
     exists (gf : GaloisField) (sys : EquationSystem gf),
-    sys_numVars sys <= sat_numVars sat * sat_numVars sat /\
-    sys_maxDegree sys <= 3;
+    sys_numVars gf sys <= sat_numVars sat * sat_numVars sat /\
+    sys_maxDegree gf sys <= 3;
   va_implication :
-    (forall gf sys, exists T, isPolynomial T) ->
-    (forall sat, exists gf sys, sys_numVars sys <= sat_numVars sat * sat_numVars sat) ->
+    (forall (gf : GaloisField) (sys : EquationSystem gf), exists T, isPolynomial T) ->
+    (forall (sat : SATFormula), exists (gf : GaloisField) (sys : EquationSystem gf), sys_numVars gf sys <= sat_numVars sat * sat_numVars sat) ->
     PEqualsNP
 }.
 
