@@ -4,7 +4,7 @@
 
 ---
 
-This directory contains formal proofs in four proof assistants (**Lean 4**, **Coq**, **Isabelle/HOL**, and **Agda**) of the fundamental theorem:
+This directory contains formal proofs in four proof assistants (**Lean 4**, **Rocq**, **Isabelle/HOL**, and **Agda**) of the fundamental theorem:
 
 ## **P ⊆ NP**
 
@@ -19,8 +19,8 @@ proofs/p_vs_np_decidable/
 ├── README.md                # This file
 ├── lean/
 │   └── PSubsetNP.lean      # Lean 4 proof
-├── coq/
-│   └── PSubsetNP.v         # Coq proof
+├── rocq/
+│   └── PSubsetNP.v         # Rocq proof
 ├── isabelle/
 │   └── PSubsetNP.thy       # Isabelle/HOL proof
 └── agda/
@@ -70,7 +70,7 @@ Each formalization defines:
 All four proof assistants have **complete, verified proofs** of P ⊆ NP:
 
 - ✅ **Lean 4**: Fully proven using tactic mode
-- ✅ **Coq**: Fully proven constructing explicit NP machine
+- ✅ **Rocq**: Fully proven constructing explicit NP machine
 - ✅ **Isabelle/HOL**: Fully proven using structured proof
 - ✅ **Agda**: Fully proven using dependent types
 
@@ -94,12 +94,12 @@ theorem pSubsetNP : ∀ L : ClassP, ∃ L' : ClassNP, ∀ s : String, L.language
   rfl
 ```
 
-### Coq (`coq/PSubsetNP.v`)
+### Rocq (`rocq/PSubsetNP.v`)
 
 **Proof style**: Gallina with tactics
 
 **Example**:
-```coq
+```rocq
 Theorem pSubsetNP : forall L : ClassP, exists L' : ClassNP,
   forall s : string, p_language L s = np_language L' s.
 Proof.
@@ -172,8 +172,8 @@ Each file can be checked independently:
 # Lean 4
 lake build
 
-# Coq
-coqc proofs/p_vs_np_decidable/coq/PSubsetNP.v
+# Rocq
+rocq compile proofs/p_vs_np_decidable/rocq/PSubsetNP.v
 
 # Isabelle/HOL
 isabelle build -d . PSubsetNP

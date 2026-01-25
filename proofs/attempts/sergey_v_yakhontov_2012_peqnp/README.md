@@ -150,7 +150,7 @@ Our formalization proceeds in the following stages:
 
 - `README.md` - This file
 - `yakhontov-2012.pdf` - The original paper (arXiv:1208.0954v38)
-- `coq/YakhontovProof.v` - Coq formalization
+- `rocq/YakhontovProof.v` - Rocq formalization
 - `lean/YakhontovProof.lean` - Lean 4 formalization
 - `isabelle/YakhontovProof.thy` - Isabelle/HOL formalization
 
@@ -169,7 +169,7 @@ Our formalization proceeds in the following stages:
 
 ## Verification Status
 
-- Coq formalization: In progress
+- Rocq formalization: In progress
 - Lean formalization: In progress
 - Isabelle formalization: In progress
 

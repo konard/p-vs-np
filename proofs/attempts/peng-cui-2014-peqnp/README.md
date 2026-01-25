@@ -66,7 +66,7 @@ This formalization aims to:
 4. Identify the gap or error in the argument through formal verification
 
 The formalization will be done in three proof assistants:
-- **Coq** (`coq/PengCui2014.v`)
+- **Rocq** (`rocq/PengCui2014.v`)
 - **Lean** (`lean/PengCui2014.lean`)
 - **Isabelle/HOL** (`isabelle/PengCui2014.thy`)
 

@@ -167,7 +167,7 @@ To be fair, the paper does demonstrate something interesting (though not groundb
 
 ## The Proof-Theoretic Challenge
 
-Our formalization attempts to encode Yampolskiy's argument in three proof assistants (Coq, Lean, Isabelle) with the following goals:
+Our formalization attempts to encode Yampolskiy's argument in three proof assistants (Rocq, Lean, Isabelle) with the following goals:
 
 1. **Formalize HPTSP**: Define the problem precisely
 2. **Prove HPTSP ∈ NP**: Encode the verification algorithm
@@ -180,8 +180,8 @@ The formalization will make explicit what the paper leaves implicit: the logical
 
 ## Formalizations
 
-### Coq Implementation
-- **File**: `coq/YampolskiyHPTSP.v`
+### Rocq Implementation
+- **File**: `rocq/YampolskiyHPTSP.v`
 - **Status**: Defines HPTSP, proves membership in NP, axiomatizes unproven claims about hash functions
 - **Key Gap**: Cannot prove `HPTSP_not_in_P` without additional axioms
 
@@ -258,7 +258,7 @@ Despite being incorrect, this paper is valuable for teaching because it:
 
 | Proof Assistant | Definition Complete | NP Membership Proven | P Non-Membership Attempted | Gap Identified |
 |----------------|---------------------|---------------------|----------------------------|----------------|
-| Coq            | ✅                  | ✅                  | ⚠️ (requires axioms)       | ✅             |
+| Rocq            | ✅                  | ✅                  | ⚠️ (requires axioms)       | ✅             |
 | Lean           | ✅                  | ✅                  | ⚠️ (uses sorry)            | ✅             |
 | Isabelle/HOL   | ✅                  | ✅                  | ⚠️ (uses oops)             | ✅             |
 
