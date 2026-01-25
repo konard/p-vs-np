@@ -20,6 +20,7 @@ Require Import Stdlib.Lists.List.
 Require Import Stdlib.Bool.Bool.
 Require Import Stdlib.Reals.Reals.
 Require Import Stdlib.Logic.Classical_Prop.
+Require Import Stdlib.Strings.String.
 Import ListNotations.
 
 (* ===== Basic Definitions (from proof attempt) ===== *)
