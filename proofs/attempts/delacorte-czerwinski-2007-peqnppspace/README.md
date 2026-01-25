@@ -1,10 +1,10 @@
-# Matthew Delacorte / Reiner Czerwinski (2007) - P=NP/PSPACE via Graph Isomorphism
+# Delacorte/Czerwinski (2007) - P=NP/PSPACE via Graph Isomorphism
 
 **Attempt ID**: 41 (from Woeginger's list)
-**Authors**: Matthew Delacorte and Reiner Czerwinski
+**Authors**: Matthew Delacorte / Reiner Czerwinski
 **Year**: 2007
-**Claim**: P = NP = PSPACE (via contradictory claims about Graph Isomorphism)
-**Status**: Refuted
+**Claim**: P = PSPACE (and consequently P = NP)
+**Status**: Refuted (both papers contain fundamental errors)
 
 ## Summary
 
