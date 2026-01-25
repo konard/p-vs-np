@@ -13,7 +13,7 @@
 ### Ключевая формулировка
 
 **✅ ДОКАЗАНО: P ⊆ NP** — Каждая задача, разрешимая за полиномиальное время, также проверяема за полиномиальное время.
-[См. формальные доказательства](proofs/p_vs_np_decidable/README.md) в Lean, Coq, Isabelle/HOL и Agda.
+[См. формальные доказательства](proofs/p_vs_np_decidable/README.md) в Lean, Rocq, Isabelle/HOL и Agda.
 
 **❓ ВОПРОС: Верно ли, что NP ⊆ P?**
 

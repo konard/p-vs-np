@@ -128,7 +128,7 @@ This error appears repeatedly in attempted P vs NP proofs because:
 
 ## Formalization Summary
 
-Our formal proofs in **Coq**, **Lean**, and **Isabelle** demonstrate:
+Our formal proofs in **Rocq**, **Lean**, and **Isabelle** demonstrate:
 
 1. ✓ **SAT requires boolean assignments** (discrete)
 2. ✓ **LP may produce fractional solutions** (counterexample shown)

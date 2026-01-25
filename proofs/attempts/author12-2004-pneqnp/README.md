@@ -182,7 +182,7 @@ The formalization reveals that:
 
 ## Formalization Files
 
-- **Coq**: [`coq/Anand2004.v`](coq/Anand2004.v)
+- **Rocq**: [`rocq/Anand2004.v`](rocq/Anand2004.v)
 - **Lean**: [`lean/Anand2004.lean`](lean/Anand2004.lean)
 - **Isabelle**: [`isabelle/Anand2004.thy`](isabelle/Anand2004.thy)
 
