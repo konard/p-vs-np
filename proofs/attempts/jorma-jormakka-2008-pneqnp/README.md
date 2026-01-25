@@ -150,11 +150,21 @@ The proof proceeds in steps:
 
 ## Formal Verification
 
-This repository contains formal proofs in three proof assistants demonstrating the logical errors:
+This repository contains formal proofs demonstrating the logical errors:
 
-- **[Coq](coq/JormakkaAttempt.v)**: Formalization showing the circular adversarial construction
-- **[Lean](lean/JormakkaAttempt.lean)**: Formalization showing the non-uniform lower bound error
-- **[Isabelle/HOL](isabelle/JormakkaAttempt.thy)**: Formalization showing the gap in the argument
+### Forward Proof (What Jormakka Claims)
+- **[proof/lean/JormakkaProof.lean](proof/lean/JormakkaProof.lean)**: Lean formalization of the proof structure
+- **[proof/rocq/JormakkaProof.v](proof/rocq/JormakkaProof.v)**: Rocq (Coq) formalization of the proof structure
+- **[proof/README.md](proof/README.md)**: Explanation of the forward formalization
+
+### Refutation (Why It Fails)
+- **[refutation/lean/JormakkaRefutation.lean](refutation/lean/JormakkaRefutation.lean)**: Lean formalization of the errors
+- **[refutation/rocq/JormakkaRefutation.v](refutation/rocq/JormakkaRefutation.v)**: Rocq (Coq) formalization of the errors
+- **[refutation/README.md](refutation/README.md)**: Detailed explanation of why the proof fails
+
+### Archive
+- **[archive/JormakkaAttempt.thy](archive/JormakkaAttempt.thy)**: Isabelle/HOL formalization (archived)
+- **[archive/ROOT](archive/ROOT)**: Isabelle ROOT file
 
 Each formalization explicitly shows that the construction of hard instances depends on the chosen algorithm, revealing the non-uniform and circular nature of the proof.
 

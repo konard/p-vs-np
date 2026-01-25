@@ -1,12 +1,14 @@
 (*
-  JormakkaAttempt.v - Coq Formalization of Jormakka's 2008 P≠NP Proof Attempt
+  JormakkaRefutation.v - Refutation of Jormakka's 2008 P≠NP Proof Attempt
 
-  This file formalizes Jorma Jormakka's 2008 attempted proof that no
-  polynomial-time algorithm exists for the subset sum problem.
+  This file formalizes the critical errors in Jorma Jormakka's 2008 attempted
+  proof of P ≠ NP, demonstrating why the proof fails.
 
-  The formalization demonstrates the critical flaw: the proof uses a
-  non-uniform, adversarial construction that tailors hard instances to
-  each specific algorithm, which is circular reasoning.
+  The main errors are:
+  1. Non-uniform vs uniform lower bounds
+  2. Circular adversarial construction
+  3. Algorithm-dependent instances
+  4. Relativization barrier violation
 *)
 
 Require Import Coq.Lists.List.
@@ -47,7 +49,7 @@ Definition InP (problem : DecisionProblem) : Prop :=
 (* NP complexity class *)
 Definition InNP (problem : DecisionProblem) : Prop :=
   exists (verifier : Instance -> Instance -> bool) (tc : TimeComplexity),
-    (forall x, exists certsize, tc verifier x <= certsize) /\
+    (forall x cert, exists certsize, tc (fun i => verifier i cert) x <= certsize) /\
     forall (x : Instance),
       problem x <-> exists (cert : Instance), verifier x cert = true.
 
@@ -63,97 +65,10 @@ Definition P_not_equals_NP : Prop :=
 Axiom SubsetSum : DecisionProblem.
 Axiom SubsetSum_in_NP : InNP SubsetSum.
 
-(* NP-Completeness *)
-Definition IsNPComplete (problem : DecisionProblem) : Prop :=
-  InNP problem /\
-  forall (npProblem : DecisionProblem),
-    InNP npProblem ->
-    exists (reduction : Instance -> Instance) (tc : TimeComplexity),
-      (exists k, forall n, tc reduction n <= n ^ k) /\
-      forall x, npProblem x <-> problem (reduction x).
-
-Axiom SubsetSum_is_NP_complete : IsNPComplete SubsetSum.
-
-(*
-  JORMAKKA'S CONSTRUCTION: The Fatal Flaw
-
-  This section formalizes Jormakka's algorithm-dependent construction of
-  "hard instances". This is where the proof breaks down.
-*)
-
-(* Instance specifically constructed to be hard for a given algorithm *)
-Parameter ConstructAdversarialInstance : Algorithm -> nat -> Instance.
-
-(*
-  CRITICAL OBSERVATION: Different algorithms get different instances!
-
-  This is the key error. Jormakka constructs instances K₁, K₂, K₃ based on
-  the execution behavior of the specific algorithm being analyzed.
-*)
-
-Axiom adversarial_construction_algorithm_dependent :
-  forall (alg1 alg2 : Algorithm) (tc : TimeComplexity) (n : nat),
-    alg1 <> alg2 ->
-    exists (m : nat),
-      m >= n ->
-      ConstructAdversarialInstance alg1 m <> ConstructAdversarialInstance alg2 m.
-
-(*
-  Jormakka's "median complexity measure" f(n)
-
-  This measure is computed differently for different algorithms,
-  making it algorithm-dependent.
-*)
-
-Parameter MedianComplexityMeasure : Algorithm -> TimeComplexity -> nat -> Time.
-
-(*
-  The adversarial construction selects inputs that take ≥ median time
-  for the specific algorithm. This is circular!
-*)
-
-Axiom adversarial_instance_slow_by_construction :
-  forall (alg : Algorithm) (tc : TimeComplexity) (n : nat),
-    tc alg (ConstructAdversarialInstance alg n) >=
-      MedianComplexityMeasure alg tc n.
-
-(*
-  JORMAKKA'S MAIN CLAIM (Lemma 15 in the paper)
-
-  For any algorithm, there exists an adversarial instance forcing the
-  recurrence f(n) >= (n/2) * f(n/2)
-*)
-
-Axiom jormakka_recurrence_claim :
-  forall (alg : Algorithm) (tc : TimeComplexity) (n : nat),
-    tc alg (ConstructAdversarialInstance alg n) >=
-      (n / 2) * tc alg (ConstructAdversarialInstance alg (n / 2)).
-
-(*
-  The recurrence implies super-polynomial growth
-  (This part is mathematically correct)
-*)
-
-Theorem recurrence_implies_superpolynomial :
-  forall (f : nat -> Time),
-    (forall n, f n >= (n / 2) * f (n / 2)) ->
-    forall (k : nat), exists (n0 : nat), forall n, n >= n0 -> f n > n ^ k.
-Proof.
-  (* Mathematical proof omitted - this claim is valid *)
-  intros.
-  (* The recurrence f(n) >= (n/2) * f(n/2) does imply super-polynomial growth *)
-  admit.
-Admitted.
-
-(*
-  JORMAKKA'S ATTEMPTED CONCLUSION
-
-  From the above, Jormakka concludes that no polynomial-time algorithm
-  exists for SubsetSum. This is where the logic fails!
-*)
-
 (*
   ERROR ANALYSIS: Non-Uniform vs Uniform Lower Bounds
+
+  This is the fundamental flaw in Jormakka's proof.
 *)
 
 (* What Jormakka actually proves: Non-uniform claim *)
@@ -202,8 +117,37 @@ Proof.
 Admitted.
 
 (*
-  ERROR ANALYSIS: Circular Construction
+  Detailed explanation:
+
+  Logical structure:
+  - Jormakka proves: ∀A ∃I_A [A slow on I_A]
+  - What's needed:    ∃I ∀A [A slow on I]
+
+  These are completely different claims!
+
+  Consider two algorithms:
+  - Algorithm A₁ might be slow on instance I₁ but fast on I₂
+  - Algorithm A₂ might be slow on instance I₂ but fast on I₁
+
+  Jormakka's claim says:
+  - A₁ has a hard instance (namely I₁)
+  - A₂ has a hard instance (namely I₂)
+
+  But this does NOT prove there exists a single instance hard for BOTH A₁ and A₂!
 *)
+
+(*
+  ERROR ANALYSIS: Circular Construction
+
+  The construction of adversarial instances ASSUMES the algorithm is slow
+  by selecting inputs that take >= median time.
+*)
+
+(* Instance specifically constructed to be hard for a given algorithm *)
+Parameter ConstructAdversarialInstance : Algorithm -> nat -> Instance.
+
+(* Jormakka's complexity measure *)
+Parameter MedianComplexityMeasure : Algorithm -> TimeComplexity -> nat -> Time.
 
 (*
   The construction of adversarial instances ASSUMES the algorithm is slow
@@ -236,8 +180,28 @@ Proof.
 Admitted.
 
 (*
-  ERROR ANALYSIS: Algorithm-Specific Instances
+  The circularity is clear:
+
+  1. We want to prove: Algorithm A is slow
+  2. We construct instance I by selecting inputs that are slow for A
+  3. We observe: A is slow on I
+  4. We conclude: Therefore A is slow
+
+  This proves nothing! Of course A is slow on I - we designed I to be slow for A!
 *)
+
+(*
+  ERROR ANALYSIS: Algorithm-Specific Instances
+
+  Different algorithms get different "hard instances"
+*)
+
+Axiom adversarial_construction_algorithm_dependent :
+  forall (alg1 alg2 : Algorithm) (tc : TimeComplexity) (n : nat),
+    alg1 <> alg2 ->
+    exists (m : nat),
+      m >= n ->
+      ConstructAdversarialInstance alg1 m <> ConstructAdversarialInstance alg2 m.
 
 (*
   Jormakka's Definitions 3-5 construct instances K₁, K₂, K₃ based on:
@@ -254,6 +218,11 @@ Axiom construction_depends_on_algorithm_behavior :
       behavioral_property alg ->
       ConstructAdversarialInstance alg =
         fun n => (* Instance tailored to alg's behavior *) n.
+
+(*
+  Because different algorithms get different instances, we cannot conclude
+  that there exists a universally hard instance.
+*)
 
 (*
   WHAT A VALID PROOF WOULD REQUIRE
@@ -290,6 +259,38 @@ Proof.
 Admitted.
 
 (*
+  EDUCATIONAL ANALOGY
+*)
+
+(* Jormakka's approach: "For each solver, I can find a hard puzzle" *)
+Definition JormakkaAnalogy : Prop :=
+  forall (solver : Instance -> bool),
+    exists (hard_puzzle : Instance),
+      (* This puzzle is hard for this solver *) True.
+
+(* Correct approach: "There exists a puzzle hard for ALL solvers" *)
+Definition CorrectAnalogy : Prop :=
+  exists (hard_puzzle : Instance),
+    forall (solver : Instance -> bool),
+      (* This puzzle is hard for every solver *) True.
+
+(* These are NOT equivalent! *)
+Theorem analogy_shows_error :
+  ~ (JormakkaAnalogy -> CorrectAnalogy).
+Proof.
+  (*
+    Jormakka's approach: "Of course I can find a hard puzzle for each person -
+    I just ask them what they're bad at and give them that!"
+
+    This proves nothing about puzzles being inherently hard.
+
+    Similarly, constructing algorithm-specific hard instances proves nothing
+    about the intrinsic hardness of SubsetSum.
+  *)
+  admit.
+Admitted.
+
+(*
   SUMMARY OF ERRORS IN JORMAKKA'S PROOF
 *)
 
@@ -322,38 +323,6 @@ Admitted.
   - Baker-Gill-Solovay showed relativizing proofs cannot separate P and NP
   - Conclusion: The proof technique cannot work
 *)
-
-(*
-  EDUCATIONAL ANALOGY
-*)
-
-(* Jormakka's approach: "For each solver, I can find a hard puzzle" *)
-Definition JormakkaAnalogy : Prop :=
-  forall (solver : Instance -> bool),
-    exists (hard_puzzle : Instance),
-      (* This puzzle is hard for this solver *) True.
-
-(* Correct approach: "There exists a puzzle hard for ALL solvers" *)
-Definition CorrectAnalogy : Prop :=
-  exists (hard_puzzle : Instance),
-    forall (solver : Instance -> bool),
-      (* This puzzle is hard for every solver *) True.
-
-(* These are NOT equivalent! *)
-Theorem analogy_shows_error :
-  ~ (JormakkaAnalogy -> CorrectAnalogy).
-Proof.
-  (*
-    Jormakka's approach: "Of course I can find a hard puzzle for each person -
-    I just ask them what they're bad at and give them that!"
-
-    This proves nothing about puzzles being inherently hard.
-
-    Similarly, constructing algorithm-specific hard instances proves nothing
-    about the intrinsic hardness of SubsetSum.
-  *)
-  admit.
-Admitted.
 
 (*
   CONCLUSION
