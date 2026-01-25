@@ -78,9 +78,10 @@ Axiom clique_is_NP_complete : exists clique : NPComplete, True.
     - A proof that T is polynomial
     - A proof that the algorithm is correct for ALL instances
 *)
-Axiom AkbariAlgorithmExists : exists (algorithm : Graph -> nat -> bool) (T : TimeComplexity),
-  isPolynomial T /\
-  (forall G k, algorithm G k = true <-> CliqueProblem G k).
+Definition AkbariAlgorithmExists : Prop :=
+  exists (algorithm : Graph -> nat -> bool) (T : TimeComplexity),
+    isPolynomial T /\
+    (forall G k, algorithm G k = true <-> CliqueProblem G k).
 
 (** * 5. The Implication (Correct Logic) *)
 

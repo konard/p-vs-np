@@ -68,9 +68,10 @@ axiom clique_is_NP_complete : ∃ clique : NPComplete, True
     - A proof that T is polynomial
     - A proof that the algorithm is correct for ALL instances
 -/
-axiom AkbariAlgorithmExists : ∃ (algorithm : Graph → Nat → Bool) (T : TimeComplexity),
-  isPolynomial T ∧
-  (∀ G k, algorithm G k = true ↔ CliqueProblem G k)
+def AkbariAlgorithmExists : Prop :=
+  ∃ (algorithm : Graph → Nat → Bool) (T : TimeComplexity),
+    isPolynomial T ∧
+    (∀ G k, algorithm G k = true ↔ CliqueProblem G k)
 
 /- ## 5. The Implication (Correct Logic) -/
 
@@ -106,24 +107,5 @@ theorem akbari_claim_implies_P_equals_NP :
   intro claim
   apply NP_complete_in_P_implies_P_equals_NP
   exact clique_algorithm_implies_P claim
-
-/- ## 6. What Would Need to Be Proven -/
-
-/-- To complete Akbari's proof, one would need to prove AkbariAlgorithmExists,
-    which requires:
-
-    1. SPECIFICATION: Precisely describe the algorithm
-    2. COMPLEXITY: Prove it runs in polynomial time on ALL instances
-    3. CORRECTNESS: Prove it correctly solves the Clique Problem on ALL instances
-
-    None of these are provided in the available sources for Akbari's work.
--/
-
-/-- Summary: The forward proof shows that:
-    - IF a polynomial-time algorithm for Clique exists
-    - THEN P = NP
-
-    This implication is logically sound. The gap is in proving the "IF" part.
--/
 
 end AkbariProof
