@@ -273,7 +273,7 @@ Theorem blinder_approach_cannot_succeed_with_standard_techniques :
     True     (* Natural proof approaches *)
   ).
 Proof.
-  intro [H_exists [_ [_ _]]].
+  intros [H_exists [_ [_ _]]].
   (* This would contradict the relativization barrier *)
 Admitted.  (* Full proof requires meta-theory of complexity barriers *)
 
