@@ -130,8 +130,9 @@ Proof.
           * discriminate.
         + simpl. split; intro H.
           * reflexivity.
-          * specialize (Hdec x). destruct Hdec as [_ H_back].
-            intro Hneg. apply Hneg. exact H.
+          * destruct (Hdec x) as [H_fwd _].
+            apply NNPP. intro Hneg.
+            apply H_fwd in Hneg. rewrite Hmx in Hneg. discriminate.
     }
     (* P = NP, so L ∈ NP *)
     rewrite <- H_p_eq_np.
