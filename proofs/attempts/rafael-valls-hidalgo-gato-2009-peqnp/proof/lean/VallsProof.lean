@@ -223,7 +223,7 @@ theorem no_polynomial_encoding_and_solving :
 axiom groebner_basis_exponential :
   ∀ (gf : GaloisField) (sys : EquationSystem gf),
   sys.maxDegree ≥ 2 →
-  ∃ (instance : EquationSystem gf),
+  ∃ (exampleSys : EquationSystem gf),
     ∀ (T : TimeComplexity),
       isPolynomial T →
       ¬(True)  -- Cannot solve in polynomial time
@@ -290,15 +290,15 @@ structure VallsAttempt where
     ∃ (gf : GaloisField) (sys : EquationSystem gf),
     sys.numVars ≤ sat.numVars ^ 2 ∧ sys.maxDegree ≤ 3
   implication :
-    (∀ gf sys, ∃ T, isPolynomial T) →
-    (∀ sat, ∃ gf sys, sys.numVars ≤ sat.numVars ^ 2) →
+    (∀ (gf : GaloisField) (sys : EquationSystem gf), ∃ T, isPolynomial T) →
+    (∀ (sat : SATFormula), ∃ (gf : GaloisField) (sys : EquationSystem gf), sys.numVars ≤ sat.numVars ^ 2) →
     PEqualsNP
 
 /-- The attempt fails due to encoding/solving dilemma -/
 theorem valls_fails_at_encoding_or_solving :
   ∃ attempt : VallsAttempt,
-    (¬(∀ gf sys, ∃ T : TimeComplexity, isPolynomial T)) ∨
-    (¬(∀ sat, ∃ gf sys, (sys : EquationSystem gf).numVars ≤ sat.numVars ^ 2 ∧ sys.maxDegree ≤ 3)) := by
+    (¬(∀ (gf : GaloisField) (sys : EquationSystem gf), ∃ T : TimeComplexity, isPolynomial T)) ∨
+    (¬(∀ (sat : SATFormula), ∃ (gf : GaloisField) (sys : EquationSystem gf), sys.numVars ≤ sat.numVars ^ 2 ∧ sys.maxDegree ≤ 3)) := by
   sorry  -- Requires full complexity theory formalization
 
 /- ## 14. Summary -/
