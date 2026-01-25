@@ -56,6 +56,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Ron A. Cohen | 2005 | [F](ron-cohen-2005-pneqnp/) | - | - |
 | ✗ | Viktor V. Ivanov | 2005 | [V](viktor-ivanov-2005-pneqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2006 | [S](singh-anand-2006-pneqnp/) | - | - |
+| ✓ | Howard Kleiman | 2006 | [H](howard-kleiman-2006-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Mohamed Mimouni | 2006 | [M](mohamed-mimouni-2006-peqnp/) | - | 🔷 🔶 |
 | ✗ | Radoslaw Hofman | 2006 | [R](radoslaw-hofman-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Sergey Gubin | 2006 | [S](sergey-gubin-2006-peqnp/) | - | 🔷 🔶 |
@@ -110,16 +111,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 73
-- **Claims P = NP:** 37
+- **Total attempts:** 74
+- **Claims P = NP:** 38
 - **Claims P ≠ NP:** 35
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 1
-- **With original paper:** 1
-- **With proof/ directory:** 4
-- **With refutation/ directory:** 4
-- **With Lean formalization:** 4
-- **With Rocq formalization:** 4
+- **With ORIGINAL.md:** 2
+- **With original paper:** 2
+- **With proof/ directory:** 5
+- **With refutation/ directory:** 5
+- **With Lean formalization:** 5
+- **With Rocq formalization:** 5
 
 ---
 
