@@ -2,7 +2,7 @@
 
 ## Summary of Formalization
 
-We have formalized Eli Halylaurin's 2016 proof attempt claiming P=NP through the intermediate result PSPACE ⊆ P. The formalization was completed in three proof assistants: Coq, Lean 4, and Isabelle/HOL.
+We have formalized Eli Halylaurin's 2016 proof attempt claiming P=NP through the intermediate result PSPACE ⊆ P. The formalization was completed in three proof assistants: Rocq, Lean 4, and Isabelle/HOL.
 
 ## Main Claim
 
@@ -19,7 +19,7 @@ This claim, if true, would imply:
 
 The fundamental error in Halylaurin's proof attempt is that **no actual proof is provided** for the claim PSPACE ⊆ P. In our formalization, we represent this gap explicitly using axioms:
 
-- **Coq**: `Axiom Halylaurin_unproven_claim : forall L, in_PSPACE L -> in_P L.`
+- **Rocq**: `Axiom Halylaurin_unproven_claim : forall L, in_PSPACE L -> in_P L.`
 - **Lean**: `axiom halylaurin_unproven_claim : ∀ L, InPSPACE L → InP L`
 - **Isabelle**: `axiomatization where halylaurin_unproven_claim: "InPSPACE problem ⟹ InP problem"`
 
@@ -105,7 +105,7 @@ The formalization successfully identifies and documents this gap, serving as a c
 
 - **README.md**: Detailed description of the attempt and error analysis
 - **FINDINGS.md**: This file - summary of formalization findings
-- **coq/Halylaurin2016.v**: Coq formalization (247 lines)
+- **rocq/Halylaurin2016.v**: Rocq formalization (247 lines)
 - **lean/Halylaurin2016.lean**: Lean 4 formalization (248 lines)
 - **isabelle/Halylaurin2016.thy**: Isabelle/HOL formalization (267 lines)
 

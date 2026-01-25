@@ -164,7 +164,7 @@ Our formal verification aims to:
 
 ## Structure of Formalizations
 
-Each formalization (Coq, Lean, Isabelle) will include:
+Each formalization (Rocq, Lean, Isabelle) will include:
 
 ### 1. Basic Quantum Mechanics
 - State vectors in Bloch sphere representation
@@ -235,8 +235,8 @@ This formalization demonstrates:
 ```
 proofs/attempts/daegene-song-2014-pneqnp/
 ├── README.md                              # This file
-├── coq/
-│   └── DaegeneSong2014.v                 # Coq formalization
+├── rocq/
+│   └── DaegeneSong2014.v                 # Rocq formalization
 ├── lean/
 │   └── DaegeneSong2014.lean              # Lean 4 formalization
 └── isabelle/
@@ -246,8 +246,8 @@ proofs/attempts/daegene-song-2014-pneqnp/
 ## Building
 
 ```bash
-# Coq
-coqc proofs/attempts/daegene-song-2014-pneqnp/coq/DaegeneSong2014.v
+# Rocq
+rocq compile proofs/attempts/daegene-song-2014-pneqnp/rocq/DaegeneSong2014.v
 
 # Lean 4
 lake build
@@ -261,7 +261,7 @@ isabelle build -d . DaegeneSong2014
 - ✅ Paper analyzed
 - ✅ Errors identified
 - ✅ Formalization structure planned
-- 🚧 Coq formalization in progress
+- 🚧 Rocq formalization in progress
 - 🚧 Lean formalization in progress
 - 🚧 Isabelle formalization in progress
 
