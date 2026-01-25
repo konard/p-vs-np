@@ -91,8 +91,8 @@ theorem anand_p_neq_np : ¬ (∀ L, InP L ↔ InNP L) := by
   intro h_eq
   obtain ⟨L, h_np, h_not_p⟩ := h_sep
   have h_p : InP L := by
-    rw [← h_eq]
-    exact h_np
+    have h_iff := h_eq L
+    exact h_iff.mpr h_np
   contradiction
 
 /-
