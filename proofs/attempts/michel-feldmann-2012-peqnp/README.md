@@ -163,7 +163,7 @@ Our formalization will explicitly expose these gaps by:
 
 ## Formalization Strategy
 
-### Coq Formalization
+### Rocq Formalization
 - Define SAT problems and LP systems formally
 - Attempt to formalize the construction algorithm (will expose exponential cost)
 - Prove that the construction requires examining exponentially many assignments
@@ -197,7 +197,7 @@ This type of error is common in P vs NP attempts:
 - [x] Folder structure created
 - [x] Paper analyzed
 - [x] README.md created
-- [ ] Coq formalization
+- [ ] Rocq formalization
 - [ ] Lean formalization
 - [ ] Isabelle formalization
 

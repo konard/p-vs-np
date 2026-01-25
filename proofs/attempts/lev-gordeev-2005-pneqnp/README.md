@@ -6,12 +6,12 @@
 
 ## Metadata
 
-- **Attempt ID**: 21 (from Woeginger's list)
+- **Attempt ID**: 24 (from Woeginger's list)
 - **Author**: Lev Gordeev
 - **Year**: Summer 2005
 - **Claim**: P ≠ NP
 - **Status**: Incomplete/Flawed
-- **Source**: [Woeginger's P vs NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm), Entry #21
+- **Source**: [Woeginger's P vs NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm), Entry #24
 
 ## Overview
 
@@ -74,7 +74,7 @@ This is not an isolated error but represents a common challenge in circuit compl
 
 ## Formalization Goals
 
-This directory contains formalizations in three proof assistants (Coq, Lean, Isabelle) that:
+This directory contains formalizations in three proof assistants (Rocq, Lean, Isabelle) that:
 
 1. **Encode the proof structure**: Formalize the definitions of CLIQUE, DMN circuits, and the approximation method
 2. **Identify the gap**: Make explicit where the proof fails (the incomplete approximation in Lemma 12)
@@ -105,7 +105,7 @@ We **only** formalize the known incomplete/flawed aspects of this specific proof
 - ✅ Gap identification: missing negated input handling
 - ✅ Incompleteness proof
 
-### Coq (`coq/GordeevProof.v`)
+### Rocq (`rocq/GordeevProof.v`)
 - ✅ CLIQUE problem definition
 - ✅ DMN circuit model
 - ✅ Input approximation framework
@@ -142,7 +142,7 @@ This formalization demonstrates:
 ## References
 
 ### Primary Sources
-- **Woeginger, G.** (continuously updated). "The P versus NP page." Entry #21.
+- **Woeginger, G.** (continuously updated). "The P versus NP page." Entry #24.
   - URL: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
 
 - **Gordeev, L.** (2020). "On P Versus NP." arXiv:2005.00809
@@ -183,9 +183,9 @@ To verify the formalizations:
 cd lean
 lake build
 
-# Coq
-cd coq
-coqc GordeevProof.v
+# Rocq
+cd rocq
+rocq compile GordeevProof.v
 
 # Isabelle/HOL
 cd isabelle
