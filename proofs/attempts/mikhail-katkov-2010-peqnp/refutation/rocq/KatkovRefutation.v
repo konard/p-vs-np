@@ -15,11 +15,11 @@
    6. No analysis of α* complexity
 *)
 
-Require Import Coq.Init.Nat.
-Require Import Coq.Lists.List.
-Require Import Coq.Bool.Bool.
-Require Import Coq.Reals.Reals.
-Require Import Coq.Logic.Classical_Prop.
+Require Import Stdlib.Init.Nat.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Bool.Bool.
+Require Import Stdlib.Reals.Reals.
+Require Import Stdlib.Logic.Classical_Prop.
 Import ListNotations.
 
 (* ===== Basic Definitions (from proof attempt) ===== *)

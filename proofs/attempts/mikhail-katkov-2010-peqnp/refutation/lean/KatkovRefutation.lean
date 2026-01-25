@@ -79,7 +79,7 @@ axiom katkov_theorem_4_2_claim : ∀ (n : Nat) (Q : Matrix (Fin n) (Fin n) ℝ),
 theorem theorem_4_2_not_proven :
   -- The paper provides perturbation analysis near feasible points
   -- but does NOT prove that sign pattern is preserved for GLOBAL minima
-  ¬(∀ n Q, ∃ proof_exists : Bool, True) := by
+  ¬(∀ (n : Nat) (Q : Matrix (Fin n) (Fin n) ℝ), ∃ proof_exists : Bool, True) := by
   sorry  -- This represents that no proof exists in the paper
 
 /-! ## Error 2: Uniqueness Is NOT ESTABLISHED -/
@@ -89,14 +89,14 @@ axiom katkov_uniqueness_claim : ∀ (n : Nat) (Q : Matrix (Fin n) (Fin n) ℝ),
   ∃ α_star : ℝ,
     Real.lt 0 α_star ∧
     ∀ α : ℝ, Real.le 0 α → Real.lt α α_star →
-    ∃! x, isGlobalMinimizer n α Q x
+    ∃! (x : Fin n → ℝ), isGlobalMinimizer n α Q x
 
 /-- But uniqueness fails when multiple optimal cuts exist -/
 theorem uniqueness_not_proven :
   -- Multiple global minima can exist, especially when:
   -- 1. The graph has multiple optimal cuts with the same weight
   -- 2. The relaxation creates a continuous manifold of solutions
-  ¬(∀ n Q, ∃ proof_exists : Bool, True) := by
+  ¬(∀ (n : Nat) (Q : Matrix (Fin n) (Fin n) ℝ), ∃ proof_exists : Bool, True) := by
   sorry  -- No proof of uniqueness in the paper
 
 /-! ## Error 3: The Minimum Gap Δ Can Be Zero -/
@@ -119,7 +119,7 @@ theorem equation_24_fails_when_gap_zero :
     ∃ (n : Nat) (α : ℝ) (Q : Matrix (Fin n) (Fin n) ℝ),
       Real.lt 0 α ∧
       -- The uniqueness condition is violated
-      ¬(∃! x, isGlobalMinimizer n α Q x) := by
+      ¬(∃! (x : Fin n → ℝ), isGlobalMinimizer n α Q x) := by
   sorry
 
 /-! ## Error 4: Bifurcations Are Possible -/
@@ -187,10 +187,10 @@ def withdrawal_date : String := "April 4, 2011"
 /-- The main refutation theorem: Katkov's approach cannot work as claimed -/
 theorem katkov_approach_fails :
   -- The proof has six critical gaps that cannot be filled:
-  (¬(∀ n Q, ∃ proof : Bool, True)) ∧  -- Theorem 4.2 not proven
-  (¬(∀ n Q, ∃ proof : Bool, True)) ∧  -- Uniqueness not proven
+  (¬(∀ (n : Nat) (Q : Matrix (Fin n) (Fin n) ℝ), ∃ proof : Bool, True)) ∧  -- Theorem 4.2 not proven
+  (¬(∀ (n : Nat) (Q : Matrix (Fin n) (Fin n) ℝ), ∃ proof : Bool, True)) ∧  -- Uniqueness not proven
   (∃ g, hasZeroGap g) ∧                -- Zero gap exists
-  (∃ n Q, hasBifurcation n Q) ∧       -- Bifurcations possible
+  (∃ (n : Nat) (Q : Matrix (Fin n) (Fin n) ℝ), hasBifurcation n Q) ∧       -- Bifurcations possible
   True ∧                                -- Sign extraction heuristic
   True                                  -- α* complexity missing
   := by

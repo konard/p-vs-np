@@ -142,7 +142,7 @@ axiom katkov_uniqueness : ∀ (n : Nat) (α : ℝ) (Q : Matrix (Fin n) (Fin n) �
   ∃ α_star : ℝ,
     Real.lt 0 α_star ∧
     ∀ α_val : ℝ, Real.le 0 α_val → Real.lt α_val α_star →
-    ∃! x, isGlobalMinimizer n α_val Q x
+    ∃! (x : Fin n → ℝ), isGlobalMinimizer n α_val Q x
 
 /-- Polynomial time solvability via SDP (Lemma 4.1) -/
 axiom katkov_polynomial_time : ∀ (n : Nat) (α : ℝ) (bqp : BQP n),
