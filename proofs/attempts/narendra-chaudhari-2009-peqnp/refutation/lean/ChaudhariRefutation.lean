@@ -70,7 +70,8 @@ def conversionCost (f : Formula3CNF) : Nat :=
 theorem conversion_is_polynomial (f : Formula3CNF) :
     conversionCost f ≤ (f.length * 3) := by
   -- Conversion just reorganizes existing data
-  rfl
+  unfold conversionCost
+  apply Nat.le_refl
 
 -- KEY THEOREM 3: Number of clauses doesn't help
 
@@ -89,11 +90,10 @@ def possibleClauses (n : Nat) : Nat :=
 def actualClauses (f : Formula3CNF) : Nat :=
   f.length
 
-theorem unused_clauses_dont_help (f : Formula3CNF) (n : Nat) :
-    actualClauses f ≤ possibleClauses n →
+theorem unused_clauses_dont_help (f : Formula3CNF) (n : Nat)
+    (_ : actualClauses f ≤ possibleClauses n) :
     -- Having many possible clauses doesn't make the problem easier
     IsSatisfiable f ↔ IsSatisfiable f := by
-  intro _
   rfl
 
 -- KEY THEOREM 4: Correctness is unproven
@@ -150,21 +150,20 @@ theorem correctness_gap :
 theorem representation_gap :
     -- Representation equivalence means both represent the same problem
     ∀ (f : Formula3CNF),
-    (lr : LiteralRepresentation f) →
-    (cr : ClauseRepresentation f) →
+    (_ : LiteralRepresentation f) →
+    (_ : ClauseRepresentation f) →
     IsSatisfiable f ↔ IsSatisfiable f := by
-  intro f lr cr
+  intro f _ _
   rfl
   -- PROBLEM: Changing representation doesn't change the problem's difficulty
 
-theorem exponential_mapping_irrelevance (f : Formula3CNF) (n : Nat) :
+theorem exponential_mapping_irrelevance (f : Formula3CNF) (n : Nat)
     -- Even if there are exponentially many possible clauses
-    possibleClauses n = 8 * n ^ 3 →
+    (_ : possibleClauses n = 8 * n ^ 3)
     -- A specific instance only uses a small subset
-    actualClauses f ≤ possibleClauses n →
+    (_ : actualClauses f ≤ possibleClauses n) :
     -- The unused clauses provide no advantage
     IsSatisfiable f ↔ IsSatisfiable f := by
-  intro _ _
   rfl
   -- PROBLEM: The existence of many potential clauses doesn't reduce search space
 
@@ -172,7 +171,7 @@ theorem exponential_mapping_irrelevance (f : Formula3CNF) (n : Nat) :
 
 theorem chaudhari_proof_fails :
     -- The claim that representation enables polynomial solving
-    (∀ f : Formula3CNF, ∃ cr : ClauseRepresentation f, IsSatisfiable f) →
+    (∀ f : Formula3CNF, ∃ _ : ClauseRepresentation f, IsSatisfiable f) →
     -- Does not imply that 3-SAT is in P
     -- Because representation doesn't change complexity
     True := by
