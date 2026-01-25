@@ -6,9 +6,9 @@
   computational complexity.
 *)
 
-Require Import Coq.Lists.List.
-Require Import Coq.Bool.Bool.
-Require Import Coq.Arith.Arith.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Bool.Bool.
+Require Import Stdlib.Arith.Arith.
 Import ListNotations.
 
 Module ChaudhariRefutation.
@@ -90,7 +90,7 @@ Proof.
   intros f.
   unfold conversionCost.
   (* Conversion just reorganizes existing data *)
-  omega.
+  apply le_refl.
 Qed.
 
 (* KEY THEOREM 3: Number of possible clauses doesn't help *)

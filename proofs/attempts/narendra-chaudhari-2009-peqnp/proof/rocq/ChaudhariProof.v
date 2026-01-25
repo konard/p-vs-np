@@ -8,9 +8,9 @@
   polynomial time complexity are not rigorously proven.
 *)
 
-Require Import List.
-Require Import Arith.
-Require Import Bool.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.Bool.Bool.
 Import ListNotations.
 
 Module ChaudhariAttempt.
