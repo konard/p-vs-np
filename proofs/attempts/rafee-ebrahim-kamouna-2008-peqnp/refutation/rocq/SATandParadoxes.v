@@ -8,6 +8,7 @@
 Require Import Coq.Lists.List.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Logic.Classical.
+Require Import Coq.Strings.String.
 Import ListNotations.
 
 Module KamounaAttempt.
@@ -91,8 +92,11 @@ Definition is_meta_level (p : LogicalParadox) : Prop := True.
 Definition is_object_level (f : CNFFormula) : Prop := True.
 
 (** Category error: treating meta-level as object-level *)
+(* Note: LogicalParadox and CNFFormula are different types,
+   so we express that there's no conversion between them *)
 Axiom category_separation : forall (p : LogicalParadox) (f : CNFFormula),
-  is_meta_level p -> is_object_level f -> p <> f.
+  is_meta_level p -> is_object_level f ->
+  ~ exists (convert : LogicalParadox -> CNFFormula), convert p = f.
 
 (** * 4. Cook's Theorem (Abstract Statement) *)
 
