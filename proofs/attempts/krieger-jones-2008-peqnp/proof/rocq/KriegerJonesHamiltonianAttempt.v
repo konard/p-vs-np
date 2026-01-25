@@ -417,7 +417,7 @@ Proof.
   - (* IF algorithm existed, THEN P = NP *)
     apply krieger_jones_complete_argument.
   - (* BUT no such validated algorithm exists *)
-    intro [algo [T [poly [correct [proof accepted]]]]].
+    intros [algo [T [poly [correct [proof accepted]]]]].
     apply community_rejection.
     exists proof.
     exact accepted.
