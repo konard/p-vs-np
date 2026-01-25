@@ -136,24 +136,28 @@ axiom meek_partition_theorem :
   True  -- Placeholder - circular reasoning
 
 -- Rule out exhaustive search
-theorem meek_rules_out_exhaustive :
-  MeekAlgorithmCategory.exhaustive_search → False := by
-  sorry  -- Uses circular "optimization theorem"
+axiom meek_rules_out_exhaustive :
+  ∀ cat : MeekAlgorithmCategory,
+  cat = MeekAlgorithmCategory.exhaustive_search → False
+  -- Uses circular "optimization theorem"
 
 -- Rule out partitioned search
-theorem meek_rules_out_partitioned :
-  MeekAlgorithmCategory.partitioned_search → False := by
-  sorry  -- Uses circular "partition theorem"
+axiom meek_rules_out_partitioned :
+  ∀ cat : MeekAlgorithmCategory,
+  cat = MeekAlgorithmCategory.partitioned_search → False
+  -- Uses circular "partition theorem"
 
 -- Rule out quality-based
-theorem meek_rules_out_quality :
-  MeekAlgorithmCategory.quality_based → False := by
-  sorry  -- Uses unproven Knapsack theorems
+axiom meek_rules_out_quality :
+  ∀ cat : MeekAlgorithmCategory,
+  cat = MeekAlgorithmCategory.quality_based → False
+  -- Uses unproven Knapsack theorems
 
 -- Rule out "magical solutions"
-theorem meek_rules_out_magical :
-  MeekAlgorithmCategory.magical_solution → False := by
-  sorry  -- Claims categorization is complete (unproven)
+axiom meek_rules_out_magical :
+  ∀ cat : MeekAlgorithmCategory,
+  cat = MeekAlgorithmCategory.magical_solution → False
+  -- Claims categorization is complete (unproven)
 
 /-! ## Step 7: Conclusion (Invalid!)
 

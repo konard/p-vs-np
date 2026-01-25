@@ -7,7 +7,8 @@
    Placeholders (Admitted) mark where the argument fails or makes unjustified leaps.
 *)
 
-Require Import Coq.Lists.List.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Arith.PeanoNat.
 Import ListNotations.
 
 (** * Meek's Approach Overview
