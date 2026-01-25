@@ -56,6 +56,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Ron A. Cohen | 2005 | [F](ron-cohen-2005-pneqnp/) | - | - |
 | ✗ | Viktor V. Ivanov | 2005 | [V](viktor-ivanov-2005-pneqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2006 | [S](singh-anand-2006-pneqnp/) | - | - |
+| ✓ | Howard Kleiman | 2006 | [H](howard-kleiman-2006-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Mohamed Mimouni | 2006 | [M](mohamed-mimouni-2006-peqnp/) | - | 🔷 🔶 |
 | ✗ | Radoslaw Hofman | 2006 | [R](radoslaw-hofman-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Rubens Ramos Viana | 2006 | [R](rubens-ramos-viana-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
@@ -112,7 +113,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 ## Statistics
 
 - **Total attempts:** 74
-- **Claims P = NP:** 37
+- **Claims P = NP:** 38
 - **Claims P ≠ NP:** 36
 - **Claims unprovable:** 1
 - **With ORIGINAL.md:** 2
