@@ -206,8 +206,8 @@ theorem sat_not_paradoxical (formula : CNFFormula) :
     exists false
     constructor
     · constructor
+      · intro contra; cases contra
       · intro contra; exact absurd contra h
-      · intro _; rfl
     · constructor
       · intro _; exact h
       · intro _; rfl
