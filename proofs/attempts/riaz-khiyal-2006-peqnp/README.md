@@ -5,41 +5,68 @@
 **Year**: 2006
 **Claim**: P = NP
 **Status**: Refuted
+**Issue**: #443
+
+---
 
 ## Summary
 
 In 2006, Khadija Riaz and Malik Sikander Hayat Khiyal published a paper titled "Finding Hamiltonian Cycle in Polynomial Time" in Information Technology Journal (Volume 5, pages 851-859). They claimed to have developed a polynomial-time algorithm for finding Hamiltonian cycles in graphs, which would prove P = NP since the Hamiltonian Cycle Problem is NP-complete.
 
+The approach combines preprocessing conditions, degree-based greedy selection, and limited backtracking. The authors claim this reduces the exponential complexity of exhaustive search to polynomial time.
+
+---
+
+## Directory Structure
+
+```
+riaz-khiyal-2006-peqnp/
+├── README.md                           # This file - overview of the attempt
+├── ORIGINAL.md                         # Original paper text converted to Markdown
+├── proof/                              # Forward formalization of the proof attempt
+│   ├── README.md                       # Documentation of proof formalizations
+│   ├── lean/
+│   │   └── RiazKhiyalProof.lean       # Lean 4 formalization
+│   └── rocq/
+│       └── RiazKhiyalProof.v          # Rocq formalization
+└── refutation/                         # Refutation demonstrating why the proof fails
+    ├── README.md                       # Documentation of refutations
+    ├── lean/
+    │   └── RiazKhiyalRefutation.lean  # Lean 4 refutation
+    └── rocq/
+        └── RiazKhiyalRefutation.v     # Rocq refutation
+```
+
+**Notes**:
+- Isabelle formalizations have been archived in `/archive/isabelle/riaz-khiyal-2006-peqnp/` following the repository's sunset of Isabelle support (see #530)
+- ORIGINAL.pdf is not available due to access restrictions on the publisher's website
+
+---
+
 ## Main Argument
 
 ### The Approach
 
-1. **Problem Selection**: The authors chose to tackle the Hamiltonian Cycle Problem (HCP), a well-known NP-complete problem
-2. **Greedy Algorithm with Limited Backtracking**: They proposed a greedy selection method with restricted backtracking
-3. **Degree-Based Heuristics**: The algorithm prioritizes node selection based on vertex degrees
-4. **Claimed Polynomial Complexity**: They asserted that their backtracking strategy limits the search space to polynomial size
-
-### Algorithm Structure
-
-The proposed algorithm consists of three main phases:
-
-1. **Preprocessing Phase**:
+1. **Preprocessing Phase**: Eliminate graphs that cannot contain Hamiltonian cycles
    - Remove parallel edges and self-loops
    - Reject graphs where any node has degree 1
    - Reject graphs where any node has more than two adjacent degree-2 nodes
 
-2. **Processing Phase**:
+2. **Greedy Selection with Limited Backtracking**:
    - Start from the highest-degree node
    - Select next nodes by prioritizing "least degree" neighbors
    - Store potential backtrack points in a "junction stack"
    - Backtrack only at "junction nodes" when necessary
 
-3. **Verification Phase**:
-   - Check if the constructed path forms a valid Hamiltonian cycle
+3. **Claimed Polynomial Complexity**: The authors assert that backtracking occurs only at polynomially-many junction nodes, limiting total time to polynomial.
 
 ### Key Technical Claim
 
-The crucial claim was that by using degree-based heuristics, **"backtracking may occur only on the junction nodes"**, which would allegedly reduce the complexity from exponential to polynomial time.
+> "Backtracking may occur only on the junction nodes"
+
+This claim is central to the polynomial-time complexity assertion but lacks formal proof in the paper.
+
+---
 
 ## The Errors
 
@@ -50,30 +77,23 @@ The crucial claim was that by using degree-based heuristics, **"backtracking may
 **Why This Matters**:
 - Claims like "backtracking is limited" are presented as intuitions, not proven theorems
 - The phrase "few nodes are junction nodes" lacks any formal definition or worst-case bound
-- Without a rigorous complexity analysis, there is no proof that the algorithm runs in polynomial time
-- The number of junction nodes could potentially be proportional to the total number of nodes in the worst case
+- Without rigorous complexity analysis, there is no proof of polynomial time
 
 ### 2. Incomplete Algorithmic Details
 
-**The Error**: Critical algorithmic details are missing or incomplete in the paper.
+**The Error**: Critical algorithmic details are missing or incomplete.
 
 **Specific Issues**:
 - Step 5 of the algorithm contains placeholder text where actual selection logic should appear
 - The "valid selection conditions" mentioned are never formally defined
-- The exact criteria for what constitutes a "junction node" are unclear
+- The exact criteria for "junction nodes" are unclear
 - The backtracking mechanism is not rigorously specified
-
-**Why This Matters**:
-- Without complete algorithmic details, the approach cannot be verified or refuted through implementation
-- Missing details suggest the authors may not have fully worked out the algorithm
-- Incomplete specifications make it impossible to analyze the true complexity
 
 ### 3. No Proof of Correctness
 
 **The Error**: The paper does not prove that the algorithm finds Hamiltonian cycles in all graphs that have them.
 
 **Why This Matters**:
-- Even if the algorithm were polynomial-time, it would be useless if it doesn't always find the solution when one exists
 - Greedy algorithms with limited backtracking are known to fail on certain graph structures
 - Without a correctness proof, there's no guarantee the algorithm solves the problem
 
@@ -86,35 +106,20 @@ The crucial claim was that by using degree-based heuristics, **"backtracking may
 2. "These conditions limit backtracking" (unproven)
 3. "Therefore the algorithm is polynomial" (conclusion without proof)
 
-**Why This Matters**:
-- This is a logical fallacy: assuming what needs to be proven
-- The existence of "valid conditions" is precisely what needs rigorous mathematical proof
-- Many NP-complete problems have greedy heuristics that work well in practice but fail in the worst case
-
-### 5. False Dichotomy About Search Strategies
-
-**The Error**: The paper presents a false choice between exhaustive search (exponential) and their greedy approach (claimed polynomial), ignoring the need to prove their approach handles all cases.
-
-**Why This Matters**:
-- Just because you avoid exhaustive search doesn't mean you've achieved polynomial time
-- The hardness of NP-complete problems comes from the need to explore exponentially many possibilities in the worst case
-- Any correct polynomial-time algorithm would need to prove it never encounters such worst cases
-
-### 6. No Engagement with NP-Completeness Theory
+### 5. No Engagement with NP-Completeness Theory
 
 **The Error**: The paper makes no attempt to explain why their approach circumvents the fundamental barriers of NP-completeness.
 
 **Why This Matters**:
-- Thousands of researchers have attempted to find polynomial algorithms for NP-complete problems
+- Thousands of researchers have attempted greedy approaches to NP-complete problems
 - The paper doesn't address why their approach succeeds where others have failed
-- No formal reduction or complexity argument demonstrates how their approach bypasses the P vs NP barrier
-- The existence of NP-completeness reductions means that if this algorithm worked, it would solve ALL NP-complete problems in polynomial time
+- No formal complexity argument demonstrates how the approach bypasses the P vs NP barrier
 
-## Known Counter-Examples and Refutations
+---
+
+## Known Counter-Examples
 
 ### Worst-Case Graphs for Greedy Algorithms
-
-Greedy degree-based algorithms are known to fail on certain graph structures:
 
 1. **Regular Graphs**: Graphs where all vertices have the same degree provide no guidance for degree-based heuristics
 2. **Graph Families with Hidden Structure**: Certain graph families appear locally tractable but require global reasoning
@@ -122,37 +127,52 @@ Greedy degree-based algorithms are known to fail on certain graph structures:
 
 ### The Backtracking Problem
 
-The key claim that "backtracking occurs only on junction nodes" is false for general graphs:
-- In the worst case, the number of junction nodes can be linear (or worse) in the graph size
+The claim that "backtracking occurs only on junction nodes" is false for general graphs:
+- In the worst case, the number of junction nodes can be linear (or worse) in graph size
 - Each junction node may have multiple alternatives to explore
 - The combination of multiple junction nodes with multiple choices leads to exponential search spaces
-- No mechanism in the algorithm prevents this exponential explosion
 
-## Broader Context
+---
 
-### Why This Approach Is Tempting
+## Formalization Structure
 
-The approach is appealing because:
-- Greedy algorithms with limited backtracking work well for many practical instances
-- Degree-based heuristics provide intuitive guidance for path construction
-- The Hamiltonian Cycle Problem has a simple statement and seems amenable to clever tricks
-- Many hard problems can be solved efficiently on restricted graph classes
+### ORIGINAL.md
+Contains the original paper text converted to Markdown:
+- Full text of the paper reconstructed from available sources
+- Metadata and access information
+- Algorithm description and key claims
 
-### The Critical Distinction: Heuristics vs. Algorithms
+### proof/
+Formalizes what the authors **claimed to prove**:
+- Algorithm structure and definitions
+- Key claims (correctness, polynomial complexity, limited backtracking)
+- Logical implications: IF claims hold THEN P = NP
+- **Gaps explicitly marked** with `sorry` (Lean) and `Admitted` (Rocq)
 
-- **Heuristics**: Methods that work well in practice but may fail on some inputs (polynomial-time heuristics exist for NP-complete problems)
-- **Algorithms**: Guaranteed methods that always produce correct answers (no polynomial-time algorithms known for NP-complete problems unless P = NP)
-- **The Gap**: The paper conflates a potentially useful heuristic with a proven algorithm
+### refutation/
+Demonstrates why the claims **cannot hold**:
+- Counter-example constructions
+- Proofs that greedy algorithms can fail
+- Demonstrations that backtracking can be exponential
+- Refutation of the paper's conclusion
 
-The authors' error was in claiming that their greedy heuristic is a polynomial-time algorithm without providing adequate proofs of:
-1. Correctness (finds cycles when they exist)
-2. Completeness (never misses a cycle)
-3. Polynomial complexity (terminates in polynomial time in all cases)
+---
 
-### Historical Context
+## Key Lessons
+
+1. **Proof Obligations Are Non-Negotiable**: Claiming polynomial-time complexity requires rigorous proof, not intuition
+2. **Heuristics vs. Algorithms**: Working well in practice doesn't mean working in all cases
+3. **Completeness Matters**: An algorithm must handle worst-case inputs, not just typical ones
+4. **The Hardness of NP-Completeness**: Simple greedy approaches have been tried countless times; the difficulty lies in handling adversarial cases
+5. **Rigor in Computer Science**: Informal arguments and missing details are red flags in complexity theory
+6. **The Burden of Extraordinary Claims**: Solving P vs NP requires extraordinary evidence, including complete algorithmic details and rigorous proofs
+
+---
+
+## Historical Context
 
 This attempt follows a common pattern in P vs NP attempts:
-1. Choose an NP-complete problem with a simple statement
+1. Choose an NP-complete problem with a simple statement (Hamiltonian Cycle)
 2. Develop a greedy or heuristic approach
 3. Observe it works well on small examples
 4. Claim polynomial complexity without rigorous proof
@@ -164,21 +184,7 @@ Similar flawed attempts have been made for:
 - Boolean Satisfiability (countless heuristics)
 - Vertex Cover (various approximation schemes misunderstood as exact algorithms)
 
-## Formalization Goals
-
-In this directory, we formalize:
-
-1. **The Basic Problem**: What it means to find a Hamiltonian cycle in polynomial time
-2. **The Algorithm Structure**: The general approach of greedy selection with limited backtracking
-3. **The Critical Gaps**: Where the proof fails (missing complexity analysis, correctness proof, and completeness proof)
-4. **Why This Would Imply P = NP**: If the algorithm were correct and polynomial-time
-5. **The Refutation**: Why greedy approaches don't guarantee polynomial complexity for all graphs
-
-The formalization demonstrates that:
-- The problem is well-formed and NP-complete
-- A polynomial-time algorithm would indeed prove P = NP
-- The proposed algorithm lacks the necessary proofs for correctness, completeness, and polynomial complexity
-- The backtracking claim is unsubstantiated and likely false in the worst case
+---
 
 ## References
 
@@ -186,6 +192,7 @@ The formalization demonstrates that:
 
 - **Original Paper**: Riaz, K., & Khiyal, M. S. H. (2006). "Finding Hamiltonian Cycle in Polynomial Time"
   - Information Technology Journal, Volume 5, pages 851-859
+  - DOI: 10.3923/itj.2006.851.859
   - Available at: https://scialert.net/fulltext/?doi=itj.2006.851.859
   - ResearchGate: https://www.researchgate.net/publication/26556773_Finding_Hamiltonian_Cycle_in_Polynomial_Time
 
@@ -201,19 +208,35 @@ The formalization demonstrates that:
 
 - **Woeginger's List**: Entry #38
   - https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
-- **Related**: Issue #44 in the repository
+- **Related Issue**: #443 in this repository
 
-## Key Lessons
+---
 
-1. **Proof Obligations Are Non-Negotiable**: Claiming an algorithm is polynomial-time requires rigorous proof, not intuition
-2. **Heuristics vs. Algorithms**: Working well in practice doesn't mean working in all cases
-3. **Completeness Matters**: An algorithm must handle worst-case inputs, not just typical ones
-4. **The Hardness of NP-Completeness**: Simple greedy approaches have been tried countless times; the difficulty lies in handling adversarial cases
-5. **Rigor in Computer Science**: Informal arguments and missing details are red flags in complexity theory
-6. **The Burden of Extraordinary Claims**: Solving P vs NP requires extraordinary evidence, including complete algorithmic details and rigorous proofs
+## Building the Formalizations
+
+### Lean 4
+```bash
+cd proof/lean/
+lean RiazKhiyalProof.lean
+
+cd ../../refutation/lean/
+lean RiazKhiyalRefutation.lean
+```
+
+### Rocq (Coq)
+```bash
+cd proof/rocq/
+rocqc RiazKhiyalProof.v
+
+cd ../../refutation/rocq/
+rocqc RiazKhiyalRefutation.v
+```
+
+---
 
 ## See Also
 
 - [P = NP Framework](../../p_eq_np/) - General framework for evaluating P = NP claims
-- [Hamiltonian Cycle Complexity](../../experiments/) - Experimental approaches to Hamiltonian problems
 - [Repository README](../../../README.md) - Overview of the P vs NP problem
+- [Contributing Guidelines](../../../CONTRIBUTING.md) - How to contribute formalizations
+- [Woeginger's List](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm) - Comprehensive list of P vs NP attempts
