@@ -60,6 +60,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Mohamed Mimouni | 2006 | [M](mohamed-mimouni-2006-peqnp/) | - | 🔷 🔶 |
 | ✗ | Radoslaw Hofman | 2006 | [R](radoslaw-hofman-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Raju Renjit G | 2006 | [R](renjit-2006-conpeqnp/) | 📄 | 🔷 🔶 |
+| ✗ | Rubens Ramos Viana | 2006 | [R](rubens-ramos-viana-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Sergey Gubin | 2006 | [S](sergey-gubin-2006-peqnp/) | - | 🔷 🔶 |
 | ✓ | Javaid Aslam | 2008 | [J](javaid-aslam-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
@@ -113,16 +114,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 76
+- **Total attempts:** 77
 - **Claims P = NP:** 40
-- **Claims P ≠ NP:** 35
+- **Claims P ≠ NP:** 36
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 4
-- **With original paper:** 3
-- **With proof/ directory:** 7
-- **With refutation/ directory:** 7
-- **With Lean formalization:** 7
-- **With Rocq formalization:** 7
+- **With ORIGINAL.md:** 5
+- **With original paper:** 4
+- **With proof/ directory:** 8
+- **With refutation/ directory:** 8
+- **With Lean formalization:** 8
+- **With Rocq formalization:** 8
 
 ---
 
