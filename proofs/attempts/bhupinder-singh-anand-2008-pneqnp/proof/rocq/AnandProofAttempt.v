@@ -106,8 +106,8 @@ Proof.
   assert (H_p : InP L).
   {
     specialize (H_eq L).
-    destruct H_eq.
-    apply H.
+    destruct H_eq as [_ H_np_to_p].
+    apply H_np_to_p.
     exact H_np.
   }
   contradiction.
