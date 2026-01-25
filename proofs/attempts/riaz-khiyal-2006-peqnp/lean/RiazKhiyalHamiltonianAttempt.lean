@@ -298,7 +298,8 @@ theorem attempt_summary :
   · sorry  -- The attempt is well-structured
   constructor
   · exact riaz_khiyal_lacks_proofs
-  · exact greedy_counter_examples_exist
+  · obtain ⟨ce, _⟩ := greedy_counter_examples_exist
+    exists ce
 
 /- ## 12. Verification -/
 
