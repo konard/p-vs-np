@@ -126,7 +126,7 @@ The informal consensus appears to be that while the paper is more sophisticated 
 ## Formalization Status
 
 This directory contains formal verification attempts in three proof assistants:
-- **Coq** (`coq/Hauptmann2016.v`): Formalization in Coq
+- **Rocq** (`rocq/Hauptmann2016.v`): Formalization in Rocq
 - **Lean** (`lean/Hauptmann2016.lean`): Formalization in Lean 4
 - **Isabelle** (`isabelle/Hauptmann2016.thy`): Formalization in Isabelle/HOL
 

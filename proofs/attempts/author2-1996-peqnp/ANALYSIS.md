@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Through formal verification in Coq, Lean, and Isabelle, we have identified **four fundamental errors** in Plotnikov's claimed polynomial-time algorithm for the minimum clique partition problem. These errors make the proof invalid and explain why the P=NP claim fails.
+Through formal verification in Rocq, Lean, and Isabelle, we have identified **four fundamental errors** in Plotnikov's claimed polynomial-time algorithm for the minimum clique partition problem. These errors make the proof invalid and explain why the P=NP claim fails.
 
 ## Background
 
@@ -57,7 +57,7 @@ Graph with 4 vertices {0, 1, 2, 3}:
 **Consequence**: The fundamental mathematical structure (poset) is invalid, so any results derived from it are unsound.
 
 **Code References**:
-- Coq: `proofs/attempts/author2-1996-peqnp/coq/CliqueCover.v:200`
+- Rocq: `proofs/attempts/author2-1996-peqnp/rocq/CliqueCover.v:200`
 - Lean: `proofs/attempts/author2-1996-peqnp/lean/CliqueCover.lean:108`
 - Isabelle: `proofs/attempts/author2-1996-peqnp/isabelle/CliqueCover.thy:169`
 
@@ -104,7 +104,7 @@ But {v₁, v₂, v₃} is NOT a clique in G
 ```
 
 **Code References**:
-- Coq: `proofs/attempts/author2-1996-peqnp/coq/CliqueCover.v:236`
+- Rocq: `proofs/attempts/author2-1996-peqnp/rocq/CliqueCover.v:236`
 - Lean: `proofs/attempts/author2-1996-peqnp/lean/CliqueCover.lean:117`
 - Isabelle: `proofs/attempts/author2-1996-peqnp/isabelle/CliqueCover.thy:193`
 
@@ -153,7 +153,7 @@ The Flaw:
 ```
 
 **Code References**:
-- Coq: `proofs/attempts/author2-1996-peqnp/coq/CliqueCover.v:175`
+- Rocq: `proofs/attempts/author2-1996-peqnp/rocq/CliqueCover.v:175`
 - Lean: `proofs/attempts/author2-1996-peqnp/lean/CliqueCover.lean:70`
 - Isabelle: `proofs/attempts/author2-1996-peqnp/isabelle/CliqueCover.thy:125`
 
@@ -192,7 +192,7 @@ for u in range(n):
 ```
 
 **Code References**:
-- Coq: `proofs/attempts/author2-1996-peqnp/coq/CliqueCover.v:279`
+- Rocq: `proofs/attempts/author2-1996-peqnp/rocq/CliqueCover.v:279`
 - Lean: `proofs/attempts/author2-1996-peqnp/lean/CliqueCover.lean:130`
 - Isabelle: `proofs/attempts/author2-1996-peqnp/isabelle/CliqueCover.thy:215`
 
@@ -218,7 +218,7 @@ Plotnikov's claimed polynomial-time algorithm for minimum clique partition conta
 
 **Each error alone is sufficient to invalidate the proof.**
 
-The formalization in three proof assistants (Coq, Lean, Isabelle) has made these errors explicit and proven that:
+The formalization in three proof assistants (Rocq, Lean, Isabelle) has made these errors explicit and proven that:
 - The algorithm as described cannot be correct
 - The approach is fundamentally flawed
 - A polynomial-time algorithm would contradict NP-completeness
@@ -235,7 +235,7 @@ This formalization demonstrates common patterns in failed P vs NP proofs:
 
 ## Verification Status
 
-- ✓ Coq formalization complete (with admitted lemmas for known results)
+- ✓ Rocq formalization complete (with admitted lemmas for known results)
 - ✓ Lean formalization complete (with sorry for exercises)
 - ✓ Isabelle formalization complete (with sorry for detailed proofs)
 - ✓ All four errors formally identified and documented
