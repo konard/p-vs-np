@@ -114,22 +114,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-<<<<<<< HEAD
-- **Total attempts:** 76
+- **Total attempts:** 77
 - **Claims P = NP:** 40
-- **Claims P ≠ NP:** 35
-=======
-- **Total attempts:** 74
-- **Claims P = NP:** 38
 - **Claims P ≠ NP:** 36
->>>>>>> origin/main
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 3
-- **With original paper:** 2
-- **With proof/ directory:** 7
-- **With refutation/ directory:** 7
-- **With Lean formalization:** 7
-- **With Rocq formalization:** 7
+- **With ORIGINAL.md:** 5
+- **With original paper:** 4
+- **With proof/ directory:** 8
+- **With refutation/ directory:** 8
+- **With Lean formalization:** 8
+- **With Rocq formalization:** 8
 
 ---
 
