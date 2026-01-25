@@ -90,7 +90,7 @@ Proof.
   intros f.
   unfold conversionCost.
   (* Conversion just reorganizes existing data *)
-  apply le_refl.
+  auto.
 Qed.
 
 (* KEY THEOREM 3: Number of possible clauses doesn't help *)
