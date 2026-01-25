@@ -131,15 +131,23 @@ This attempt follows a common pattern:
 4. No subsequent impact on theoretical computer science
 5. P vs NP remains open
 
-## Formalization Goals
+## Formalization Structure
 
-In this directory, we formalize:
+This directory contains:
 
-1. **The Hamiltonian Circuit Problem**: Precise definition as a decision problem
-2. **What "Polynomial-Time Algorithm" Means**: Formal complexity class definitions
-3. **NP-Completeness**: What it means for Hamiltonian circuits to be NP-complete
-4. **The Implication**: Why a polynomial algorithm for any NP-complete problem implies P = NP
-5. **The Gap**: Where the claimed proof fails (no verified polynomial algorithm provided)
+- **`original/`**: The original patent application text and documentation
+- **`proof/`**: Forward formalization following the structure of the claimed proof
+- **`refutation/`**: Formal refutations of specific claims in the attempt
+
+### Formalization Goals
+
+In the formalizations, we:
+
+1. **Define the Hamiltonian Circuit Problem**: Precise definition as a decision problem
+2. **Define "Polynomial-Time Algorithm"**: Formal complexity class definitions (P, NP)
+3. **Formalize NP-Completeness**: What it means for Hamiltonian circuits to be NP-complete
+4. **Show the Implication**: Why a polynomial algorithm for any NP-complete problem implies P = NP
+5. **Identify the Gap**: Where the claimed proof fails (no verified polynomial algorithm provided)
 
 The formalization demonstrates that:
 - The problem is well-defined
