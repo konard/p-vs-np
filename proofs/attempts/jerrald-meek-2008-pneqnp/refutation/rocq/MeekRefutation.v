@@ -300,11 +300,13 @@ Theorem meek_attempt_has_fatal_gaps :
   True.
 
 Proof.
-  repeat split.
+  split.
   - exists {| items := [1; 2; 4]; target := 6 |}. trivial.
-  - exact meek_showed_wrong_direction.
-  - exists (BaseConversionAlgorithm 2). trivial.
-  - trivial.
+  - split.
+    + exact meek_showed_wrong_direction.
+    + split.
+      * exists (BaseConversionAlgorithm 2). trivial.
+      * trivial.
 Qed.
 
 (*
