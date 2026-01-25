@@ -52,7 +52,7 @@ def TheoryB : FormalSystem :=
 
 noncomputable axiom UniversalTMAxiom : Formula
 
-def TheoryBPrime : FormalSystem :=
+noncomputable def TheoryBPrime : FormalSystem :=
   { axioms := UniversalTMAxiom :: TheoryB.axioms,
     rules := TheoryB.rules }
 
