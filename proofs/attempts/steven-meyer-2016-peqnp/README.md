@@ -109,8 +109,8 @@ Our formalization captures Meyer's error by:
 
 ## Files in This Directory
 
-### Coq (`coq/MeyerAttempt.v`)
-Formal proof in Coq that demonstrates:
+### Rocq (`rocq/MeyerAttempt.v`)
+Formal proof in Rocq that demonstrates:
 - Definition of MRAM and Turing Machine models
 - Polynomial equivalence of models
 - Why changing models doesn't resolve P-versus-NP

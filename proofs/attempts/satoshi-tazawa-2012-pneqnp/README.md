@@ -110,7 +110,7 @@ Our formalization attempts to:
 
 ## Formalization Files
 
-- **[coq/TazawaAttempt.v](coq/TazawaAttempt.v)** - Coq formalization
+- **[rocq/TazawaAttempt.v](rocq/TazawaAttempt.v)** - Rocq formalization
 - **[lean/TazawaAttempt.lean](lean/TazawaAttempt.lean)** - Lean 4 formalization
 - **[isabelle/TazawaAttempt.thy](isabelle/TazawaAttempt.thy)** - Isabelle/HOL formalization
 
@@ -122,10 +122,10 @@ Each formalization:
 
 ## Verification
 
-### Coq
+### Rocq
 ```bash
-cd coq
-coqc TazawaAttempt.v
+cd rocq
+rocq compile TazawaAttempt.v
 ```
 
 ### Lean 4

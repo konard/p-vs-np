@@ -58,7 +58,7 @@ Any valid P≠NP proof must overcome these established barriers:
 
 ## Formalization Goal
 
-This directory contains formal verification attempts in three proof assistants (Coq, Lean, Isabelle) to:
+This directory contains formal verification attempts in three proof assistants (Rocq, Lean, Isabelle) to:
 
 1. **Formalize the claimed proof structure** based on available information
 2. **Identify logical gaps or errors** through formalization
@@ -77,7 +77,7 @@ Given that this proof attempt appears on Woeginger's list of unsuccessful attemp
 
 ## Formal Verification Status
 
-- **Coq**: See `coq/DiduchProofAttempt.v`
+- **Rocq**: See `rocq/DiduchProofAttempt.v`
 - **Lean**: See `lean/DiduchProofAttempt.lean`
 - **Isabelle**: See `isabelle/DiduchProofAttempt.thy`
 

@@ -117,7 +117,7 @@ We provide formalizations in three proof assistants that:
 
 ### Implementations
 
-- `coq/` - Coq formalization
+- `rocq/` - Rocq formalization
 - `lean/` - Lean 4 formalization
 - `isabelle/` - Isabelle/HOL formalization
 
@@ -140,7 +140,7 @@ We provide formalizations in three proof assistants that:
 
 - ✅ Detailed analysis complete
 - ✅ Error identified: Confusion between provability and model existence
-- ✅ Coq formalization: Complete
+- ✅ Rocq formalization: Complete
 - ✅ Lean formalization: Complete
 - ✅ Isabelle formalization: Complete
 
