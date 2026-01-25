@@ -8,7 +8,7 @@
 
 Require Import List.
 Require Import Arith.
-Require Import Omega.
+Require Import Lia.
 Import ListNotations.
 
 Module ZeilbergerAttempt.
@@ -119,7 +119,7 @@ Proof.
   exists (numberOfLPProblems * (variablesPerLP * variablesPerLP * variablesPerLP)).
   intro n.
   simpl.
-  omega.
+  lia.
 Qed.
 
 (** * 6. The Gap in Zeilberger's "Proof" *)
@@ -210,7 +210,7 @@ Proof.
   exists 2, 1.
   intro n.
   simpl.
-  omega.
+  lia.
 Qed.
 
 (** Example: 2^n is NOT polynomial *)
