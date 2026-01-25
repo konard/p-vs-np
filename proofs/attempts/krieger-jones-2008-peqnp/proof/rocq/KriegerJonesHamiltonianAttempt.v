@@ -377,7 +377,7 @@ Proof.
     split; reflexivity.
   - (* But no valid proof exists *)
     unfold whatIsRequired.
-    intro [proof [peer_rev comm_acc]].
+    intros [proof [peer_rev comm_acc]].
     (* Contradicts community_rejection *)
     apply community_rejection.
     exists proof.
