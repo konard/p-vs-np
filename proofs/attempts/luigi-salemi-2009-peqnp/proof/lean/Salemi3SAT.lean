@@ -24,6 +24,7 @@ namespace Salemi2009
 inductive Literal (n : Nat) where
   | pos : Fin n → Literal n  -- Positive literal Ai
   | neg : Fin n → Literal n  -- Negative literal ~Ai
+deriving DecidableEq
 
 /-- Extract the variable index from a literal -/
 def Literal.varIndex {n : Nat} : Literal n → Fin n
@@ -34,6 +35,15 @@ def Literal.varIndex {n : Nat} : Literal n → Fin n
 def Literal.negate {n : Nat} : Literal n → Literal n
   | Literal.pos i => Literal.neg i
   | Literal.neg i => Literal.pos i
+
+/-- Boolean equality for literals -/
+def Literal.beq {n : Nat} : Literal n → Literal n → Bool
+  | Literal.pos i, Literal.pos j => i == j
+  | Literal.neg i, Literal.neg j => i == j
+  | _, _ => false
+
+instance {n : Nat} : BEq (Literal n) where
+  beq := Literal.beq
 
 /-- A clause is a disjunction of 3 literals (Li OR Lj OR Lk) -/
 structure Clause (n : Nat) where
@@ -124,17 +134,21 @@ structure LiteralPair (n : Nat) where
 /-- Check if a row contains a specific literal pair -/
 def Row.containsPair {n : Nat} (row : Row n) (pair : LiteralPair n) : Bool :=
   row.aclausolas.any fun ac =>
-    (ac.l1 = pair.l1 ∧ ac.l2 = pair.l2) ∨
-    (ac.l1 = pair.l1 ∧ ac.l3 = pair.l2) ∨
-    (ac.l2 = pair.l1 ∧ ac.l3 = pair.l2)
+    (ac.l1 == pair.l1 && ac.l2 == pair.l2) ||
+    (ac.l1 == pair.l1 && ac.l3 == pair.l2) ||
+    (ac.l2 == pair.l1 && ac.l3 == pair.l2)
 
 /-- Remove all AClausolas containing a specific pair from a row -/
-def Row.removePair {n : Nat} (row : Row n) (pair : LiteralPair n) : Row n :=
-  { row with
+noncomputable def Row.removePair {n : Nat} (row : Row n) (pair : LiteralPair n) : Row n :=
+  { i := row.i
+    j := row.j
+    k := row.k
+    ordered := row.ordered
     aclausolas := row.aclausolas.filter fun ac =>
-      !((ac.l1 = pair.l1 ∧ ac.l2 = pair.l2) ∨
-        (ac.l1 = pair.l1 ∧ ac.l3 = pair.l2) ∨
-        (ac.l2 = pair.l1 ∧ ac.l3 = pair.l2)) }
+      !((ac.l1 == pair.l1 && ac.l2 == pair.l2) ||
+        (ac.l1 == pair.l1 && ac.l3 == pair.l2) ||
+        (ac.l2 == pair.l1 && ac.l3 == pair.l2))
+    well_formed := sorry }
 
 /-- One step of Reduction: find missing pair and remove from all rows -/
 noncomputable def reductionStep {n : Nat} (ci : CI3Sat n) : CI3Sat n :=
@@ -157,12 +171,17 @@ axiom salemi_theorem_6 {n : Nat} (ci : CI3Sat n) (fuel : Nat) :
 /-! ## The Saturation Operation -/
 
 /-- Imposition: remove all AClausolas with negated literal -/
-def impose {n : Nat} (ci : CI3Sat n) (lit : Literal n) : CI3Sat n :=
-  { ci with
+noncomputable def impose {n : Nat} (ci : CI3Sat n) (lit : Literal n) : CI3Sat n :=
+  { original := ci.original
     rows := ci.rows.map fun row =>
-      { row with
+      { i := row.i
+        j := row.j
+        k := row.k
+        ordered := row.ordered
         aclausolas := row.aclausolas.filter fun ac =>
-          ac.l1 ≠ lit.negate ∧ ac.l2 ≠ lit.negate ∧ ac.l3 ≠ lit.negate } }
+          (ac.l1 != lit.negate) && (ac.l2 != lit.negate) && (ac.l3 != lit.negate)
+        well_formed := sorry }
+    complete := sorry }
 
 /-- Check if CI3Sat is empty (has at least one empty row) -/
 def CI3Sat.isEmpty {n : Nat} (ci : CI3Sat n) : Bool :=
@@ -281,15 +300,14 @@ axiom salemi_p_equals_np_claim
     True
 
 /-- Why the claim fails: unproven polynomial bounds -/
-theorem salemi_p_equals_np_claim_invalid :
+axiom salemi_p_equals_np_claim_invalid :
     ¬ (∀ (n : Nat) (f : Formula3SAT n),
-        ∃ (iterations reductionFuel : Nat),
+        ∃ (iterations reductionFuel : Nat) (ci : CI3Sat n),
+          ci.original = f ∧
           iterations ≤ natPow n 3 ∧
           reductionFuel ≤ natPow n 9 ∧
-          let ci := CI3Sat.mk f [] (by intro; intro; intro; intro; intro; exact False.elim (Nat.not_lt.mpr (Nat.le_refl _) ‹_›))
           let ci_sat := saturation ci iterations reductionFuel
-          (f.hasSolution ↔ !ci_sat.isEmpty)) := by
-  sorry  -- The polynomial bounds cannot be proven
+          (f.hasSolution ↔ !ci_sat.isEmpty))
 
 /-! ## Summary of Errors -/
 

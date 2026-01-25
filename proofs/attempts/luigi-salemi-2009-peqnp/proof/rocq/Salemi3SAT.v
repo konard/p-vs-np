@@ -68,10 +68,10 @@ Definition assignment (n : nat) := fin n -> bool.
 
 (** Evaluate a literal under an assignment *)
 Definition eval_literal {n} (lit : literal n) (assign : assignment n) : bool :=
-  match lit with
-  | Pos i => assign i
-  | Neg i => negb (assign i)
-  end.
+  match lit in literal n0 return (fin n0 -> bool) -> bool with
+  | Pos i => fun a => a i
+  | Neg i => fun a => negb (a i)
+  end assign.
 
 (** A clause is satisfied if at least one literal is true *)
 Definition clause_satisfied {n} (c : clause n) (assign : assignment n) : bool :=
