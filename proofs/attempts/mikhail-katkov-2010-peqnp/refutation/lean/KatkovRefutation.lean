@@ -89,7 +89,8 @@ axiom katkov_uniqueness_claim : ∀ (n : Nat) (Q : Matrix (Fin n) (Fin n) ℝ),
   ∃ α_star : ℝ,
     Real.lt 0 α_star ∧
     ∀ α : ℝ, Real.le 0 α → Real.lt α α_star →
-    ∃! (x : Fin n → ℝ), isGlobalMinimizer n α Q x
+    (∃ (x : Fin n → ℝ), isGlobalMinimizer n α Q x ∧
+      ∀ (y : Fin n → ℝ), isGlobalMinimizer n α Q y → x = y)
 
 /-- But uniqueness fails when multiple optimal cuts exist -/
 theorem uniqueness_not_proven :
@@ -119,7 +120,8 @@ theorem equation_24_fails_when_gap_zero :
     ∃ (n : Nat) (α : ℝ) (Q : Matrix (Fin n) (Fin n) ℝ),
       Real.lt 0 α ∧
       -- The uniqueness condition is violated
-      ¬(∃! (x : Fin n → ℝ), isGlobalMinimizer n α Q x) := by
+      ¬(∃ (x : Fin n → ℝ), isGlobalMinimizer n α Q x ∧
+        ∀ (y : Fin n → ℝ), isGlobalMinimizer n α Q y → x = y) := by
   sorry
 
 /-! ## Error 4: Bifurcations Are Possible -/
