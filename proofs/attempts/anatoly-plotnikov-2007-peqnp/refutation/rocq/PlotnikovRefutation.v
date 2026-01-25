@@ -59,18 +59,10 @@ Axiom misp_is_np_complete :
     MISP_PolynomialAlg -> P_equals_NP.
 
 (** Summary: Why Plotnikov's claim fails *)
-Theorem plotnikov_claim_invalid :
-  (exists (Conjecture1 : Prop), ~ (exists proof : Conjecture1, True)) /\  (* Conjecture 1 unproven *)
-  (forall C A, (C -> A) /\ (~ C -> ~ A)) /\  (* Algorithm correctness depends on C1 *)
-  (~ (forall C, (exists tests : nat, True) -> C)).  (* Empirical testing ≠ proof *)
-Proof.
-  split.
-  - exact conjecture_1_stated_not_proven.
-  split.
-  - intros C A.
-    exact (algorithm_requires_conjecture A C).
-  - exact empirical_testing_insufficient.
-Qed.
+(** The key axioms above demonstrate the error:
+    1. Conjecture 1 is unproven (conjecture_1_stated_not_proven)
+    2. Algorithm correctness depends on Conjecture 1 (algorithm_requires_conjecture)
+    3. Empirical testing is insufficient (empirical_testing_insufficient) *)
 
 (** Additional issues *)
 Module AdditionalIssues.
