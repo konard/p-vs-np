@@ -113,7 +113,7 @@ Our formalization attempts to:
 
 ## Formalization Status
 
-### Coq (`coq/AnnilaAttempt.v`)
+### Rocq (`rocq/AnnilaAttempt.v`)
 - Models basic computational complexity classes (P, NP)
 - Attempts to formalize "state space evolution" claims
 - **Identifies the gap**: No way to prove state spaces "cannot be contracted" without assuming P ≠ NP

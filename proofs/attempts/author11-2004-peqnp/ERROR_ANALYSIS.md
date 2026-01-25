@@ -43,9 +43,9 @@ This is obviously wrong because:
 
 ### What the Formalization Reveals
 
-When we formalize the Bringsjord-Taylor argument in Coq, Lean, and Isabelle, the error becomes mathematically explicit:
+When we formalize the Bringsjord-Taylor argument in Rocq, Lean, and Isabelle, the error becomes mathematically explicit:
 
-1. **Coq formalization** (`BringsjordTaylorPeqNP.v`):
+1. **Rocq formalization** (`BringsjordTaylorPeqNP.v`):
    - Defines `PhysicalProcess` with separate `wallClockTime` and `resources` parameters
    - Axiomatizes that any physical process solving NP-complete problems in polynomial time must use exponential resources
    - Proves this contradicts the definition of P, which requires polynomial resources
