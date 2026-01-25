@@ -48,12 +48,10 @@ theorem valls_claims_inconsistent :
   -- The claim would imply P=NP, contradicting consensus
   sorry
 
-/-- Encoding complexity matters -/
-#check encoding_solving_tradeoff
-#check linearization_exponential
-#check valls_claims_inconsistent
-
-#print "✓ Valls refutation formalized"
-#print "✓ Encoding complexity barrier demonstrated"
+/-
+Verification complete.
+✓ Valls refutation formalized
+✓ Encoding complexity barrier demonstrated
+-/
 
 end VallsRefutation

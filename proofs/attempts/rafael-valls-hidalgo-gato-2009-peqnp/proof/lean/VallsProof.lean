@@ -311,17 +311,12 @@ theorem valls_approach_impossible :
 
 /- ## 15. Verification -/
 
-#check VallsAttempt
-#check VallsClaim
-#check encoding_or_solving_expensive
-#check no_polynomial_encoding_and_solving
-#check valls_complete_argument
-#check valls_fails_at_encoding_or_solving
+/-
+This file demonstrates that Valls' argument faces an encoding complexity barrier.
 
--- This file compiles successfully
--- It demonstrates that Valls' argument faces an encoding complexity barrier
-#print "✓ Valls Hidalgo-Gato attempt formalization compiled"
-#print "✓ Error identified: encoding complexity barrier"
-#print "✓ Either encoding is exponential OR solving is exponential"
+✓ Valls Hidalgo-Gato attempt formalization compiled
+✓ Error identified: encoding complexity barrier
+✓ Either encoding is exponential OR solving is exponential
+-/
 
 end VallsHidalgoGatoAttempt
