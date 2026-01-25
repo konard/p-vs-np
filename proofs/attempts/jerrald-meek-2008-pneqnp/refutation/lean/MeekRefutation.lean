@@ -123,7 +123,7 @@ structure SpecialCaseAlgorithm where
 -- Base conversion algorithm only works when items are powers of a base
 def BaseConversionAlgorithm : SpecialCaseAlgorithm where
   works_for := fun inst =>
-    ∃ base n : Nat, inst.items = List.range n |>.map (fun i => base ^ i)
+    ∃ base n : Nat, inst.items = (List.range n).map (fun i => base ^ i)
   compute := fun x => true  -- Placeholder
   time := fun n => n
   is_poly := by

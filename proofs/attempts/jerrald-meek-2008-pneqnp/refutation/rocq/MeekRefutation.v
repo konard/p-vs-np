@@ -8,12 +8,12 @@
    and the misunderstanding of what NP-Completeness means.
 *)
 
-Require Import Coq.Logic.Classical.
-Require Import Coq.Sets.Ensembles.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Arith.Arith.
-Require Import Coq.micromega.Lia.
-Require Import Coq.Lists.List.
+Require Import Stdlib.Logic.Classical.
+Require Import Stdlib.Sets.Ensembles.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.Arith.Arith.
+Require Import Stdlib.micromega.Lia.
+Require Import Stdlib.Lists.List.
 Import ListNotations.
 
 (* Basic definitions for computational complexity classes *)
