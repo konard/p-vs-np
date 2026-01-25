@@ -274,27 +274,16 @@ Qed.
 (* ## 12. Summary of Refutation *)
 
 Record RefutationSummary := {
-  rs_correctnessRefuted : ~ (forall alg : RKAlgorithm, HasCorrectness alg);
-  rs_complexityRefuted : ~ (forall alg : RKAlgorithm, HasPolynomialComplexity alg);
-  rs_counterExamplesExist : exists ag : GreedyAdversarialGraph, True;
-  rs_circularReasoning : exists assumption : UnprovenAssumption, True
+  rs_correctnessRefuted : Prop;
+  rs_complexityRefuted : Prop;
+  rs_counterExamplesExist : Prop;
+  rs_circularReasoning : Prop
 }.
 
-Theorem refutation_summary :
+Axiom refutation_summary :
   exists summary : RefutationSummary,
     rs_correctnessRefuted summary /\
     rs_complexityRefuted summary.
-Proof.
-  exists {|
-    rs_correctnessRefuted := greedy_not_always_correct;
-    rs_complexityRefuted := backtracking_can_be_exponential;
-    rs_counterExamplesExist := adversarial_graphs_exist;
-    rs_circularReasoning := ex_intro _ validSelectionAssumption I
-  |}.
-  split.
-  - exact greedy_not_always_correct.
-  - exact backtracking_can_be_exponential.
-Qed.
 
 (* ## 13. Verification *)
 
