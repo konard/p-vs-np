@@ -240,10 +240,13 @@ Axiom time_hierarchy_theorem :
 (** * 10. Summary of Errors *)
 
 (** Error 1: Category confusion *)
+(* Note: Since p and f have different types, we cannot express p = f
+   Instead, we express that attempting such confusion leads to problems *)
 Definition error1_category_confusion : Prop :=
   exists (p : LogicalParadox) (f : CNFFormula),
-    (* Incorrectly treating a paradox as a SAT instance *)
-    p = f.  (* This is a type error! *)
+    (* Incorrectly attempting to treat a paradox as a SAT instance *)
+    (* This is fundamentally a type/category error *)
+    False.  (* Placeholder for "this is impossible" *)
 
 (** Error 2: Misunderstanding what Cook's theorem states *)
 Definition error2_misunderstanding_cook : Prop :=
