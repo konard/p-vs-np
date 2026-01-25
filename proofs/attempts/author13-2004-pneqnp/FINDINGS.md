@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-This document summarizes the findings from formally analyzing Marius Ionescu's 2004 proof attempt that claims to show P ≠ NP using the OWMF (One Way Mod Function) problem. The formalization has been completed in three proof assistants: Coq, Lean 4, and Isabelle/HOL.
+This document summarizes the findings from formally analyzing Marius Ionescu's 2004 proof attempt that claims to show P ≠ NP using the OWMF (One Way Mod Function) problem. The formalization has been completed in three proof assistants: Rocq, Lean 4, and Isabelle/HOL.
 
 **Conclusion**: The proof attempt is **invalid** due to circular reasoning and unproven hardness assumptions.
 
@@ -31,7 +31,7 @@ This document summarizes the findings from formally analyzing Marius Ionescu's 2
 - This is the heart of the P vs NP problem, not something that can be assumed
 
 **In the Formalization**:
-```coq
+```rocq
 (* This axiom represents the unproven claim *)
 Axiom OWMF_not_in_P : ~ InP OWMF.
 ```
@@ -143,7 +143,7 @@ This must rule out ALL possible algorithms, not just known ones.
 
 ## Formalization Results
 
-### Coq (proofs/attempts/author13-2004-pneqnp/coq/OWMF.v)
+### Rocq (proofs/attempts/author13-2004-pneqnp/rocq/OWMF.v)
 - **Status**: Complete
 - **Key Result**: Demonstrates that `OWMF_not_in_P` is an axiom (unproven assumption)
 - **Lines of Code**: 279
@@ -209,7 +209,7 @@ For anyone attempting to prove P ≠ NP:
 
 The Ionescu (2004) OWMF-based P ≠ NP attempt fails due to circular reasoning: it assumes OWMF is not in P without proof. This assumption is precisely what needs to be proven and is equivalent in difficulty to proving P ≠ NP itself.
 
-The formalization in Coq, Lean, and Isabelle makes this error explicit and serves as an educational resource for understanding common mistakes in P vs NP proof attempts.
+The formalization in Rocq, Lean, and Isabelle makes this error explicit and serves as an educational resource for understanding common mistakes in P vs NP proof attempts.
 
 **Status**: ✗ Invalid proof attempt (circular reasoning, unproven assumptions)
 

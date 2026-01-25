@@ -11,15 +11,41 @@ When adding a new formalization of a P vs NP proof attempt, follow these guideli
 Create your formalization in:
 ```
 proofs/attempts/<author-year-claim>/
-├── README.md           # Description of the attempt and identified errors
-├── lean/
-│   └── YourTheory.lean
-├── coq/
-│   └── YourTheory.v
-└── isabelle/
-    ├── ROOT            # REQUIRED: Session configuration
-    └── YourTheory.thy
+├── README.md              # Overview of the attempt and identified errors (REQUIRED)
+├── ORIGINAL.md            # Markdown reconstruction of the original paper (recommended)
+├── ORIGINAL.pdf           # Original paper PDF (recommended, can be .html/.tex)
+├── proof/                 # Forward proof formalization (recommended)
+│   ├── README.md          # Explanation of proofs
+│   ├── lean/              # Lean 4 formalizations
+│   │   └── ProofAttempt.lean
+│   └── rocq/              # Rocq formalizations
+│       └── ProofAttempt.v
+└── refutation/            # Refutation formalization (recommended)
+    ├── README.md          # Explanation of failures
+    ├── lean/              # Lean 4 formalizations
+    │   └── Refutation.lean
+    └── rocq/              # Rocq formalizations
+        └── Refutation.v
 ```
+
+**File descriptions:**
+- **README.md** (required): Overview of the proof attempt, including metadata (author, year, claim), summary of the approach, and explanation of why it fails
+- **ORIGINAL.md** (recommended): Markdown conversion/reconstruction of the original paper text, translated to English if needed
+- **ORIGINAL.pdf** (recommended): The original paper in PDF format (or .html/.tex if PDF unavailable)
+- **proof/**: Contains the forward proof formalization (attempting to follow the original author's approach)
+- **refutation/**: Contains the refutation formalization (showing why the proof fails)
+
+You can validate your attempt structure by running:
+```bash
+python3 scripts/check_attempt_structure.py --path proofs/attempts/<your-attempt>/
+```
+
+To generate a markdown list of all attempts:
+```bash
+python3 scripts/check_attempt_structure.py --generate-list --output proofs/attempts/ATTEMPTS.md
+```
+
+> **Note:** Isabelle/HOL support has been sunset. Existing Isabelle proofs are archived in [`./archive/isabelle/`](archive/isabelle/) for reference. New formalizations should use Lean or Rocq.
 
 ### Lean 4 Guidelines
 
@@ -37,39 +63,14 @@ Simply add your `.lean` file in the appropriate directory and it will be automat
 - Do not use `#print "string"` - this is not valid Lean 4 syntax
 - Avoid reserved keywords as field names (e.g., `from`, `to`)
 
-### Isabelle Guidelines
-
-**No central ROOT file!** Each theory directory must have its own ROOT file.
-
-Create a ROOT file in your `isabelle/` directory:
-```
-session "YourSessionName" = HOL +
-  options [timeout = 300, quick_and_dirty]
-  theories
-    YourTheory
-```
-
-**If your theory requires additional libraries**, update the parent session:
-- `HOL-Library` for `FSet`, `Multiset`, `FuncSet`, etc.
-- `HOL-Analysis` for `Analysis`, `Probability`, etc.
-- `HOL-Combinatorics` for combinatorics libraries
-
-Example:
-```
-session "YourSessionName" = "HOL-Library" +
-  options [timeout = 300, quick_and_dirty]
-  theories
-    YourTheory
-```
-
-### Coq Guidelines
+### Rocq Guidelines
 
 Add your `.v` file to the appropriate directory. Update the local `_CoqProject` file if one exists.
 
 ### Code Quality
 
 **For formalizations demonstrating failed proof attempts:**
-- Using `sorry` (Lean), `Admitted` (Coq), or `oops` (Isabelle) is acceptable to mark where proofs cannot be completed
+- Using `sorry` (Lean) or `Admitted` (Rocq) is acceptable to mark where proofs cannot be completed
 - Add clear comments explaining why the proof fails at that point
 - The goal is to demonstrate the error in the original proof attempt, not to complete an impossible proof
 
@@ -77,8 +78,7 @@ Add your `.v` file to the appropriate directory. Update the local `_CoqProject` 
 
 All proof files are verified by GitHub Actions:
 - Lean: `lake build`
-- Isabelle: `isabelle build -D .` (auto-discovers all ROOT files)
-- Coq: Standard coqc compilation
+- Rocq: Standard rocq compile compilation
 
 Ensure your code compiles locally before submitting.
 
@@ -88,7 +88,7 @@ Use clear, descriptive commit messages:
 ```
 feat: Add [Author] [Year] P=[NP/P≠NP] formalization
 
-- Add formalization in [Lean/Coq/Isabelle]
+- Add formalization in [Lean/Rocq]
 - Identify error: [brief description of the error]
 - Document the gap in the proof
 ```

@@ -93,7 +93,7 @@ The formalization serves as:
 
 This directory contains formalizations in three proof assistants:
 
-### 1. Coq (`coq/`)
+### 1. Rocq (`rocq/`)
 - Defines P, NP, and NP-completeness formally
 - Models the structure of what a P = NP proof would require
 - Identifies the gaps in informal reasoning
