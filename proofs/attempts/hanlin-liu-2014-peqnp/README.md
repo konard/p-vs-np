@@ -111,7 +111,7 @@ We formalize the requirement that any valid P=NP proof via an algorithmic approa
 
 ## Implementations
 
-### Coq (`coq/HanlinLiu2014.v`)
+### Rocq (`rocq/HanlinLiu2014.v`)
 - Defines graph structures and Hamiltonian circuits
 - Formalizes the claim of polynomial-time solvability
 - Proves that incomplete case coverage invalidates the proof
@@ -163,9 +163,9 @@ This formalization serves several purposes:
 To verify the formalizations:
 
 ```bash
-# Coq
-cd coq
-coqc HanlinLiu2014.v
+# Rocq
+cd rocq
+rocq compile HanlinLiu2014.v
 
 # Lean 4
 cd lean
@@ -203,7 +203,7 @@ See repository [LICENSE](../../../LICENSE) file.
 ## Status
 
 - ✅ Documentation: Complete
-- ✅ Coq formalization: Complete
+- ✅ Rocq formalization: Complete
 - ✅ Lean formalization: Complete
 - ✅ Isabelle formalization: Complete
 - ✅ Error identification: Complete (author's own admission)

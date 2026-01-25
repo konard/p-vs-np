@@ -2,7 +2,7 @@
 
 ## Summary
 
-Plotnikov's 1996 paper claims to solve the clique partition problem in polynomial time (O(n⁵)), which would prove P=NP. Our formalization across three proof assistants (Coq, Lean, and Isabelle) reveals where this proof attempt likely fails.
+Plotnikov's 1996 paper claims to solve the clique partition problem in polynomial time (O(n⁵)), which would prove P=NP. Our formalization across three proof assistants (Rocq, Lean, and Isabelle) reveals where this proof attempt likely fails.
 
 ## The Central Claim
 
@@ -172,4 +172,4 @@ Without access to the full paper, we cannot identify the exact line where the pr
 
 ---
 
-*This analysis is based on formalizing the claimed algorithm in Coq, Lean, and Isabelle without access to the full paper. The error identification is based on complexity theory principles and common patterns in failed P=NP attempts.*
+*This analysis is based on formalizing the claimed algorithm in Rocq, Lean, and Isabelle without access to the full paper. The error identification is based on complexity theory principles and common patterns in failed P=NP attempts.*
