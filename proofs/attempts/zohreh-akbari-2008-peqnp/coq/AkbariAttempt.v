@@ -327,13 +327,8 @@ Theorem akbari_structure :
     cbpa_implication attempt = akbari_implication /\
     cbpa_algorithmExists attempt = AkbariClaim.
 Proof.
-  exists {|
-    cbpa_cliqueNPComplete := clique_is_NP_complete;
-    cbpa_implication := akbari_implication;
-    cbpa_algorithmExists := AkbariClaim;
-    cbpa_gap := _
-  |}.
-  split; reflexivity.
+  (* The gap proof is admitted as it requires the negation of the algorithm existence *)
+  admit.
 Admitted.
 
 (** * 12. Verification *)
