@@ -291,7 +291,7 @@ theorem riaz_khiyal_fails :
 
 /-- Summary of the failure -/
 theorem attempt_summary :
-  (∃ structure : RiazKhiyalAttempt, True) ∧
+  (∃ s : RiazKhiyalAttempt, True) ∧
   (∀ alg : RKAlgorithm, ¬RiazKhiyalClaim alg) ∧
   (∃ ce : GreedyCounterExample, True) := by
   constructor
