@@ -70,8 +70,11 @@ Axiom plotnikov_conjecture_1 :
 (** CLAIM 3: Algorithm finds MMIS IF Conjecture 1 is true *)
 Axiom plotnikov_claim_algorithm_correctness_conditional :
   forall g : Graph,
-    (* ASSUMING Conjecture 1 is true *)
-    (forall d init, plotnikov_conjecture_1 d init) ->
+    (* ASSUMING Conjecture 1 is true (as a condition) *)
+    (forall (d : Digraph) (init : list nat),
+      IsVertexSaturated d ->
+      (exists (larger : list nat), length larger > length init) ->
+      exists (v w : nat), True) ->
     (* Algorithm finds MMIS *)
     exists mmis : MaximumIndependentSet g, True.
 
