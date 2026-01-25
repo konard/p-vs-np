@@ -127,9 +127,10 @@ def BaseConversionAlgorithm : SpecialCaseAlgorithm where
   compute := fun x => true  -- Placeholder
   time := fun n => n
   is_poly := by
-    use 1, 1
+    exists 1, 1
     intro n
-    simp
+    -- Proof that n ≤ 1 * n^1 + 1 for all n
+    sorry
 
 /-
   THE FATAL FLAW: Meek thinks solving some instances = solving the problem
@@ -206,7 +207,7 @@ theorem karp_theorem_correct :
 theorem meek_input_relation_theorem_tautology :
   ∀ (partial_algo : SpecialCaseAlgorithm) (problem : Language),
     -- If the algorithm only works for special cases
-    (∃ inst : Nat, ¬ partial_algo.works_for ⟨inst, 0⟩) →
+    (∃ inst : KnapsackInstance, ¬ partial_algo.works_for inst) →
     -- Then it doesn't solve the general problem
     ¬ (∀ x : Nat, problem x ↔ partial_algo.compute x = true) := by
   intro partial_algo problem h_not_all

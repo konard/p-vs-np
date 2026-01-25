@@ -12,6 +12,7 @@ Require Import Coq.Logic.Classical.
 Require Import Coq.Sets.Ensembles.
 Require Import Coq.Arith.PeanoNat.
 Require Import Coq.Arith.Arith.
+Require Import Coq.micromega.Lia.
 Require Import Coq.Lists.List.
 Import ListNotations.
 
@@ -142,7 +143,7 @@ Proof.
   |}.
   unfold PolynomialTime.
   exists 1, 1.
-  intro n. simpl. omega.
+  intro n. simpl. lia.
 Defined.
 
 (*
