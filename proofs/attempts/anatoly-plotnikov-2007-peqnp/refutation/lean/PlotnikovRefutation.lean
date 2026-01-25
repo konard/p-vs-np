@@ -60,7 +60,6 @@ axiom misp_is_np_complete :
 -- The key axioms above demonstrate the error
 
 -- Additional issues
-namespace AdditionalIssues
 
 -- Issue 1: Non-constructive use of Dilworth's Theorem
 -- Finding minimum chain partitions is computationally hard
@@ -77,7 +76,5 @@ axiom complexity_depends_on_conjecture :
     -- O(n⁸) bound assumes bounded iterations
     -- But iteration count depends on Conjecture 1 being true
     ¬ Conjecture1 → ¬ O_n8_complexity
-
-end AdditionalIssues
 
 end PlotnikovRefutation

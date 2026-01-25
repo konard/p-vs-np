@@ -65,7 +65,6 @@ Axiom misp_is_np_complete :
     3. Empirical testing is insufficient (empirical_testing_insufficient) *)
 
 (** Additional issues *)
-Module AdditionalIssues.
 
 (** Issue 1: Non-constructive use of Dilworth's Theorem
     Finding minimum chain partitions is computationally hard *)
@@ -82,7 +81,5 @@ Axiom complexity_depends_on_conjecture :
     (* O(n⁸) bound assumes bounded iterations *)
     (* But iteration count depends on Conjecture 1 being true *)
     ~ Conjecture1 -> ~ O_n8_complexity.
-
-End AdditionalIssues.
 
 End PlotnikovRefutation.
