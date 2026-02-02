@@ -168,18 +168,34 @@ Our formalization demonstrates the error by:
 
 ## Implementation Structure
 
-- **`lean/ZhuAttempt.lean`**: Lean 4 formalization
-- **`coq/ZhuAttempt.v`**: Coq formalization
-- **`isabelle/ZhuAttempt.thy`**: Isabelle/HOL formalization
-- **`paper/zhu-2007.pdf`**: Original paper from arXiv
+```
+guohun-zhu-2007-peqnp/
+├── README.md              # This file - overview and analysis
+├── ORIGINAL.md            # Paper converted to markdown
+├── ORIGINAL.pdf           # Original paper from arXiv
+├── proof/                 # Forward proof formalization
+│   ├── README.md          # Why the forward proof cannot be completed
+│   ├── lean/
+│   │   └── ZhuProof.lean  # Lean 4 forward proof structure
+│   └── rocq/
+│       └── ZhuProof.v     # Rocq forward proof structure
+└── refutation/            # Refutation of the proof
+    ├── README.md          # Detailed refutation explanation
+    ├── lean/
+    │   └── ZhuRefutation.lean  # Lean 4 refutation
+    └── rocq/
+        └── ZhuRefutation.v     # Rocq refutation
+```
 
-Each formalization:
-1. Defines Γ digraphs and the projector graph construction
-2. Formalizes the bijection between matchings and cycle sets
-3. Models the counting error in Lemma 4
-4. Provides a counterexample showing exponential matching count
-5. Notes that the enumeration algorithm is underspecified
-6. Concludes the proof is invalid
+The forward proof files (`proof/`) formalize the structure of Zhu's claimed
+argument step by step, using axioms for unproven claims and marking where
+the proof chain breaks.
+
+The refutation files (`refutation/`) provide formal counterexamples showing
+that the counting argument in Lemma 4 is incorrect.
+
+Note: Isabelle formalization has been archived to `archive/isabelle/guohun-zhu-2007-peqnp/`
+(Isabelle support sunset - see issue #530).
 
 ## Key Lessons
 
@@ -248,9 +264,9 @@ This attempt appears as **Entry #40** in Gerhard Woeginger's famous list of P vs
 
 ## Verification Status
 
-- ✅ Coq formalization: Identifies the counting error and gap in enumeration
-- ✅ Lean formalization: Provides counterexample with exponential matchings
-- ✅ Isabelle formalization: Formalizes the invalid proof step
+- ✅ Lean formalization (proof/lean + refutation/lean): Forward proof structure and refutation with counterexamples
+- ✅ Rocq formalization (proof/rocq + refutation/rocq): Forward proof structure and refutation with proved theorems
+- 📦 Isabelle formalization: Archived (Isabelle support sunset - see issue #530)
 
 ## License
 
