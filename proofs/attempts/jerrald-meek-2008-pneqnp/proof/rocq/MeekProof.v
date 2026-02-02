@@ -1,213 +1,207 @@
 (*
-   Forward Formalization of Jerrald Meek's 2008 P≠NP Attempt
+  MeekProof.v - Forward formalization of Jerrald Meek's 2008 P≠NP attempt
 
-   Paper: "Analysis of the postulates produced by Karp's Theorem" (arXiv:0808.3222)
+  Paper: "P is a proper subset of NP" (arXiv:0804.1079v12)
 
-   This formalization attempts to follow Meek's proof logic as faithfully as possible.
-   Placeholders (Admitted) mark where the argument fails or makes unjustified leaps.
+  This file attempts to formalize Meek's CLAIMED proof that P ≠ NP via
+  a "computational rate" analysis. Many concepts are axiomatized because
+  they lack formal definitions in complexity theory.
 *)
 
-Require Import Stdlib.Lists.List.
-Require Import Stdlib.Arith.PeanoNat.
-Import ListNotations.
+Require Import Coq.Arith.Arith.
+Require Import Coq.Init.Nat.
+Require Import Coq.Reals.Reals.
 
-(** * Meek's Approach Overview
+Module MeekProofAttempt.
 
-Meek attempts to prove P ≠ NP by:
-1. Showing that "base conversion" is NP-Complete (claimed)
-2. Demonstrating it has a polynomial-time solution
-3. Arguing this solution doesn't transfer to K-SAT
-4. Concluding P ≠ NP by eliminating all algorithmic categories
-*)
+(* Basic complexity definitions *)
+Definition TimeComplexity := nat -> nat.
 
-(* Basic complexity definitions (simplified) *)
+Definition isPolynomial (T : TimeComplexity) : Prop :=
+  exists c k : nat, c > 0 /\ k > 0 /\
+    forall n : nat, T n <= c * n ^ k + c.
+
+Definition isExponential (T : TimeComplexity) : Prop :=
+  exists a c : nat, a > 1 /\ c > 0 /\
+    forall n : nat, T n >= c * a ^ n.
+
+(* Language and complexity class definitions *)
 Definition Language := nat -> Prop.
-Definition PolynomialTime (f : nat -> nat) : Prop :=
-  exists c k : nat, forall n : nat, f n <= c * (n ^ k) + c.
 
-Axiom InP : Language -> Prop.
-Axiom InNP : Language -> Prop.
-Axiom NPComplete : Language -> Prop.
-Axiom PolyTimeReducible : Language -> Language -> Prop.
-
-(** * Step 1: Base Conversion as Knapsack Instance
-
-Meek shows that converting a decimal number to binary can be formulated
-as a 0-1-Knapsack problem with special structure.
-*)
-
-Record KnapsackInstance : Type := {
-  items : list nat;    (* Set S *)
-  target : nat         (* Value M *)
+Record Algorithm : Type := mkAlgorithm {
+  compute : nat -> bool;
+  time : TimeComplexity
 }.
 
-(* Base conversion: find binary representation of n *)
-Definition BaseConversionInstance (n : nat) : KnapsackInstance := {|
-  items := map (fun i => 2 ^ i) (seq 0 32);  (* Powers of 2: [1, 2, 4, 8, ...] *)
-  target := n
-|}.
+Definition decidesLanguage (A : Algorithm) (L : Language) : Prop :=
+  forall x : nat, L x <-> compute A x = true.
 
-(** * Step 2: Claim of NP-Completeness (ERROR!)
+Definition InP (L : Language) : Prop :=
+  exists A : Algorithm, isPolynomial (time A) /\ decidesLanguage A L.
 
-Meek claims base conversion is NP-Complete by showing K-SAT reduces to it.
+Definition InNP (L : Language) : Prop :=
+  exists (V : nat -> nat -> bool) (t : TimeComplexity),
+    isPolynomial t /\
+    forall x : nat, L x <-> exists c : nat, V x c = true.
 
-ERROR: This reduction goes the WRONG direction!
-- To prove NP-Hardness, need reduction FROM base conversion TO SAT
-- Meek shows reduction FROM SAT TO base conversion (backwards!)
+Definition NPComplete (L : Language) : Prop :=
+  InNP L /\ forall L' : Language, InNP L' -> True.  (* Simplified *)
+
+(*! Section 3.1: Total number of K-SAT input sets
+
+From ORIGINAL.md:
+"Let a K-SAT problem have k literals per clause and n clauses.
+The number of possible input sets is 2^(kn)."
 *)
 
-Axiom SAT : Language.
-Axiom BaseConversion : Language.
+(* Number of possible truth assignments for k-SAT with n clauses *)
+Definition numKSATInputSets (k n : nat) : nat := 2 ^ (k * n).
 
-(* What Meek actually shows (wrong direction for NP-Completeness!) *)
-Axiom meek_reduction_wrong_direction :
-  PolyTimeReducible SAT BaseConversion.
-
-(* Meek's unjustified claim: *)
-Axiom meek_claims_base_conversion_npc : NPComplete BaseConversion.
-  (* This is FALSE! Base conversion is just an easy special case of Knapsack *)
-
-(** * Step 3: Polynomial Solution for Base Conversion
-
-Meek correctly observes that base conversion has a polynomial-time algorithm.
-*)
-
-(* Base conversion is polynomial-time solvable (TRUE) *)
-Axiom base_conversion_in_P : InP BaseConversion.
-
-(** * Step 4: Non-Transferability Argument (K-SAT Input Relation Theorem)
-
-Meek argues that the polynomial solution to base conversion relies on
-special input relationships (powers of 2) and doesn't transfer to general K-SAT.
-
-ERROR: This is a tautology! Of course a SPECIAL-CASE algorithm doesn't solve
-the GENERAL problem. But this doesn't tell us anything about whether a
-general algorithm exists!
-*)
-
-(* Meek's "K-SAT Input Relation Theorem" (Theorem 4.1) *)
-Theorem meek_input_relation_theorem :
-  (* A polynomial algorithm for base conversion exists *)
-  InP BaseConversion ->
-  (* But it doesn't solve all instances of SAT *)
-  ~ (InP SAT).
+(* This is mathematically correct *)
+Theorem ksat_input_sets_exponential : forall k n : nat,
+  k >= 3 -> numKSATInputSets k n = 2 ^ (k * n).
 Proof.
-  (* ERROR: This is a non-sequitur!
-     Base conversion being easy doesn't prove SAT is hard.
-     This confuses special cases with general problems. *)
+  intros. unfold numKSATInputSets. reflexivity.
+Qed.
+
+(*! Section 3.2: Polynomial time computation rate
+
+From ORIGINAL.md:
+"r shall represent the number of input sets evaluated per computation performed:
+r(n) = 2^(kn) / t(n)"
+
+NOTE: This "computational rate" is Meek's invention and has no formal
+meaning in complexity theory. We axiomatize it.
+*)
+
+(* UNDEFINED CONCEPT: "computational rate" *)
+(* Meek never defines what "input sets evaluated per computation" means *)
+Axiom computationalRate : nat -> TimeComplexity -> nat -> R.
+
+(* MEEK'S CLAIM: The rate is 2^(kn) / t(n) *)
+Axiom meek_rate_definition : forall (k : nat) (t : TimeComplexity),
+  isPolynomial t ->
+  forall n : nat, computationalRate k t n = (INR (2 ^ (k * n))) / (INR (t n)).
+
+(*! Section 4.1: Exponential > Polynomial
+
+From ORIGINAL.md (Theorem 4.1):
+"For any exponential f(x) and polynomial g(x), there exists l such that
+for all n ≥ l, f(n) > g(n)"
+
+This is standard asymptotic analysis and is correct.
+*)
+
+Theorem exponential_dominates_polynomial : forall (a : nat) (c k : nat),
+  a > 1 -> c > 0 ->
+  exists l : nat, forall n : nat, n >= l -> a ^ n > c * n ^ k + c.
+Proof.
+  (* This is a well-known result in asymptotic analysis *)
+  intros. admit.
 Admitted.
 
-(** * Step 5: Algorithmic Categorization
+(*! Section 4.2: Limit of computational rate
 
-Meek claims all possible algorithms fall into 4 categories:
-1. Exhaustive search
-2. Partitioned search
-3. Quality-based solutions
-4. "Magical solutions"
+From ORIGINAL.md (Theorem 4.2):
+"lim(n→∞) r(n) = lim(n→∞) 2^(kn)/t(n) = ∞"
 
-ERROR: This categorization is informal and not proven exhaustive!
+This follows from exponential_dominates_polynomial and is mathematically correct.
 *)
 
-Inductive MeekAlgorithmCategory : Type :=
-  | exhaustive_search
-  | partitioned_search
-  | quality_based
-  | magical_solution.
+Theorem meek_rate_limit : forall (k : nat) (t : TimeComplexity),
+  k >= 3 -> isPolynomial t ->
+  forall M : nat, exists N : nat, forall n : nat,
+    n >= N -> (INR (2 ^ (k * n))) / (INR (t n)) > INR M.
+Proof.
+  (* Follows from exponential_dominates_polynomial *)
+  intros. admit.
+Admitted.
 
-(* Meek's unproven claim that these categories are exhaustive *)
-Axiom meek_categorization_complete :
-  forall (L : Language), NPComplete L ->
-  forall (algo_proves_P_eq_NP : InP L),
-  exists cat : MeekAlgorithmCategory, True.  (* Placeholder *)
+(*! Section 4.3: The "Optimization Theorem" (Theorem 4.4)
 
-(** * Step 6: Ruling Out Each Category
+From ORIGINAL.md:
+"A deterministic polynomial-time optimization of any NP-complete problem
+can only examine a number of input sets no more than a polynomial in n."
 
-Meek uses "theorems" from prior papers to rule out each category.
-
-ERROR: These "theorems" ASSUME P ≠ NP, making the argument circular!
+CRITICAL ERROR: This uses the undefined "examine input sets" concept
+and makes an unjustified leap from the rate calculation.
 *)
 
-(* From Article 1: "P = NP Optimization Theorem" *)
-Axiom meek_optimization_theorem :
-  forall L : Language, NPComplete L ->
-  (* Claims: Must examine > polynomial inputs *)
-  (* ERROR: This ASSUMES super-polynomial time is required! *)
-  forall algo : nat -> bool, True.
-  (* Placeholder - actual theorem is circular *)
+(* UNDEFINED CONCEPT: What does "examine input sets" mean? *)
+(* Meek never defines this precisely *)
+Axiom examinesInputSets : Algorithm -> (nat -> nat) -> Prop.
 
-(* From Article 2: "P = NP Partition Theorem" *)
-Axiom meek_partition_theorem :
-  forall L : Language, NPComplete L ->
-  (* Claims: Can't find polynomial partitions *)
-  (* ERROR: This ASSUMES P ≠ NP! *)
-  True.  (* Placeholder - circular reasoning *)
+(* MEEK'S CLAIM (Theorem 4.4): Polynomial-time algorithms examine ≤ poly(n) sets *)
+(* This is where the argument breaks down - it's circular reasoning *)
+Axiom meek_optimization_theorem : forall (L : Language),
+  NPComplete L ->
+  forall A : Algorithm, decidesLanguage A L ->
+    isPolynomial (time A) ->
+    exists p : nat -> nat, isPolynomial p /\ examinesInputSets A p.
 
-(* Rule out exhaustive search *)
-Theorem meek_rules_out_exhaustive :
-  exhaustive_search = exhaustive_search -> False.
-Proof.
-  (* Uses circular "optimization theorem" *)
-Admitted.
+(* CIRCULAR REASONING: This theorem ASSUMES what needs to be proven *)
+(* It assumes algorithms can't be clever (e.g., using structure, algebra) *)
+(* and must work by "examining input sets" *)
 
-(* Rule out partitioned search *)
-Theorem meek_rules_out_partitioned :
-  partitioned_search = partitioned_search -> False.
-Proof.
-  (* Uses circular "partition theorem" *)
-Admitted.
+(*! Section 5.1: The "Partition Theorem" (Theorem 5.1)
 
-(* Rule out quality-based *)
-Theorem meek_rules_out_quality :
-  quality_based = quality_based -> False.
-Proof.
-  (* Uses unproven Knapsack theorems *)
-Admitted.
+From ORIGINAL.md:
+"Finding a representative polynomial search partition is in FEXP"
 
-(* Rule out "magical solutions" *)
-Theorem meek_rules_out_magical :
-  magical_solution = magical_solution -> False.
-Proof.
-  (* Claims categorization is complete (unproven) *)
-Admitted.
-
-(** * Step 7: Conclusion (Invalid!)
-
-Meek concludes P ≠ NP.
-
-ERROR: The argument has multiple fatal flaws:
-1. Base conversion is NOT NP-Complete (wrong reduction direction)
-2. Confusion between problem instances and problem classes
-3. Circular reasoning in supporting "theorems"
-4. Incomplete algorithmic categorization
-5. Tautological "input relation theorem"
+UNDEFINED CONCEPT: "representative polynomial search partition"
 *)
 
-(* Meek's claimed proof *)
-Theorem meek_claimed_proof : ~ (exists L : Language, NPComplete L /\ InP L).
-Proof.
-  intro H.
-  destruct H as [L [H_npc H_p]].
-  (* Try to find algorithm category *)
-  (* FAILS: All the "ruled out" categories depend on circular reasoning
-     and the categorization isn't complete anyway! *)
-Admitted.
+(* UNDEFINED: What is a "representative polynomial search partition"? *)
+(* Meek defines it only by desired properties, not constructively *)
+Axiom RepresentativePartition : Language -> (nat -> nat) -> Prop.
 
-(** * What's Missing
+(* MEEK'S CLAIM: Finding such partitions requires exponential time *)
+Axiom meek_partition_theorem : forall (L : Language),
+  NPComplete L ->
+  forall p : nat -> nat, isPolynomial p ->
+    exists t : TimeComplexity, isExponential t.
+    (* "Finding RepresentativePartition requires time t" *)
 
-A valid proof of P ≠ NP would require:
+(* CIRCULAR ERROR: This assumes P ≠ NP to prove P ≠ NP *)
+(* If P = NP, such partitions could be found efficiently *)
 
-1. ✅ Proper understanding of NP-Completeness
-   Meek ❌ Confuses instances with problem classes
+(*! Section 6: Conclusion
 
-2. ✅ Correct reduction direction
-   Meek ❌ Shows SAT → BaseConv (backwards!)
+From ORIGINAL.md:
+"Since polynomial-time algorithms can only examine polynomial sets (Thm 4.4),
+and finding partitions requires exponential time (Thm 5.1),
+therefore P ≠ NP."
 
-3. ✅ Non-circular reasoning
-   Meek ❌ Uses "theorems" that assume P ≠ NP
-
-4. ✅ Complete algorithmic characterization
-   Meek ❌ Informal, incomplete categories
-
-5. ✅ Proof for ALL possible algorithms
-   Meek ❌ Only shows some special cases don't work
+ERRORS IN THIS CONCLUSION:
+1. Uses undefined concepts ("examine sets", "partitions")
+2. Circular reasoning (assumes P ≠ NP in the theorems)
+3. Ignores that algorithms don't need to work by "examining sets"
+   (e.g., 2-SAT uses implication graphs, not enumeration)
 *)
+
+(* MEEK'S FINAL CLAIM *)
+Axiom meek_conclusion : ~(forall L : Language, NPComplete L -> InP L).
+
+(* This means P ≠ NP, but the "proof" has fatal gaps *)
+
+(*! Why This Formalization Uses Axiom
+
+The extensive use of Axiom in this file reflects that:
+
+1. **Undefined concepts**: "computational rate", "examine input sets",
+   and "representative partitions" have no formal definitions in complexity theory
+
+2. **Unjustified leaps**: The jump from "rate → ∞" to "algorithms are limited"
+   is not justified - search space size ≠ computational complexity
+
+3. **Circular reasoning**: Theorems 4.4 and 5.1 essentially assume P ≠ NP
+   (no efficient methods exist) to prove P ≠ NP
+
+4. **Ignores algorithmic diversity**: The argument assumes all algorithms
+   work by "examining sets", ignoring algebraic, structural, and other approaches
+
+For the refutation demonstrating these errors, see:
+  ../refutation/rocq/MeekRefutation.v
+*)
+
+End MeekProofAttempt.
