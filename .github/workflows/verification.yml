@@ -192,3 +192,10 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "_Note: Isabelle proofs archived to ./archive/isabelle/_" >> $GITHUB_STEP_SUMMARY
         echo "_Note: Agda verification temporarily disabled due to long build times (~20 minutes)_" >> $GITHUB_STEP_SUMMARY
+
+    - name: Check results
+      run: |
+        if [[ "${{ needs.lean-verification.result }}" != "success" ]] || [[ "${{ needs.rocq-verification.result }}" != "success" ]]; then
+          echo "::error::One or more verification jobs failed"
+          exit 1
+        fi
