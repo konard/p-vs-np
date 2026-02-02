@@ -9,9 +9,9 @@
   - Woeginger's List, Entry #42
 *)
 
-Require Import Coq.Bool.Bool.
-Require Import Coq.Init.Nat.
-Require Import Coq.Strings.String.
+Require Import Stdlib.Bool.Bool.
+Require Import Stdlib.Init.Nat.
+Require Import Stdlib.Strings.String.
 
 Module KriegerJonesRefutation.
 

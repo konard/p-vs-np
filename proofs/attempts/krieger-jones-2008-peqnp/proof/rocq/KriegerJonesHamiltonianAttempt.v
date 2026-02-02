@@ -17,13 +17,13 @@
   - Woeginger's List, Entry #42
 *)
 
-Require Import Coq.Init.Nat.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Logic.Classical_Prop.
-Require Import Coq.Lists.List.
-Require Import Coq.Strings.String.
-Require Import Coq.Bool.Bool.
-Require Import Coq.micromega.Lia.
+Require Import Stdlib.Init.Nat.
+Require Import Stdlib.Arith.PeanoNat.
+Require Import Stdlib.Logic.Classical_Prop.
+Require Import Stdlib.Lists.List.
+Require Import Stdlib.Strings.String.
+Require Import Stdlib.Bool.Bool.
+Require Import Stdlib.micromega.Lia.
 Import ListNotations.
 
 Module KriegerJonesHamiltonianAttempt.
