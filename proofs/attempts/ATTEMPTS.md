@@ -60,16 +60,25 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Mohamed Mimouni | 2006 | [M](mohamed-mimouni-2006-peqnp/) | - | 🔷 🔶 |
 | ✗ | Radoslaw Hofman | 2006 | [R](radoslaw-hofman-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Raju Renjit G | 2006 | [R](renjit-2006-conpeqnp/) | 📄 | 🔷 🔶 |
+| ✗ | Rubens Ramos Viana | 2006 | [R](rubens-ramos-viana-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Sergey Gubin | 2006 | [S](sergey-gubin-2006-peqnp/) | - | 🔷 🔶 |
+| ✓ | Riaz Khiyal | 2006 | [K](riaz-khiyal-2006-peqnp/) | 📄 📎 | 🔷 🔶 |
+| ✓ | Anatoly D. Plotnikov | 2007 | [A](anatoly-plotnikov-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Delacorte Czerwinski | 2007 | [D](delacorte-czerwinski-2007-peqnppspace/) | 📄 📎 | 🔷 🔶 |
+| ✗ | Bhupinder Singh Anand | 2008 | [B](bhupinder-singh-anand-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
+| ✗ | Jerrald Meek | 2008 | [J](jerrald-meek-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
+| ✓ | Zohreh O. Akbari | 2008 | [Z](zohreh-akbari-2008-peqnp/) | 📄 | 🔷 🔶 |
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
+| ✗ | Ari Blinder | 2009 | [A](ari-blinder-2009-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Arto Annila | 2009 | [A](arto-annila-2009-pneqnp/) | - | - |
+| ✓ | Rafael Valls Hidalgo-Gato | 2009 | [R](rafael-valls-hidalgo-gato-2009-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Yann Dujardin | 2009 | [Y](yann-dujardin-2009-peqnp/) | - | - |
 
 ## 2010s
 
 | Claim | Author | Year | Title | Docs | Formal |
 |:-----:|--------|------|-------|:----:|:------:|
+| ✓ | Mikhail Katkov | 2010 | [M](mikhail-katkov-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Vinay Deolalikar | 2010 | [V](deolalikar-2010-pneqnp/) | - | - |
 | ✓ | Algirdas Antano Maknickas | 2011 | [F](antano-maknickas-2011-peqnp/) | - | - |
 | ✗ | Craig Alan Feinstein | 2011 | [A](alan-feinstein-2011-pneqnp/) | - | - |
@@ -113,16 +122,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 76
-- **Claims P = NP:** 40
-- **Claims P ≠ NP:** 35
+- **Total attempts:** 85
+- **Claims P = NP:** 45
+- **Claims P ≠ NP:** 39
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 4
-- **With original paper:** 3
-- **With proof/ directory:** 7
-- **With refutation/ directory:** 7
-- **With Lean formalization:** 7
-- **With Rocq formalization:** 7
+- **With ORIGINAL.md:** 13
+- **With original paper:** 9
+- **With proof/ directory:** 16
+- **With refutation/ directory:** 16
+- **With Lean formalization:** 16
+- **With Rocq formalization:** 16
 
 ---
 
