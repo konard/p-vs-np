@@ -21,6 +21,9 @@
   Both arguments are formalized below with comments showing where they fail.
 -/
 
+-- Note: This file uses `sorry` extensively to represent incomplete/impossible proofs
+-- The errors in the original arguments prevent these from being completed
+
 namespace DelacorteCzerwinskiProof
 
 /-- Basic language definition -/
@@ -71,34 +74,38 @@ axiom RegExp_FA_equivalent : True
 def Delacorte_Claim : Prop :=
   ∃ (proof : Unit), True  -- Placeholder for "GI is PSPACE-complete"
 
-/-- ERROR in Delacorte's argument:
+/-
+  ERROR in Delacorte's argument:
 
-    The chain of reasoning conflates two different concepts:
-    1. Language EQUIVALENCE (do two automata accept the same language?)
-    2. Structural ISOMORPHISM (do two automata have the same structure?)
+  The chain of reasoning conflates two different concepts:
+  1. Language EQUIVALENCE (do two automata accept the same language?)
+  2. Structural ISOMORPHISM (do two automata have the same structure?)
 
-    - RegExp equivalence = FA equivalence ✓ (same language)
-    - FA equivalence is PSPACE-complete ✓
-    - FA isomorphism ≡_p GI ✓ (Booth's result)
-    - BUT: FA equivalence ≠ FA isomorphism
+  - RegExp equivalence = FA equivalence ✓ (same language)
+  - FA equivalence is PSPACE-complete ✓
+  - FA isomorphism ≡_p GI ✓ (Booth's result)
+  - BUT: FA equivalence ≠ FA isomorphism
 
-    The reduction is invalid because:
-    - Meyer & Stockmeyer proved that testing if two automata ACCEPT THE SAME LANGUAGE
-      is PSPACE-complete
-    - Booth proved that testing if two automata ARE STRUCTURALLY IDENTICAL is
-      polynomial-time equivalent to GI
-    - These are different problems!
+  The reduction is invalid because:
+  - Meyer & Stockmeyer proved that testing if two automata ACCEPT THE SAME LANGUAGE
+    is PSPACE-complete
+  - Booth proved that testing if two automata ARE STRUCTURALLY IDENTICAL is
+    polynomial-time equivalent to GI
+  - These are different problems!
 
-    Therefore, the PSPACE-completeness does NOT transfer to GI.
+  Therefore, the PSPACE-completeness does NOT transfer to GI.
+
+  This theorem CANNOT be proven because the argument is invalid:
+
+  theorem delacorte_argument :
+    RegExpEquiv_PSPACE_complete →
+    Booth_FA_iso_equiv_GI →
+    RegExp_FA_equivalent →
+    Delacorte_Claim := by
+    sorry
+
+  CANNOT COMPLETE: The logical chain is broken
 -/
-
--- This theorem CANNOT be proven because the argument is invalid
--- theorem delacorte_argument :
---   RegExpEquiv_PSPACE_complete →
---   Booth_FA_iso_equiv_GI →
---   RegExp_FA_equivalent →
---   Delacorte_Claim := by
---   sorry  -- CANNOT COMPLETE: The logical chain is broken
 
 /-- The error precisely: equivalence and isomorphism are different -/
 axiom FA_Equivalence_not_FA_Isomorphism :
@@ -108,7 +115,8 @@ axiom FA_Equivalence_not_FA_Isomorphism :
 /-! ## Czerwinski's Argument Formalization -/
 
 /-- Eigenvalue spectrum of a graph -/
-def Spectrum (g : Graph) : List Real := sorry  -- Placeholder for eigenvalues
+-- Note: Real type not available, using Float as placeholder
+def Spectrum (g : Graph) : List Float := sorry  -- Placeholder for eigenvalues
 
 /-- Czerwinski's algorithm:
     "Compute eigenvalues of both graphs and compare them" -/
@@ -122,73 +130,82 @@ def Czerwinski_Claim : Prop :=
   ∀ (g1 g2 : Graph),
     Czerwinski_Algorithm g1 g2 = true ↔ GraphIsomorphic g1 g2
 
-/-- ERROR in Czerwinski's argument:
+/-
+  ERROR in Czerwinski's argument:
 
-    The algorithm only checks a NECESSARY condition, not a SUFFICIENT one:
+  The algorithm only checks a NECESSARY condition, not a SUFFICIENT one:
 
-    - If graphs are isomorphic → they have the same eigenvalues ✓
-      (This direction is correct!)
+  - If graphs are isomorphic → they have the same eigenvalues ✓
+    (This direction is correct!)
 
-    - If graphs have the same eigenvalues → they are isomorphic ✗
-      (This direction is FALSE!)
+  - If graphs have the same eigenvalues → they are isomorphic ✗
+    (This direction is FALSE!)
 
-    Counterexample: Strongly Regular Graphs
-    - There exist 180 non-isomorphic graphs in SRG(36,14,4,6)
-    - All 180 graphs have IDENTICAL eigenvalues
-    - But they are pairwise NON-ISOMORPHIC
+  Counterexample: Strongly Regular Graphs
+  - There exist 180 non-isomorphic graphs in SRG(36,14,4,6)
+  - All 180 graphs have IDENTICAL eigenvalues
+  - But they are pairwise NON-ISOMORPHIC
 
-    Therefore, the algorithm produces FALSE POSITIVES.
+  Therefore, the algorithm produces FALSE POSITIVES.
 -/
 
--- Formalize the one-way implication that IS true
+/-- Formalize the one-way implication that IS true -/
 axiom spectrum_necessary :
   ∀ (g1 g2 : Graph),
     GraphIsomorphic g1 g2 → Spectrum g1 = Spectrum g2
 
 -- The reverse implication is FALSE (this is the error)
--- axiom spectrum_sufficient :  -- CANNOT STATE THIS - IT'S FALSE
---   ∀ (g1 g2 : Graph),
---     Spectrum g1 = Spectrum g2 → GraphIsomorphic g1 g2
+-- This axiom CANNOT be stated because it's false:
+--   axiom spectrum_sufficient :
+--     ∀ (g1 g2 : Graph),
+--       Spectrum g1 = Spectrum g2 → GraphIsomorphic g1 g2
 
 /-- Counterexample exists: non-isomorphic cospectral graphs -/
 axiom cospectral_non_isomorphic_exist :
   ∃ (g1 g2 : Graph),
     Spectrum g1 = Spectrum g2 ∧ ¬GraphIsomorphic g1 g2
 
-/-- This proves Czerwinski's claim is false -/
+/-- This proves Czerwinski's claim is false.
+    Note: Full proof requires concrete algorithm definition, so we use sorry -/
 theorem czerwinski_claim_false : ¬Czerwinski_Claim := by
-  intro h
-  -- Use the counterexample
-  obtain ⟨g1, g2, same_spectrum, not_iso⟩ := cospectral_non_isomorphic_exist
-  -- Algorithm would return true (same spectrum)
-  -- But graphs are not isomorphic
+  intro _h
+  -- Use the counterexample: non-isomorphic graphs with same spectrum exist
+  -- Algorithm would return true (same spectrum) but graphs are not isomorphic
   -- This contradicts the claim
   sorry  -- Full proof requires algorithm definition
 
-/-! ## Combined Argument -/
+/-
+  ## Combined Argument
 
-/-- If both claims were true, P = PSPACE -/
--- This cannot be proven because at least one claim is false
--- theorem combined_implies_P_eq_PSPACE :
---   Delacorte_Claim →
---   Czerwinski_Claim →
---   (∀ x : Unit, True) := by  -- Placeholder for P = PSPACE
---   sorry  -- Cannot prove because claims are false
+  If both claims were true, P = PSPACE
+  This cannot be proven because at least one claim is false
 
-/-! ## Summary
+  The commented theorem shows what would follow:
 
-Both proof attempts fail:
+  theorem combined_implies_P_eq_PSPACE :
+    Delacorte_Claim →
+    Czerwinski_Claim →
+    (∀ x : Unit, True) := by
+    sorry
 
-1. **Delacorte's error**: Conflates language equivalence (PSPACE-complete) with
-   structural isomorphism (polynomial-time equivalent to GI). The reduction chain
-   is invalid.
+  But this cannot be completed because the claims are false.
+-/
 
-2. **Czerwinski's error**: Uses only necessary condition (same eigenvalues) but
-   claims it's sufficient. Counterexamples exist: non-isomorphic graphs with
-   identical spectra.
+/-
+  ## Summary
 
-The formalization shows these arguments cannot be completed because they rely on
-invalid logical steps.
+  Both proof attempts fail:
+
+    1. Delacorte's error: Conflates language equivalence (PSPACE-complete) with
+       structural isomorphism (polynomial-time equivalent to GI). The reduction chain
+       is invalid.
+
+    2. Czerwinski's error: Uses only necessary condition (same eigenvalues) but
+       claims it's sufficient. Counterexamples exist: non-isomorphic graphs with
+       identical spectra.
+
+    The formalization shows these arguments cannot be completed because they rely on
+    invalid logical steps.
 -/
 
 end DelacorteCzerwinskiProof
