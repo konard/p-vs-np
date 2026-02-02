@@ -1,13 +1,21 @@
 (*
   TarnlundRefutation.v - Refutation of Tarnlund's 2008 P≠NP attempt
 
-  This file demonstrates WHY Tarnlund's proof attempt fails. The key insight is that
-  proving a statement within a formal system does NOT establish mathematical truth
-  unless the formal system is proven SOUND for that domain.
+  Original paper: "P is not equal to NP" (arXiv:0810.5056v1, October 2008)
 
-  Author: Formalization for p-vs-np repository
-  Date: 2026-01-25
-  Related: Issue #453, Woeginger's list entry #48
+  This file demonstrates WHY Tarnlund's proof attempt fails. The key insight
+  is that proving a statement within a formal system does NOT establish
+  mathematical truth unless the formal system is proven SOUND for that domain.
+
+  Specifically, the paper's Theorem 1 proves "SAT ∉ P" within the formal
+  system TheoryB', but never establishes that TheoryB' is sound for
+  computational complexity claims.
+
+  Critique sources:
+  - Henning Makholm (2008): "Does P equal NP? This is not an answer"
+  - The formal system's axioms are not clearly specified
+  - The relationship between the formal theory and actual computation
+    is not rigorously established
 *)
 
 From Stdlib Require Import String List Nat.
@@ -85,20 +93,29 @@ Definition IsSoundForComplexity (sys : FormalSystem) : Prop :=
 
 (* ========================================================================= *)
 (* Part 2: The Critical Missing Piece                                        *)
+(*                                                                           *)
+(* From Henning Makholm's critique (2008):                                   *)
+(* "The paper is pithy to the point of sloppiness... the formal system and  *)
+(* its axioms are not clearly specified... the relationship between the      *)
+(* formal theory and actual Turing machine computation is not rigorously    *)
+(* established."                                                             *)
+(*                                                                           *)
+(* Tarnlund's Theorem 1 proves "SAT ∉ P" within TheoryB' (steps 46-53),   *)
+(* but the crucial question is: does provability within TheoryB' mean the   *)
+(* statement is actually TRUE?                                               *)
+(*                                                                           *)
+(* This requires a SOUNDNESS PROOF: showing that everything provable in     *)
+(* TheoryB' about computational complexity is actually true about real      *)
+(* Turing machines. Tarnlund never provides this proof.                     *)
 (* ========================================================================= *)
-
-(*
-  Tarnlund's error: He proved "SAT ∉ P" within a formal system TheoryB',
-  but never proved that TheoryB' is SOUND for computational complexity claims.
-
-  Without soundness, proving something in the system doesn't make it true!
-*)
 
 (* A soundness proof would need to demonstrate this property exists *)
 Definition SoundnessProof (sys : FormalSystem) : Prop :=
   exists (_proof : unit), IsSoundForComplexity sys.
 
-(* THE FATAL FLAW: No soundness proof exists *)
+(* THE FATAL FLAW: No soundness proof exists in the paper.
+   The paper proves things WITHIN the formal system but never shows
+   the formal system correctly models computational reality. *)
 Axiom tarnlund_no_soundness_proof : ~ SoundnessProof TheoryBPrime.
 
 (* ========================================================================= *)
@@ -114,6 +131,11 @@ Record TarnlundAttempt : Type := mkTarnlundAttempt {
 
 (* ========================================================================= *)
 (* Part 4: The Refutation                                                    *)
+(*                                                                           *)
+(* The refutation shows that Tarnlund's attempt has all the syntactic       *)
+(* components (formal system, provability, consistency) but lacks the        *)
+(* semantic component (soundness) that would connect formal derivations      *)
+(* to mathematical truth.                                                    *)
 (* ========================================================================= *)
 
 (* Tarnlund's attempt fails because it lacks a soundness proof *)
@@ -144,24 +166,12 @@ Proof.
 Qed.
 
 (* ========================================================================= *)
-(* Part 5: Why Soundness is Hard                                             *)
+(* Part 5: Why Soundness is Hard - Counterexample                            *)
+(*                                                                           *)
+(* To illustrate why soundness matters, we construct a trivially unsound    *)
+(* formal system that can "prove" any statement (including SAT ∉ P),       *)
+(* yet clearly doesn't establish mathematical truth.                        *)
 (* ========================================================================= *)
-
-(*
-  Proving soundness for complexity theory requires showing that:
-
-  1. Every axiom of TheoryB' is TRUE as a statement about Turing machines
-  2. Every inference rule PRESERVES truth
-  3. The encoding of computational problems into formulas is FAITHFUL
-
-  This is a HARD problem that Tarnlund did not solve. In fact, it's
-  essentially equivalent to solving P vs NP itself!
-
-  If TheoryB' were powerful enough to prove "SAT ∉ P" and we could prove
-  it sound, we would have solved P vs NP. But Tarnlund provides no
-  soundness proof, so his derivation within the formal system establishes
-  nothing about the actual P vs NP question.
-*)
 
 (* Example: An unsound formal system can "prove" false statements *)
 Definition UnsoundSystem : FormalSystem :=
@@ -194,44 +204,33 @@ Qed.
 
 (* ========================================================================= *)
 (* Summary of the Refutation                                                 *)
+(*                                                                           *)
+(* Tarnlund's 2008 attempt failed because it conflated TWO different        *)
+(* concepts:                                                                 *)
+(*                                                                           *)
+(* 1. PROVABILITY within a formal system (Theorem 1)                        *)
+(* 2. MATHEMATICAL TRUTH (what would be needed to solve P vs NP)            *)
+(*                                                                           *)
+(* The Structure of the Error (referencing the paper):                       *)
+(*                                                                           *)
+(* Tarnlund showed (Theorem 1, steps 46-53):                                *)
+(* - TheoryB' ⊢ "SAT ∉ P"  (provable in the formal system)                *)
+(* - TheoryB' is simply consistent (Corollary 2)                            *)
+(*                                                                           *)
+(* But he NEEDED to additionally show:                                       *)
+(* - TheoryB' is SOUND for complexity claims                                *)
+(* - Therefore provability implies truth                                     *)
+(* - Therefore SAT ∉ P is mathematically true                               *)
+(*                                                                           *)
+(* Why Soundness Cannot Be Assumed:                                          *)
+(* Proving soundness requires:                                               *)
+(* 1. Every axiom of TheoryB' is TRUE about Turing machines                 *)
+(* 2. Every inference rule PRESERVES truth about computation                 *)
+(* 3. The encoding of computational problems into formulas is FAITHFUL      *)
+(*                                                                           *)
+(* Tarnlund provides none of these. As Makholm (2008) noted, even the       *)
+(* axioms are not clearly enough specified to verify correctness.           *)
 (* ========================================================================= *)
-
-(*
-  Tarnlund's 2008 attempt failed because it conflated TWO different concepts:
-
-  1. PROVABILITY within a formal system (what Tarnlund established)
-  2. MATHEMATICAL TRUTH (what would be needed to solve P vs NP)
-
-  ## The Structure of the Error
-
-  Tarnlund showed:
-  - TheoryB' ⊢ "SAT ∉ P"  (provable in the formal system)
-  - TheoryB' is simply consistent (doesn't prove contradictions)
-
-  But he NEEDED to show:
-  - TheoryB' is SOUND for complexity claims
-  - Therefore provability implies truth
-  - Therefore SAT ∉ P is mathematically true
-
-  ## Why This is Hard
-
-  Proving soundness of a formal system for computational complexity is
-  itself a deep problem. The formal system must:
-
-  1. Have axioms that are TRUE statements about computation
-  2. Have inference rules that PRESERVE truth
-  3. Correctly encode computational problems as formulas
-
-  Without a soundness proof, derivations in the formal system are
-  meaningless for establishing mathematical facts.
-
-  ## Lessons Learned
-
-  1. Formal proofs require both SYNTAX (derivations) and SEMANTICS (soundness)
-  2. Provability in a system ≠ mathematical truth
-  3. Soundness proofs are essential but often overlooked
-  4. This error pattern appears in multiple failed P vs NP attempts
-*)
 
 (* Verification checks *)
 Check tarnlund_fails_at_soundness.
