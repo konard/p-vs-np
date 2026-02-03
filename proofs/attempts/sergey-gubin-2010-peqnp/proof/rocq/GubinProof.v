@@ -149,7 +149,7 @@ Theorem gubin_step1 :
   (forall g : DirectedGraph, exists T : TimeComplexity, isPolynomial T).
 Proof.
   intros correspondence g.
-  apply LP_in_polynomial_time.
+  exact (LP_in_polynomial_time (gubinLPFormulation g)).
 Qed.
 
 (** Step 2: IF ATSP is in P, THEN P = NP (since ATSP is NP-complete) *)
