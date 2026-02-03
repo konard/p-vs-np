@@ -248,9 +248,9 @@ def HanMissingComponents : Prop :=
   -- Missing: algorithmic specification
   (∃ algorithm : ThreeSATFormula → Bool, True) ∧
   -- Missing: complexity proof
-  (∃ complexityProof : TimeComplexity → IsPolynomialTime complexityProof, True) ∧
+  (∃ (tc : TimeComplexity), IsPolynomialTime tc) ∧
   -- Missing: correctness proof
-  (∃ correctnessProof : True, True)
+  True
 
 /-! ## Summary of Han's Claimed Proof -/
 
