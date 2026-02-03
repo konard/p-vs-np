@@ -1,20 +1,20 @@
 /-
-  HanXiaoWenAttempt.lean - Formalization of Han Xiao Wen's 2010 P=NP Claim
+  HanXiaoWenRefutation.lean - Refutation of Han Xiao Wen's 2010 P=NP Claim
 
-  This file formalizes the approach in Han Xiao Wen's papers:
+  This file formalizes the refutation of Han Xiao Wen's papers:
   - "Mirrored Language Structure and Innate Logic of the Human Brain as a
      Computable Model of the Oracle Turing Machine" (arXiv:1006.2495)
   - "Knowledge Recognition Algorithm enables P = NP" (arXiv:1009.0884)
   - "3-SAT Polynomial Solution of Knowledge Recognition Algorithm" (arXiv:1009.3687)
 
-  Main claim: A "Knowledge Recognition Algorithm" (KRA) can solve NP-complete
+  Main claim refuted: A "Knowledge Recognition Algorithm" (KRA) cannot solve NP-complete
   problems in polynomial time by being simultaneously deterministic and nondeterministic.
 
-  Critical error: Fundamental confusion between deterministic and nondeterministic
+  Critical error demonstrated: Fundamental confusion between deterministic and nondeterministic
   computation; vague undefined terminology; no rigorous complexity analysis.
 -/
 
-namespace HanXiaoWenAttempt
+namespace HanXiaoWenRefutation
 
 /-! ## Basic Computational Models -/
 
@@ -272,6 +272,6 @@ theorem han_never_proves_polynomial_simulation :
 #check han_papers_lack_essential_components
 #check deterministic_and_nondeterministic_contradiction
 
-end HanXiaoWenAttempt
+end HanXiaoWenRefutation
 
-/- Formalization complete: Errors identified and contradictions demonstrated -/
+/- Refutation complete: Errors identified and contradictions demonstrated -/
