@@ -64,6 +64,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Sergey Gubin | 2006 | [S](sergey-gubin-2006-peqnp/) | - | 🔷 🔶 |
 | ✓ | Riaz Khiyal | 2006 | [K](riaz-khiyal-2006-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Anatoly D. Plotnikov | 2007 | [A](anatoly-plotnikov-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
+| ✓ | Delacorte Czerwinski | 2007 | [D](delacorte-czerwinski-2007-peqnppspace/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Bhupinder Singh Anand | 2008 | [B](bhupinder-singh-anand-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Jerrald Meek | 2008 | [J](jerrald-meek-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Zohreh O. Akbari | 2008 | [Z](zohreh-akbari-2008-peqnp/) | 📄 | 🔷 🔶 |
@@ -121,16 +122,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 84
-- **Claims P = NP:** 44
+- **Total attempts:** 85
+- **Claims P = NP:** 45
 - **Claims P ≠ NP:** 39
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 12
-- **With original paper:** 8
-- **With proof/ directory:** 15
-- **With refutation/ directory:** 15
-- **With Lean formalization:** 15
-- **With Rocq formalization:** 15
+- **With ORIGINAL.md:** 13
+- **With original paper:** 9
+- **With proof/ directory:** 16
+- **With refutation/ directory:** 16
+- **With Lean formalization:** 16
+- **With Rocq formalization:** 16
 
 ---
 
