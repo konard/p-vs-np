@@ -1,0 +1,611 @@
+[0;34mFetching issues for konard/p-vs-np...[0m
+==========================================
+
+[1;33mOPEN ISSUES:[0m
+
+  No open issues found.
+
+==========================================
+
+[1;33mRECENTLY CLOSED ISSUES (showing recent):[0m
+
+Issue #309: Formalize: Unknown (2013) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/309
+  Labels: formal-verification, attempt-formalization
+
+Issue #308: Formalize: Dmitriy Nuriyev (2013) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/308
+  Labels: formal-verification, attempt-formalization
+
+Issue #307: Formalize: Louis Coder (2012) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/307
+  Labels: formal-verification, attempt-formalization
+
+Issue #306: Formalize: Sergey V. Yakhontov (2012) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/306
+  Labels: formal-verification, attempt-formalization
+
+Issue #305: Formalize: Qi Duan (2012) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/305
+  Labels: formal-verification, attempt-formalization
+
+Issue #304: Formalize: Satoshi Tazawa (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/304
+  Labels: formal-verification, attempt-formalization
+
+Issue #303: Formalize: InfoTechnology Center (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/303
+  Labels: formal-verification, attempt-formalization
+
+Issue #302: Formalize: Michel Feldmann (2012) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/302
+  Labels: formal-verification, attempt-formalization
+
+Issue #301: Formalize: Antano Maknickas (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/301
+  Labels: formal-verification, attempt-formalization
+
+Issue #300: Formalize: Minseong Kim (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/300
+  Labels: formal-verification, attempt-formalization
+
+Issue #299: Formalize: Vega Delgado (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/299
+  Labels: formal-verification, attempt-formalization
+
+Issue #298: Formalize: Koji Kobayashi (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/298
+  Labels: formal-verification, attempt-formalization
+
+Issue #297: Formalize: Stefan Rass (2016) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/297
+  Labels: formal-verification, attempt-formalization
+
+Issue #296: Formalize: Rodrigo Diduch (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/296
+  Labels: formal-verification, attempt-formalization
+
+Issue #295: Formalize: Eli Halylaurin (2016) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/295
+  Labels: formal-verification, attempt-formalization
+
+Issue #294: Formalize: Douglas Youvan (2012) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/294
+  Labels: formal-verification, attempt-formalization
+
+Issue #293: Formalize: Figueroa (2016) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/293
+  Labels: formal-verification, attempt-formalization
+
+Issue #292: Formalize: Jeffrey W. Holcomb (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/292
+  Labels: formal-verification, attempt-formalization
+
+Issue #291: Formalize: Steven Meyer (2016) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/291
+  Labels: formal-verification, attempt-formalization
+
+Issue #290: Formalize: Alan Feinstein (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/290
+  Labels: formal-verification, attempt-formalization
+
+Issue #289: Formalize: Mathias Hauptmann (2016) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/289
+  Labels: formal-verification, attempt-formalization
+
+Issue #288: Formalize: Roman Yampolskiy (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/288
+  Labels: formal-verification, attempt-formalization
+
+Issue #287: Formalize: Daniel Uribe (2016) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/287
+  Labels: formal-verification, attempt-formalization
+
+Issue #286: Formalize: Hamelin (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/286
+  Labels: formal-verification, attempt-formalization
+
+Issue #285: Formalize: Yubin Huang (2015) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/285
+  Labels: formal-verification, attempt-formalization
+
+Issue #284: Formalize: Jason W. Steinmetz (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/284
+  Labels: formal-verification, attempt-formalization
+
+Issue #283: Formalize: Unknown (2015) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/283
+  Labels: formal-verification, attempt-formalization
+
+Issue #282: Formalize: Koji Kobayashi (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/282
+  Labels: formal-verification, attempt-formalization
+
+Issue #281: Formalize: Sanchez Guinea (2015) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/281
+  Labels: formal-verification, attempt-formalization
+
+Issue #280: Formalize: Anatoly Plotnikov (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/280
+  Labels: formal-verification, attempt-formalization
+
+Issue #279: Formalize: Michael LaPlante (2015) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/279
+  Labels: formal-verification, attempt-formalization
+
+Issue #278: Formalize: Sergey Kardash (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/278
+  Labels: formal-verification, attempt-formalization
+
+Issue #277: Formalize: Anatoly Panyukov (2014) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/277
+  Labels: formal-verification, attempt-formalization
+
+Issue #276: Formalize: Joonmo Kim (2014) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/276
+  Labels: formal-verification, attempt-formalization
+
+Issue #275: Formalize: Matt Groff (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/275
+  Labels: formal-verification, attempt-formalization
+
+Issue #274: Formalize: Angela Weiss (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/274
+  Labels: formal-verification, attempt-formalization
+
+Issue #273: Formalize: Daegene Song (2014) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/273
+  Labels: formal-verification, attempt-formalization
+
+Issue #272: Formalize: Peng Cui (2014) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/272
+  Labels: formal-verification, attempt-formalization
+
+Issue #271: Formalize: Amar Mukherjee (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/271
+  Labels: formal-verification, attempt-formalization
+
+Issue #270: Formalize: Stefan Jaeger (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/270
+  Labels: formal-verification, attempt-formalization
+
+Issue #269: Formalize: Dhami (2014) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/269
+  Labels: formal-verification, attempt-formalization
+
+Issue #268: Formalize: Ruijia Liao (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/268
+  Labels: formal-verification, attempt-formalization
+
+Issue #267: Formalize: Hanlin Liu (2014) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/267
+  Labels: formal-verification, attempt-formalization
+
+Issue #266: Formalize: Yi Lin (2010) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/266
+  Labels: formal-verification, attempt-formalization
+
+Issue #265: Formalize: Frederic Gillet (2013) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/265
+  Labels: formal-verification, attempt-formalization
+
+Issue #264: Formalize: Romero (2010) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/264
+  Labels: formal-verification, attempt-formalization
+
+Issue #263: Formalize: Chingizovich Valeyev (2013) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/263
+  Labels: formal-verification, attempt-formalization
+
+Issue #262: Formalize: Unknown (2013) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/262
+  Labels: formal-verification, attempt-formalization
+
+Issue #261: Formalize: Vega Delgado (2010) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/261
+  Labels: formal-verification, attempt-formalization
+
+Issue #260: Formalize: Dmitriy Nuriyev (2013) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/260
+  Labels: formal-verification, attempt-formalization
+
+Issue #259: Formalize: Vladimir Romanov (2010) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/259
+  Labels: formal-verification, attempt-formalization
+
+Issue #258: Formalize: Louis Coder (2012) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/258
+  Labels: formal-verification, attempt-formalization
+
+Issue #257: Formalize: Sergey Gubin (2010) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/257
+  Labels: formal-verification, attempt-formalization
+
+Issue #256: Formalize: Sergey V. Yakhontov (2012) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/256
+  Labels: formal-verification, attempt-formalization
+
+Issue #255: Formalize: Unknown (2010) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/255
+  Labels: formal-verification, attempt-formalization
+
+Issue #254: Formalize: Qi Duan (2012) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/254
+  Labels: formal-verification, attempt-formalization
+
+Issue #253: Formalize: Mikhail Katkov (2010) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/253
+  Labels: formal-verification, attempt-formalization
+
+Issue #252: Formalize: Satoshi Tazawa (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/252
+  Labels: formal-verification, attempt-formalization
+
+Issue #251: Formalize: Xiao Wen (2010) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/251
+  Labels: formal-verification, attempt-formalization
+
+Issue #250: Formalize: Romero (2010) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/250
+  Labels: formal-verification, attempt-formalization
+
+Issue #249: Formalize: InfoTechnology Center (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/249
+  Labels: formal-verification, attempt-formalization
+
+Issue #248: Formalize: Changlin Wan (2010) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/248
+  Labels: formal-verification, attempt-formalization
+
+Issue #247: Formalize: Michel Feldmann (2012) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/247
+  Labels: formal-verification, attempt-formalization
+
+Issue #246: Formalize: Lizhi Du (2010) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/246
+  Labels: formal-verification, attempt-formalization
+
+Issue #245: Formalize: Antano Maknickas (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/245
+  Labels: formal-verification, attempt-formalization
+
+Issue #244: Formalize: Minseong Kim (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/244
+  Labels: formal-verification, attempt-formalization
+
+Issue #243: Formalize: Narendra S. Chaudhari (2009) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/243
+  Labels: formal-verification, attempt-formalization
+
+Issue #242: Formalize: Ari Blinder (2009) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/242
+  Labels: formal-verification, attempt-formalization
+
+Issue #241: Formalize: Vega Delgado (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/241
+  Labels: formal-verification, attempt-formalization
+
+Issue #240: Formalize: Luigi Salemi (2009) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/240
+  Labels: formal-verification, attempt-formalization
+
+Issue #239: Formalize: Koji Kobayashi (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/239
+  Labels: formal-verification, attempt-formalization
+
+Issue #238: Formalize: Yann Dujardin (2009) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/238
+  Labels: formal-verification, attempt-formalization
+
+Issue #237: Formalize: Rodrigo Diduch (2012) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/237
+  Labels: formal-verification, attempt-formalization
+
+Issue #236: Formalize: Luiz Barbosa (2009) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/236
+  Labels: formal-verification, attempt-formalization
+
+Issue #235: Formalize: Douglas Youvan (2012) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/235
+  Labels: formal-verification, attempt-formalization
+
+Issue #234: Formalize: Arto Annila (2009) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/234
+  Labels: formal-verification, attempt-formalization
+
+Issue #233: Formalize: Jeffrey W. Holcomb (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/233
+  Labels: formal-verification, attempt-formalization
+
+Issue #232: Formalize: and 2011. More information on (2009) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/232
+  Labels: formal-verification, attempt-formalization
+
+Issue #231: Formalize: Alan Feinstein (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/231
+  Labels: formal-verification, attempt-formalization
+
+Issue #230: Formalize: Doron Zeilberger (2009) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/230
+  Labels: formal-verification, attempt-formalization
+
+Issue #229: Formalize: Roman Yampolskiy (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/229
+  Labels: formal-verification, attempt-formalization
+
+Issue #228: Formalize: Unknown (2009) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/228
+  Labels: formal-verification, attempt-formalization
+
+Issue #227: Formalize: Hamelin (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/227
+  Labels: formal-verification, attempt-formalization
+
+Issue #226: Formalize: Javaid Aslam (2008) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/226
+  Labels: formal-verification, attempt-formalization
+
+Issue #225: Formalize: Jason W. Steinmetz (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/225
+  Labels: formal-verification, attempt-formalization
+
+Issue #224: Formalize: an updated version of (2008) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/224
+  Labels: formal-verification, attempt-formalization
+
+Issue #223: Formalize: Koji Kobayashi (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/223
+  Labels: formal-verification, attempt-formalization
+
+Issue #222: Formalize: Ake Tarnlund (2008) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/222
+  Labels: formal-verification, attempt-formalization
+
+Issue #221: Formalize: Anatoly Plotnikov (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/221
+  Labels: formal-verification, attempt-formalization
+
+Issue #220: Formalize: Jorma Jormakka (2008) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/220
+  Labels: formal-verification, attempt-formalization
+
+Issue #219: Formalize: Sergey Kardash (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/219
+  Labels: formal-verification, attempt-formalization
+
+Issue #218: Formalize: Jerrald Meek (2008) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/218
+  Labels: formal-verification, attempt-formalization
+
+Issue #217: Formalize: Matt Groff (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/217
+  Labels: formal-verification, attempt-formalization
+
+Issue #216: Formalize: Ebrahim Kamouna (2008) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/216
+  Labels: formal-verification, attempt-formalization
+
+Issue #215: Formalize: Singh Anand (2008) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/215
+  Labels: formal-verification, attempt-formalization
+
+Issue #214: Formalize: Angela Weiss (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/214
+  Labels: formal-verification, attempt-formalization
+
+Issue #213: Formalize: Amar Mukherjee (2011) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/213
+  Labels: formal-verification, attempt-formalization
+
+Issue #212: Formalize: Jerrald Meek (2008) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/212
+  Labels: formal-verification, attempt-formalization
+
+Issue #211: Formalize: Stefan Jaeger (2011) - P≠NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/211
+  Labels: formal-verification, attempt-formalization
+
+Issue #210: Formalize: Unknown (2008) - P=NP
+  State: closed
+  Created: 2025-10-17
+  URL: https://github.com/konard/p-vs-np/issues/210
+  Labels: formal-verification, attempt-formalization
+
