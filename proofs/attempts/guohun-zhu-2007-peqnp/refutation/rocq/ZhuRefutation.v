@@ -75,7 +75,7 @@ Proof.
     + lia.
     + destruct k'' as [| k'''].
       * lia.
-      + destruct k''' as [| k''''].
+      * destruct k''' as [| k''''].
         -- (* k = 3: 2^3 = 8 > 6 *) simpl. lia.
         -- (* k >= 4: induction step *)
            assert (Hk' : S (S (S k'''')) >= 3) by lia.
