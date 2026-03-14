@@ -69,6 +69,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Jerrald Meek | 2008 | [J](jerrald-meek-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Jorma Jormakka | 2008 | [J](jorma-jormakka-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Rafee Ebrahim Kamouna | 2008 | [R](rafee-ebrahim-kamouna-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
+| ✗ | Sten-Ake Tarnlund | 2008 | [S](sten-ake-tarnlund-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Zohreh O. Akbari | 2008 | [Z](zohreh-akbari-2008-peqnp/) | 📄 | 🔷 🔶 |
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
 | ✗ | Ari Blinder | 2009 | [A](ari-blinder-2009-pneqnp/) | 📄 | 🔷 🔶 |
@@ -127,16 +128,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 90
+- **Total attempts:** 91
 - **Claims P = NP:** 49
-- **Claims P ≠ NP:** 40
+- **Claims P ≠ NP:** 41
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 17
-- **With original paper:** 11
-- **With proof/ directory:** 21
-- **With refutation/ directory:** 21
-- **With Lean formalization:** 21
-- **With Rocq formalization:** 21
+- **With ORIGINAL.md:** 18
+- **With original paper:** 12
+- **With proof/ directory:** 22
+- **With refutation/ directory:** 22
+- **With Lean formalization:** 22
+- **With Rocq formalization:** 22
 
 ---
 
