@@ -112,7 +112,7 @@ This follows from exponential_dominates_polynomial and is mathematically correct
 Theorem meek_rate_limit : forall (k : nat) (t : TimeComplexity),
   k >= 3 -> isPolynomial t ->
   forall M : nat, exists N : nat, forall n : nat,
-    n >= N -> Rdiv (INR (2 ^ (k * n))) (INR (t n)) > INR M.
+    n >= N -> Rgt (Rdiv (INR (2 ^ (k * n))) (INR (t n))) (INR M).
 Proof.
   (* Follows from exponential_dominates_polynomial *)
   intros. admit.
