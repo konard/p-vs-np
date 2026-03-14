@@ -64,12 +64,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Sergey Gubin | 2006 | [S](sergey-gubin-2006-peqnp/) | - | 🔷 🔶 |
 | ✓ | Riaz Khiyal | 2006 | [K](riaz-khiyal-2006-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Anatoly D. Plotnikov | 2007 | [A](anatoly-plotnikov-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
+| ✓ | Guohun Zhu | 2007 | [G](guohun-zhu-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Bhupinder Singh Anand | 2008 | [B](bhupinder-singh-anand-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Jerrald Meek | 2008 | [J](jerrald-meek-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
+| ✗ | Jorma Jormakka | 2008 | [J](jorma-jormakka-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
+| ✓ | Rafee Ebrahim Kamouna | 2008 | [R](rafee-ebrahim-kamouna-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Zohreh O. Akbari | 2008 | [Z](zohreh-akbari-2008-peqnp/) | 📄 | 🔷 🔶 |
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
 | ✗ | Ari Blinder | 2009 | [A](ari-blinder-2009-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Arto Annila | 2009 | [A](arto-annila-2009-pneqnp/) | - | - |
+| ✓ | Narendra S. Chaudhari | 2009 | [N](narendra-chaudhari-2009-peqnp/) | - | 🔷 🔶 |
 | ✓ | Rafael Valls Hidalgo-Gato | 2009 | [R](rafael-valls-hidalgo-gato-2009-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Yann Dujardin | 2009 | [Y](yann-dujardin-2009-peqnp/) | - | - |
 
@@ -77,7 +81,9 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 | Claim | Author | Year | Title | Docs | Formal |
 |:-----:|--------|------|-------|:----:|:------:|
+| ✓ | Han Xiao Wen | 2010 | [H](han-xiao-wen-2010-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Mikhail Katkov | 2010 | [M](mikhail-katkov-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
+| ✓ | Sergey Gubin | 2010 | [S](sergey-gubin-2010-peqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Vinay Deolalikar | 2010 | [V](deolalikar-2010-pneqnp/) | - | - |
 | ✓ | Algirdas Antano Maknickas | 2011 | [F](antano-maknickas-2011-peqnp/) | - | - |
 | ✗ | Craig Alan Feinstein | 2011 | [A](alan-feinstein-2011-pneqnp/) | - | - |
@@ -121,16 +127,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 84
-- **Claims P = NP:** 44
-- **Claims P ≠ NP:** 39
+- **Total attempts:** 90
+- **Claims P = NP:** 49
+- **Claims P ≠ NP:** 40
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 12
-- **With original paper:** 8
-- **With proof/ directory:** 15
-- **With refutation/ directory:** 15
-- **With Lean formalization:** 15
-- **With Rocq formalization:** 15
+- **With ORIGINAL.md:** 17
+- **With original paper:** 11
+- **With proof/ directory:** 21
+- **With refutation/ directory:** 21
+- **With Lean formalization:** 21
+- **With Rocq formalization:** 21
 
 ---
 
