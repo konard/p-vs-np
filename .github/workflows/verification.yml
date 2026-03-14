@@ -8,9 +8,56 @@ on:
   workflow_dispatch:
 
 jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      lean_changed: ${{ steps.changes.outputs.lean }}
+      rocq_changed: ${{ steps.changes.outputs.rocq }}
+      is_push: ${{ github.event_name == 'push' }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Detect changed files
+      id: changes
+      run: |
+        if [ "${{ github.event_name }}" = "push" ]; then
+          # For push to main, always verify all files
+          echo "lean=true" >> $GITHUB_OUTPUT
+          echo "rocq=true" >> $GITHUB_OUTPUT
+          echo "Push to main - will verify ALL files"
+        else
+          # For PRs, only verify modified files
+          LEAN_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.lean$|lakefile\.lean|lean-toolchain' || true)
+          ROCQ_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.v$|_CoqProject' || true)
+
+          if [ -n "$LEAN_CHANGED" ]; then
+            echo "lean=true" >> $GITHUB_OUTPUT
+            echo "Lean files changed:"
+            echo "$LEAN_CHANGED"
+          else
+            echo "lean=false" >> $GITHUB_OUTPUT
+            echo "No Lean files changed"
+          fi
+
+          if [ -n "$ROCQ_CHANGED" ]; then
+            echo "rocq=true" >> $GITHUB_OUTPUT
+            echo "Rocq files changed:"
+            echo "$ROCQ_CHANGED"
+          else
+            echo "rocq=false" >> $GITHUB_OUTPUT
+            echo "No Rocq files changed"
+          fi
+        fi
+
   lean-verification:
     name: Lean Verification
     runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.lean_changed == 'true'
 
     steps:
     - name: Checkout repository
@@ -60,6 +107,8 @@ jobs:
   rocq-verification:
     name: Rocq Verification
     runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.rocq_changed == 'true'
 
     steps:
     - name: Checkout repository
@@ -177,7 +226,7 @@ jobs:
   summary:
     name: Verification Summary
     runs-on: ubuntu-latest
-    needs: [lean-verification, rocq-verification]
+    needs: [detect-changes, lean-verification, rocq-verification]
     if: always()
 
     steps:
@@ -187,15 +236,47 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Tool | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-        echo "| Lean | ${{ needs.lean-verification.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Rocq | ${{ needs.rocq-verification.result }} |" >> $GITHUB_STEP_SUMMARY
+
+        LEAN_RESULT="${{ needs.lean-verification.result }}"
+        ROCQ_RESULT="${{ needs.rocq-verification.result }}"
+
+        # Show skipped status if no files changed
+        if [ "$LEAN_RESULT" = "skipped" ]; then
+          echo "| Lean | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| Lean | $LEAN_RESULT |" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ "$ROCQ_RESULT" = "skipped" ]; then
+          echo "| Rocq | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| Rocq | $ROCQ_RESULT |" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ github.event_name }}" = "push" ]; then
+          echo "_Push to main: verified ALL files_" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "_Pull request: verified only MODIFIED files_" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "_Note: Isabelle proofs archived to ./archive/isabelle/_" >> $GITHUB_STEP_SUMMARY
         echo "_Note: Agda verification temporarily disabled due to long build times (~20 minutes)_" >> $GITHUB_STEP_SUMMARY
 
     - name: Check results
       run: |
-        if [[ "${{ needs.lean-verification.result }}" != "success" ]] || [[ "${{ needs.rocq-verification.result }}" != "success" ]]; then
-          echo "::error::One or more verification jobs failed"
+        LEAN_RESULT="${{ needs.lean-verification.result }}"
+        ROCQ_RESULT="${{ needs.rocq-verification.result }}"
+
+        # Consider 'success' and 'skipped' as passing
+        if [[ "$LEAN_RESULT" != "success" && "$LEAN_RESULT" != "skipped" ]]; then
+          echo "::error::Lean verification failed"
           exit 1
         fi
+
+        if [[ "$ROCQ_RESULT" != "success" && "$ROCQ_RESULT" != "skipped" ]]; then
+          echo "::error::Rocq verification failed"
+          exit 1
+        fi
+
+        echo "✓ All verification checks passed (or skipped due to no changes)"

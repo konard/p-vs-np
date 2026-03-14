@@ -64,15 +64,17 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Sergey Gubin | 2006 | [S](sergey-gubin-2006-peqnp/) | - | 🔷 🔶 |
 | ✓ | Riaz Khiyal | 2006 | [K](riaz-khiyal-2006-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Anatoly D. Plotnikov | 2007 | [A](anatoly-plotnikov-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
+| ✓ | Guohun Zhu | 2007 | [G](guohun-zhu-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Bhupinder Singh Anand | 2008 | [B](bhupinder-singh-anand-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
-| ✓ | Javaid Aslam | 2008 | [J](javaid-aslam-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Jerrald Meek | 2008 | [J](jerrald-meek-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Jorma Jormakka | 2008 | [J](jorma-jormakka-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Rafee Ebrahim Kamouna | 2008 | [R](rafee-ebrahim-kamouna-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
+| ✗ | Sten-Ake Tarnlund | 2008 | [S](sten-ake-tarnlund-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Zohreh O. Akbari | 2008 | [Z](zohreh-akbari-2008-peqnp/) | 📄 | 🔷 🔶 |
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
 | ✗ | Ari Blinder | 2009 | [A](ari-blinder-2009-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Arto Annila | 2009 | [A](arto-annila-2009-pneqnp/) | - | - |
+| ✓ | Narendra S. Chaudhari | 2009 | [N](narendra-chaudhari-2009-peqnp/) | - | 🔷 🔶 |
 | ✓ | Rafael Valls Hidalgo-Gato | 2009 | [R](rafael-valls-hidalgo-gato-2009-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Yann Dujardin | 2009 | [Y](yann-dujardin-2009-peqnp/) | - | - |
 
@@ -80,7 +82,9 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 | Claim | Author | Year | Title | Docs | Formal |
 |:-----:|--------|------|-------|:----:|:------:|
+| ✓ | Han Xiao Wen | 2010 | [H](han-xiao-wen-2010-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Mikhail Katkov | 2010 | [M](mikhail-katkov-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
+| ✓ | Sergey Gubin | 2010 | [S](sergey-gubin-2010-peqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Vinay Deolalikar | 2010 | [V](deolalikar-2010-pneqnp/) | - | - |
 | ✓ | Algirdas Antano Maknickas | 2011 | [F](antano-maknickas-2011-peqnp/) | - | - |
 | ✗ | Craig Alan Feinstein | 2011 | [A](alan-feinstein-2011-pneqnp/) | - | - |
@@ -124,16 +128,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 87
-- **Claims P = NP:** 46
-- **Claims P ≠ NP:** 40
+- **Total attempts:** 91
+- **Claims P = NP:** 49
+- **Claims P ≠ NP:** 41
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 15
-- **With original paper:** 11
-- **With proof/ directory:** 18
-- **With refutation/ directory:** 18
-- **With Lean formalization:** 18
-- **With Rocq formalization:** 18
+- **With ORIGINAL.md:** 18
+- **With original paper:** 12
+- **With proof/ directory:** 22
+- **With refutation/ directory:** 22
+- **With Lean formalization:** 22
+- **With Rocq formalization:** 22
 
 ---
 
