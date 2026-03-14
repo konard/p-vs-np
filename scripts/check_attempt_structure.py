@@ -385,12 +385,12 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
     lines.append("---")
     lines.append("")
 
-    # Sort by year, then by author
+    # Sort by year, then alphabetically by author/folder name
     sorted_validations = sorted(
         validations,
         key=lambda v: (
             v.metadata.year if v.metadata and v.metadata.year else "9999",
-            v.metadata.author if v.metadata and v.metadata.author else v.path.name
+            (v.metadata.author if v.metadata and v.metadata.author else v.path.name).lower()
         )
     )
 
@@ -407,6 +407,10 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
         decades[decade].append(v)
 
     for decade in sorted(decades.keys()):
+        # Sort each decade's entries alphabetically by author/folder name
+        decades[decade].sort(key=lambda v: (
+            (v.metadata.author if v.metadata and v.metadata.author else v.path.name).lower()
+        ))
         lines.append(f"## {decade}")
         lines.append("")
         lines.append("| Claim | Author | Year | Title | Docs | Formal |")
