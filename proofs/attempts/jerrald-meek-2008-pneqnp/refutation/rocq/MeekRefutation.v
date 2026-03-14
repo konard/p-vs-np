@@ -8,9 +8,9 @@
   complexity, and the circular reasoning about "search partitions".
 *)
 
-Require Import Coq.Arith.Arith.
-Require Import Coq.Init.Nat.
-Require Import Coq.Logic.Classical_Prop.
+From Stdlib Require Import Arith.
+From Stdlib Require Import Init.Nat.
+From Stdlib Require Import Classical_Prop.
 
 Module MeekAttempt.
 

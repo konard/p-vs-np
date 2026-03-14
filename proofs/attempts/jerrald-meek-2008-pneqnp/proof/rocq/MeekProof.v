@@ -8,9 +8,10 @@
   they lack formal definitions in complexity theory.
 *)
 
-Require Import Coq.Arith.Arith.
-Require Import Coq.Init.Nat.
-Require Import Coq.Reals.Reals.
+From Stdlib Require Import Arith.
+From Stdlib Require Import Init.Nat.
+From Stdlib Require Import Reals.
+From Stdlib Require Import Lra.
 
 Module MeekProofAttempt.
 
@@ -81,7 +82,7 @@ Axiom computationalRate : nat -> TimeComplexity -> nat -> R.
 (* MEEK'S CLAIM: The rate is 2^(kn) / t(n) *)
 Axiom meek_rate_definition : forall (k : nat) (t : TimeComplexity),
   isPolynomial t ->
-  forall n : nat, computationalRate k t n = (INR (2 ^ (k * n))) / (INR (t n)).
+  forall n : nat, computationalRate k t n = Rdiv (INR (2 ^ (k * n))) (INR (t n)).
 
 (*! Section 4.1: Exponential > Polynomial
 
@@ -111,7 +112,7 @@ This follows from exponential_dominates_polynomial and is mathematically correct
 Theorem meek_rate_limit : forall (k : nat) (t : TimeComplexity),
   k >= 3 -> isPolynomial t ->
   forall M : nat, exists N : nat, forall n : nat,
-    n >= N -> (INR (2 ^ (k * n))) / (INR (t n)) > INR M.
+    n >= N -> Rdiv (INR (2 ^ (k * n))) (INR (t n)) > INR M.
 Proof.
   (* Follows from exponential_dominates_polynomial *)
   intros. admit.
