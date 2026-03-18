@@ -72,9 +72,9 @@ Definition Delacorte_Claim : Prop := True. (* "GI is PSPACE-complete" *)
 
 (** Key distinction between two different problems *)
 Record ProblemDistinction := {
-  automaton_equiv_PSPACE : True; (* Language equivalence is PSPACE-complete *)
-  automaton_iso_equiv_GI : True; (* Structural isomorphism ≡_p GI *)
-  problems_are_different : True  (* They are not the same problem *)
+  automaton_equiv_PSPACE : Prop; (* Language equivalence is PSPACE-complete *)
+  automaton_iso_equiv_GI : Prop; (* Structural isomorphism ≡_p GI *)
+  problems_are_different : Prop  (* They are not the same problem *)
 }.
 
 (** Delacorte conflates equivalence and isomorphism *)
@@ -84,9 +84,9 @@ Theorem delacorte_error_conflation :
     automaton_iso_equiv_GI distinction /\
     problems_are_different distinction.
 Proof.
-  exists {| automaton_equiv_PSPACE := I;
-           automaton_iso_equiv_GI := I;
-           problems_are_different := I |}.
+  exists {| automaton_equiv_PSPACE := True;
+           automaton_iso_equiv_GI := True;
+           problems_are_different := True |}.
   repeat split; exact I.
 Qed.
 
