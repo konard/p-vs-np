@@ -1,193 +1,72 @@
-# Jerrald Meek (2008) - Refutation
+# Refutation of Meek's Attempt
 
-## Why the Proof Fails
+This folder contains formal refutations of Meek's 2008 attempt to prove P ≠ NP.
 
-Meek's 2008 P≠NP attempt contains a fundamental error: **confusion between problem instances and problem classes**, plus a complete misunderstanding of what NP-Completeness means.
+## Summary of Errors
 
-## The Fatal Error: Instance/Problem Confusion
+Meek's proof attempt contains **seven fundamental flaws**:
 
-### The Claim
+### 1. Confuses Search Space with Computational Requirements
+- **Error**: Assumes solving SAT requires "processing" all 2^n truth assignments
+- **Reality**: Algorithms (if they exist) might use techniques that never enumerate assignments
+- **Counterexample**: 2-SAT is in P but doesn't work by enumerating assignments
 
-Meek claimed that:
-1. Base conversion (decimal to binary with powers of 2) is an NP-Complete problem
-2. It can be solved in polynomial time
-3. But this polynomial solution doesn't transfer to K-SAT
-4. Therefore, P ≠ NP
+### 2. Circular Reasoning
+- **Error**: Assumes there's no efficient way to find "search partitions" (i.e., assumes P≠NP) to prove P≠NP
+- **Problem**: If P=NP, efficient methods would exist by definition
 
-### The Problem
+### 3. Invalid Inferences from Asymptotic Analysis
+- **Error**: From "2^n / poly(n) → ∞" concludes "problem is hard"
+- **Counterexample**: Sorting has n! permutations but can be done in O(n log n)
+- **Issue**: Search space size ≠ computational complexity
 
-**NP-Completeness** applies to **problem classes**, not **specific instance types**:
+### 4. Undefined Concepts
+- **"Computational rate"**: No formal meaning in complexity theory
+- **"Processing input sets"**: Never rigorously defined
+- **"Representative polynomial search partition"**: Defined only by desired properties, not construction
 
-| Aspect | Meek's Understanding | Reality |
-|--------|---------------------|---------|
-| **What is NP-Complete?** | Specific instance types like base conversion | Entire problem classes (all instances) |
-| **Special instances** | Form separate NP-Complete problems | Are just easy instances within hard problems |
-| **Polynomial for some instances** | Contradicts NP-Completeness | Expected and common |
-| **What would prove P=NP?** | Solving one instance type | Algorithm for ALL instances of an NP-Complete problem |
+### 5. Misunderstands How Algorithms Work
+- **Assumes**: All algorithms work by partition → enumerate
+- **Reality**: Algorithms can use structure, algebra, transformations, etc.
 
-### Why This Is Fatal
+### 6. Depends on Unproven Claims
+- Article 2: Claims about Knapsack (unpublished/rejected)
+- Article 3: Claims about oracle relativization (unpublished/rejected)
+- Article 4: **Claims "SAT does not have polynomial-time solution"** (this IS what needs proving!)
 
-1. **Conceptual Misunderstanding**: Base conversion is NOT an NP-Complete problem—it's a polynomial-time solvable special case of Knapsack
-2. **Wrong Reduction Direction**: Meek shows SAT→BaseConversion, but NP-Hardness requires showing BaseConversion→SAT
-3. **Invented "Postulate"**: Karp never claimed solving one NP-Complete problem instance should solve others
-4. **Circular Reasoning**: Prior "theorems" assume P ≠ NP to prove P ≠ NP
+### 7. Fails Known Barriers
+- **Relativization**: Meek's counting argument would work the same with oracle access, but relativizing proofs cannot resolve P vs NP
+- **Natural Proofs**: Would likely fall into this barrier if made more rigorous
 
-## The Eight Fundamental Errors
+## Formalizations
 
-### 1. Problem vs. Instance Confusion
+### Lean (`lean/MeekAttempt.lean`)
+- Models computational complexity classes (P, NP, NP-complete)
+- Formalizes the "computational rate" concept
+- **Identifies the gap**: The ratio r(n) → ∞ doesn't imply partition-finding is hard
+- **Shows circularity**: "Search partition theorem" assumes P≠NP
 
-**Meek thinks**:
-- "Base conversion" is an NP-Complete PROBLEM
-- Having a polynomial algorithm for it is surprising
-- This creates a contradiction
+### Rocq/Coq (`rocq/MeekAttempt.v`)
+- Provides formal definitions of the key claims
+- **Identifies the gap**: No proof that algorithms must "process" input sets
+- **Shows invalid inference**: Asymptotic ratio doesn't determine complexity
 
-**Reality**:
-- "Base conversion" is a SPECIAL INSTANCE TYPE of Knapsack
-- Having polynomial algorithms for special instances is normal
-- SAT with 0 clauses is polynomial, but that doesn't make it "an NP-Complete problem"
+## The Core Misunderstanding
 
-### 2. Wrong Reduction Direction
+**Meek's implicit assumption**: Solving SAT = Searching through assignments
 
-To prove NP-Completeness, you need:
-- **Reduction FROM your problem TO a known NP-Complete problem** (shows hardness)
+**Reality**: Solving SAT might involve:
+- Algebraic transformations
+- Structural decomposition
+- Novel algorithmic techniques we haven't discovered
+- Exploiting hidden structure in the problem
 
-Meek shows:
-- **Reduction FROM K-SAT TO base conversion** (backwards!)
+The entire argument rests on assuming any algorithm must "touch" or "process" a large number of assignments, but this is **exactly the assumption that P≠NP makes**. Using it to prove P≠NP is circular.
 
-This is like saying: "SAT reduces to sorting, therefore sorting is NP-Complete"—completely wrong!
+## What This Teaches Us
 
-### 3. Misinterpretation of Karp's Theorem
+This attempt demonstrates an important lesson:
 
-**What Karp actually proved**:
-- If ANY NP-Complete problem L has a polynomial algorithm for **all instances**, then P = NP
+> **Counting arguments about search space sizes do not directly translate to computational complexity separations.**
 
-**What Meek thinks Karp proved**:
-- Solving "one NP-Complete problem" should give you all others (invented "second postulate")
-
-**Reality**:
-- Algorithms must work on **all instances** of a problem class
-- Special-case algorithms don't count
-
-### 4. Circular Reasoning
-
-Meek's "theorems" from prior papers essentially state:
-- "P = NP Optimization Theorem": NP problems require examining > polynomial inputs
-- "P = NP Partition Theorem": Can't partition efficiently
-
-**The problem**: These "theorems" ASSUME P ≠ NP to prove P ≠ NP!
-
-### 5. Incomplete Algorithmic Categorization
-
-**Meek claims**: All algorithms fall into 4 categories, all ruled out
-
-**Reality**: The categorization is informal and incomplete:
-- Algebraic algorithms
-- Geometric algorithms
-- Randomized algorithms with derandomization
-- Novel computational models
-- Many other sophisticated approaches
-
-### 6. Special Cases Tell Us Nothing
-
-**Throughout the paper**: Meek shows some special instances are hard
-
-**Missing**: Proof that **ALL instances** require super-polynomial time
-
-Showing that some approaches don't work ≠ showing NO approach can work
-
-### 7. Misunderstanding Karp Reductions
-
-**Meek argues** (Section 4.3): Optimized Knapsack uses "quality Q" of S, but other NP problems don't provide S, so the algorithm gives "undefined"
-
-**Wrong because**: Karp reductions CONSTRUCT S from the SAT instance—the reduction provides the transformation!
-
-### 8. Unproven Dependencies
-
-All of Meek's "theorems" from prior papers are:
-- Not established results in complexity theory
-- Not peer-reviewed or validated
-- Appear to contain similar errors
-- Used as foundation for this "proof"
-
-## Concrete Example of the Error
-
-**Meek's Logic**:
-```
-1. SAT with formula (x OR y) reduces to finding binary digits of 3
-2. Binary conversion is polynomial-time solvable
-3. Therefore "binary conversion" is an NP-Complete problem
-4. But solving it doesn't solve general SAT
-5. Therefore P ≠ NP
-```
-
-**Why It's Wrong**:
-```
-1. "Binary conversion" is just ONE INSTANCE TYPE, not a problem class
-2. It's like saying "SAT with 0 clauses is NP-Complete"
-3. The fact that SOME instances are easy tells us NOTHING
-4. To prove P=NP, you need an algorithm for ALL instances
-5. Meek's argument is based on a category error
-```
-
-## What Would Be Needed for a Valid Proof
-
-A valid P ≠ NP proof must:
-
-1. ✅ **Work for all instances**: Prove super-polynomial bound for ALL inputs
-2. ✅ **Understand definitions**: Know the difference between instances and problems
-3. ✅ **Avoid circularity**: Don't assume what you're trying to prove
-4. ✅ **Address barriers**: Deal with relativization, natural proofs, or algebraization
-5. ✅ **Use formal methods**: Work within computational complexity theory framework
-
-Meek's attempt:
-1. ❌ Only considers special cases
-2. ❌ Fundamentally misunderstands NP-Completeness
-3. ❌ Uses circular reasoning
-4. ❌ Doesn't address any barriers
-5. ❌ Uses informal arguments
-
-## The Subproblem Structure
-
-### What Meek Needs to Prove
-
-For P ≠ NP, must show: **Every NP-Complete problem has instances requiring super-polynomial time**
-
-### What Meek Actually Shows
-
-"Some special instances can be solved in polynomial time, but the algorithm doesn't generalize"
-
-**Gap**: Easy instances ≠ proof of general hardness
-
-## Formal Refutation
-
-The formalizations in this directory demonstrate:
-
-1. **`instance_vs_problem_distinction`**: Problems are sets of instances; special cases ≠ problem classes
-2. **`base_conversion_not_npc`**: Base conversion is not NP-Complete (wrong reduction direction)
-3. **`meek_fatal_error`**: Special-case algorithms don't determine general problem complexity
-4. **`circular_dependency_in_theorems`**: Prior "theorems" assume P ≠ NP
-5. **`incomplete_categorization`**: The four algorithm categories don't exhaust all possibilities
-
-## Key Lessons
-
-1. **Precision Matters**: Understanding formal definitions is essential
-2. **Instances ≠ Problems**: Special cases within hard problems can be easy
-3. **Direction Matters**: Reductions must go the right way for NP-Hardness
-4. **No Circular Logic**: Can't assume what you're proving
-5. **Informal ≠ Proof**: Categorizations must be mathematically rigorous
-
-## The Peer Review Outcome
-
-This attempt:
-- Was never published in a peer-reviewed venue
-- Received critical feedback (acknowledged in the paper)
-- Timothy Chow pointed out the instance/problem confusion
-- Lance Fortnow warned about the difficulty of the problem
-- Remains on arXiv as version 5 (September 2008)
-
-## References
-
-- **Meek, J.** (2008). "Analysis of the postulates produced by Karp's Theorem", arXiv:0808.3222
-- **Karp, R. M.** (1972). "Reducibility Among Combinatorial Problems"
-- **Garey, M. R., Johnson, D. S.** (1979). "Computers and Intractability"
-- **Woeginger's List**: Entry #46 - https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+The size of the solution space (exponential) and the time complexity of the best algorithm (potentially polynomial) are **distinct concepts**. A valid proof of P≠NP must show that **every possible algorithm** requires superpolynomial time, not just that naive enumeration does.
