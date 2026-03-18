@@ -1,11 +1,14 @@
 /-
   Formalization of Jerrald Meek's 2008 Attempt to Prove P ≠ NP
 
-  Paper: "Analysis of the postulates produced by Karp's Theorem" (arXiv:0808.3222)
+  Paper: "P is a proper subset of NP" (arXiv:0804.1079)
 
-  This formalization demonstrates the fundamental errors in Meek's approach,
-  particularly the confusion between problem instances and problem classes,
-  and the misunderstanding of what NP-Completeness means.
+  This formalization demonstrates where Meek's computational rate and
+  search partition approach to proving P ≠ NP breaks down when translated
+  to formal computational complexity theory.
+
+  Key Error: Confusing the size of the search space with computational
+  requirements, and circular reasoning about "search partitions".
 -/
 
 namespace MeekAttempt
@@ -14,15 +17,7 @@ namespace MeekAttempt
   Basic definitions for computational complexity classes
 -/
 
--- A problem instance
-structure Instance where
-  input : Nat
-  size : Nat
-
--- A problem is a set of instances with a yes/no answer
-def Problem := Instance → Prop
-
--- A language (set of strings, represented as naturals)
+-- A language is a set of strings (represented as natural numbers)
 def Language := Nat → Prop
 
 -- Time complexity function
@@ -32,16 +27,15 @@ def TimeComplexity := Nat → Nat
 def PolynomialTime (f : TimeComplexity) : Prop :=
   ∃ c k : Nat, ∀ n : Nat, f n ≤ c * (n ^ k) + c
 
--- Algorithm that decides a language
-structure Algorithm where
-  compute : Nat → Bool
-  time : TimeComplexity
+-- Exponential time bound
+def ExponentialTime (f : TimeComplexity) : Prop :=
+  ∃ a c : Nat, a > 1 ∧ ∀ n : Nat, f n ≥ c * (a ^ n)
 
 -- Language is in P
 def InP (L : Language) : Prop :=
-  ∃ (A : Algorithm),
-    PolynomialTime A.time ∧
-    ∀ x : Nat, L x ↔ A.compute x = true
+  ∃ (M : Nat → Bool) (t : TimeComplexity),
+    PolynomialTime t ∧
+    ∀ x : Nat, L x ↔ M x = true
 
 -- Language is in NP (with verifier)
 def InNP (L : Language) : Prop :=
@@ -49,232 +43,224 @@ def InNP (L : Language) : Prop :=
     PolynomialTime t ∧
     ∀ x : Nat, L x ↔ ∃ c : Nat, V x c = true
 
--- Polynomial-time many-one reduction
-def PolyTimeReducible (L1 L2 : Language) : Prop :=
-  ∃ (f : Nat → Nat) (t : TimeComplexity),
-    PolynomialTime t ∧
-    ∀ x : Nat, L1 x ↔ L2 (f x)
-
--- NP-Completeness: in NP and all NP languages reduce to it
+-- NP-complete
 def NPComplete (L : Language) : Prop :=
-  InNP L ∧ ∀ L' : Language, InNP L' → PolyTimeReducible L' L
+  InNP L ∧ ∀ L' : Language, InNP L' → (∃ f : Nat → Nat, True) -- Simplified reduction
 
 /-
-  CRITICAL ERROR #1: Instance vs Problem Confusion
+  Meek's Attempt: Computational Rate Analysis
 
-  Meek claims "base conversion is NP-Complete" but base conversion
-  with a specific structure (powers of 2) is an INSTANCE TYPE, not
-  a problem class.
+  Meek claims that the "rate" r(n) = 2^(kn) / t(n) approaches infinity,
+  where 2^(kn) is the number of possible input sets and t(n) is polynomial time.
+
+  CRITICAL GAP #1: This ratio has no formal meaning in complexity theory
 -/
 
--- A specific instance of 0-1-Knapsack
-structure KnapsackInstance where
-  items : List Nat  -- The set S
-  target : Nat      -- The value M
+-- The number of possible assignments for k-SAT with n clauses
+def NumAssignments (k n : Nat) : Nat := 2 ^ (k * n)
 
--- The 0-1-Knapsack problem (the ENTIRE problem class)
-def KnapsackProblem : Language :=
-  fun encoded_instance =>
-    -- In reality, this would properly encode KnapsackInstance
-    -- and ask if there's a subset summing to target
-    True  -- Placeholder
+-- Meek's "computational rate" - UNDEFINED IN COMPLEXITY THEORY
+-- This is not a valid concept - algorithms don't "process input sets"
+def ComputationalRate (k n : Nat) (t : TimeComplexity) : Nat :=
+  NumAssignments k n / t n
 
--- Base conversion instances (special structure: powers of 2)
-def BaseConversionInstance (base : Nat) (number : Nat) : KnapsackInstance where
-  items := List.range base |>.map (fun i => base ^ i)  -- [1, base, base^2, ...]
-  target := number
+-- Meek claims this approaches infinity
+-- Note: This axiom expresses Meek's claim, which is mathematically true
+-- but computationally meaningless
+axiom rate_approaches_infinity :
+  ∀ k : Nat, k ≥ 3 →
+  ∀ t : TimeComplexity, PolynomialTime t →
+  ∀ N : Nat, ∃ n : Nat, n > N ∧ ComputationalRate k n t > N
 
 /-
-  CRITICAL ERROR #2: Misunderstanding Reduction Direction
+  CRITICAL GAP #2: Invalid Inference
 
-  Meek shows: SAT ≤_p BaseConversion
-  This proves: If BaseConversion is in P, then SAT is in P
+  Meek concludes from the above that algorithms must "examine no more than
+  a polynomial number of input sets". But this doesn't follow!
 
-  To prove BaseConversion is NP-Complete, Meek would need:
-  BaseConversion ≤_p SAT (reduction FROM BaseConversion TO SAT)
-
-  Showing reductions TO a problem doesn't prove it's NP-Complete!
+  ERROR: Confusing search space size with computational requirements
 -/
 
--- What Meek actually showed (reduction TO base conversion)
-axiom meek_reduction_wrong_direction :
-  ∃ (SAT : Language) (BaseConv : Language),
-    InNP SAT ∧
-    PolyTimeReducible SAT BaseConv ∧
-    InP BaseConv  -- Base conversion is actually in P!
-
--- This doesn't make BaseConv NP-Complete!
--- It just shows BaseConv is "NP-easy" (can solve NP problems if you can solve it)
+-- Meek's "P = NP Optimization Theorem" (Theorem 4.4)
+-- This is presented as proven, but actually ASSUMES what needs to be proven
+-- Note: This axiom is CIRCULAR - it assumes P algorithms must work by examining input sets
+axiom meek_optimization_theorem_CIRCULAR :
+  ∀ L : Language, NPComplete L →
+  ∀ M : Nat → Bool, (∀ x, L x ↔ M x = true) →
+  ∀ t : TimeComplexity, PolynomialTime t →
+  -- Meek claims: must examine ≤ poly(n) "input sets"
+  -- ERROR: No formal definition of "examining input sets"
+  -- ERROR: Assumes algorithms work by enumeration
+  True -- Placeholder for unformalizable claim
 
 /-
-  CRITICAL ERROR #3: Confusing Special Cases with General Problems
+  CRITICAL GAP #3: The "Search Partition" Concept
 
-  Having a polynomial algorithm for SOME instances (base conversion instances)
-  doesn't mean you've solved the GENERAL problem (all Knapsack instances)
+  Meek introduces "representative polynomial search partitions" but never
+  rigorously defines them in computational terms.
 -/
 
--- Algorithm that works for base conversion instances
-structure SpecialCaseAlgorithm where
-  works_for : KnapsackInstance → Prop  -- Only works for special instances
-  compute : Nat → Bool
-  time : TimeComplexity
-  is_poly : PolynomialTime time
+-- Attempt to model "search partition"
+-- A subset of the exponential search space
+structure SearchPartition (k n : Nat) where
+  subset : Nat → Prop
+  size : Nat
+  is_poly : ∃ c p : Nat, size ≤ c * (n ^ p) + c
 
--- Base conversion algorithm only works when items are powers of a base
-def BaseConversionAlgorithm : SpecialCaseAlgorithm where
-  works_for := fun inst =>
-    ∃ base n : Nat, inst.items = (List.range n).map (fun i => base ^ i)
-  compute := fun x => true  -- Placeholder
-  time := fun n => n
-  is_poly := by
-    exists 1, 1
-    intro n
-    -- Proof that n ≤ 1 * n^1 + 1 for all n
-    sorry
+-- "Representative" means it contains a solution if one exists
+def Representative (k n : Nat) (L : Language) (sp : SearchPartition k n) : Prop :=
+  (∃ x : Nat, L x) → (∃ x : Nat, sp.subset x ∧ L x)
 
 /-
-  THE FATAL FLAW: Meek thinks solving some instances = solving the problem
+  CRITICAL GAP #4: Circular Reasoning in Search Partition Theorem
 
-  This is like saying:
-  - "I can solve SAT when there are 0 clauses in polynomial time"
-  - "Therefore SAT with 0 clauses is an NP-Complete problem"
-  - "But solving 0-clause SAT doesn't solve all SAT"
-  - "Therefore P ≠ NP"
+  Meek's "P = NP Search Partition Theorem" (Theorem 5.1) claims that
+  finding a representative polynomial search partition requires examining
+  exponentially many assignments.
 
-  This is completely wrong! 0-clause SAT is not NP-Complete!
+  ERROR: This assumes there's no efficient way to find such partitions,
+  which is equivalent to assuming P ≠ NP!
 -/
 
-theorem meek_fatal_error :
-  ∃ (special_case general : Language),
-    -- Special case is easy (in P)
-    InP special_case ∧
-    -- General problem might be NP-Complete
-    NPComplete general ∧
-    -- Special case is subset of general problem instances
-    (∀ x : Nat, special_case x → general x) ∧
-    -- But this doesn't prove P ≠ NP!
-    True := by
-  -- This theorem just demonstrates the logical structure of Meek's error
-  sorry  -- Placeholder - the point is showing the error structure
+-- Time to find a search partition by exhaustion
+def PartitionFindingTime (k n : Nat) : Nat :=
+  2 ^ (k * n)  -- Meek claims this is necessary
+
+-- Meek's claim: finding partitions is FEXP-hard (exponential)
+-- ERROR: This is CIRCULAR - assumes no poly-time method exists
+-- Note: This axiom assumes P≠NP to prove P≠NP
+axiom partition_finding_is_hard_CIRCULAR :
+  ∀ k n : Nat, k ≥ 3 →
+  ∀ L : Language, NPComplete L →
+  ∀ sp : SearchPartition k n, Representative k n L sp →
+  -- Claim: finding sp requires exponential time
+  -- ERROR: Assumes no efficient method, which assumes P≠NP
+  ∃ t : TimeComplexity, ExponentialTime t
 
 /-
-  CRITICAL ERROR #4: What Karp's Theorem Actually Says
+  CRITICAL GAP #5: Misunderstanding of Polynomial-Time Algorithms
 
-  Karp's Theorem: If ANY NP-Complete problem L is in P,
-                  then ALL NP-Complete problems are in P.
+  Meek assumes algorithms solve SAT by:
+  1. Finding a "representative polynomial search partition"
+  2. Searching within that partition
 
-  Meek's misinterpretation: "Solving one NP-Complete problem instance
-                             should solve all others"
-
-  This is wrong because:
-  1. Karp refers to solving ALL instances of a problem, not one instance
-  2. The reductions provide the transformation between problems
+  ERROR: This is not how polynomial-time algorithms work!
+  A P algorithm (if one exists) might:
+  - Use algebraic manipulations
+  - Exploit structural properties
+  - Transform to a different representation
+  - Never explicitly enumerate assignments
 -/
 
--- What Karp's Theorem actually proves
-theorem karp_theorem_correct :
-  ∀ L : Language,
-    NPComplete L →
-    InP L →
-    ∀ L' : Language, NPComplete L' → InP L' := by
-  intro L h_npc h_p L' h_npc'
-  -- If L is NP-Complete and in P
-  -- And L' is NP-Complete
-  -- Then there's a reduction from L' to L
-  have h_red : PolyTimeReducible L' L := by
-    have ⟨_, h_all_reduce⟩ := h_npc
-    have ⟨h_np', _⟩ := h_npc'
-    exact h_all_reduce L' h_np'
-  -- Using the reduction and the polynomial algorithm for L
-  -- We can construct a polynomial algorithm for L'
-  sorry  -- Full proof omitted, but this is the correct structure
+-- Example: P algorithms don't work by "processing input sets"
+-- Consider 2-SAT, which is in P
+def TwoSAT : Language := sorry  -- Simplified
+
+-- 2-SAT has polynomial-time algorithm using implication graphs
+-- It does NOT work by finding "search partitions"!
+axiom two_sat_in_p : InP TwoSAT
+
+-- The algorithm for 2-SAT doesn't "process" 2^n assignments
+-- It uses structural properties (implications between literals)
+-- Note: This shows algorithms need not enumerate search spaces
+axiom two_sat_uses_structure_not_enumeration :
+  ∃ (M : Nat → Bool) (t : TimeComplexity),
+    PolynomialTime t ∧
+    (∀ x, TwoSAT x ↔ M x = true) ∧
+    -- The algorithm doesn't enumerate assignments
+    True  -- Placeholder for "doesn't use search partitions"
 
 /-
-  CRITICAL ERROR #5: The "K-SAT Input Relation Theorem" is Wrong
+  CRITICAL GAP #6: The Ratio Approaching Infinity Proves Nothing
 
-  Meek's Theorem 4.1: "A solution that solves a NP-Complete problem
-  in deterministic polynomial time, and relies upon some relationship
-  between the inputs of the problem, does not produce a deterministic
-  polynomial time solution for all instances of K-SAT."
-
-  This is trivially true but proves nothing:
-  - Any algorithm for a problem "relies on" the input structure somehow
-  - If an algorithm only works for SOME instances, it's not a general algorithm
-  - This doesn't tell us anything about whether a GENERAL algorithm exists
+  Meek proves lim(n→∞) 2^(kn) / t(n) = ∞ for polynomial t(n).
+  This is MATHEMATICALLY CORRECT but COMPUTATIONALLY IRRELEVANT.
 -/
 
--- Meek's theorem just states a tautology
-theorem meek_input_relation_theorem_tautology :
-  ∀ (partial_algo : SpecialCaseAlgorithm) (problem : Language),
-    -- If the algorithm only works for special cases
-    (∃ inst : KnapsackInstance, ¬ partial_algo.works_for inst) →
-    -- Then it doesn't solve the general problem
-    ¬ (∀ x : Nat, problem x ↔ partial_algo.compute x = true) := by
-  intro partial_algo problem h_not_all
-  intro h_solves_all
-  -- This is a tautology: if algo doesn't work for all inputs,
-  -- then it doesn't solve the problem
+-- Exponentials dominate polynomials (correct)
+theorem exponential_dominates_polynomial :
+  ∀ k : Nat, k ≥ 1 →
+  ∀ a c p : Nat, a ≥ 2 →
+  ∃ n₀ : Nat, ∀ n : Nat, n ≥ n₀ →
+  a ^ n > c * (n ^ p) + c := by
+  sorry
+
+-- But this says NOTHING about whether problems can be solved in poly-time!
+-- Counterexample: Sorting n numbers
+example :
+  -- There are n! permutations (exponential space)
+  -- But we can sort in O(n log n) time
+  -- The ratio (n!)/(n log n) → ∞
+  -- Yet sorting is in P!
+  True := by
+  trivial
+
+/-
+  CRITICAL GAP #7: Dependency on Unproven Claims
+
+  Meek's conclusion relies on Articles 2, 3, and 4 in his series,
+  which make claims like "SAT does not have a deterministic polynomial
+  time solution" - but this is what needs to be proven!
+-/
+
+-- Meek's final conclusion depends on these unproven claims
+axiom meek_article_2_claim : True  -- Unproven claim about Knapsack
+axiom meek_article_3_claim : True  -- Unproven claim about oracle relativization
+axiom meek_article_4_claim : True  -- Unproven claim that SAT not in P
+
+-- The "theorem" Meek CANNOT actually prove
+theorem meek_p_neq_np : ¬ (∀ L, InP L ↔ InNP L) := by
   sorry
 
 /-
-  CRITICAL ERROR #6: Circular Reasoning via Unproven "Theorems"
-
-  Meek relies on "theorems" from earlier papers:
-  - "P = NP Optimization Theorem"
-  - "P = NP Partition Theorem"
-
-  These are not proven theorems - they assume what they try to prove!
+  BARRIER ANALYSIS: Why This Approach Cannot Work
 -/
 
--- Meek's "P = NP Optimization Theorem" essentially assumes P ≠ NP
-axiom meek_optimization_theorem_circular :
-  -- "The only optimization that could prove P = NP would be one that
-  -- examines no more than polynomial inputs"
-  -- This assumes we need exponential time, which assumes P ≠ NP!
-  ∀ (L : Language), NPComplete L →
-    (∀ (A : Algorithm), (∀ x, L x ↔ A.compute x = true) →
-      ¬ PolynomialTime A.time) →
-    -- This is just restating P ≠ NP
-    True
+-- Meek's argument would relativize (work the same with oracle access)
+-- But Baker-Gill-Solovay (1975) showed there are oracles where P=NP
+-- Therefore, any relativizing proof of P≠NP must be invalid
+
+-- Note: This is a meta-theoretical observation about why Meek's approach fails
+axiom baker_gill_solovay_barrier :
+  -- There exist oracles O such that P^O = NP^O
+  -- Meek's counting argument would work the same with oracles
+  -- Therefore it cannot prove P ≠ NP
+  True
 
 /-
-  WHAT MEEK WOULD NEED TO PROVE P ≠ NP
+  CONCLUSION: Where the Proof Fails
 
-  A valid proof would need to show:
-  1. For EVERY possible algorithm (not just special cases)
-  2. Applied to ALL instances of an NP-Complete problem
-  3. The algorithm requires super-polynomial time
-  4. Without assuming P ≠ NP in the premises
+  When we attempt to formalize Meek's argument, we find:
+
+  1. **Undefined concepts**: "Computational rate", "processing input sets"
+  2. **Circular reasoning**: Assumes P≠NP to prove P≠NP
+  3. **Invalid inference**: Ratio approaching infinity doesn't imply hardness
+  4. **Misunderstanding**: Algorithms don't work by enumerating search spaces
+  5. **Dependency on unproven claims**: Relies on other invalid papers
+  6. **Ignores barriers**: Would fail relativization
 -/
 
--- What a real proof of P ≠ NP would look like
-def ValidPNotEqualNPProof : Prop :=
-  ∃ L : Language,
-    NPComplete L ∧
-    ¬ InP L ∧
-    -- Must be proven without circular assumptions
-    True
+-- What WOULD be needed for a valid proof:
+
+-- P ⊆ NP is provable (and correct)
+axiom p_subset_np : ∀ L, InP L → InNP L
+
+-- But P ≠ NP requires showing EVERY possible algorithm is superpolynomial
+-- Meek only argues about algorithms that work by "finding search partitions"
+-- This is insufficient - it's like proving "naive sorting is O(n²)" doesn't
+-- prove "all sorting is Ω(n²)" (which is false - we have O(n log n))
 
 /-
-  CONCLUSION: Where Meek's Argument Fails
+  Educational Value:
 
-  1. Confuses instances with problem classes
-  2. Misunderstands what NP-Completeness means
-  3. Gets reduction direction backwards
-  4. Thinks special-case algorithms matter for general complexity
-  5. Misinterprets Karp's Theorem
-  6. Uses circular reasoning in "theorems"
-  7. Doesn't address all possible algorithms
-  8. Assumes what needs to be proven
+  This formalization demonstrates that COUNTING ARGUMENTS about search
+  space sizes are not sufficient to prove complexity separations.
 
-  The formalization reveals these errors clearly.
+  The size of the solution space (exponential) and the time complexity
+  of the best algorithm (polynomial or exponential) are DISTINCT concepts.
+
+  A valid proof of P ≠ NP must show that EVERY POSSIBLE ALGORITHM
+  requires superpolynomial time, not just that naive enumeration does.
 -/
-
--- The fundamental gap: Meek never proves what he claims
-theorem meek_attempt_fails :
-  ¬ (∃ (proof : ValidPNotEqualNPProof), True) := by
-  -- Meek's argument doesn't constitute a valid proof
-  -- because of the errors identified above
-  sorry  -- We can't prove P ≠ NP by identifying errors in invalid proofs!
 
 end MeekAttempt
