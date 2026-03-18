@@ -13,6 +13,7 @@ From Stdlib Require Import Lists.List.
 From Stdlib Require Import Init.Nat.
 From Stdlib Require Import Bool.Bool.
 Import ListNotations.
+Open Scope string_scope.
 
 Module DelacorteCzerwinskiRefutation.
 

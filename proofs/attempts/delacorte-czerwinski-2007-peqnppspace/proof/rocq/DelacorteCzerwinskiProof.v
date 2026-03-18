@@ -21,9 +21,9 @@
   Both arguments are formalized below with comments showing where they fail.
 *)
 
-Require Import Coq.Strings.String.
-Require Import Coq.Lists.List.
-Require Import Coq.Init.Nat.
+From Stdlib Require Import Strings.String.
+From Stdlib Require Import Lists.List.
+From Stdlib Require Import Init.Nat.
 Import ListNotations.
 
 Module DelacorteCzerwinskiProof.
