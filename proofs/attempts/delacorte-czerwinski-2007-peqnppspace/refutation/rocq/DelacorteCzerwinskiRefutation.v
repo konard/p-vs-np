@@ -8,10 +8,10 @@
   We prove that both claims contain fundamental errors and cannot be correct.
 *)
 
-Require Import Coq.Strings.String.
-Require Import Coq.Lists.List.
-Require Import Coq.Init.Nat.
-Require Import Coq.Bool.Bool.
+From Stdlib Require Import Strings.String.
+From Stdlib Require Import Lists.List.
+From Stdlib Require Import Init.Nat.
+From Stdlib Require Import Bool.Bool.
 Import ListNotations.
 
 Module DelacorteCzerwinskiRefutation.
@@ -95,7 +95,7 @@ Axiom NP_neq_PSPACE_belief : True. (* Community consensus: unlikely *)
 
 Theorem delacorte_implies_unlikely :
   Delacorte_Claim ->
-  (exists np, True) -> (* GI in NP *)
+  (exists (np : ClassNP), True) -> (* GI in NP *)
   True. (* Would imply NP = PSPACE *)
 Proof.
   intros _ _.
