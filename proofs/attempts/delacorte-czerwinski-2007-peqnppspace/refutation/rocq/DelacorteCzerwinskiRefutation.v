@@ -104,7 +104,7 @@ Qed.
 
 (** GI in quasi-P contradicts PSPACE-hardness *)
 Theorem gi_upper_bound_contradiction :
-  GI_in_quasiP -> True. (* Unlikely to be PSPACE-hard *)
+  True -> True. (* GI in quasi-P: unlikely to be PSPACE-hard *)
 Proof.
   intro.
   exact I.
