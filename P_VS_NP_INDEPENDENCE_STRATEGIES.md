@@ -334,7 +334,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   3. Analyze proof search space and systematic failures
   4. Use failures as evidence for independence
 - **Tools**:
-  - Coq, Lean, Isabelle for formalization
+  - Rocq, Lean, Isabelle for formalization
   - E, Vampire, Z3 for automated proving
 - **Challenge**: Failure to find proof ≠ independence
 - **Verdict**: Educational exercise, weak evidence
@@ -458,7 +458,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   4. Attempt to construct models where P vs NP differs
 - **Tools**:
   - Lean 4: Strong automation, growing mathlib
-  - Coq: Mature, extensive libraries
+  - Rocq: Mature, extensive libraries
   - Isabelle/HOL: Powerful automation (sledgehammer)
   - Agda: Dependent types, constructive
 - **Current Status**: Basic framework exists, needs:
@@ -469,7 +469,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 **Strategy F4: Proof Assistant Comparison**
 - **Approach**: Formalize independence question in multiple systems, compare
 - **Method**:
-  1. Implement same strategies in Lean, Coq, Isabelle, Agda
+  1. Implement same strategies in Lean, Rocq, Isabelle, Agda
   2. Compare expressiveness and automation
   3. Identify which system best handles meta-mathematics
   4. Use insights to guide formalization approach
@@ -514,7 +514,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 **Phase 2: Formalization Experiments**
 - [ ] Extend proofs/p_vs_np_undecidable/ with Turing machines
 - [ ] Formalize bounded arithmetic theories (S₂¹, T₂¹)
-- [ ] Encode basic forcing in Lean or Coq
+- [ ] Encode basic forcing in Lean or Rocq
 - [ ] Implement constructible universe L basics
 - [ ] Test feasibility of different approaches
 
@@ -706,7 +706,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - Formalize bounded arithmetic
 
 **Current Work**:
-- Repository: proofs/p_vs_np_undecidable/ (Lean, Coq, Isabelle, Agda)
+- Repository: proofs/p_vs_np_undecidable/ (Lean, Rocq, Isabelle, Agda)
 - Needs: TM formalization, provability predicates, model theory
 
 ### 12.4 For Students and Learners

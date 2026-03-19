@@ -2,7 +2,7 @@
 
 ## Summary
 
-This document summarizes the findings from formalizing Rodrigo Diduch's 2012 P≠NP proof attempt in three proof assistants: Coq, Lean, and Isabelle/HOL.
+This document summarizes the findings from formalizing Rodrigo Diduch's 2012 P≠NP proof attempt in three proof assistants: Rocq, Lean, and Isabelle/HOL.
 
 ## Formalization Process
 
@@ -111,7 +111,7 @@ The most critical missing piece is step 3 - the **super-polynomial lower bound p
 
 | Proof Assistant | File | Complete Theorems | Incomplete (sorry/Admitted/oops) |
 |----------------|------|-------------------|----------------------------------|
-| Coq | `coq/DiduchProofAttempt.v` | 1 (diduch_needs_lower_bound) | 3 |
+| Rocq | `rocq/DiduchProofAttempt.v` | 1 (diduch_needs_lower_bound) | 3 |
 | Lean | `lean/DiduchProofAttempt.lean` | 1 (diduch_needs_lower_bound) | 3 |
 | Isabelle | `isabelle/DiduchProofAttempt.thy` | 1 (diduch_needs_lower_bound) | 3 |
 

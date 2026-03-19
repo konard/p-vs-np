@@ -115,7 +115,7 @@ To make a decision tree approach work, one would need to:
 
 The formalizations in this directory aim to:
 
-1. **Encode the Decision Tree Model**: Define decision trees and their complexity in Coq, Lean, and Isabelle
+1. **Encode the Decision Tree Model**: Define decision trees and their complexity in Rocq, Lean, and Isabelle
 2. **Formalize the Clique Problem**: Represent the clique-finding problem formally
 3. **Model the Lower Bound Claim**: Express the claimed super-polynomial lower bound for decision trees
 4. **Expose the Gap**: Show formally that a lower bound in the decision tree model does NOT imply the problem is not in P
@@ -138,7 +138,7 @@ All of these problems ARE in P despite having super-polynomial decision tree low
 
 ## Implementation Status
 
-### Coq (`coq/DanielUribe2016.v`)
+### Rocq (`rocq/DanielUribe2016.v`)
 - ✅ Decision tree model definition
 - ✅ Clique problem formalization
 - ✅ Lower bound encoding

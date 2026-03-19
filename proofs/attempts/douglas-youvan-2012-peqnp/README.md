@@ -115,7 +115,7 @@ This directory contains formal proofs in three proof assistants demonstrating wh
 
 ### Files
 
-- `coq/YouvanAttempt.v` - Coq formalization
+- `rocq/YouvanAttempt.v` - Rocq formalization
 - `lean/YouvanAttempt.lean` - Lean 4 formalization
 - `isabelle/YouvanAttempt.thy` - Isabelle/HOL formalization
 
@@ -130,8 +130,8 @@ Each formalization demonstrates:
 ## Verification Commands
 
 ```bash
-# Coq
-coqc proofs/attempts/douglas-youvan-2012-peqnp/coq/YouvanAttempt.v
+# Rocq
+rocq compile proofs/attempts/douglas-youvan-2012-peqnp/rocq/YouvanAttempt.v
 
 # Lean 4
 lake build

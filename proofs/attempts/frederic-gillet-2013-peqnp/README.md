@@ -134,6 +134,6 @@ The formalization will help clarify exactly where and why the reduction fails.
 
 ## See Also
 
-- [Coq formalization](coq/)
+- [Rocq formalization](rocq/)
 - [Lean formalization](lean/)
 - [Isabelle formalization](isabelle/)

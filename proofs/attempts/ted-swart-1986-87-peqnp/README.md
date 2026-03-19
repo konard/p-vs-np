@@ -132,7 +132,7 @@ This formalization aims to:
 
 ## Implementation Status
 
-### Coq (`coq/TedSwartAttempt.v`)
+### Rocq (`rocq/TedSwartAttempt.v`)
 - ✅ Basic definitions (decision problems, LP formulations)
 - ✅ Hamiltonian Cycle problem encoding
 - ✅ Structure of the flawed argument
@@ -226,10 +226,10 @@ This attempt illustrates:
 
 ## Verification Instructions
 
-### Coq
+### Rocq
 ```bash
-cd coq
-coqc TedSwartAttempt.v
+cd rocq
+rocq compile TedSwartAttempt.v
 ```
 
 ### Lean 4

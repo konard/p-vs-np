@@ -10,7 +10,7 @@ This directory contains **experimental proof attempts** for actually solving the
 - What would be required for a complete proof
 - Known barriers and limitations
 
-All proof files compile successfully but contain incomplete proofs (marked with `sorry` in Lean, `Admitted` in Coq, and `oops` in Isabelle) because **we don't actually have a proof of P = NP or P ≠ NP**.
+All proof files compile successfully but contain incomplete proofs (marked with `sorry` in Lean, `Admitted` in Rocq, and `oops` in Isabelle) because **we don't actually have a proof of P = NP or P ≠ NP**.
 
 ## Relationship to Decidability
 
@@ -115,7 +115,7 @@ proofs/experiments/
 ├── README.md (this file)
 ├── lean/
 │   └── PvsNPProofAttempt.lean
-├── coq/
+├── rocq/
 │   └── PvsNPProofAttempt.v
 └── isabelle/
     └── PvsNPProofAttempt.thy

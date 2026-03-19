@@ -117,7 +117,7 @@ The construction essentially creates syntactic pairs without addressing why prob
 
 ## Formalization Goals
 
-The formalizations in Coq, Lean, and Isabelle aim to:
+The formalizations in Rocq, Lean, and Isabelle aim to:
 
 1. Define the complexity class ∼P as stated in Definition 3.1
 2. Attempt to formalize the key theorems (4.2, 5.2, 5.3, 6.1, 6.2, 6.3)
@@ -134,8 +134,8 @@ In either case, the claimed equalities ∼P = P and ∼P = NP cannot be establis
 ## Files
 
 - [`ERROR_ANALYSIS.md`](ERROR_ANALYSIS.md) - Detailed error analysis
-- [`coq/VegaAttempt.v`](coq/VegaAttempt.v) - Coq formalization (original)
-- [`coq/VegaEquivalentP.v`](coq/VegaEquivalentP.v) - Alternative Coq formalization
+- [`rocq/VegaAttempt.v`](rocq/VegaAttempt.v) - Rocq formalization (original)
+- [`rocq/VegaEquivalentP.v`](rocq/VegaEquivalentP.v) - Alternative Rocq formalization
 - [`lean/VegaAttempt.lean`](lean/VegaAttempt.lean) - Lean 4 formalization (original)
 - [`lean/VegaEquivalentP.lean`](lean/VegaEquivalentP.lean) - Alternative Lean formalization
 - [`isabelle/VegaAttempt.thy`](isabelle/VegaAttempt.thy) - Isabelle/HOL formalization (original)
@@ -170,7 +170,7 @@ This attempt illustrates several common pitfalls in P vs NP attempts:
 ## Status
 
 - ✅ Paper analyzed
-- 🚧 Coq formalization: Has compilation errors (type unification issue)
+- 🚧 Rocq formalization: Has compilation errors (type unification issue)
 - ✅ Lean formalization: Complete
 - ✅ Isabelle formalization: Complete
 - ✅ Error identified and documented

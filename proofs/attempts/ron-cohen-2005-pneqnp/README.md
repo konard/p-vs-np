@@ -114,7 +114,7 @@ The error is that car_new is not actually equivalent to car in any meaningful se
 
 ## Formalization Status
 
-### Coq (`coq/`)
+### Rocq (`rocq/`)
 - Status: Error identified during formalization
 - Key issue: Cannot establish polynomial equivalence of D and D_new
 

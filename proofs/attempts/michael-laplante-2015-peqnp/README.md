@@ -117,7 +117,7 @@ The approach of building larger cliques from triangles has several flaws:
 
 The goal of this formalization is to:
 
-1. Model the clique problem and LaPlante's algorithm in Coq, Lean, and Isabelle
+1. Model the clique problem and LaPlante's algorithm in Rocq, Lean, and Isabelle
 2. Formalize the counterexample graph from the refutation paper
 3. Prove that LaPlante's algorithm **fails** to find the maximum clique on this graph
 4. Demonstrate that the algorithm's correctness depends on arbitrary choices
@@ -179,9 +179,9 @@ proofs/attempts/michael-laplante-2015-peqnp/
 ├── README.md                              # This file
 ├── laplante-original.pdf                  # LaPlante's original paper
 ├── refutation.pdf                         # The refutation by Cardenas et al.
-├── coq/
-│   ├── LaPlante2015.v                     # Coq formalization (general)
-│   └── LaPlante2015Counterexample.v       # Coq counterexample formalization
+├── rocq/
+│   ├── LaPlante2015.v                     # Rocq formalization (general)
+│   └── LaPlante2015Counterexample.v       # Rocq counterexample formalization
 ├── lean/
 │   ├── LaPlante2015.lean                  # Lean formalization (general)
 │   └── LaPlante2015Counterexample.lean    # Lean counterexample formalization
@@ -195,7 +195,7 @@ proofs/attempts/michael-laplante-2015-peqnp/
 
 - [x] Documentation: Complete
 - [x] Lean formalization: Complete (counterexample verified)
-- [x] Coq formalization: Complete (counterexample verified)
+- [x] Rocq formalization: Complete (counterexample verified)
 - [x] Isabelle formalization: Complete (counterexample verified)
 
 ## Related Work

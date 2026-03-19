@@ -156,9 +156,9 @@ The flaw: **Moving exponential complexity into an unexamined "setup" phase doesn
 
 ## Formalization Results
 
-Our formal proofs in Coq, Lean, and Isabelle expose these gaps by:
+Our formal proofs in Rocq, Lean, and Isabelle expose these gaps by:
 
-### Coq (`coq/FeldmannError.v`)
+### Rocq (`rocq/FeldmannError.v`)
 - Defines SAT problems and LP systems formally
 - Shows the construction function C : Formula → LPSystem cannot be:
   - Correct (satisfies Feldmann's equivalence)
