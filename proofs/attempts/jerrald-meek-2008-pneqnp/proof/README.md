@@ -1,76 +1,34 @@
-# Forward Proof Formalization: Meek 2008
+# Forward Proof Attempt
 
-This directory contains the formal proof attempt following Meek's approach as faithfully as possible.
+This folder contains formalizations following Meek's original proof attempt.
 
-## Contents
+## Note
 
-- `lean/MeekProof.lean` - Lean 4 formalization
-- `rocq/MeekProof.v` - Rocq formalization
+Meek's proof relies heavily on informal concepts like "computational rate" and "representative polynomial search partitions" that do not have direct formal analogs in computational complexity theory. As a result, this folder is intentionally minimal.
 
-## What These Formalizations Capture
+## Why This Folder is Sparse
 
-The formalizations attempt to capture:
+The core issue is that Meek's argument fundamentally relies on:
 
-1. **The "Two Postulates" Interpretation**: Meek's interpretation of Karp's Theorem
-2. **Base Conversion as NP-Complete**: Meek's claim that base conversion is an NP-Complete problem
-3. **K-SAT Reduction**: The reduction from K-SAT to the base conversion problem
-4. **Non-Transferability Argument**: The claim that polynomial solutions to special cases don't transfer
-5. **Algorithmic Categorization**: The four categories of algorithms Meek claims to exhaust
-6. **Dependency on Prior Theorems**: References to "P = NP Optimization Theorem" and others
+1. **The "computational rate" r(n) = 2^(kn) / t(n)** - While this ratio is mathematically well-defined, it has no meaning in complexity theory. Algorithms don't "process input sets per computation."
 
-## The Attempted Proof Logic
+2. **"Examining input sets"** - This concept is never rigorously defined. What does it mean for an algorithm to "examine" an input set? Does reading a formula count? Does a single comparison count? This vagueness prevents formalization.
 
-Meek's argument proceeds:
+3. **"Representative polynomial search partitions"** - These are defined only by their desired properties (polynomial size, contains a solution if one exists), not by how they would be constructed or used algorithmically.
 
-1. **Define Special Case**: Show that base conversion (decimal to binary with powers of 2) can be formulated as 0-1-Knapsack
-2. **Claim NP-Completeness**: Assert that base conversion is NP-Complete via reduction from K-SAT
-3. **Show Polynomial Solution**: Demonstrate that base conversion has a polynomial-time algorithm
-4. **Argue Non-Transferability**: Claim this polynomial solution doesn't solve general K-SAT
-5. **Exhaust Possibilities**: Categorize all possible algorithms into 4 types
-6. **Rule Out Each Category**: Use theorems from prior papers to eliminate each category
-7. **Conclude P ≠ NP**: Claim that since no polynomial algorithm exists, P ≠ NP
+## What Could Be Formalized
 
-## Where the Formalizations Stop
+The mathematical parts that CAN be formalized are:
 
-The formalizations include `sorry` (Lean) and `Admitted` (Rocq) placeholders at the critical gaps where Meek's argument fails:
+- **Theorem 4.1** (Exponential > Polynomial): ∀ exponential f, ∀ polynomial g, ∃ N, ∀ n > N: f(n) > g(n)
+  - This is standard asymptotic analysis and is correct
 
-1. **Instance vs Problem Confusion**: The claim that base conversion is an "NP-Complete problem" rather than a special instance
-2. **Reduction Direction**: Using reduction FROM K-SAT TO base conversion (backwards) to claim NP-Completeness
-3. **Karp's Second Postulate**: The invented "postulate" that doesn't exist in Karp's actual theorem
-4. **Algorithmic Exhaustiveness**: The informal categorization that isn't proven complete
-5. **Circular Dependencies**: The theorems from prior papers that assume P ≠ NP
+- **Theorem 4.2** (Rate limit): lim(n→∞) 2^(kn)/poly(n) = ∞
+  - This follows from Theorem 4.1 and is mathematically correct
 
-## The Core Error
-
-Meek confuses **problem instances** with **problem classes**:
-
-**What Meek Claims**:
-- Base conversion is an NP-Complete PROBLEM
-- Solving it in polynomial time should prove P = NP
-- But it doesn't, therefore P ≠ NP
-
-**Reality**:
-- Base conversion is an INSTANCE TYPE of Knapsack (with special structure)
-- NP-Completeness applies to PROBLEM CLASSES (all instances)
-- Having polynomial algorithms for SOME instances is expected and common
-- This doesn't tell us anything about the general problem complexity
-
-## Comparison to Valid Approaches
-
-Valid P ≠ NP approaches must:
-- Prove that ALL possible algorithms for an NP-Complete problem require super-polynomial time
-- Work within the formal framework of complexity theory
-- Not assume what they're trying to prove
-- Address or circumvent known proof barriers (relativization, natural proofs, algebraization)
-
-Meek's approach:
-- Only shows some special-case algorithms don't generalize
-- Fundamentally misunderstands NP-Completeness definitions
-- Uses circular reasoning (assumes P ≠ NP in supporting theorems)
-- Doesn't address any proof barriers
+However, these mathematical facts don't lead to the claimed computational conclusions. The gap between "this ratio is infinite" and "therefore P ≠ NP" cannot be bridged formally because the intermediate steps involve undefined or circular concepts.
 
 ## See Also
 
-- [`../README.md`](../README.md) - Overview of the attempt and detailed error analysis
-- [`../ORIGINAL.md`](../ORIGINAL.md) - Markdown conversion of the original paper
-- [`../refutation/README.md`](../refutation/README.md) - Formal refutation of the approach
+- `../refutation/` - Contains formal demonstrations of where the argument fails
+- `../original/ORIGINAL.md` - The complete original paper with all theorems
