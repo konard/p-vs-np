@@ -20,13 +20,20 @@
 
 namespace BarronRomeroProof
 
+/- ## Our own factorial (Nat.factorial requires Mathlib) -/
+
+/-- Factorial function -/
+def myFactorial : Nat → Nat
+  | 0     => 1
+  | n + 1 => (n + 1) * myFactorial n
+
 /- ## Paper's Definitions -/
 
 /-- A problem in the NP class (as understood by Barron-Romero):
     A combinatorial optimization problem with a large search space -/
 structure NPProblem where
   name : String
-  -- The search space size as a function of input size
+  /-- The search space size as a function of input size -/
   searchSpaceSize : Nat → Nat
 
 /-- General Assignment Problem (GAP) as described in the paper:
@@ -35,14 +42,14 @@ structure NPProblem where
 def GAP : NPProblem := {
   name := "General Assignment Problem",
   -- Number of possible Hamiltonian cycles: (n-1)!
-  searchSpaceSize := fun n => Nat.factorial (n - 1)
+  searchSpaceSize := fun n => myFactorial (n - 1)
 }
 
 /-- TSP as a special case of GAP -/
 def TSP : NPProblem := {
   name := "Traveling Salesman Problem",
-  -- Number of possible tours: (n-1)!/2 (undirected)
-  searchSpaceSize := fun n => Nat.factorial (n - 1) / 2
+  -- Number of possible tours: (n-1)! (simplified, ignoring the /2)
+  searchSpaceSize := fun n => myFactorial (n - 1)
 }
 
 /-- Barron-Romero's notion of "checking the solution":
@@ -66,12 +73,10 @@ def isPolynomialBound (f : Nat → Nat) : Prop :=
 
 /-- The claim: the search space is super-polynomial for NP problems -/
 theorem proposition_1_1_TSP : ¬ isPolynomialBound TSP.searchSpaceSize := by
-  -- TSP.searchSpaceSize(n) = (n-1)!/2
-  -- Factorial grows faster than any polynomial
-  -- This part is actually TRUE — factorial is not polynomial
-  intro ⟨c, k, hc, h⟩
-  -- For large enough n, (n-1)!/2 > c * n^k — this needs induction on n
-  -- The argument is essentially correct but incomplete here
+  -- TSP.searchSpaceSize(n) = (n-1)!
+  -- Factorial grows faster than any polynomial — this part is TRUE
+  intro ⟨_c, _k, _hc, _h⟩
+  -- A full proof requires careful induction on factorial growth
   sorry
 
 /-
@@ -90,7 +95,7 @@ theorem proposition_1_1_TSP : ¬ isPolynomialBound TSP.searchSpaceSize := by
 -/
 
 /-- Search space for 2D Euclidean TSP (same as general TSP: (n-1)!) -/
-def euclideanTSP_searchSpace (n : Nat) : Nat := Nat.factorial (n - 1)
+def euclideanTSP_searchSpace (n : Nat) : Nat := myFactorial (n - 1)
 
 /-- Proposition 6.9 (Barron-Romero): 2D Euclidean TSP has polynomial checking.
     The paper claims geometric structure allows polynomial-time solution.
@@ -103,7 +108,7 @@ axiom proposition_6_9 : isPolynomialBound euclideanTSP_searchSpace
     This part is TRUE but for the wrong reason — the search IS exponential,
     but that doesn't prove P ≠ NP (see refutation). -/
 theorem proposition_6_12 : ¬ isPolynomialBound GAP.searchSpaceSize := by
-  -- (n-1)! is super-exponential, not polynomial
+  -- (n-1)! is super-polynomial
   intro ⟨_c, _k, _hc, _h⟩
   -- The factorial eventually exceeds any polynomial
   sorry  -- Requires careful arithmetic
@@ -121,7 +126,6 @@ theorem proposition_6_12 : ¬ isPolynomialBound GAP.searchSpaceSize := by
 
 /-- Barron-Romero's conclusion (cannot be proven from the correct premises) -/
 axiom pNeqNP_conclusion : True  -- The conclusion requires false premises
--- We use axiom True here to mark that this cannot be formally derived
 
 /- ## Summary of the Forward Proof -/
 

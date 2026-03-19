@@ -16,11 +16,18 @@
   Key theorems:
   1. proposition1_1_false: Prop 1.1 contradicts the definition of NP
   2. tsp_verification_polynomial: TSP verification is O(n)
-  3. algorithm9_is_solver: Algorithm 9 solves, not verifies
-  4. barronRomero_error: The invalid reasoning step made explicit
+  3. solving_vs_verifying: Algorithm 9 is exponential (solving), verification is polynomial
+  4. barronRomero_invalid_inference_is_false: The invalid reasoning step exposed
 -/
 
 namespace BarronRomeroRefutation
+
+/- ## Our own factorial (Nat.factorial requires Mathlib) -/
+
+/-- Factorial function -/
+def myFactorial : Nat → Nat
+  | 0     => 1
+  | n + 1 => (n + 1) * myFactorial n
 
 /- ## Standard Definitions -/
 
@@ -35,12 +42,6 @@ def InNP (prob : Nat → Bool) : Prop :=
     PolynomialBound time ∧
     ∀ input, prob input = true ↔ ∃ cert, verifier input cert = true
 
-/-- A problem is in P: decidable in polynomial time -/
-def InP (prob : Nat → Bool) : Prop :=
-  ∃ (algo : Nat → Bool) (time : Nat → Nat),
-    PolynomialBound time ∧
-    ∀ input, algo input = prob input
-
 /- ## TSP Formalization -/
 
 /-- TSP tour: list of city indices -/
@@ -49,25 +50,17 @@ def Tour := List Nat
 /-- TSP instance: number of cities, distance function, budget -/
 structure TSPInst where
   numCities : Nat
-  dist : Nat → Nat → Nat
+  distFn : Nat → Nat → Nat
   budget : Nat
 
-/-- Tour cost: sum of edge weights along the tour -/
+/-- Tour cost: sum of consecutive edge weights (simplified) -/
 def tourCost (inst : TSPInst) (tour : Tour) : Nat :=
-  match tour with
-  | [] => 0
-  | [_] => 0
-  | x :: rest =>
-    let pairs := List.zipWith (fun a b => inst.dist a b) tour rest
-    -- Simplified: exclude return edge for brevity
-    pairs.sum + inst.dist x (tour.head (by exact List.cons_ne_nil x rest))
+  (List.zipWith (fun a b => inst.distFn a b) tour tour.tail).sum
 
 /-- TSP verification: check tour visits all cities and cost ≤ budget.
     Running time is O(n) in the number of cities. -/
 def tspVerify (inst : TSPInst) (tour : Tour) : Bool :=
-  -- Check: tour visits exactly numCities cities
   (tour.length == inst.numCities) &&
-  -- Check: cost is within budget
   (tourCost inst tour ≤ inst.budget)
 
 /-- Verification time is linear: O(n) -/
@@ -78,8 +71,7 @@ def verificationTime (n : Nat) : Nat := 3 * n + 1
 theorem tsp_verification_polynomial : PolynomialBound verificationTime :=
   ⟨4, 1, Nat.succ_pos 3, Nat.succ_pos 0, fun _n _hn => by
     unfold verificationTime
-    -- 3n + 1 ≤ 4n follows from n ≥ 1
-    sorry⟩
+    sorry⟩  -- 3n + 1 ≤ 4n follows from n ≥ 1
 
 /- ## Key Refutation Theorem 1: Prop 1.1 Is False By Definition -/
 
@@ -109,30 +101,16 @@ theorem proposition1_1_false :
 /-
   TSP verification algorithm (not Barron-Romero's Algorithm 9):
   Given a proposed tour T = [c0, c1, ..., c_{n-1}]:
-  1. Check |T| = n cities: O(1) (stored length)
+  1. Check |T| = n cities: O(1)
   2. Compute sum of edge costs: O(n) — one pass through tour
   3. Check sum ≤ budget: O(1)
-
   Total: O(n) — polynomial!
 -/
 
 /-- TSP verification is polynomial: the standard verifier runs in O(n) time -/
 theorem tsp_verification_in_polynomial_time :
-    ∃ (time : Nat → Nat), PolynomialBound time := by
-  exact ⟨verificationTime, tsp_verification_polynomial⟩
-
-/-- TSP is in NP: given a tour as certificate, we can verify it in polynomial time -/
-theorem tsp_in_NP :
-    ∀ inst : TSPInst,
-      InNP (fun _ => true)  -- placeholder for TSP decision problem
-    := by
-  intro inst
-  -- The verifier: decode the certificate as a tour, then call tspVerify
-  refine ⟨fun _input cert => tspVerify inst [cert], verificationTime, tsp_verification_polynomial, ?_⟩
-  intro _input
-  constructor
-  · intro _; exact ⟨0, rfl⟩
-  · intro ⟨_, _⟩; rfl
+    ∃ (time : Nat → Nat), PolynomialBound time :=
+  ⟨verificationTime, tsp_verification_polynomial⟩
 
 /- ## Key Refutation Theorem 3: Algorithm 9 Is a Solver, Not a Verifier -/
 
@@ -142,34 +120,24 @@ theorem tsp_in_NP :
 
   This algorithm SOLVES TSP (finds the optimal tour).
   It does NOT verify a given tour.
-
-  The paper confusingly calls this "checking the solution",
-  but it is not the verifier that the NP definition requires.
 -/
 
-/-- Barron-Romero's Algorithm 9: enumerate all tours and find minimum -/
-def algorithm9_description : String :=
-  "Generate all (n-1)! tours and find the one with minimum cost. " ++
-  "This is a SOLVING algorithm, not a VERIFICATION algorithm."
-
 /-- The number of tours Algorithm 9 must enumerate: (n-1)! -/
-def algorithm9_iterations (n : Nat) : Nat := Nat.factorial (n - 1)
+def algorithm9_iterations (n : Nat) : Nat := myFactorial (n - 1)
 
 /-- Algorithm 9 iterations are NOT polynomial -/
 theorem algorithm9_not_polynomial : ¬ PolynomialBound algorithm9_iterations := by
-  -- Factorial grows faster than any polynomial
-  intro ⟨c, k, _hc, _hk, h⟩
-  -- For large enough n, (n-1)! > c * n^k
-  -- This requires a careful argument about factorial growth
-  sorry  -- The detailed arithmetic is well-known but omitted for brevity
+  -- Factorial grows faster than any polynomial — well-known mathematical fact
+  intro ⟨_c, _k, _hc, _hk, _h⟩
+  sorry  -- The detailed arithmetic about factorial vs polynomial growth is omitted
 
 /-- The key distinction: solving ≠ verifying -/
 theorem solving_vs_verifying :
     /- Solving is exponential (Algorithm 9) -/
     ¬ PolynomialBound algorithm9_iterations ∧
     /- Verification is polynomial -/
-    PolynomialBound verificationTime := by
-  exact ⟨algorithm9_not_polynomial, tsp_verification_polynomial⟩
+    PolynomialBound verificationTime :=
+  ⟨algorithm9_not_polynomial, tsp_verification_polynomial⟩
 
 /- ## Key Refutation Theorem 4: The Invalid Reasoning Step -/
 
@@ -181,14 +149,13 @@ theorem solving_vs_verifying :
   Conclusion: TSP has no polynomial-time verifier (FALSE!)
 
   This inference is invalid because:
-  - Algorithm 9 is not the only possible verification approach
-  - Standard TSP verification (check a given tour) is polynomial
-  - The search complexity of finding solutions ≠ the verification complexity
+  - Algorithm 9 is just one approach; there are others
+  - Standard TSP verification (check a given tour) IS polynomial
+  - Search complexity ≠ verification complexity
 -/
 
 /-- The invalid inference step formalized -/
 def barronRomero_invalid_inference : Prop :=
-  -- "Because Algorithm 9 is not polynomial, TSP has no polynomial verifier"
   (¬ PolynomialBound algorithm9_iterations) →
   (¬ ∃ (verifier : Nat → Nat → Bool) (time : Nat → Nat),
       PolynomialBound time ∧
@@ -198,30 +165,10 @@ def barronRomero_invalid_inference : Prop :=
 theorem barronRomero_invalid_inference_is_false :
     ¬ barronRomero_invalid_inference := by
   unfold barronRomero_invalid_inference
-  push_neg
-  -- The antecedent is true (Algorithm 9 is not polynomial)
-  -- But the consequent is false (there IS a polynomial verifier)
-  intro _
+  intro h
+  apply h algorithm9_not_polynomial
   -- Provide the polynomial verifier: just use the constant function
   exact ⟨fun _ _ => true, verificationTime, tsp_verification_polynomial, fun _ => trivial⟩
-
-/- ## Refutation of Proposition 6.9 -/
-
-/-
-  Proposition 6.9 claims 2D Euclidean TSP has a polynomial algorithm for "checking."
-  This is false: 2D Euclidean TSP is NP-complete (Papadimitriou 1977).
-
-  The paper likely confuses:
-  - PTAS (Polynomial Time Approximation Scheme) — a polynomial approximation algorithm
-  - Exact solution — which requires exponential time (if P ≠ NP)
-
-  Note: verification is always polynomial for any NP problem!
--/
-
-/-- 2D Euclidean TSP is NP-complete (known result) -/
-axiom euclidean_tsp_NP_complete : True
--- This is a known result from complexity theory (Papadimitriou 1977)
--- that we accept without formal proof here.
 
 /- ## Summary of Refutation -/
 
