@@ -18,9 +18,8 @@
   because the underlying claims are false or unjustified.
 *)
 
-Require Import Coq.Arith.Arith.
-Require Import Coq.Lists.List.
-Require Import Coq.Logic.Classical_Prop.
+Require Import Arith.
+Require Import List.
 Import ListNotations.
 
 (** * Paper's Definitions *)
@@ -30,17 +29,17 @@ Definition isPolynomialBound (f : nat -> nat) : Prop :=
   exists (c k : nat), c > 0 /\ forall n, f n <= c * n ^ k.
 
 (** Factorial function *)
-Fixpoint factorial (n : nat) : nat :=
+Fixpoint myFactorial (n : nat) : nat :=
   match n with
   | 0 => 1
-  | S m => n * factorial m
+  | S m => n * myFactorial m
   end.
 
 (** TSP search space: (n-1)! possible tours *)
 Definition tsp_search_space (n : nat) : nat :=
   match n with
   | 0 => 1
-  | S m => factorial m
+  | S m => myFactorial m
   end.
 
 (** GAP search space (same as TSP for this analysis) *)
@@ -66,11 +65,9 @@ Definition barronRomero_checkingTime (n : nat) : nat := tsp_search_space n.
 *)
 Theorem proposition_1_1_tsp : ~ isPolynomialBound tsp_search_space.
 Proof.
-  intro [c [k [hc h]]].
+  intros [c [k [_hc _h]]].
   (* For large n, (n-1)! grows faster than any c * n^k *)
-  (* This requires showing factorial is super-polynomial *)
-  (* The key insight is that factorial(n) grows faster than n^k for any fixed k *)
-  (* A full proof requires careful induction — we use Admitted here *)
+  (* A full proof requires careful induction on factorial growth *)
   admit.
 Admitted.
 
@@ -125,14 +122,14 @@ Axiom pNeqNP_barron_romero : True.
 
 (**
   What the paper correctly establishes:
-  [✓] TSP has (n-1)! possible tours — exponential search space
-  [✓] Searching through all tours to find the optimum takes exponential time
-  [✓] For arbitrary large instances, brute-force search is not polynomial
+  [/] TSP has (n-1)! possible tours — exponential search space
+  [/] Searching through all tours to find the optimum takes exponential time
+  [/] For arbitrary large instances, brute-force search is not polynomial
 
   What the paper incorrectly claims:
-  [✗] That brute-force search complexity equals NP verification complexity
-  [✗] That Proposition 6.9 holds (2D Euclidean TSP is NP-complete)
-  [✗] That these facts imply P ≠ NP
+  [X] That brute-force search complexity equals NP verification complexity
+  [X] That Proposition 6.9 holds (2D Euclidean TSP is NP-complete)
+  [X] That these facts imply P != NP
 *)
 
 Check proposition_6_12.
