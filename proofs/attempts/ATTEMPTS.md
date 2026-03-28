@@ -71,6 +71,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Lizhi Du | 2010 | [L](lizhi-du-2010-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Lokman Kolukisa | 2005 | [L](lokman-kolukisa-2005-peqnp/) | - | - |
 | ✓ | Louis Coder (Matthias Michael Mueller) | 2012 | [L](louis-coder-2012-peqnp/) | - | - |
+| ✓ | Luigi Salemi | 2009 | [L](luigi-salemi-2009-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
 | ✗ | Mathias Hauptmann | 2016 | [M](mathias-hauptmann-2016-pneqnp/) | - | - |
 | ✓ | Michael LaPlante | 2015 | [M](michael-laplante-2015-peqnp/) | - | - |
@@ -117,16 +118,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 97
-- **Claims P = NP:** 54
+- **Total attempts:** 98
+- **Claims P = NP:** 55
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 24
-- **With original paper:** 17
-- **With proof/ directory:** 28
-- **With refutation/ directory:** 28
-- **With Lean formalization:** 28
-- **With Rocq formalization:** 28
+- **With ORIGINAL.md:** 25
+- **With original paper:** 18
+- **With proof/ directory:** 29
+- **With refutation/ directory:** 29
+- **With Lean formalization:** 29
+- **With Rocq formalization:** 29
 
 ---
 
