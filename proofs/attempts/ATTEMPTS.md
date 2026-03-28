@@ -67,6 +67,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Koji Kobayashi | 2012 | [K](koji-kobayashi-2012-pneqnp/) | - | - |
 | ✓ | Krieger Jones | 2008 | [C](krieger-jones-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Lev Gordeev | 2005 | [F](lev-gordeev-2005-pneqnp/) | - | - |
+| ✓ | Lizhi Du | 2010 | [L](lizhi-du-2010-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Lokman Kolukisa | 2005 | [L](lokman-kolukisa-2005-peqnp/) | - | - |
 | ✓ | Louis Coder (Matthias Michael Mueller) | 2012 | [L](louis-coder-2012-peqnp/) | - | - |
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
@@ -115,16 +116,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 95
-- **Claims P = NP:** 52
+- **Total attempts:** 96
+- **Claims P = NP:** 53
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 22
+- **With ORIGINAL.md:** 23
 - **With original paper:** 16
-- **With proof/ directory:** 26
-- **With refutation/ directory:** 26
-- **With Lean formalization:** 26
-- **With Rocq formalization:** 26
+- **With proof/ directory:** 27
+- **With refutation/ directory:** 27
+- **With Lean formalization:** 27
+- **With Rocq formalization:** 27
 
 ---
 
