@@ -11,11 +11,10 @@
       has no proven polynomial time bound
 *)
 
-Require Import Coq.Init.Nat.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Lists.List.
-Require Import Coq.micromega.Lia.
-Require Import Coq.Logic.Classical_Prop.
+From Stdlib Require Import Arith.
+From Stdlib Require Import List.
+From Stdlib Require Import Lia.
+From Stdlib Require Import Classical_Prop.
 Import ListNotations.
 
 Module SalemiRefutation.
@@ -45,9 +44,8 @@ Theorem complexity_decomposition_claimed :
     salemi_claimed_bound n = salemi_iteration_assumption n * n ^ 12.
 Proof.
   intro n. unfold salemi_claimed_bound, salemi_iteration_assumption.
-  (* n^15 = n^3 * n^12 = n^(3+12) *)
-  rewrite <- Nat.pow_add.
-  reflexivity.
+  (* n^15 = n^3 * n^12 *)
+  ring.
 Qed.
 
 (** O(n^3) is a polynomial function *)
