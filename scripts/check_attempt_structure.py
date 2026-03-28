@@ -385,61 +385,43 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
     lines.append("---")
     lines.append("")
 
-    # Sort by year, then by author
+    # Sort alphabetically by folder name to reduce probability of merge conflicts
     sorted_validations = sorted(
         validations,
-        key=lambda v: (
-            v.metadata.year if v.metadata and v.metadata.year else "9999",
-            v.metadata.author if v.metadata and v.metadata.author else v.path.name
-        )
+        key=lambda v: v.path.name.lower()
     )
 
-    # Group by decade
-    decades = {}
+    lines.append("| Claim | Author | Year | Title | Docs | Formal |")
+    lines.append("|:-----:|--------|------|-------|:----:|:------:|")
+
     for v in sorted_validations:
-        year = v.metadata.year if v.metadata and v.metadata.year else "Unknown"
-        try:
-            decade = f"{int(year)//10*10}s"
-        except ValueError:
-            decade = "Unknown"
-        if decade not in decades:
-            decades[decade] = []
-        decades[decade].append(v)
+        claim_emoji = v.get_claim_emoji()
+        author = v.metadata.author if v.metadata and v.metadata.author else extract_author_from_folder(v.path.name)
+        year = v.metadata.year if v.metadata and v.metadata.year else extract_year_from_folder(v.path.name)
+        title = v.metadata.title if v.metadata and v.metadata.title else format_folder_name(v.path.name)
 
-    for decade in sorted(decades.keys()):
-        lines.append(f"## {decade}")
-        lines.append("")
-        lines.append("| Claim | Author | Year | Title | Docs | Formal |")
-        lines.append("|:-----:|--------|------|-------|:----:|:------:|")
+        # Docs column
+        docs = []
+        if v.has_original_md:
+            docs.append("📄")
+        if v.has_original_file:
+            docs.append("📎")
+        docs_str = " ".join(docs) if docs else "-"
 
-        for v in decades[decade]:
-            claim_emoji = v.get_claim_emoji()
-            author = v.metadata.author if v.metadata and v.metadata.author else extract_author_from_folder(v.path.name)
-            year = v.metadata.year if v.metadata and v.metadata.year else extract_year_from_folder(v.path.name)
-            title = v.metadata.title if v.metadata and v.metadata.title else format_folder_name(v.path.name)
+        # Formal column
+        formal = []
+        if v.has_lean():
+            formal.append("🔷")
+        if v.has_rocq():
+            formal.append("🔶")
+        formal_str = " ".join(formal) if formal else "-"
 
-            # Docs column
-            docs = []
-            if v.has_original_md:
-                docs.append("📄")
-            if v.has_original_file:
-                docs.append("📎")
-            docs_str = " ".join(docs) if docs else "-"
+        # Create link to attempt folder
+        folder_link = f"[{title}]({v.path.name}/)"
 
-            # Formal column
-            formal = []
-            if v.has_lean():
-                formal.append("🔷")
-            if v.has_rocq():
-                formal.append("🔶")
-            formal_str = " ".join(formal) if formal else "-"
+        lines.append(f"| {claim_emoji} | {author} | {year} | {folder_link} | {docs_str} | {formal_str} |")
 
-            # Create link to attempt folder
-            folder_link = f"[{title}]({v.path.name}/)"
-
-            lines.append(f"| {claim_emoji} | {author} | {year} | {folder_link} | {docs_str} | {formal_str} |")
-
-        lines.append("")
+    lines.append("")
 
     # Statistics
     lines.append("---")
