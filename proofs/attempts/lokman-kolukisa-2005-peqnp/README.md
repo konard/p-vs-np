@@ -87,7 +87,7 @@ This directory contains formal specifications that:
 
 ### Files
 
-- `coq/KolukisaAttempt.v` - Coq formalization
+- `rocq/KolukisaAttempt.v` - Rocq formalization
 - `lean/KolukisaAttempt.lean` - Lean 4 formalization
 - `isabelle/KolukisaAttempt.thy` - Isabelle/HOL formalization
 
@@ -125,7 +125,7 @@ This attempt demonstrates:
 
 ## Formal Verification Status
 
-- ✅ Coq: Definitions and implications formalized
+- ✅ Rocq: Definitions and implications formalized
 - ✅ Lean: Definitions and implications formalized
 - ✅ Isabelle: Definitions and implications formalized
 - ⚠️ Gap identified: Algorithm correctness cannot be proven

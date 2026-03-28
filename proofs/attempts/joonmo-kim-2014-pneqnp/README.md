@@ -79,7 +79,7 @@ Based on the paper and general principles of complexity theory, potential issues
 
 To identify the specific error, we formalize the proof in three theorem provers:
 
-### Coq (`coq/`)
+### Rocq (`rocq/`)
 - Define Turing machines and complexity classes
 - Formalize the construction of M₀
 - Attempt to prove the key properties
@@ -98,7 +98,7 @@ To identify the specific error, we formalize the proof in three theorem provers:
 
 ## Formalization Files
 
-- `coq/JoonmoKim2014.v` - Coq formalization
+- `rocq/JoonmoKim2014.v` - Rocq formalization
 - `lean/JoonmoKim2014.lean` - Lean 4 formalization
 - `isabelle/JoonmoKim2014.thy` - Isabelle/HOL formalization
 
@@ -133,7 +133,7 @@ This formalization serves multiple purposes:
 
 **Status**: Formalization in progress
 **Goal**: Identify the specific error or gap in the proof attempt
-**Method**: Multi-prover formal verification (Coq, Lean, Isabelle)
+**Method**: Multi-prover formal verification (Rocq, Lean, Isabelle)
 
 ---
 

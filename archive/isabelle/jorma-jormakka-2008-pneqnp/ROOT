@@ -1,0 +1,3 @@
+session JormakkaAttempt = HOL +
+  theories
+    JormakkaAttempt

@@ -126,7 +126,7 @@ This attempt illustrates several important points:
 
 ## Formalization Goals
 
-The formalizations in Coq, Lean, and Isabelle aim to:
+The formalizations in Rocq, Lean, and Isabelle aim to:
 
 1. **Clarify the definitions**: Formalize RCNF, TCNF, CCNF precisely
 2. **Verify correct parts**: Theorems 3-15 may be correct and interesting
@@ -146,8 +146,8 @@ proofs/attempts/koji-kobayashi-2012-pneqnp/
 ├── README.md                          # This file
 ├── paper/
 │   └── kobayashi-2012.pdf            # Original paper
-├── coq/
-│   └── KobayashiAttempt.v            # Coq formalization
+├── rocq/
+│   └── KobayashiAttempt.v            # Rocq formalization
 ├── lean/
 │   └── KobayashiAttempt.lean         # Lean formalization
 └── isabelle/
@@ -158,7 +158,7 @@ proofs/attempts/koji-kobayashi-2012-pneqnp/
 
 - **Paper analyzed**: ✅
 - **Error identified**: ✅
-- **Coq formalization**: 🚧 In progress
+- **Rocq formalization**: 🚧 In progress
 - **Lean formalization**: 🚧 In progress
 - **Isabelle formalization**: 🚧 In progress
 

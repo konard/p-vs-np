@@ -168,7 +168,7 @@ The approach is a variation of **LP relaxation**, which is well-studied in appro
 
 ## Formalization Goal
 
-Our formalizations in Coq, Lean, and Isabelle will:
+Our formalizations in Rocq, Lean, and Isabelle will:
 
 1. **Define the transformation** from k-SAT to the LP formulation
 2. **Formalize the recovery function** (floor + modulo)
@@ -179,7 +179,7 @@ This will make the error **formally verifiable** and serve as an educational res
 
 ## Files
 
-- **[coq/MaknickasAttempt.v](coq/MaknickasAttempt.v)** - Coq formalization showing the gap
+- **[rocq/MaknickasAttempt.v](rocq/MaknickasAttempt.v)** - Rocq formalization showing the gap
 - **[lean/MaknickasAttempt.lean](lean/MaknickasAttempt.lean)** - Lean 4 formalization
 - **[isabelle/MaknickasAttempt.thy](isabelle/MaknickasAttempt.thy)** - Isabelle/HOL formalization
 
@@ -216,7 +216,7 @@ This formalization demonstrates:
 
 ## Status
 
-- ✅ Coq formalization: Complete - identifies the gap
+- ✅ Rocq formalization: Complete - identifies the gap
 - ✅ Lean formalization: Complete - identifies the gap
 - ✅ Isabelle formalization: Complete - identifies the gap
 - ✅ Error documentation: Complete

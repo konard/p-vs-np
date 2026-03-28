@@ -91,7 +91,7 @@ In formal terms: The paper assumes that definitional differences imply class sep
 
 ## Formalization Strategy
 
-Our formalization in Coq, Lean, and Isabelle will:
+Our formalization in Rocq, Lean, and Isabelle will:
 
 1. **Define the basic complexity classes** (P, NP) formally
 2. **Attempt to formalize the invariance principle** as stated in the paper
@@ -109,6 +109,6 @@ The formalization will make explicit where assumptions are unjustified and where
 
 - [x] Folder structure created
 - [x] README with analysis created
-- [ ] Coq formalization in progress
+- [ ] Rocq formalization in progress
 - [ ] Lean formalization in progress
 - [ ] Isabelle formalization in progress

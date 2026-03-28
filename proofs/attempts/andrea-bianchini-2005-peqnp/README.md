@@ -93,7 +93,7 @@ This directory contains formal verification code that:
 
 ### Files
 
-- `coq/SubsetSumEncoding.v` - Coq formalization
+- `rocq/SubsetSumEncoding.v` - Rocq formalization
 - `lean/SubsetSumEncoding.lean` - Lean 4 formalization
 - `isabelle/SubsetSumEncoding.thy` - Isabelle/HOL formalization
 

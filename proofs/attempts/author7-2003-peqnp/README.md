@@ -94,7 +94,7 @@ The most probable error is one of the following:
 
 The goal of this formalization is to:
 
-1. Define the Linear Ordering Problem formally in Coq, Lean, and Isabelle
+1. Define the Linear Ordering Problem formally in Rocq, Lean, and Isabelle
 2. Formalize the claim that a polynomial-time algorithm exists for LOP
 3. Attempt to formalize the algorithm's structure based on available descriptions
 4. Identify where the proof breaks down or where the polynomial-time guarantee fails
@@ -112,7 +112,7 @@ The goal of this formalization is to:
 This attempt formalization is organized as follows:
 
 - `README.md` (this file) - Detailed description and analysis
-- `coq/` - Coq formalization
+- `rocq/` - Rocq formalization
   - `LinearOrdering.v` - LOP definition and properties
   - `Bolotashvili2003.v` - Attempted formalization of the claim
 - `lean/` - Lean 4 formalization

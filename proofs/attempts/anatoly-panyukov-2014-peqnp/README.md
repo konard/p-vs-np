@@ -121,7 +121,7 @@ Our formalization demonstrates the error by:
 
 ## Implementation Structure
 
-- **`coq/PanyukovAttempt.v`**: Coq formalization
+- **`rocq/PanyukovAttempt.v`**: Rocq formalization
 - **`lean/PanyukovAttempt.lean`**: Lean 4 formalization
 - **`isabelle/PanyukovAttempt.thy`**: Isabelle/HOL formalization
 
@@ -184,7 +184,7 @@ This attempt appears as **Entry #101** in Gerhard Woeginger's famous list of P v
 
 ## Verification Status
 
-- ✅ Coq formalization: Compiles and identifies the gap
+- ✅ Rocq formalization: Compiles and identifies the gap
 - ✅ Lean formalization: Type-checks and shows incompleteness
 - ✅ Isabelle formalization: Verified and documents the error
 

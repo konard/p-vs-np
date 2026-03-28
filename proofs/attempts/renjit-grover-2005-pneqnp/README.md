@@ -88,14 +88,14 @@ Without access to the full paper (now withdrawn), we can identify probable error
 
 Our formalization aims to:
 
-1. **Model the clique problem** in Coq, Lean, and Isabelle
+1. **Model the clique problem** in Rocq, Lean, and Isabelle
 2. **Formalize the concept of "algorithm types"** or "algorithmic patterns"
 3. **Identify where the proof breaks down** by attempting to formalize the classification and lower bound arguments
 4. **Document the gap** between what can be formally proven and what the paper claimed
 
 ## Formalizations
 
-- [Coq formalization](coq/RenjitGrover2005.v)
+- [Rocq formalization](rocq/RenjitGrover2005.v)
 - [Lean formalization](lean/RenjitGrover2005.lean)
 - [Isabelle formalization](isabelle/RenjitGrover2005.thy)
 
