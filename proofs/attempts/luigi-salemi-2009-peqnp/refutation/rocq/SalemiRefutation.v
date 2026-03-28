@@ -44,8 +44,9 @@ Theorem complexity_decomposition_claimed :
     salemi_claimed_bound n = salemi_iteration_assumption n * n ^ 12.
 Proof.
   intro n. unfold salemi_claimed_bound, salemi_iteration_assumption.
-  (* n^15 = n^3 * n^12 *)
-  ring.
+  (* n^15 = n^3 * n^12: use Nat.pow_add_r : n^(a+b) = n^a * n^b *)
+  rewrite <- Nat.pow_add_r.
+  reflexivity.
 Qed.
 
 (** O(n^3) is a polynomial function *)
@@ -76,7 +77,7 @@ Theorem complexity_bound_requires_iteration_bound :
       isPolynomial (fun n => iteration_count n * n ^ 12) ->
       isPolynomial (fun n => iteration_count n * n ^ 12).
 Proof.
-  intros _ _ H. exact H.
+  intros iteration_count _ H. exact H.
 Qed.
 
 (** ** Error 2: Circular Reasoning in Theorem 11
@@ -112,7 +113,7 @@ Theorem theorem_11_circularity :
       (* Theorem 11 proves construction works FROM saturated structure *)
       (saturated_structure -> construction_works).
 Proof.
-  intros _ _ h. exact (proj1 h).
+  intros construction_works saturated_structure h. exact (proj1 h).
 Qed.
 
 (** The proof by contradiction on pages 7-8 is self-referential:
@@ -125,7 +126,7 @@ Theorem proof_by_contradiction_is_circular :
       (* Then construction working implies AClausola present *)
       (construction_works -> aclausola_present).
 Proof.
-  intros _ _ h hw.
+  intros aclausola_present construction_works h hw.
   apply NNPP. intro hna. exact (h hna hw).
 Qed.
 
@@ -145,7 +146,7 @@ Theorem proof_by_cases_incomplete :
     (* For general n > 8, no inductive proof is provided *)
     exists (unproven_cases : nat), unproven_cases > cases_shown.
 Proof.
-  intros cs h. subst h. exists 9. lia.
+  intros cs h. subst cs. exists 9. lia.
 Qed.
 
 (** Variable reordering is assumed but not proven possible or efficient *)
