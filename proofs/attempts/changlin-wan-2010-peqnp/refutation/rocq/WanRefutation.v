@@ -14,6 +14,7 @@ Require Import Coq.Init.Nat.
 Require Import Coq.Lists.List.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Logic.Classical_Prop.
+Require Import Coq.micromega.Lia.
 Import ListNotations.
 
 (* ===== Definitions (from the paper) ===== *)
@@ -144,7 +145,7 @@ Proof.
   exists (fun _ => 1).
   split.
   - (* PolyTime of constant function *)
-    exists 0. intro n. simpl. omega.
+    exists 0. intro n. simpl. lia.
   - (* Correctness: TM accepts everything, Up contains everything *)
     intro x. simpl. split.
     + intro _. apply up_equals_all_nats.
@@ -188,9 +189,9 @@ Theorem wan_claims_are_absurd :
   (* This would mean every language is in P *)
   (forall L : Language, ClassP L).
 Proof.
-  intro h.
-  intro L.
-  apply h. apply up_equals_all_nats.
+  intros h L.
+  apply (proj2 (h L)).
+  apply up_equals_all_nats.
 Qed.
 
 (* ===== Summary ===== *)

@@ -108,25 +108,23 @@ structure PolyUpAlgorithm where
   correct : ∀ x : Nat, (decide x = true) ↔ Up x
 
 /-
-  If a polynomial-time algorithm for Up existed, it would provide a way to
-  decide membership in any decidable language in polynomial time.
-  This contradicts the Time Hierarchy Theorem.
+  Since Up = ℕ (trivially), there DOES exist a polynomial algorithm for Up:
+  just always accept. This shows the paper's construction is vacuously trivial.
 
-  Note: The SORRY here represents the need to formally invoke the Time Hierarchy Theorem,
-  which requires significantly more machinery to formalize rigorously.
-  The proof sketch above is mathematically valid.
+  The actual issue is that "Up ∈ P" doesn't prove P = NP because Up = ℕ
+  is not a meaningful separator.
 -/
-theorem no_poly_algorithm_for_up :
-    ¬∃ _ : PolyUpAlgorithm, True := by
-  intro ⟨alg, _⟩
-  -- alg.decide decides Up in polynomial time
-  -- Up contains all decidable languages
-  -- If we could decide x ∈ Up, we can decide x ∈ any decidable language L
-  --   by encoding the question as: does any decidable language contain x?
-  -- But L might be EXPTIME-complete, and Up membership doesn't directly tell
-  -- us about membership in L specifically
-  -- SORRY: Requires formal invocation of the Time Hierarchy Theorem
-  sorry
+theorem poly_algorithm_for_up_exists :
+    ∃ _ : PolyUpAlgorithm, True := by
+  -- The always-accept algorithm works since Up = ℕ
+  -- decide: always returns true (since every nat is in Up)
+  -- polyTime: constant function 1 is polynomial (k=0 suffices: 1 ≤ n^0 + 0 = 1)
+  -- correct: Up x holds for all x (proven above)
+  have h_poly : PolyTime (fun _ : Nat => 1) := ⟨0, fun n => by simp⟩
+  exact ⟨{ decide := fun _ => true,
+            polyTime := ⟨fun _ => 1, h_poly⟩,
+            correct := fun x => ⟨fun _ => up_equals_all_nats x, fun _ => rfl⟩ },
+          trivial⟩
 
 /-! ## Refutation 4: Up is Not Even Decidable -/
 

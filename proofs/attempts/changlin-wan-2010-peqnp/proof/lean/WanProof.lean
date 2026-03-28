@@ -183,11 +183,11 @@ theorem wan_main_theorem :
   - Main Theorem (P = NP): FALSE, derived from invalid claims
 -/
 
-/-- The one valid step: P languages are contained in Up -/
+-- The one valid step: P languages are contained in Up
 #check p_subset_up
-/-- The invalid step: requires Up to be in P -/
+-- The invalid step: requires Up to be in P
 #check up_in_P
-/-- The invalid conclusion: P = NP -/
+-- The invalid conclusion: P = NP
 #check wan_main_theorem
 
 end WanProof

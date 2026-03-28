@@ -17,6 +17,7 @@ Require Import Coq.Init.Nat.
 Require Import Coq.Lists.List.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Logic.Classical_Prop.
+Require Import Coq.micromega.Lia.
 Import ListNotations.
 
 (* ===== Section 2: Recursive Definition of Turing Machines ===== *)
@@ -126,7 +127,7 @@ Qed.
 Theorem up_subset_np :
   forall x : nat, Up x -> exists L : Language, ClassNP L /\ L x.
 Proof.
-  intro x h_up.
+  intros x h_up.
   (* ADMITTED: The paper claims this but provides no valid algorithm.
      Up is not decidable (see refutation), so it cannot be in NP. *)
 Admitted.
