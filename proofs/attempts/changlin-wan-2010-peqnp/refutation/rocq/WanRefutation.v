@@ -79,7 +79,8 @@ Qed.
   This makes the paper's construction completely vacuous.
   The paper tries to prove P = Up = NP, but Up = nat, not a complexity class.
 *)
-Corollary up_is_trivial : forall x : nat, Up x := up_equals_all_nats.
+Corollary up_is_trivial : forall x : nat, Up x.
+Proof. exact up_equals_all_nats. Qed.
 
 (* ===== Refutation 2: If Up In P, Hierarchy Collapses ===== *)
 
