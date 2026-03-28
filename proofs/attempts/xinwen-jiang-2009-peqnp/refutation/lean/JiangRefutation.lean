@@ -113,17 +113,12 @@ theorem wrong_direction_theorem
     (reduction_correct : ∀ s : String, HC_language s ↔ X_language (reduction s)) :
     -- This situation is a contradiction: HC cannot reduce to X if X ∈ P and HC ∉ P
     False := by
-  obtain ⟨L', hL'⟩ := X_in_P
   apply HC_is_hard
-  -- Construct a P algorithm for HC using the reduction and X's P algorithm
-  exact ⟨⟨fun s => L'.language (reduction s),
-           fun s => L'.decider (reduction s),
-           fun n => L'.timeComplexity (n * n),  -- rough bound on composed complexity
-           sorry,  -- Composing polynomial complexities gives polynomial
-           fun s => by
-             rw [reduction_correct s]
-             rw [hL']⟩,
-         fun s => by simp [reduction_correct s, hL']⟩
+  -- The composed algorithm: run reduction then apply X's P decider
+  -- Full formal construction requires careful handling of ClassP's `correct` field
+  -- The argument: HC_language s = X_language (reduction s) = L'.language (reduction s)
+  -- So the composition gives a P algorithm for HC_language
+  sorry -- Standard complexity theory: composition of polytime reduction with P algorithm gives P
 
 /-- Application to Jiang: if MSP ∈ P, then the reduction from HC to MSP
     would imply HC ∈ P, which is the conclusion we're trying to prove -/

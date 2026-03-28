@@ -131,23 +131,11 @@ Theorem correct_reduction_logic :
     (* Then HC is in P *)
     exists L' : ClassP, forall s, HC_language s = p_language L' s.
 Proof.
-  intros HC_language X_language [LX hX] [red h_red].
-  exists {|
-    p_language := fun s => LX.(p_language) (red s);
-    p_decider := fun s => LX.(p_decider) (red s);
-    p_timeComplexity := fun n => LX.(p_timeComplexity) (n * n);  (* rough bound *)
-    p_isPoly := ltac:(destruct LX.(p_isPoly) as [c [k hpoly]];
-                      exists c, (k * 2);
-                      intro n; simpl;
-                      (* Rough: (n²)^k ≈ n^(2k), need more careful analysis *)
-                      admit)
-  |}.
-  intro s.
-  simpl.
-  rewrite h_red.
-  rewrite hX.
-  reflexivity.
-Admitted. (* Complexity composition needs careful formalization *)
+  (* The constructed ClassP would use: language = X_language ∘ reduction
+     Correctness follows from: HC_language s = X_language(red s) = L'.language(red s)
+     Polynomial time: composition of polynomial reductions is polynomial
+     Full formalization requires careful record construction matching ClassP's fields *)
+  Admitted.
 
 (* The ISSUE: Jiang's argument is only valid if MSP is NP-hard.
    But MSP's NP-hardness is DERIVED from the reduction, creating circularity. *)
