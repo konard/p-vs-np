@@ -149,8 +149,8 @@ Proof.
     exists 0. intros n. simpl. lia.
   * (* Correctness: TM accepts everything, Up contains everything *)
     intros x. simpl. split.
-    ** intros _. apply up_equals_all_nats.
     ** intros _. trivial.
+    ** intros _. apply up_equals_all_nats.
 Qed.
 
 (*
