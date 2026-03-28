@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-Through formal verification in Coq, Lean, and Isabelle, we have identified the **critical flaw** in Hauptmann's proof: the claimed contradiction between two properties of the union function is **not actually a contradiction**. The proof by contradiction therefore fails.
+Through formal verification in Rocq, Lean, and Isabelle, we have identified the **critical flaw** in Hauptmann's proof: the claimed contradiction between two properties of the union function is **not actually a contradiction**. The proof by contradiction therefore fails.
 
 ## Proof Structure
 
@@ -121,9 +121,9 @@ This formalization demonstrates several common pitfalls:
 
 ## Verification Status
 
-All three formalizations (Coq, Lean, Isabelle) independently identify this gap:
+All three formalizations (Rocq, Lean, Isabelle) independently identify this gap:
 
-- ✅ **Coq**: `Hauptmann_No_Contradiction` theorem demonstrates consistency of bounds
+- ✅ **Rocq**: `Hauptmann_No_Contradiction` theorem demonstrates consistency of bounds
 - ✅ **Lean**: `Hauptmann_No_Contradiction` theorem shows no contradiction exists
 - ✅ **Isabelle**: `Hauptmann_No_Contradiction` theorem proves bounds can coexist
 

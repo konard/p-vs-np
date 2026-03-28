@@ -5,7 +5,7 @@ This document summarizes the errors and gaps identified during the formal verifi
 ## Critical Error: Unjustified Implication (P = UP → EXP = P)
 
 ### Location
-- **Coq**: `VegaDelgado2012.v:89` - `vega_delgado_critical_step` (marked as `Admitted`)
+- **Rocq**: `VegaDelgado2012.v:89` - `vega_delgado_critical_step` (marked as `Admitted`)
 - **Lean**: `VegaDelgado2012.lean:133` - `vega_delgado_critical_step` (marked as `axiom`)
 - **Isabelle**: `VegaDelgado2012.thy:129` - `vega_delgado_critical_step` (ends with `oops`)
 
@@ -32,7 +32,7 @@ Vega Delgado claims that if P = UP (where UP is Unambiguous Polynomial time), th
 ### Formal Verification Result
 
 In all three proof assistants, this step cannot be completed:
-- **Coq**: Marked with `Admitted` (incomplete proof)
+- **Rocq**: Marked with `Admitted` (incomplete proof)
 - **Lean**: Declared as an unprovable `axiom` with error comments
 - **Isabelle**: Ends with `oops` (abandoned proof)
 
@@ -41,7 +41,7 @@ This is the **PRIMARY ERROR** that invalidates the entire proof.
 ## Secondary Error: Insufficient Conclusion (P ≠ UP ↛ P ≠ NP)
 
 ### Location
-- **Coq**: `VegaDelgado2012.v:152` - `vega_delgado_insufficient` (marked as `Admitted`)
+- **Rocq**: `VegaDelgado2012.v:152` - `vega_delgado_insufficient` (marked as `Admitted`)
 - **Lean**: `VegaDelgado2012.lean:186` - `vega_delgado_insufficient` (marked as `axiom`)
 - **Isabelle**: `VegaDelgado2012.thy:165` - `vega_delgado_insufficient` (ends with `oops`)
 
@@ -96,12 +96,12 @@ The proof has elements of circular reasoning:
 1. **Critical Step** (P = UP → EXP = P): **UNPROVABLE**
    - No valid reduction exists
    - Contradicts established results
-   - Marked as `Admitted` (Coq), `axiom` (Lean), or `oops` (Isabelle)
+   - Marked as `Admitted` (Rocq), `axiom` (Lean), or `oops` (Isabelle)
 
 2. **Final Conclusion** (P ≠ UP → P ≠ NP): **UNPROVABLE**
    - Insufficient to bridge from UP to NP
    - Missing intermediate results
-   - Marked as `Admitted` (Coq), `axiom` (Lean), or `oops` (Isabelle)
+   - Marked as `Admitted` (Rocq), `axiom` (Lean), or `oops` (Isabelle)
 
 ### Verdict
 The proof attempt fails at the critical derivation step. The gap is not a minor technical detail but a fundamental logical gap that cannot be filled with known complexity-theoretic techniques.
@@ -114,6 +114,6 @@ The proof attempt fails at the critical derivation step. The gap is not a minor 
 
 ## Conclusion
 
-The formalization process successfully identified the exact locations where Vega Delgado's 2012 proof attempt fails. The proof cannot be completed in Coq, Lean, or Isabelle without introducing unjustified axioms, which demonstrates that the claimed proof is invalid.
+The formalization process successfully identified the exact locations where Vega Delgado's 2012 proof attempt fails. The proof cannot be completed in Rocq, Lean, or Isabelle without introducing unjustified axioms, which demonstrates that the claimed proof is invalid.
 
 The primary error is the unsupported claim that P = UP implies EXP = P, which has no known justification in complexity theory and contradicts the Time Hierarchy Theorem.

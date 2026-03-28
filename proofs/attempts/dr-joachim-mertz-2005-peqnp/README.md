@@ -96,7 +96,7 @@ None of these are provided. The MERLIN formulation only shows that:
 
 ## Formal Verification Goal
 
-Our formalization in Coq, Lean, and Isabelle aims to:
+Our formalization in Rocq, Lean, and Isabelle aims to:
 
 1. **Define LP vs ILP**: Formalize the difference between linear programming and integer linear programming
 2. **Model TSP**: Define the TSP problem and its requirement for integer solutions
@@ -138,7 +138,7 @@ Similar flawed approaches have been proposed for other NP-complete problems (SAT
 ```
 proofs/attempts/dr-joachim-mertz-2005-peqnp/
 ├── README.md (this file)
-├── coq/
+├── rocq/
 │   └── MertzMERLIN.v
 ├── lean/
 │   └── MertzMERLIN.lean
@@ -167,7 +167,7 @@ This attempt illustrates several important lessons:
 
 - ✅ Folder structure created
 - ✅ README with detailed description
-- ⏳ Coq formalization (in progress)
+- ⏳ Rocq formalization (in progress)
 - ⏳ Lean formalization (in progress)
 - ⏳ Isabelle formalization (in progress)
 - ✅ Error identified and documented

@@ -103,7 +103,7 @@ The formalization serves as an educational tool to understand:
 
 ## Files
 
-- `coq/Halylaurin2016.v` - Coq formalization
+- `rocq/Halylaurin2016.v` - Rocq formalization
 - `lean/Halylaurin2016.lean` - Lean 4 formalization
 - `isabelle/Halylaurin2016.thy` - Isabelle/HOL formalization
 

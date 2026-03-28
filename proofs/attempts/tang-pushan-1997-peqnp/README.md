@@ -87,7 +87,7 @@ The error is a **complexity analysis mistake** - confusing fixed-parameter polyn
 
 Our formalization demonstrates the error by:
 
-1. **Defining the CLIQUE problem formally** as a decision problem in Coq, Lean, and Isabelle
+1. **Defining the CLIQUE problem formally** as a decision problem in Rocq, Lean, and Isabelle
 2. **Establishing that CLIQUE is NP-complete** (from standard complexity theory)
 3. **Modeling what a polynomial-time algorithm must satisfy**:
    - Must terminate in polynomial time for ALL inputs
@@ -101,7 +101,7 @@ Our formalization demonstrates the error by:
 
 This attempt is formalized in three proof assistants:
 
-- **[Coq](coq/TangPushan.v)**: Formalization using Coq's computational logic
+- **[Rocq](rocq/TangPushan.v)**: Formalization using Rocq's computational logic
 - **[Lean](lean/TangPushan.lean)**: Formalization using Lean 4's dependent type theory
 - **[Isabelle/HOL](isabelle/TangPushan.thy)**: Formalization using Isabelle's higher-order logic
 
@@ -142,7 +142,7 @@ This is entry #3 on Woeginger's list of P vs NP attempts. It represents a common
 
 - [P vs NP Problem Description](../../../P_VS_NP_TASK_DESCRIPTION.md)
 - [ERROR_ANALYSIS.md](ERROR_ANALYSIS.md) - Detailed complexity analysis and common patterns
-- [Basic Proofs in Coq](../../basic/coq/Basic.v)
+- [Basic Proofs in Rocq](../../basic/rocq/Basic.v)
 - [Basic Proofs in Lean](../../basic/lean/Basic.lean)
 - [Basic Proofs in Isabelle](../../basic/isabelle/Basic.thy)
 

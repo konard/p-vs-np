@@ -62,7 +62,7 @@ The formalization shows that the existence of a heuristic is not sufficient to e
 
 ## Files
 
-- `coq/CapassoAttempt.v` - Coq formalization showing the gap in the proof
+- `rocq/CapassoAttempt.v` - Rocq formalization showing the gap in the proof
 - `lean/CapassoAttempt.lean` - Lean formalization showing the gap in the proof
 - `isabelle/CapassoAttempt.thy` - Isabelle formalization showing the gap in the proof
 

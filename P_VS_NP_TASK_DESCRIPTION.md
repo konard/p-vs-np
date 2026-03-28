@@ -13,7 +13,7 @@ The P versus NP problem is one of the seven Millennium Prize Problems establishe
 ### The Key Framing
 
 **✅ PROVEN: P ⊆ NP** — Every problem solvable in polynomial time is also verifiable in polynomial time.
-[See formal proofs](proofs/p_vs_np_decidable/README.md) in Lean, Coq, Isabelle/HOL, and Agda.
+[See formal proofs](proofs/p_vs_np_decidable/README.md) in Lean, Rocq, Isabelle/HOL, and Agda.
 
 **❓ THE QUESTION: Is NP ⊆ P true?**
 

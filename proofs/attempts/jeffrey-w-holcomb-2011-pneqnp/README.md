@@ -77,7 +77,7 @@ Many NP-complete problems have highly structured solution spaces:
 
 ## Formalization Approach
 
-This directory contains formalizations in three proof assistants (Coq, Lean, Isabelle) that:
+This directory contains formalizations in three proof assistants (Rocq, Lean, Isabelle) that:
 
 1. **Formalize the claim structure**: Attempt to formalize what "stochastic answers" might mean
 2. **Identify the gap**: Show where the proof would need to provide formal definitions
@@ -125,7 +125,7 @@ This proof attempt likely falls into a common trap:
 ```
 proofs/attempts/jeffrey-w-holcomb-2011-pneqnp/
 ├── README.md (this file)
-├── coq/
+├── rocq/
 │   └── HolcombAttempt.v
 ├── lean/
 │   └── HolcombAttempt.lean
