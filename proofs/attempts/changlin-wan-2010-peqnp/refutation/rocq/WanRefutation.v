@@ -145,12 +145,12 @@ Proof.
   exists (mkTM (fun _ => True) 0).
   exists (fun _ => 1).
   split.
-  - (* PolyTime of constant function *)
-    exists 0. intro n. simpl. lia.
-  - (* Correctness: TM accepts everything, Up contains everything *)
-    intro x. simpl. split.
-    + intro _. apply up_equals_all_nats.
-    + intro _. trivial.
+  * (* PolyTime of constant function: 1 <= n^0 + 0 = 1 *)
+    exists 0. intros n. simpl. lia.
+  * (* Correctness: TM accepts everything, Up contains everything *)
+    intros x. simpl. split.
+    ** intros _. apply up_equals_all_nats.
+    ** intros _. trivial.
 Qed.
 
 (*
