@@ -69,7 +69,7 @@ Our formalization approach demonstrates the error by:
 2. **Demonstrating that from an inconsistent system, both P=NP and P≠NP can be "proven"**
 3. **Highlighting that such "proofs" are vacuous and meaningless**
 
-The formalizations in Coq, Lean, and Isabelle will:
+The formalizations in Rocq, Lean, and Isabelle will:
 - Model the logical structure of the claimed proof
 - Explicitly mark the unproven assumption (ZFC inconsistency)
 - Show that the conclusion (P≠NP) depends entirely on this false assumption
@@ -106,8 +106,8 @@ Each formalization explicitly comments on where the error occurs and why the pro
 ```
 proofs/attempts/minseong-kim-2012-pneqnp/
 ├── README.md (this file)
-├── coq/
-│   └── KimAttempt.v (Coq formalization showing the error)
+├── rocq/
+│   └── KimAttempt.v (Rocq formalization showing the error)
 ├── lean/
 │   └── KimAttempt.lean (Lean formalization showing the error)
 └── isabelle/

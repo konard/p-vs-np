@@ -90,7 +90,7 @@ Mihai Prunescu analyzed an earlier version and noted issues with the approach.
 
 Our formalization demonstrates the error by:
 
-1. **Coq**: Formalizing the claim that local consistency implies global satisfiability and showing this leads to a contradiction
+1. **Rocq**: Formalizing the claim that local consistency implies global satisfiability and showing this leads to a contradiction
 2. **Lean**: Constructing an explicit counterexample formula where the algorithm's `Active[]` array would incorrectly indicate satisfiability
 3. **Isabelle**: Proving that the information-theoretic bound prevents polynomial-space encoding of exponential satisfiability information
 

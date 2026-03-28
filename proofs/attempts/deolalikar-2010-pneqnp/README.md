@@ -41,7 +41,7 @@ The primary error appears to be in the assumption that certain independence prop
 
 ## Formalization Status
 
-- [ ] Coq: Not started
+- [ ] Rocq: Not started
 - [ ] Lean: Not started
 - [ ] Isabelle: Not started
 

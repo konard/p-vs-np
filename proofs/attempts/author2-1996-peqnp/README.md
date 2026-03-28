@@ -41,7 +41,7 @@ Plotnikov's approach can be summarized as follows:
 
 ## The Error in the Proof
 
-Through formal verification in Coq, Lean, and Isabelle, we have identified **four fundamental errors** that invalidate Plotnikov's proof:
+Through formal verification in Rocq, Lean, and Isabelle, we have identified **four fundamental errors** that invalidate Plotnikov's proof:
 
 ### Error 1: Information Loss in Graph-to-Poset Conversion
 
@@ -84,7 +84,7 @@ The clique partition problem remains NP-complete because:
 
 To identify the exact errors, we formalized the proof in three theorem provers:
 
-### 1. Coq (`coq/` directory)
+### 1. Rocq (`rocq/` directory)
 - Define graphs, cliques, and partitions
 - Formalize the poset-based algorithm
 - Prove correctness (if possible) or identify where the proof fails
@@ -105,7 +105,7 @@ To identify the exact errors, we formalized the proof in three theorem provers:
 
 All three formalizations successfully prove:
 
-```coq
+```rocq
 theorem plotnikov_algorithm_cannot_exist :
   ¬∃ (algorithm : Graph → CliquePartition),
     (∀ G, WellFormed G → is_optimal (algorithm G)) ∧
@@ -144,7 +144,7 @@ The paper appeared in an electronic journal but was never validated or accepted 
 author2-1996-peqnp/
 ├── README.md (this file)
 ├── ANALYSIS.md (detailed error analysis)
-├── coq/
+├── rocq/
 │   └── CliqueCover.v
 ├── lean/
 │   └── CliqueCover.lean
@@ -154,7 +154,7 @@ author2-1996-peqnp/
 
 ## Status
 
-- ✅ Coq formalization complete with error identification
+- ✅ Rocq formalization complete with error identification
 - ✅ Lean formalization complete with error identification
 - ✅ Isabelle formalization complete with error identification
 - ✅ All four errors formally documented
