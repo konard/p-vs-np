@@ -173,18 +173,37 @@ Our formalization demonstrates the errors by:
 3. **Identifying the gaps**: Showing that the claimed construction doesn't work
 4. **Proving impossibility**: Demonstrating that Up ⊆ P would imply absurd consequences (like EXPTIME = P)
 
-## Implementation Structure
+## Formalization Structure
 
-- **`coq/WanAttempt.v`**: Coq formalization
-- **`lean/WanAttempt.lean`**: Lean 4 formalization
-- **`isabelle/WanAttempt.thy`**: Isabelle/HOL formalization
+```
+changlin-wan-2010-peqnp/
+├── README.md                           # This file
+├── original/
+│   └── ORIGINAL.md                     # Description of original proof
+├── proof/
+│   ├── README.md                       # Forward proof documentation
+│   ├── lean/WanProof.lean              # Lean 4 forward formalization
+│   └── rocq/WanProof.v                 # Rocq forward formalization
+└── refutation/
+    ├── README.md                       # Refutation documentation
+    ├── lean/WanRefutation.lean         # Lean 4 refutation
+    └── rocq/WanRefutation.v            # Rocq refutation
+```
 
-Each formalization:
-1. Defines complexity classes (P, NP, EXPTIME)
-2. Defines the concept of decidable languages
-3. Attempts to formalize "Up" and shows the construction fails
-4. Shows that if Up existed and was in P, it would collapse the complexity hierarchy
-5. Concludes that the paper's approach is fundamentally flawed
+### Forward Proof (`proof/`)
+
+Formalizes Wan's claimed proof steps as faithfully as possible:
+1. Defines complexity classes (P, NP, EXPTIME) and decidable languages
+2. Defines "Up" as the union of all decidable languages
+3. Proves Claim 5.1 (P ⊆ Up) - the one valid step in the paper
+4. Marks the fatal gaps with `sorry`/`Admitted` where the paper fails
+
+### Refutation (`refutation/`)
+
+Proves why the proof fails:
+1. **Key theorem**: Up = ℕ (all natural numbers) - proven rigorously
+2. Shows Up is trivially in P (but this is vacuous, not meaningful)
+3. Demonstrates the circular reasoning and conceptual errors
 
 ## Key Lessons
 
@@ -257,9 +276,9 @@ This attempt appears as **Entry #61** in Gerhard Woeginger's famous list of P vs
 
 ## Verification Status
 
-- ✅ Coq formalization: Identifies the fundamental errors
-- ✅ Lean formalization: Shows the construction is ill-defined
-- ✅ Isabelle formalization: Proves that the claimed properties lead to contradictions
+- ✅ Lean formalization: Shows the construction is trivially vacuous (Up = ℕ)
+- ✅ Rocq formalization: Proves Up = ℕ and that Up ∈ P trivially
+- (Isabelle formalization archived - Isabelle support was sunset)
 
 ## License
 

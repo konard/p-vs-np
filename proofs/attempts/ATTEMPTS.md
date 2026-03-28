@@ -35,6 +35,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Algirdas Antano Maknickas | 2013 | [F](author93-2013-peqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2008 | [B](bhupinder-singh-anand-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Carlos Barron-Romero | 2010 | [C](carlos-barron-romero-2010-pneqnp/) | 📄 📎 | 🔷 🔶 |
+| ✓ | Changlin Wan (with Zhongzhi Shi) | 2010 | [C](changlin-wan-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Charles Sauerbier | 2002 | [C](charles-sauerbier-2002-peqnp/) | - | - |
 | ✗ | Rustem Chingizovich Valeyev | 2013 | [C](chingizovich-valeyev-2013-pneqnp/) | - | - |
 | ✗ | Craig Alan Feinstein | 2003 | [C](craig-feinstein-2003-pneqnp/) | - | 🔷 🔶 |
@@ -116,16 +117,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 96
-- **Claims P = NP:** 53
+- **Total attempts:** 97
+- **Claims P = NP:** 54
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 23
-- **With original paper:** 16
-- **With proof/ directory:** 27
-- **With refutation/ directory:** 27
-- **With Lean formalization:** 27
-- **With Rocq formalization:** 27
+- **With ORIGINAL.md:** 24
+- **With original paper:** 17
+- **With proof/ directory:** 28
+- **With refutation/ directory:** 28
+- **With Lean formalization:** 28
+- **With Rocq formalization:** 28
 
 ---
 
