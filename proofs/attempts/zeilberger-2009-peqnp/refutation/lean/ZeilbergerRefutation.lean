@@ -41,10 +41,9 @@ axiom missing_elements : ∀ (e : ProofElement), ¬(∃ (proof_contains : ProofE
 theorem incomplete_proof_invalid :
   (∀ (e : ProofElement), ¬(∃ (proof_contains : ProofElement → Prop), proof_contains e)) →
   ¬(∃ (valid_proof : Prop), valid_proof) := by
-  intro h
-  intro ⟨hp⟩
-  -- A proof without concrete algorithm, complexity analysis, verifiable steps,
-  -- and rigorous encoding cannot establish P=NP
+  intro _h
+  -- Cannot establish P=NP without concrete algorithm, complexity analysis,
+  -- verifiable steps, and rigorous encoding
   sorry
 
 /-- Educational lesson: Not all claims deserve formal refutation -/

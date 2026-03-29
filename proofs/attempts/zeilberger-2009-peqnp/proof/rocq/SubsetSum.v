@@ -6,9 +6,11 @@
   in Zeilberger's April Fool's paper.
 *)
 
-Require Import List.
-Require Import Arith.
-Require Import Lia.
+From Stdlib Require Import List.
+From Stdlib Require Import Arith.
+From Stdlib Require Import Lia.
+From Stdlib Require Import ZArith.
+From Stdlib Require Import Reals.
 Import ListNotations.
 
 Module ZeilbergerAttempt.
