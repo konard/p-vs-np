@@ -110,6 +110,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Ted Swart (University of Guelph) | 1986 | [F](ted-swart-1986-87-peqnp/) | - | - |
 | ✗ | Frank Vega Delgado | 2012 | [V](vega-delgado-2012-pneqnp/) | - | - |
 | ✗ | Viktor V. Ivanov | 2005 | [V](viktor-ivanov-2005-pneqnp/) | - | - |
+| ✓ | Xinwen Jiang | 2009 | [X](xinwen-jiang-2009-peqnp/) | - | 🔷 🔶 |
 | ✓ | Yann Dujardin | 2009 | [Y](yann-dujardin-2009-peqnp/) | - | - |
 | ✓ | Yubin Huang | 2015 | [Y](yubin-huang-2015-peqnp/) | - | - |
 | ✓ | Zohreh O. Akbari | 2008 | [Z](zohreh-akbari-2008-peqnp/) | 📄 | 🔷 🔶 |
@@ -118,16 +119,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 98
-- **Claims P = NP:** 55
+- **Total attempts:** 99
+- **Claims P = NP:** 56
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
 - **With ORIGINAL.md:** 25
 - **With original paper:** 18
-- **With proof/ directory:** 29
-- **With refutation/ directory:** 29
-- **With Lean formalization:** 29
-- **With Rocq formalization:** 29
+- **With proof/ directory:** 30
+- **With refutation/ directory:** 30
+- **With Lean formalization:** 30
+- **With Rocq formalization:** 30
 
 ---
 
