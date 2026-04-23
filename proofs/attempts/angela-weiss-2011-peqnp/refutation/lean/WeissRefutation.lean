@@ -198,4 +198,5 @@ theorem weiss_approach_fails :
 -- The formalization in WeissProof.lean correctly identifies the sorry'd steps
 -- as the points where no polynomial-time proof can proceed.
 
+-- ✓ Weiss refutation formalized: exponential branching + circular macro claim
 end WeissRefutation2011
