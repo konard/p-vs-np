@@ -23,7 +23,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Algirdas Antano Maknickas | 2011 | [F](antano-maknickas-2011-peqnp/) | - | - |
 | ✗ | Ari Blinder | 2009 | [A](ari-blinder-2009-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Arto Annila | 2009 | [A](arto-annila-2009-pneqnp/) | - | - |
-| ✓ | Frank Vega | 2015 | [F](author104-2015-peqnp/) | - | - |
+| ✓ | Frank Vega | 2015 | [F](author104-2015-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Author11 | 2004 | [A](author11-2004-peqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2004 | [A](author12-2004-pneqnp/) | - | - |
 | ✗ | Marius Ionescu (attributed as "Unknown" in Woeginger's list) | 2004 | [M](author13-2004-pneqnp/) | - | - |
