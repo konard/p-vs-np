@@ -1,18 +1,21 @@
 /-
-  Formalization: Maknickas (2013) - P=NP via Linear Programming
+  MaknickasRefutation.lean - Refutation of Maknickas's 2013 P=NP attempt
 
   This file formalizes the error in Maknickas's attempt to prove P=NP
   by encoding SAT as a linear programming problem.
 
   Main error: Conflating LP (polynomial-time) with ILP (NP-complete)
 
+  The key insight:
+  - LP relaxation of SAT may produce fractional solutions (not valid for SAT)
+  - Enforcing integrality makes the problem ILP (NP-complete)
+  - Neither option yields a polynomial-time algorithm for SAT
+
   Note: This formalization uses a simplified Real type since Mathlib is not available.
   The mathematical concepts are still correctly captured.
--/
 
--- ======================================================================
--- Part 1: Basic Definitions
--- ======================================================================
+  See ../proof/lean/MaknickasProof.lean for the forward formalization of the claim.
+-/
 
 -- Simple Real type placeholder (Mathlib not available)
 axiom Real : Type
@@ -35,6 +38,12 @@ noncomputable instance : Add Real where
   add := Real.add
 instance : LE Real where
   le := Real.le
+
+namespace MaknickasRefutation
+
+-- ======================================================================
+-- Part 1: Basic Definitions
+-- ======================================================================
 
 -- Define greater-or-equal for Real
 def geReal (a b : Real) : Prop := Real.le b a
@@ -255,3 +264,5 @@ theorem maknickasError :
   · exact fractionalSolutionsInvalid enc
 
 -- This completes the formalization
+
+end MaknickasRefutation

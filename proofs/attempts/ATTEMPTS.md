@@ -32,7 +32,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Miron Telpiz | 2000 | [F](author4-2000-peqnp/) | - | - |
 | ✓ | Givi Bolotashvili | 2003 | [B](author7-2003-peqnp/) | - | - |
 | ✗ | Unknown (Hubert Chen's webpage) | 2003 | [F](author8-2003-pneqnp/) | - | - |
-| ✓ | Algirdas Antano Maknickas | 2013 | [F](author93-2013-peqnp/) | - | - |
+| ✓ | Algirdas Antano Maknickas | 2013 | [F](author93-2013-peqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Bhupinder Singh Anand | 2008 | [B](bhupinder-singh-anand-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Carlos Barron-Romero | 2010 | [C](carlos-barron-romero-2010-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Changlin Wan (with Zhongzhi Shi) | 2010 | [C](changlin-wan-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
@@ -75,7 +75,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
 | ✗ | Mathias Hauptmann | 2016 | [M](mathias-hauptmann-2016-pneqnp/) | - | - |
 | ✓ | Michael LaPlante | 2015 | [M](michael-laplante-2015-peqnp/) | - | - |
-| ✓ | Michel Feldmann | 2012 | [M](michel-feldmann-2012-peqnp/) | - | - |
+| ✓ | Michel Feldmann | 2012 | [M](michel-feldmann-2012-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Mikhail Katkov | 2010 | [M](mikhail-katkov-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Mikhail N. Kupchik | 2004 | [M](mikhail-kupchik-2004-pneqnp/) | - | - |
 | ✗ | Minseong Kim | 2012 | [M](minseong-kim-2012-pneqnp/) | - | - |
@@ -84,7 +84,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Moustapha Diaby | 2004 | [M](moustapha-diaby-2004-peqnp/) | - | - |
 | ✓ | Narendra S. Chaudhari | 2009 | [N](narendra-chaudhari-2009-peqnp/) | - | 🔷 🔶 |
 | ? | Ncada Costa Fa Doria | 2003 | [F](ncada-costa-fa-doria-2003-unprovable/) | - | - |
-| ✓ | Peng Cui | 2014 | [P](peng-cui-2014-peqnp/) | - | - |
+| ✓ | Peng Cui | 2014 | [P](peng-cui-2014-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Wen-Qi Duan | 2012 | [Q](qi-duan-2012-peqnp/) | - | - |
 | ✗ | Radoslaw Hofman | 2006 | [R](radoslaw-hofman-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Rafael Valls Hidalgo-Gato | 2009 | [R](rafael-valls-hidalgo-gato-2009-peqnp/) | 📄 | 🔷 🔶 |
@@ -124,12 +124,12 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 - **Claims P = NP:** 57
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 28
-- **With original paper:** 22
-- **With proof/ directory:** 33
-- **With refutation/ directory:** 34
-- **With Lean formalization:** 34
-- **With Rocq formalization:** 34
+- **With ORIGINAL.md:** 30
+- **With original paper:** 23
+- **With proof/ directory:** 35
+- **With refutation/ directory:** 36
+- **With Lean formalization:** 36
+- **With Rocq formalization:** 36
 
 ---
 
