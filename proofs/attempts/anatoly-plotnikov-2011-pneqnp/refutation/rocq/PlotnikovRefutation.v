@@ -187,7 +187,7 @@ Axiom bakerGillSolovay :
 
 (* Integer self-reference (used in halting problem): well-defined *)
 (* An integer can refer to itself just by being itself *)
-Definition integerSelfRef (f : nat -> bool) (i : nat) : bool := f i
+Definition integerSelfRef (f : nat -> bool) (i : nat) : bool := f i.
 (* This is perfectly well-defined: f and i are both given *)
 
 (* For graphs: colorability is FIXED by structure, not definable by algorithm's output *)
