@@ -144,8 +144,11 @@ def countSatisfying (inst : KSATInstance) : Nat :=
 -- (c) The "count" obtained mod p is not guaranteed to reflect the true count
 --
 -- This axiom captures Groff's claim that the finite field system is correct.
+-- Note: p is assumed to be prime (p > 1 and p has no divisors other than 1 and p).
+-- We do not use Nat.Prime here (which requires Mathlib) but instead treat p as a
+-- parameter with the implicit assumption that the caller provides a prime.
 axiom groff_claim_finite_field_system_correct :
-    ∀ (inst : KSATInstance) (p : Nat) (hp : Nat.Prime p) (a₀ a₁ : Nat),
+    ∀ (inst : KSATInstance) (p : Nat) (_hp : p > 1) (a₀ a₁ : Nat),
       ∃ (b₂ : Nat),
         b₂ % p = (countSatisfying inst) % p
 -- Cannot be proved: single-point evaluation does not faithfully encode
