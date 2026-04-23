@@ -1,10 +1,17 @@
 (*
-  Formalization: Maknickas (2013) - P=NP via Linear Programming
+  MaknickasRefutation.v - Refutation of Maknickas's 2013 P=NP attempt
 
   This file formalizes the error in Maknickas's attempt to prove P=NP
   by encoding SAT as a linear programming problem.
 
   Main error: Conflating LP (polynomial-time) with ILP (NP-complete)
+
+  The key insight:
+  - LP relaxation of SAT may produce fractional solutions (not valid for SAT)
+  - Enforcing integrality makes the problem ILP (NP-complete)
+  - Neither option yields a polynomial-time algorithm for SAT
+
+  See ../proof/rocq/MaknickasProof.v for the forward formalization of the claim.
 *)
 
 From Stdlib Require Import Bool.
