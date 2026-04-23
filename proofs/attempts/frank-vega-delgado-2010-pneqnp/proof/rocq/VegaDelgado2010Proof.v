@@ -13,8 +13,10 @@
 From Stdlib Require Import String.
 From Stdlib Require Import Nat.
 From Stdlib Require Import List.
+From Stdlib Require Import Lia.
 From Stdlib Require Import Classical_Prop.
 Import ListNotations.
+Open Scope string_scope.
 
 (** * Basic Types *)
 

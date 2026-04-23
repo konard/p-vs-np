@@ -12,9 +12,9 @@
 
 namespace VegaDelgado2010ProofAttempt
 
--- Basic types
-def Input := String
-def Output := String
+-- Basic types (abbrev so String instances are inherited)
+abbrev Input := String
+abbrev Output := String
 
 -- Time complexity function
 def TimeComplexity := Nat → Nat

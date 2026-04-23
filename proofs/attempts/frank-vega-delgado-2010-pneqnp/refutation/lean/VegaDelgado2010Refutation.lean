@@ -10,9 +10,9 @@
 
 namespace VegaDelgado2010Refutation
 
--- Basic types (same as proof file)
-def Input := String
-def Output := String
+-- Basic types (abbrev so String instances are inherited)
+abbrev Input := String
+abbrev Output := String
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=

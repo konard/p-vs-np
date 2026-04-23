@@ -13,6 +13,7 @@ From Stdlib Require Import Nat.
 From Stdlib Require Import List.
 From Stdlib Require Import Classical_Prop.
 Import ListNotations.
+Open Scope string_scope.
 
 (** * Basic Types (same as proof file) *)
 
