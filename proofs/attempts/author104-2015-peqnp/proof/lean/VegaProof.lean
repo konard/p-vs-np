@@ -101,7 +101,6 @@ theorem simP_closed_under_ereduction
   · -- Characterization
     intro x y
     rw [h_fg x y, h_char (f x) (g y)]
-    simp only [L1, L2]
 
 -- =============================================================================
 -- Section 5: ∼P = NP
@@ -122,9 +121,6 @@ axiom XOR3SAT : Language
 axiom TWOSAT : Language
 axiom XOR3SAT_in_P : InP XOR3SAT
 axiom TWOSAT_in_P : InP TWOSAT
-
-def XOR3SAT_verifier : Verifier := fun x c => if XOR3SAT x then true else false
-def TWOSAT_verifier : Verifier := fun y c => if TWOSAT y then true else false
 
 -- 3XOR-2SAT: pairs where ψ ∈ XOR3SAT and φ ∈ 2SAT share a satisfying assignment
 -- This is the definition Vega gives in Definition 5.1

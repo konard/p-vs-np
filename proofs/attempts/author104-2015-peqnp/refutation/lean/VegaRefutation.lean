@@ -238,7 +238,7 @@ theorem completeness_argument_fails :
 -- Summary: What CAN be formally proved
 -- =============================================================================
 
-/-- Theorem 4.2 is CORRECTLY proved: ∼P is closed under e-reductions -/
+-- Theorem 4.2 is CORRECTLY proved: ∼P is closed under e-reductions
 -- (See proof formalization for details)
 
 /-- The diagonal embedding of any P problem is in ∼P (trivially) -/
