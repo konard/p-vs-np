@@ -103,6 +103,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Sergey V. Yakhontov | 2012 | [S](sergey_v_yakhontov_2012_peqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2005 | [S](singh-anand-2005-pneqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2006 | [S](singh-anand-2006-pneqnp/) | - | - |
+| ✓ | Stefan Jaeger | 2011 | [S](stefan-jaeger-2011-both/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Stefan Rass | 2016 | [S](stefan-rass-2016-pneqnp/) | - | - |
 | ✗ | Sten-Ake Tarnlund | 2008 | [S](sten-ake-tarnlund-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Steven Meyer | 2016 | [S](steven-meyer-2016-peqnp/) | - | - |
@@ -120,16 +121,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 100
-- **Claims P = NP:** 57
+- **Total attempts:** 101
+- **Claims P = NP:** 58
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 28
-- **With original paper:** 22
-- **With proof/ directory:** 33
-- **With refutation/ directory:** 34
-- **With Lean formalization:** 34
-- **With Rocq formalization:** 34
+- **With ORIGINAL.md:** 29
+- **With original paper:** 23
+- **With proof/ directory:** 34
+- **With refutation/ directory:** 35
+- **With Lean formalization:** 35
+- **With Rocq formalization:** 35
 
 ---
 
