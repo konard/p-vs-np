@@ -46,18 +46,9 @@ def isExponential (T : Nat → Nat) : Prop :=
 def numAssignments (numVars : Nat) : Nat := 2 ^ numVars
 
 -- This is indeed exponential
-theorem numAssignments_exponential : isExponential numAssignments := by
-  use 2
-  constructor
-  · norm_num
-  · intro c k
-    -- For sufficiently large n, 2^n > c * n^k
-    -- This follows from standard exponential vs polynomial growth arguments
-    use c + k + 2  -- witness n (simplified for formalization)
-    simp [numAssignments]
-    sorry
-    -- Full proof omitted; this is a standard calculus/analysis result:
-    -- for any polynomial c * n^k, there exists N such that for all n > N, 2^n > c * n^k
+theorem numAssignments_exponential : isExponential numAssignments :=
+  -- base = 2; 2^n grows faster than any polynomial c * n^k (standard analysis result)
+  ⟨2, by decide, fun c k => ⟨c + k + 2, by sorry⟩⟩
 
 -- ============================================================
 -- Key Claim 2: Correct Satisfiability Encoding Requires Exponential Info
@@ -76,8 +67,8 @@ axiom no_polynomial_sat_encoding :
   ¬ ∃ (encode : (Var → Bool → Bool) → List Bool)
       (decode : List Bool → Bool),
     (∀ f : Var → Bool → Bool, ∃ c k : Nat, (encode f).length ≤ c * 3 ^ k) ∧
-    (∀ (α : Var → Bool) (f : Var → Bool → Bool),
-      decode (encode f) = true ↔ ∃ α', ∀ v, f v (α' v) = true)
+    (∀ (f : Var → Bool → Bool),
+      decode (encode f) = true ↔ ∃ α' : Var → Bool, ∀ v : Var, f v (α' v) = true)
 -- NOTE: This axiom captures that P ≠ NP is the prevailing assumption.
 -- A proof of this axiom would itself resolve P vs NP.
 
@@ -93,15 +84,9 @@ def branchCount_after_ke_rules (numVars : Nat) : Nat := 2 ^ numVars
 
 -- The number of branches is still exponential even with KE rules
 theorem ke_branches_still_exponential :
-    isExponential branchCount_after_ke_rules := by
-  use 2
-  constructor
-  · norm_num
-  · intro c k
-    use c + k + 2
-    simp [branchCount_after_ke_rules]
-    sorry
-    -- Same argument as numAssignments_exponential
+    isExponential branchCount_after_ke_rules :=
+  -- Same argument: 2^n grows faster than any polynomial
+  ⟨2, by decide, fun c k => ⟨c + k + 2, by sorry⟩⟩
 
 -- ============================================================
 -- Key Claim 4: The Macro Cannot Be Polynomial-Size in General

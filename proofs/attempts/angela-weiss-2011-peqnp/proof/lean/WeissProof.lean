@@ -156,7 +156,7 @@ def evaluateMacro (m : Macro) : Bool :=
 -- ============================================================
 
 -- The claimed polynomial-time algorithm for 3-SAT
-def weissAlgorithm (φ : Formula3SAT) : Bool :=
+noncomputable def weissAlgorithm (φ : Formula3SAT) : Bool :=
   let m := constructMacro φ
   evaluateMacro m
 
