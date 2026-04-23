@@ -21,7 +21,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Anatoly D. Plotnikov | 2007 | [A](anatoly-plotnikov-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Andrea Bianchini | 2005 | [A](andrea-bianchini-2005-peqnp/) | - | - |
 | ✓ | M. Angela Weiss | 2011 | [A](angela-weiss-2011-peqnp/) | 📄 📎 | 🔷 🔶 |
-| ✓ | Algirdas Antano Maknickas | 2011 | [F](antano-maknickas-2011-peqnp/) | - | - |
+| ✓ | Algirdas Antano Maknickas | 2011 | [F](antano-maknickas-2011-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Ari Blinder | 2009 | [A](ari-blinder-2009-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Arto Annila | 2009 | [A](arto-annila-2009-pneqnp/) | - | - |
 | ✓ | Frank Vega | 2015 | [F](author104-2015-peqnp/) | 📄 📎 | 🔷 🔶 |
