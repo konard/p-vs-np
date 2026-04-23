@@ -15,8 +15,7 @@ namespace WeissRefutation2011
 -- Basic Definitions (mirroring the proof file)
 -- ============================================================
 
-def Var := Nat
-deriving DecidableEq
+abbrev Var := Nat
 
 inductive Literal where
   | pos : Var → Literal

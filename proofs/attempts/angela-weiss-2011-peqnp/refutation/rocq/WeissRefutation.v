@@ -118,7 +118,7 @@ Definition weiss_P_equals_NP : Prop :=
 
 (* Weiss's conclusion follows trivially from her unproven assumption *)
 Theorem weiss_conclusion_from_assumption :
-  weiss_polynomial_macro_assumption ->
+  isPolynomial (fun n => n ^ 3) ->
   weiss_P_equals_NP.
 Proof.
   unfold weiss_P_equals_NP.

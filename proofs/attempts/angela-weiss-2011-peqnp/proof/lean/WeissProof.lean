@@ -19,8 +19,7 @@ namespace WeissProof2011
 -- ============================================================
 
 -- A propositional variable is identified by a natural number
-def Var := Nat
-deriving DecidableEq, Repr
+abbrev Var := Nat
 
 -- A literal is a variable or its negation
 inductive Literal where
@@ -158,8 +157,8 @@ def evaluateMacro (m : Macro) : Bool :=
 
 -- The claimed polynomial-time algorithm for 3-SAT
 def weissAlgorithm (φ : Formula3SAT) : Bool :=
-  let macro := constructMacro φ
-  evaluateMacro macro
+  let m := constructMacro φ
+  evaluateMacro m
 
 -- CLAIMED: The algorithm runs in polynomial time
 -- NOTE: This would need to follow from macro_polynomial_size and
