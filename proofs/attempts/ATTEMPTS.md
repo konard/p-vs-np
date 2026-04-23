@@ -23,7 +23,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Algirdas Antano Maknickas | 2011 | [F](antano-maknickas-2011-peqnp/) | - | - |
 | ✗ | Ari Blinder | 2009 | [A](ari-blinder-2009-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Arto Annila | 2009 | [A](arto-annila-2009-pneqnp/) | - | - |
-| ✓ | Frank Vega | 2015 | [F](author104-2015-peqnp/) | - | - |
+| ✓ | Frank Vega | 2015 | [F](author104-2015-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Author11 | 2004 | [A](author11-2004-peqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2004 | [A](author12-2004-pneqnp/) | - | - |
 | ✗ | Marius Ionescu (attributed as "Unknown" in Woeginger's list) | 2004 | [M](author13-2004-pneqnp/) | - | - |
@@ -84,7 +84,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Moustapha Diaby | 2004 | [M](moustapha-diaby-2004-peqnp/) | - | - |
 | ✓ | Narendra S. Chaudhari | 2009 | [N](narendra-chaudhari-2009-peqnp/) | - | 🔷 🔶 |
 | ? | Ncada Costa Fa Doria | 2003 | [F](ncada-costa-fa-doria-2003-unprovable/) | - | - |
-| ✓ | Peng Cui | 2014 | [P](peng-cui-2014-peqnp/) | - | - |
+| ✓ | Peng Cui | 2014 | [P](peng-cui-2014-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Wen-Qi Duan | 2012 | [Q](qi-duan-2012-peqnp/) | - | - |
 | ✗ | Radoslaw Hofman | 2006 | [R](radoslaw-hofman-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Rafael Valls Hidalgo-Gato | 2009 | [R](rafael-valls-hidalgo-gato-2009-peqnp/) | 📄 | 🔷 🔶 |
@@ -125,7 +125,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
 - **With ORIGINAL.md:** 27
-- **With original paper:** 19
+- **With original paper:** 21
 - **With proof/ directory:** 32
 - **With refutation/ directory:** 32
 - **With Lean formalization:** 32

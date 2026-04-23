@@ -65,54 +65,36 @@ Steps 3 and 4 contradict each other: one claims equality (DTIME(Fᶜ) = Σ₂(F�
 **Conclusion**
 The assumption P = Σ₂ᵖ must be false, therefore P ≠ Σ₂ᵖ, which implies P ≠ NP.
 
-## Potential Issues and Gaps
+## The Error in the Proof
 
-Based on the formalization effort, the following potential issues have been identified:
+Through formal verification in Rocq and Lean, the **critical flaw** in Hauptmann's proof has been identified: the claimed contradiction between two properties of the union function is **not actually a contradiction**. The proof by contradiction therefore fails.
 
-### 1. **Time-Constructibility Requirements**
+### The Claimed Contradiction
 
-The proof critically depends on the function F being time-constructible in a specific sense. The paper may not adequately verify that:
-- The constructed function F satisfies the required time-constructibility properties
-- The padding argument preserves these properties for Fᶜ
-- The conditions for applying "Gupta's result" are met
+Hauptmann claims that under the assumption P = Σ₂ᵖ, the union function F must satisfy two incompatible bounds:
 
-**Formalization Gap**: When attempting to formalize the time-constructibility requirements, we cannot verify that all necessary conditions hold for the constructed F.
+- **Self-referential bound**: F(n) ≤ F(n)^c for some constant c
+- **Polynomial bound**: F(n) ≤ n^(k+1) for some constant k
 
-### 2. **The "Gupta's Result" Reference**
+### Why This Is Not a Contradiction
 
-The proof relies on a result attributed to someone named "Gupta" about strict separation between DTIME(t) and Σ₂(t). However:
-- This result is not clearly cited in the paper
-- It's unclear whether such a result exists in the stated generality
-- Standard hierarchy theorems for alternating time classes have specific requirements that may not apply here
+Both bounds can hold simultaneously. For example, let F(n) = n with c = 1 and k = 1:
+- F(n) ≤ F(n)^c becomes n ≤ n¹ ✓
+- F(n) ≤ n^(k+1) becomes n ≤ n² ✓
 
-**Formalization Gap**: We cannot find a formalization or rigorous statement of "Gupta's result" to verify it applies in the claimed context.
+The self-referential bound F(n) ≤ F(n)^c is trivially satisfied for c ≥ 1 and any positive F(n). It places no real constraint on F. The formalizations (Rocq, Lean) demonstrate this by exhibiting explicit functions satisfying both bounds without contradiction.
 
-### 3. **Union Theorem Extension to Alternating Classes**
+### Additional Gaps
 
-The extension of the McCreight-Meyer Union Theorem to alternating complexity classes (specifically Σ₂ᵖ) requires careful handling of:
-- The interaction between alternations and time bounds
-- Whether the union construction preserves the alternation structure
-- The relationship between Σ₂(F) and Σ₂ᵖ under the assumption P = Σ₂ᵖ
+1. **Insufficient for P ≠ NP**: Even if P ≠ Σ₂ᵖ were established, this alone would not imply P ≠ NP. Since P ⊆ NP ⊆ Σ₂ᵖ, we could still have P = NP ⊊ Σ₂ᵖ. No additional argument bridges this gap.
 
-**Formalization Gap**: The proof that the union construction works for alternating classes is non-trivial and may contain subtle errors.
+2. **Unclear "Gupta's Result" reference**: The proof invokes a result attributed to "Gupta" about strict separation between DTIME(t) and Σ₂(t), but this result is not clearly cited or verified to apply in the claimed context.
 
-### 4. **Padding Argument Details**
+3. **Union Theorem extension to alternating classes**: The extension of the McCreight-Meyer Union Theorem to Σ₂ᵖ requires careful verification of how alternations interact with the union construction. The paper does not provide sufficient justification.
 
-The padding argument that derives DTIME(Fᶜ) = Σ₂(Fᶜ) from P = DTIME(F) = Σ₂(F) requires:
-- Careful analysis of how problems scale under padding
-- Verification that the alternation structure is preserved
-- Ensuring the time bounds scale correctly
+4. **Padding argument details**: The padding construction that derives DTIME(Fᶜ) = Σ₂(Fᶜ) from P = DTIME(F) = Σ₂(F) is not fully justified in the paper.
 
-**Formalization Gap**: The exact details of the padding construction and why it preserves the claimed equalities are unclear.
-
-### 5. **Circular Reasoning Risk**
-
-There's a subtle risk of circular reasoning:
-- The assumption P = Σ₂ᵖ is used to construct F with certain properties
-- These properties are then used to derive a contradiction
-- But the construction of F might already implicitly assume properties that are inconsistent with P = Σ₂ᵖ
-
-**Formalization Gap**: We cannot verify that the construction of F doesn't already presuppose something incompatible with the assumption.
+For the complete formal analysis, see [ERROR_ANALYSIS.md](./ERROR_ANALYSIS.md).
 
 ## Reception and Current Status
 
@@ -125,16 +107,25 @@ The informal consensus appears to be that while the paper is more sophisticated 
 
 ## Formalization Status
 
-This directory contains formal verification attempts in three proof assistants:
-- **Rocq** (`rocq/Hauptmann2016.v`): Formalization in Rocq
-- **Lean** (`lean/Hauptmann2016.lean`): Formalization in Lean 4
-- **Isabelle** (`isabelle/Hauptmann2016.thy`): Formalization in Isabelle/HOL
+This directory contains formal verification attempts in two proof assistants:
+- **Rocq** (`rocq/Hauptmann2016.v`): Formalization in Rocq — identifies non-contradiction of the claimed bounds
+- **Lean** (`lean/Hauptmann2016.lean`): Formalization in Lean 4 — identifies non-contradiction of the claimed bounds
 
-The formalization process aims to:
-1. Define the relevant complexity classes formally
-2. State the assumptions and claimed theorems precisely
-3. Attempt to complete the proof
-4. Identify where the proof fails or requires unjustified assumptions
+Both formalizations independently demonstrate the `Hauptmann_No_Contradiction` theorem showing that the two bounds on F can hold simultaneously.
+
+## File Structure
+
+```
+proofs/attempts/mathias-hauptmann-2016-pneqnp/
+├── README.md                       # This file
+├── ERROR_ANALYSIS.md               # Detailed error analysis
+├── paper/
+│   └── hauptmann-2016.pdf          # Original paper (arXiv:1602.04781)
+├── rocq/
+│   └── Hauptmann2016.v             # Rocq formalization
+└── lean/
+    └── Hauptmann2016.lean          # Lean 4 formalization
+```
 
 ## References
 
