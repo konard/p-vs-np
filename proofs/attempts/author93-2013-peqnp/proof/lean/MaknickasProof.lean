@@ -84,7 +84,7 @@ def Satisfiable (f : CNF) : Prop :=
 -- ======================================================================
 
 -- Literal encoding: x_i → assign(i), ¬x_i → (1 - assign(i))
-def encodeLiteral (assign : RealAssignment) : Literal → Real
+noncomputable def encodeLiteral (assign : RealAssignment) : Literal → Real
   | Literal.pos x => assign x
   | Literal.neg x => (1 : Real) - assign x
 
@@ -111,8 +111,8 @@ theorem sat_implies_lp_feasible : ∀ f : CNF, Satisfiable f → LPFeasible f :=
   -- Boolean assignments 0/1 are valid real assignments in [0, 1]
   -- so any satisfying boolean assignment is also an LP solution
   exact ⟨fun v => if bAssign v then (1 : Real) else (0 : Real),
-         fun _ => by sorry,  -- Need: 0 ≤ 0 or 1 ≤ 1
-         trivial⟩
+         ⟨fun _ => by sorry,  -- Need: 0 ≤ 0 or 1 ≤ 1
+         trivial⟩⟩
 
 -- CLAIM (ERRONEOUS): Any feasible LP solution gives a satisfying boolean assignment
 -- This is the key error: LP solutions can be fractional (not boolean)
