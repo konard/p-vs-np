@@ -4,106 +4,141 @@
 **Author**: Gilberto Rodrigo Diduch
 **Year**: 2012
 **Claim**: P ≠ NP
-**Publication**: International Journal of Computer Science and Network Security (IJCSNS), Volume 12, pages 165-167
+**Status**: Refuted
+**Publication**: International Journal of Computer Science and Network Security (IJCSNS), Volume 12, No. 1, January 2012, pp. 165–167
 
 ## Summary
 
-In January 2012, Gilberto Rodrigo Diduch published a paper titled "P vs NP" in IJCSNS claiming that P is not equal to NP. The paper states that "the answer to the P vs NP question is a categorical NO; these classes are different as their names suggest."
+In January 2012, Gilberto Rodrigo Diduch published a paper titled "P vs NP" in IJCSNS
+claiming that P is not equal to NP. The paper states that "the answer to the P vs NP
+question is a categorical NO; these classes are different as their names suggest."
 
-This proof attempt is catalogued on Gerhard J. Woeginger's comprehensive list of P vs NP proof attempts, which has tracked over 100 attempted proofs from 1986 to 2016.
+This proof attempt is catalogued on Gerhard J. Woeginger's comprehensive list of P vs NP
+proof attempts, which has tracked over 100 attempted proofs from 1986 to 2016.
 
 ## Source
 
 - **Woeginger's List**: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #81)
-- **Original Paper**: International Journal of Computer Science and Network Security (IJCSNS), Vol. 12, No. 1, January 2012, pp. 165-167
+- **Original Paper**: International Journal of Computer Science and Network Security (IJCSNS),
+  Vol. 12, No. 1, January 2012, pp. 165–167
 - **Link Note**: Thanks to Gordon Royle for providing the original link
 
-## Main Argument/Approach
+## Main Argument
 
-**Note**: The original paper is not easily accessible via standard academic databases. Based on the limited information available from Woeginger's list and the publication venue, this appears to be a relatively informal proof attempt.
+The paper argues informally that:
 
-The paper's abstract suggests an argument based on the intuitive notion that P and NP are "different as their names suggest," which indicates a potentially informal or philosophical approach rather than a rigorous mathematical proof.
+1. P consists of problems solvable in polynomial time by a deterministic algorithm.
+2. NP consists of problems whose solutions can be *verified* in polynomial time.
+3. Because solving a problem is generally harder than verifying a solution,
+   and because no polynomial-time algorithm is known for NP-complete problems,
+   the paper concludes that P ≠ NP.
 
-## Common Issues in P≠NP Proof Attempts
+The central claim is that the classes are "different as their names suggest" —
+treating the difference in definitions as sufficient grounds for concluding the classes differ.
 
-While we don't have access to the full paper to identify the specific error in Diduch's proof, most failed P≠NP proof attempts exhibit one or more of these common issues (based on Scott Aaronson's "Eight Signs A Claimed P≠NP Proof Is Wrong"):
+## The Error
 
-1. **Failure to handle easier cases**: Cannot explain why the proof doesn't work for simpler problems like 2-SAT (which is in P) or XOR-SAT
-2. **Lack of understanding of known algorithms**: Doesn't demonstrate familiarity with techniques like dynamic programming, linear programming, or semidefinite programming
-3. **No intermediate weaker results**: Doesn't prove any simpler lower bounds as stepping stones
-4. **Doesn't encompass known results**: Fails to generalize known lower bounds (e.g., for constant-depth circuits) as special cases
-5. **Missing formal structure**: Lacks clear lemma-theorem-proof organization that enables error checking
-6. **No barrier analysis**: Doesn't explain how the proof overcomes known barriers (relativization, natural proofs, algebrization)
-7. **Reliance on subtle descriptive complexity**: Uses hard-to-verify arguments about descriptive complexity or machine encoding
-8. **Premature confidence**: Claims confirmation before rigorous verification
+### Fundamental Flaw: Argument from Definitions Without a Lower Bound Proof
 
-## Known Barriers to P≠NP Proofs
+**The Core Error**: Diduch's proof conflates *not knowing* a polynomial-time algorithm with
+*proving that none can exist*. Observing that no polynomial algorithm for SAT is known does not
+constitute a mathematical proof that no such algorithm exists.
 
-Any valid P≠NP proof must overcome these established barriers:
+### Why This Argument Fails
+
+A valid proof of P ≠ NP requires establishing a **super-polynomial lower bound** for some
+NP problem — proving that *no* Turing machine, regardless of construction, can decide the
+problem in polynomial time.
+
+What Diduch's argument provides instead:
+
+| What the paper claims | What would be needed |
+|----------------------|----------------------|
+| P and NP have different definitions | Proof that different definitions imply different classes |
+| No polynomial algorithm for SAT is known | Proof that NO polynomial algorithm can exist |
+| NP problems "feel hard" | Formal circuit lower bound or similar impossibility result |
+
+**Counterexample to the argument style**: Many pairs of classes have different definitions
+yet turn out to be equal. For instance, the class of problems decidable in O(n²) time and
+the class decidable in O(n³) time have different definitions but both are subclasses of P.
+A difference in definition does not imply a difference in extension.
+
+### The Missing Component: Super-Polynomial Lower Bound
+
+For a valid P ≠ NP proof, one must show:
+
+```
+∀ TM. (TM decides SAT) → time(TM) ∉ polynomial
+```
+
+This is precisely the content that Diduch's paper does not establish.
+The paper provides no lower bound argument, no circuit complexity argument,
+no communication complexity argument, and no diagonalization argument.
+
+### Absence of Evidence vs. Evidence of Absence
+
+The paper's reasoning commits the logical fallacy of treating the current
+*absence* of a known polynomial algorithm for NP-complete problems as
+*evidence* that no such algorithm exists. Historical examples show that
+many problems once thought to require exponential time were later solved
+in polynomial time:
+- Primality testing was solved in polynomial time (AKS, 2002)
+- Linear programming was shown to be in P via the ellipsoid method (1979)
+- Many graph problems once thought hard were later resolved
+
+## Known Barriers Not Addressed
+
+Any valid P ≠ NP proof must overcome these established barriers:
 
 ### 1. Relativization Barrier (Baker-Gill-Solovay, 1975)
+- There exist oracles A and B such that P^A = NP^A and P^B ≠ NP^B
 - Oracle-based proof techniques cannot resolve P vs NP
-- There exist oracles A and B where P^A = NP^A but P^B ≠ NP^B
-- Any successful proof must use non-relativizing techniques
+- Diduch's definitional argument relativizes and is therefore blocked
 
 ### 2. Natural Proofs Barrier (Razborov-Rudich, 1997)
-- "Natural" circuit lower bound techniques are blocked (assuming strong cryptography exists)
-- Natural proofs have three properties: constructivity, largeness, and usefulness
-- Such proofs cannot separate P from NP if one-way functions exist
+- "Natural" circuit lower bound techniques cannot separate P from NP
+  (assuming strong cryptography exists)
+- Any successful proof must use non-naturalizing techniques
 
 ### 3. Algebrization Barrier (Aaronson-Wigderson, 2008)
 - Extends relativization to algebraic computation models
-- Rules out algebraic proof techniques that work in oracle settings
 - Further restricts available proof strategies
+
+Diduch's proof addresses none of these barriers.
 
 ## Formalization Goal
 
-This directory contains formal verification attempts in three proof assistants (Rocq, Lean, Isabelle) to:
+This directory contains formal verification attempts in Lean 4 and Rocq to:
 
 1. **Formalize the claimed proof structure** based on available information
-2. **Identify logical gaps or errors** through formalization
+2. **Identify logical gaps** through formalization
 3. **Document why the proof attempt fails** in precise mathematical terms
 4. **Serve as an educational example** of proof verification
 
-## Expected Outcome
-
-Given that this proof attempt appears on Woeginger's list of unsuccessful attempts and has not been validated by the complexity theory community, we expect the formalization process to reveal:
-
-- Missing proof steps that cannot be formalized
-- Logical gaps in the argument structure
-- Invalid assumptions about complexity classes
-- Failure to address known barriers
-- Errors in reasoning about polynomial-time algorithms or verification
-
 ## Formal Verification Status
 
-- **Rocq**: See `rocq/DiduchProofAttempt.v`
-- **Lean**: See `lean/DiduchProofAttempt.lean`
-- **Isabelle**: See `isabelle/DiduchProofAttempt.thy`
+- **Rocq**: See `proof/rocq/DiduchProof.v` and `refutation/rocq/DiduchRefutation.v`
+- **Lean**: See `proof/lean/DiduchProof.lean` and `refutation/lean/DiduchRefutation.lean`
 
-Each formalization will:
-1. Define the necessary complexity theory concepts
-2. State the claimed theorem
-3. Attempt to formalize the proof steps
-4. Mark incomplete or invalid steps with `Admitted`/`sorry`/`oops`
-5. Document the specific errors found
-
-## Educational Value
-
-This formalization serves as:
-
-- **Case study** in proof verification for complexity theory
-- **Example** of how formal methods can identify errors in informal proofs
-- **Training material** for researchers learning to formalize complexity arguments
-- **Documentation** of common pitfalls in P vs NP proof attempts
+Each formalization:
+1. Defines necessary complexity theory concepts
+2. States the claimed theorem
+3. Formalizes the proof steps
+4. Marks incomplete steps with `Admitted`/`sorry`
+5. Documents the specific error
 
 ## References
 
-1. Baker, T., Gill, J., & Solovay, R. (1975). Relativizations of the P=?NP Question. SIAM Journal on Computing, 4(4), 431-442.
-2. Razborov, A. A., & Rudich, S. (1997). Natural Proofs. Journal of Computer Science and System Sciences, 55(1), 24-35.
-3. Aaronson, S., & Wigderson, A. (2008). Algebrization: A New Barrier in Complexity Theory. In STOC '08.
-4. Aaronson, S. (2010). Eight Signs A Claimed P≠NP Proof Is Wrong. Blog post: https://scottaaronson.blog/?p=458
-5. Woeginger, G. J. P-versus-NP page. https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+1. Baker, T., Gill, J., & Solovay, R. (1975). Relativizations of the P=?NP Question.
+   SIAM Journal on Computing, 4(4), 431–442.
+2. Razborov, A. A., & Rudich, S. (1997). Natural Proofs.
+   Journal of Computer Science and System Sciences, 55(1), 24–35.
+3. Aaronson, S., & Wigderson, A. (2008). Algebrization: A New Barrier in Complexity Theory.
+   STOC '08.
+4. Aaronson, S. (2010). Eight Signs A Claimed P≠NP Proof Is Wrong.
+   https://scottaaronson.blog/?p=458
+5. Woeginger, G. J. P-versus-NP page.
+   https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
 
 ## Parent Issues
 
