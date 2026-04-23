@@ -174,9 +174,12 @@ Axiom PneqNP_statement : Prop.
 *)
 
 Theorem PneqNP_likely_lacks_godelian_structure :
-    ZFC_is_sound ->  (* ZFC is sound *)
-    ZFCProves PneqNP_statement ->  (* Hypothetically, ZFC proves P≠NP *)
-    ~HasGodelianStructure PneqNP_statement.  (* Then P≠NP lacks Gödelian structure *)
+    (* ZFC is sound: if ZFC proves phi, then phi is true *)
+    (forall phi : Prop, ZFCProves phi -> phi) ->
+    (* Hypothetically, ZFC proves P≠NP *)
+    ZFCProves PneqNP_statement ->
+    (* Then P≠NP lacks Gödelian structure *)
+    ~HasGodelianStructure PneqNP_statement.
 Proof.
   intros hsound hproves hgodel.
   (* From Gödelian structure: PneqNP ↔ ¬ZFCProves PneqNP *)
