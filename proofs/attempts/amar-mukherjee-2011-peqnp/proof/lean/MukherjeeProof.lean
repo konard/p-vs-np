@@ -18,13 +18,13 @@ namespace MukherjeeProofAttempt
 -- =====================================================================
 
 -- Polynomial time complexity
-def isPolynomial (T : ℕ → ℕ) : Prop :=
-  ∃ (c k : ℕ), ∀ n : ℕ, T n ≤ c * n ^ k
+def isPolynomial (T : Nat → Nat) : Prop :=
+  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
 
 -- A Boolean literal: either a variable index or its negation
 inductive Literal where
-  | pos : ℕ → Literal  -- positive literal: variable i
-  | neg : ℕ → Literal  -- negative literal: ¬(variable i)
+  | pos : Nat → Literal  -- positive literal: variable i
+  | neg : Nat → Literal  -- negative literal: ¬(variable i)
 deriving DecidableEq
 
 -- A clause in 3-CNF: exactly 3 literals
@@ -35,11 +35,11 @@ structure Clause where
 
 -- A 3-CNF formula: a list of clauses
 structure Formula3CNF where
-  numVars : ℕ
+  numVars : Nat
   clauses : List Clause
 
 -- A truth assignment: maps variable indices to Boolean values
-def Assignment := ℕ → Bool
+def Assignment := Nat → Bool
 
 -- Evaluate a literal under an assignment
 def evalLiteral (σ : Assignment) : Literal → Bool
@@ -63,7 +63,7 @@ def isSatisfiable (φ : Formula3CNF) : Prop :=
 -- =====================================================================
 
 -- The size of a formula in terms of number of variables and clauses
-def formulaSize (φ : Formula3CNF) : ℕ :=
+def formulaSize (φ : Formula3CNF) : Nat :=
   φ.numVars + φ.clauses.length
 
 -- =====================================================================
@@ -77,7 +77,7 @@ def formulaSize (φ : Formula3CNF) : ℕ :=
 -- The claimed algorithm: takes a formula and returns whether it is satisfiable
 -- In the paper, this is asserted to run in polynomial time
 -- SORRY: The actual algorithm implementation is not available (paper withdrawn)
-noncomputable def mukherjeeAlgorithm (φ : Formula3CNF) : Bool :=
+noncomputable def mukherjeeAlgorithm (_ : Formula3CNF) : Bool :=
   -- Placeholder: the actual algorithm from the withdrawn paper is unknown
   -- A real implementation would need to solve NP-complete 3-SAT in poly time
   -- which is impossible under P ≠ NP assumption
@@ -98,7 +98,7 @@ axiom mukherjee_claim_correctness :
 -- SORRY: The paper was withdrawn before the complexity claim could be verified.
 -- A polynomial-time correct algorithm for 3-SAT would imply P = NP.
 axiom mukherjee_claim_polynomial_time :
-  ∃ p : ℕ → ℕ, isPolynomial p ∧
+  ∃ p : Nat → Nat, isPolynomial p ∧
     ∀ φ : Formula3CNF,
       True  -- placeholder: runtime of mukherjeeAlgorithm φ ≤ p (formulaSize φ)
 
@@ -112,7 +112,7 @@ axiom mukherjee_claim_polynomial_time :
 -- We represent membership in P as having a polynomial-time decision procedure
 structure InP (Problem : Type) where
   solve : Problem → Bool
-  runtime : ℕ → ℕ
+  runtime : Nat → Nat
   isPolynomialRuntime : isPolynomial runtime
   isCorrect : ∀ p : Problem, True  -- placeholder for correctness
 
@@ -121,7 +121,7 @@ structure InP (Problem : Type) where
 -- SORRY: Depends on the claimed axioms above which cannot be proven.
 theorem sat_in_P_if_claims_hold :
     ∃ alg : Formula3CNF → Bool,
-      (∃ p : ℕ → ℕ, isPolynomial p) ∧
+      (∃ p : Nat → Nat, isPolynomial p) ∧
       (∀ φ : Formula3CNF, alg φ = true ↔ isSatisfiable φ) := by
   -- This follows from the claimed axioms, but requires sorry
   -- because the claims themselves rely on sorry/axioms

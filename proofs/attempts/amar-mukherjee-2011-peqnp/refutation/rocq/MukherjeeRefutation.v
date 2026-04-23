@@ -141,9 +141,15 @@ Axiom mukherjee_claim :
     isPolynomial T /\
     forall phi : Formula3CNF, alg phi = true <-> isSatisfiable phi.
 
-(* Under P ≠ NP, Mukherjee's claim leads to contradiction *)
+(* Under P ≠ NP, Mukherjee's claim leads to contradiction:
+   If a polynomial-time correct 3-SAT algorithm exists, then the P≠NP assumption is false. *)
 Theorem mukherjee_claim_contradicts_p_neq_np :
-  mukherjee_claim -> ~ p_neq_np_assumption.
+  (exists (alg : Formula3CNF -> bool) (T : nat -> nat),
+    isPolynomial T /\
+    forall phi : Formula3CNF, alg phi = true <-> isSatisfiable phi) ->
+  ~ (~ exists (alg : Formula3CNF -> bool) (T : nat -> nat),
+      isPolynomial T /\
+      forall phi : Formula3CNF, alg phi = true <-> isSatisfiable phi).
 Proof.
   intros hclaim hnot.
   exact (hnot hclaim).
@@ -215,7 +221,9 @@ Qed.
 (* The phase transition creates exponentially hard instances *)
 Axiom phase_transition_hardness :
   (* Assuming P ≠ NP, there exist hard 3-SAT instances *)
-  p_neq_np_assumption ->
+  (~ exists (alg : Formula3CNF -> bool) (T : nat -> nat),
+      isPolynomial T /\
+      forall phi : Formula3CNF, alg phi = true <-> isSatisfiable phi) ->
   ~ exists (alg : Formula3CNF -> bool) (T : nat -> nat),
       isPolynomial T /\
       forall phi : Formula3CNF, alg phi = true <-> isSatisfiable phi.
