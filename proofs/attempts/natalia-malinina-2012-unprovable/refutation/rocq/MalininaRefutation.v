@@ -342,3 +342,4 @@ Proof.
 Qed.
 
 End MalininaRefutation.
+(* End of MalininaRefutation.v *)
