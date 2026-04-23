@@ -32,7 +32,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Miron Telpiz | 2000 | [F](author4-2000-peqnp/) | - | - |
 | ✓ | Givi Bolotashvili | 2003 | [B](author7-2003-peqnp/) | - | - |
 | ✗ | Unknown (Hubert Chen's webpage) | 2003 | [F](author8-2003-pneqnp/) | - | - |
-| ✓ | Algirdas Antano Maknickas | 2013 | [F](author93-2013-peqnp/) | - | - |
+| ✓ | Algirdas Antano Maknickas | 2013 | [F](author93-2013-peqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Bhupinder Singh Anand | 2008 | [B](bhupinder-singh-anand-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Carlos Barron-Romero | 2010 | [C](carlos-barron-romero-2010-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Changlin Wan (with Zhongzhi Shi) | 2010 | [C](changlin-wan-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
@@ -124,12 +124,12 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 - **Claims P = NP:** 57
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 28
+- **With ORIGINAL.md:** 29
 - **With original paper:** 22
-- **With proof/ directory:** 33
-- **With refutation/ directory:** 34
-- **With Lean formalization:** 34
-- **With Rocq formalization:** 34
+- **With proof/ directory:** 34
+- **With refutation/ directory:** 35
+- **With Lean formalization:** 35
+- **With Rocq formalization:** 35
 
 ---
 
