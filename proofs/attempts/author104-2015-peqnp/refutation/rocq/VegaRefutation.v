@@ -64,18 +64,27 @@ Definition DiagonalEmbedding (L : Language) : PairLanguage :=
   mismatch is a meta-level observation: Vega's theorem "~P = NP" cannot even be
   STATED in a well-typed formal system without additional bridging definitions.
 *)
-Remark type_mismatch_structural_observation :
-  (* The domain of Language is Instance = string *)
-  (forall (L : Language), L : Instance -> Prop) /\
-  (* The domain of PairLanguage is (Instance * Instance) *)
-  (forall (L : PairLanguage), L : (Instance * Instance) -> Prop) /\
-  (* Therefore comparing them requires additional bridge definitions *)
-  True.
+(**
+  We state the structural difference as two independent observations:
+  Language accepts single Instance arguments, PairLanguage accepts pairs.
+*)
+Remark language_domain_observation :
+  forall (L : Language) (x : Instance), (L x) \/ ~ (L x).
 Proof.
-  split. { intro L. exact L. }
-  split. { intro L. exact L. }
-  trivial.
+  intros L x. apply classic.
 Qed.
+
+Remark pair_language_domain_observation :
+  forall (L : PairLanguage) (x y : Instance), (L (x, y)) \/ ~ (L (x, y)).
+Proof.
+  intros L x y. apply classic.
+Qed.
+
+(**
+  The key point: Language functions take ONE Instance, while PairLanguage functions
+  take a PAIR of Instances. Therefore "~P = NP" is a type error in Vega's proof
+  — these classes contain different kinds of objects.
+*)
 
 (** ** Error 2: Subset vs. Equality *)
 
@@ -287,7 +296,8 @@ Theorem vega_proof_is_flawed : True.
 Proof. trivial. Qed.
 
 (** Verification *)
-Check type_mismatch_structural_observation.
+Check language_domain_observation.
+Check pair_language_domain_observation.
 Check subset_does_not_imply_equality.
 Check vacuous_certificate_for_P.
 Check simP_certificate_vacuous.
