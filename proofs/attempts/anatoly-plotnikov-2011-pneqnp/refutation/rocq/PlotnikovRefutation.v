@@ -79,18 +79,20 @@ Theorem circularityContradiction :
 Proof.
   intros A H hCorrect hDiag.
   unfold diagonalProperty in hDiag.
-  (* Case analysis on the boolean value of A H *)
-  destruct (A H) eqn:hAH.
+  (* A H is either true or false *)
+  assert (hAH_true_or_false : A H = true \/ A H = false).
+  { destruct (A H); [left; reflexivity | right; reflexivity]. }
+  destruct hAH_true_or_false as [hAH | hAH].
   - (* Case: A H = true *)
     (* By correctness: is3Colorable H *)
     assert (h3col : is3Colorable H) by (apply hCorrect; exact hAH).
-    (* By diagonal property: A H = false *)
+    (* By diagonal property forward: is3Colorable H → A H = false *)
     assert (hfalse : A H = false) by (apply hDiag; exact h3col).
     (* Contradiction: A H = true and A H = false *)
     rewrite hAH in hfalse. discriminate.
   - (* Case: A H = false *)
-    (* By diagonal property backward: is3Colorable H *)
-    assert (h3col : is3Colorable H) by (apply hDiag; reflexivity).
+    (* By diagonal property backward: A H = false → is3Colorable H *)
+    assert (h3col : is3Colorable H) by (apply hDiag; exact hAH).
     (* By correctness: A H = true *)
     assert (htrue : A H = true) by (apply hCorrect; exact h3col).
     (* Contradiction: A H = false and A H = true *)
