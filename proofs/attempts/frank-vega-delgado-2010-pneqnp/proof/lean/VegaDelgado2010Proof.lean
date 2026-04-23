@@ -102,7 +102,7 @@ axiom p_eq_np_destroys_owf :
 def candidateFunction : PolyTimeFunction := {
   compute := fun x => x ++ "_hashed"  -- placeholder computation
   time := fun n => n  -- linear time (polynomial)
-  isPolyTime := ⟨1, fun n => Nat.le_refl _⟩
+  isPolyTime := ⟨1, fun n => by simp [Nat.pow_one]⟩
 }
 
 /-
