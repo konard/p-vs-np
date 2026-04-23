@@ -35,7 +35,7 @@ def isPolynomial (T : Nat → Nat) : Prop :=
 
 -- FACT 1: Arc consistency (pair cleaning) is polynomial to compute
 theorem arcConsistency_polynomial : isPolynomial (fun n => n ^ 3) :=
-  ⟨1, 3, fun _n => Nat.le_refl _⟩
+  ⟨1, 3, fun n => by simp⟩
 
 -- FACT 2: Arc consistency is NECESSARY for satisfiability
 -- (If cleaning empties a table, formula is UNSAT)

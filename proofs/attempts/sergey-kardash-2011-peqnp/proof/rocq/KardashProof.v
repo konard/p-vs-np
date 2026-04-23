@@ -89,7 +89,7 @@ Fixpoint pairCleaning {k : nat} (rs : RelationshipStructure k) (steps : nat) :
 Definition rs_nonEmpty {k : nat} (rs : RelationshipStructure k) : bool :=
   fold_right andb true
     (map (fun c => fold_right andb true
-           (map (fun i => negb (eqb (length (cc_valueTables k c i)) 0))
+           (map (fun i => negb (Nat.eqb (length (cc_valueTables k c i)) 0))
                 (seq 0 (k + 1))))
          (rs_combinations k rs)).
 
@@ -120,7 +120,7 @@ Axiom kardash_lemma1 : forall {k : nat} (f : KCNF k),
   exists singleValued : RelationshipStructure k,
     fold_right andb true
       (map (fun c => fold_right andb true
-             (map (fun i => eqb (length (cc_valueTables k c i)) 1)
+             (map (fun i => Nat.eqb (length (cc_valueTables k c i)) 1)
                   (seq 0 (k + 1))))
            (rs_combinations k singleValued)) = true.
 
@@ -131,7 +131,7 @@ Axiom kardash_lemma2 : forall {k : nat} (f : KCNF k)
     (rs : RelationshipStructure k),
     fold_right andb true
       (map (fun c => fold_right andb true
-             (map (fun i => eqb (length (cc_valueTables k c i)) 1)
+             (map (fun i => Nat.eqb (length (cc_valueTables k c i)) 1)
                   (seq 0 (k + 1))))
            (rs_combinations k rs)) = true ->
     kSAT f.
