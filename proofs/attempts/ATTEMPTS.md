@@ -100,6 +100,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Satoshi Tazawa | 2012 | [S](satoshi-tazawa-2012-pneqnp/) | - | - |
 | ✓ | Sergey Gubin | 2006 | [S](sergey-gubin-2006-peqnp/) | - | 🔷 🔶 |
 | ✓ | Sergey Gubin | 2010 | [S](sergey-gubin-2010-peqnp/) | 📄 | 🔷 🔶 |
+| ✓ | Sergey Kardash | 2011 | [S](sergey-kardash-2011-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Sergey V. Yakhontov | 2012 | [S](sergey_v_yakhontov_2012_peqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2005 | [S](singh-anand-2005-pneqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2006 | [S](singh-anand-2006-pneqnp/) | - | - |
@@ -120,16 +121,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 100
-- **Claims P = NP:** 57
+- **Total attempts:** 101
+- **Claims P = NP:** 58
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 28
-- **With original paper:** 22
-- **With proof/ directory:** 33
-- **With refutation/ directory:** 34
-- **With Lean formalization:** 34
-- **With Rocq formalization:** 34
+- **With ORIGINAL.md:** 29
+- **With original paper:** 23
+- **With proof/ directory:** 34
+- **With refutation/ directory:** 35
+- **With Lean formalization:** 35
+- **With Rocq formalization:** 35
 
 ---
 
