@@ -83,9 +83,7 @@ axiom no_polynomial_sat_encoding :
 def branchCount_after_ke_rules (numVars : Nat) : Nat := 2 ^ numVars
 
 -- The number of branches is still exponential even with KE rules
-theorem ke_branches_still_exponential :
-    isExponential branchCount_after_ke_rules :=
-  -- Same argument: 2^n grows faster than any polynomial
+theorem ke_branches_still_exponential : isExponential branchCount_after_ke_rules :=
   ⟨2, by decide, fun c k => ⟨c + k + 2, by sorry⟩⟩
 
 -- ============================================================
