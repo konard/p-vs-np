@@ -185,7 +185,7 @@ Proof.
   (* From Gödelian structure: PneqNP ↔ ¬ZFCProves PneqNP *)
   destruct hgodel as [hfwd hbwd].
   (* ZFC proves PneqNP, so by soundness PneqNP is true *)
-  assert (hpneqnp : PneqNP_statement) := hsound PneqNP_statement hproves.
+  pose proof (hsound PneqNP_statement hproves) as hpneqnp.
   (* By Gödelian structure: PneqNP → ¬ZFCProves PneqNP *)
   apply hfwd in hpneqnp.
   (* But we assumed ZFC proves PneqNP - contradiction *)
