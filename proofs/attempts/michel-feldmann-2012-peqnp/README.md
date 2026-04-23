@@ -1,207 +1,102 @@
-# Michel Feldmann (2012) - P=NP Claim
+# Michel Feldmann (2012) - P=NP via Bayesian Inference
 
-**Attempt ID**: 86
+**Attempt ID**: 90 (from Woeginger's list)
 **Author**: Michel Feldmann
 **Year**: 2012 (revised 2020)
-**Claim**: P=NP
+**Claim**: P = NP
 **Paper**: "Solving satisfiability by Bayesian inference"
-**arXiv**: [1205.6658v5](http://arxiv.org/abs/1205.6658)
+**arXiv**: [1205.6658v5](https://arxiv.org/abs/1205.6658)
+**Status**: Refuted
 
 ## Summary
 
-Michel Feldmann claims to prove P=NP by using Bayesian inference to solve the 3-SAT problem in polynomial time. The approach converts Boolean satisfiability problems into linear programming (LP) problems, arguing that this eliminates the distinction between complexity classes P and NP.
+Michel Feldmann claims to prove P=NP by using Bayesian inference to solve 3-SAT in polynomial time. The approach converts Boolean satisfiability problems into linear programming (LP) problems through a probabilistic encoding, arguing that LP feasibility decides satisfiability and can be checked in polynomial time.
 
 ## Main Argument
 
 ### The Approach
 
-1. **Probabilistic Encoding**: Convert Boolean formulas into a Kolmogorov probability space where:
-   - Variables become probability distributions
-   - Each Boolean variable Xi gets a probability P(i) = P(Xi = 1|Λ)
-   - Logical constraints become linear equations on probabilities
+1. **Probabilistic Encoding**: Convert Boolean variables into probabilities in a Kolmogorov probability space. Each variable X_i gets probability P(i) = P(X_i = 1 | Λ).
 
-2. **Linear Programming Formulation**:
-   - Translate SAT problems into LP systems with:
-     - "Specific equations" from the Boolean constraints
-     - "Consistency equations" ensuring probability axioms hold
-   - Claims the LP system has polynomial size when the maximum clause size is constant
+2. **LP Construction**: Translate each SAT clause into "specific equations" relating the probabilities. Add "consistency equations" to enforce valid probability distributions. Together, these form a linear programming system.
 
-3. **Feasibility = Satisfiability**:
-   - For "strict satisfiability" problems (no auxiliary variables), claims:
-     - LP feasibility ⟺ Boolean satisfiability
-   - Since LP feasibility can be checked in polynomial time, concludes 3-SAT ∈ P
+3. **Equivalence Claim** (Proposition 7): For "strict satisfiability" problems, LP feasibility is equivalent to Boolean satisfiability.
 
-4. **Conclusion**: Therefore P = NP
+4. **Polynomial-Time Conclusion**: Since LP feasibility is decidable in polynomial time (Khachiyan 1979, Karmarkar 1984), and the LP has polynomial size (Proposition 2), 3-SAT ∈ P, so P = NP.
 
-## The Critical Error
+## The Error
 
-### Fundamental Flaw: Confusing Computational Models
+### Fundamental Flaw: Missing Construction Algorithm
 
-The proof contains a **fundamental category error** that invalidates the entire argument. Feldmann conflates two completely different computational models:
+The proof contains a **fundamental gap**: it never provides a polynomial-time algorithm to construct the LP system from a SAT formula.
 
-#### 1. The Error in Proposition 7
+Feldmann's argument structure:
 
-**Claim**: "When the prior is just a single Boolean function f compelled to be valid the problem accepts a deterministic solution if and only if the Bayesian LP system Eq. (10) is feasible."
+```
+Input: SAT formula f
+Step 1: Construct LP system C(f)     ← ALGORITHM MISSING
+Step 2: Check LP feasibility          ← Proven polynomial (Khachiyan 1979)
+Output: Satisfiability of f
+```
 
-**The Problem**: This creates a circular dependency:
-- To construct the LP system, one must enumerate all "working unknowns" (Definition 3)
-- Working unknowns include all probability variants from the specific equations
-- But determining which variants are needed requires knowing the structure of the formula
-- For a general 3-SAT formula with M clauses on N variables, this could require examining exponentially many potential unknowns
+**Step 2** is correct and well-known. **Step 1** is never proven to be polynomial-time computable.
 
-**Specifically**: The paper claims (Section 5.3) that the number of working unknowns is O(N) for "non-trivial problems" but provides no algorithm or justification for:
-1. How to determine this polynomial bound in polynomial time
-2. Which specific unknowns to include without examining all 2^N possible states
+### The Three Unproven Requirements
 
-#### 2. The Hidden Exponential Complexity
+To construct the LP system C(f) correctly, one must:
 
-**Section 4.3 and Proposition 6** reveal the core issue:
+1. **Determine "working unknowns"** — which partial probability requirements to track. The paper claims this set has polynomial size (Proposition 2) but provides **no algorithm** to compute this set.
 
-> "By definition of a problem of strict satisfiability, it is possible to assign any deterministic truth value to all unknowns of one literal. This determines the truth value to all working unknowns and to all states ω of the sample set Ω as well."
+2. **Build "consistency equations"** — ensuring all probability constraints are captured. Depends on step 1, which is uncomputed.
 
-This means:
-- The proof that "LP feasibility = SAT satisfiability" requires checking **all 2^N truth assignments**
-- This is exactly the brute-force approach the paper claims to avoid!
-- The "polynomial time" claim assumes we can somehow bypass this step, but no algorithm is provided
+3. **Verify correctness** — Proposition 6 requires checking all 2^N truth assignments to confirm the LP correctly encodes the formula. This is explicitly exponential.
 
-#### 3. The LP Formulation Hides the Search Problem
+### The Circular Reasoning
 
-The fundamental issue: **Feldmann doesn't solve the search problem; he reformulates it**
+To construct C(f) correctly, we must understand which partial requirements appear in satisfying assignments — but determining this structure is equivalent to solving SAT itself. The proof is circular:
 
-- The LP system is feasible ⟺ the Boolean formula is satisfiable
-- BUT: Constructing the correct LP system requires essentially solving the SAT problem first
-- The paper provides no polynomial-time algorithm to:
-  1. Construct the complete set of working unknowns
-  2. Ensure the consistency equations are sufficient
-  3. Verify the LP system correctly encodes the Boolean formula
+- To construct the LP, we need to know the satisfiability structure of f
+- To know the satisfiability structure, we need to solve SAT
+- But solving SAT is what the LP construction is supposed to enable
 
-#### 4. The Computational Model Mismatch
+### Computational Model Mismatch
 
-**The deepest error**: Feldmann treats "checking LP feasibility" as if it solves the original computational problem, but:
+Feldmann's framework uses **exact real arithmetic** (continuous probability distributions, convex optimization). Standard complexity theory measures computation on Turing machines with **discrete symbols**. These are different computational models, and polynomial time in real arithmetic does not imply polynomial time on a Turing machine.
 
-- **Standard complexity theory**: Measures computation on a Turing machine with discrete Boolean operations
-- **Feldmann's model**: Assumes access to an oracle that can:
-  - Solve LP problems in polynomial time
-  - Work with **real numbers** (infinite precision)
-  - Somehow construct the right LP problem from the SAT instance
+### What Feldmann Actually Proved
 
-**This is not a valid reduction** because:
-1. Real-number computation is not the same as Boolean computation (different computational models)
-2. The paper assumes we can represent and manipulate exact real numbers in polynomial time
-3. The construction phase (SAT → LP) is not proven to be polynomial-time computable
+- ✓ **Proved**: There exists a correspondence between SAT formulas and LP systems such that feasibility ↔ satisfiability (interesting but not sufficient)
+- ✓ **Proved**: If the LP system is given, checking feasibility is polynomial-time (already known since 1979)
+- ✗ **Not Proved**: The LP system can be constructed from a SAT formula in polynomial time
+- ✗ **Not Proved**: P = NP
 
-### Why This Doesn't Work
+## Folder Structure
 
-The key insight: **Feldmann proves that IF you could construct the right LP system in polynomial time, THEN you could check satisfiability in polynomial time. But he never proves the IF part is possible.**
-
-The paper essentially says:
-- "Convert SAT to LP" (but doesn't show this is polynomial-time)
-- "Check LP feasibility" (assuming exact real arithmetic)
-- "Therefore SAT is polynomial-time"
-
-This is analogous to saying:
-- "Convert SAT to an oracle query"
-- "Oracle answers in O(1)"
-- "Therefore SAT is O(1)"
-
-## Specific Technical Issues
-
-### Issue 1: The "Working Unknowns" Construction
-
-**Claim** (Proposition 2): "When the number of layers ℓ_max involved in the specific equations is independent of N, the total number of working unknowns is polynomial in the size of the input data."
-
-**Problem**:
-- This counts the size of each unknown (constant due to ℓ_max ≤ 3)
-- But doesn't account for how many unknowns must be tracked
-- The paper claims "removing duplicates" gives polynomial size
-- No algorithm or proof is given for computing this deduplicated set in polynomial time
-
-### Issue 2: Proposition 4's Circular Proof
-
-The proof of Proposition 4 (separability of deterministic distributions) proceeds by induction, but:
-- Assumes the LP system is already correctly constructed
-- Uses consistency equations that must already be complete
-- Doesn't address how to verify these properties without exhaustive search
-
-### Issue 3: The "Search Solution" Section 5.7
-
-The paper admits finding a solution requires:
-> "checking the feasibility of N successive LP systems of decreasing dimension"
-
-This suggests:
-- N LP feasibility checks (each polynomial)
-- But each check requires reconstructing the LP system
-- The total complexity is hidden in the reconstruction cost
-
-### Issue 4: Real Numbers vs. Discrete Computation
-
-The Bayesian framework requires:
-- Exact real-number arithmetic
-- Continuous probability distributions
-- Convex optimization in real space
-
-But:
-- Turing machines compute with discrete symbols
-- Real numbers require infinite precision or approximation
-- Approximation errors could cause incorrect satisfiability answers
-
-## Formal Verification Goals
-
-Our formalization will explicitly expose these gaps by:
-
-1. **Formalizing the LP construction algorithm**: Show that constructing the LP system from a 3-SAT instance requires examining all satisfying assignments (or equivalent exponential work)
-
-2. **Separating computational models**: Distinguish between:
-   - Boolean computation (standard complexity theory)
-   - Real arithmetic computation (Feldmann's assumption)
-   - Show these are not equivalent
-
-3. **Making hidden complexity explicit**: Track the actual computational cost of:
-   - Constructing working unknowns
-   - Building consistency equations
-   - Verifying the LP correctly encodes the SAT problem
-
-## Formalization Strategy
-
-### Rocq Formalization
-- Define SAT problems and LP systems formally
-- Attempt to formalize the construction algorithm (will expose exponential cost)
-- Prove that the construction requires examining exponentially many assignments
-
-### Lean Formalization
-- Model both discrete (Turing machine) and continuous (real arithmetic) computation
-- Show the computational models are not equivalent
-- Formalize the gap between "LP feasibility" and "polynomial-time construction"
-
-### Isabelle Formalization
-- Encode the propositions from the paper
-- Show Proposition 7's dependency on unproven polynomial-time construction
-- Prove the circularity in the argument
-
-## Related Work
-
-This type of error is common in P vs NP attempts:
-- Confusing problem representation with problem solution
-- Assuming access to non-standard computational models
-- Moving exponential complexity into the "setup" phase
+```
+michel-feldmann-2012-peqnp/
+├── README.md              ← This file (overview and error explanation)
+├── original/
+│   ├── README.md          ← Paper description and metadata
+│   ├── ORIGINAL.md        ← Markdown conversion of the paper
+│   └── ORIGINAL.pdf       ← Original paper PDF (arXiv:1205.6658)
+├── proof/
+│   ├── README.md          ← Explanation of the forward formalization
+│   ├── lean/
+│   │   └── FeldmannProof.lean  ← Lean 4 forward proof attempt
+│   └── rocq/
+│       └── FeldmannProof.v     ← Rocq forward proof attempt
+└── refutation/
+    ├── README.md          ← Explanation of the refutation
+    ├── lean/
+    │   └── FeldmannRefutation.lean  ← Lean 4 refutation
+    └── rocq/
+        └── FeldmannRefutation.v     ← Rocq refutation
+```
 
 ## References
 
 1. Feldmann, M. (2020). "Solving satisfiability by Bayesian inference." arXiv:1205.6658v5
 2. Cook, S. (1971). "The complexity of theorem proving procedures." STOC 1971.
 3. Karp, R. (1972). "Reducibility among combinatorial problems."
-4. Woeginger, G. "[The P-versus-NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm)" - Entry #86
-
-## Status
-
-- [x] Folder structure created
-- [x] Paper analyzed
-- [x] README.md created
-- [ ] Rocq formalization
-- [ ] Lean formalization
-- [ ] Isabelle formalization
-
----
-
-**Last Updated**: 2025-10-26
-**Formalization Status**: In Progress
+4. Khachiyan, L. (1979). "A polynomial algorithm in linear programming."
+5. Woeginger, G. "The P-versus-NP page" — Entry #90: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
