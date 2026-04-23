@@ -85,7 +85,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Moustapha Diaby | 2004 | [M](moustapha-diaby-2004-peqnp/) | - | - |
 | ✓ | Narendra S. Chaudhari | 2009 | [N](narendra-chaudhari-2009-peqnp/) | - | 🔷 🔶 |
 | ? | Ncada Costa Fa Doria | 2003 | [F](ncada-costa-fa-doria-2003-unprovable/) | - | - |
-| ✓ | Peng Cui | 2014 | [P](peng-cui-2014-peqnp/) | - | - |
+| ✓ | Peng Cui | 2014 | [P](peng-cui-2014-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Wen-Qi Duan | 2012 | [Q](qi-duan-2012-peqnp/) | - | - |
 | ✗ | Radoslaw Hofman | 2006 | [R](radoslaw-hofman-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Rafael Valls Hidalgo-Gato | 2009 | [R](rafael-valls-hidalgo-gato-2009-peqnp/) | 📄 | 🔷 🔶 |
@@ -126,7 +126,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
 - **With ORIGINAL.md:** 28
-- **With original paper:** 21
+- **With original paper:** 22
 - **With proof/ directory:** 33
 - **With refutation/ directory:** 34
 - **With Lean formalization:** 34
