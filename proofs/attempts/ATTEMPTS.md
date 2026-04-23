@@ -75,7 +75,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
 | ✗ | Mathias Hauptmann | 2016 | [M](mathias-hauptmann-2016-pneqnp/) | - | - |
 | ✓ | Michael LaPlante | 2015 | [M](michael-laplante-2015-peqnp/) | - | - |
-| ✓ | Michel Feldmann | 2012 | [M](michel-feldmann-2012-peqnp/) | - | - |
+| ✓ | Michel Feldmann | 2012 | [M](michel-feldmann-2012-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Mikhail Katkov | 2010 | [M](mikhail-katkov-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Mikhail N. Kupchik | 2004 | [M](mikhail-kupchik-2004-pneqnp/) | - | - |
 | ✗ | Minseong Kim | 2012 | [M](minseong-kim-2012-pneqnp/) | - | - |
@@ -124,12 +124,12 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 - **Claims P = NP:** 57
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 29
-- **With original paper:** 22
-- **With proof/ directory:** 34
-- **With refutation/ directory:** 35
-- **With Lean formalization:** 35
-- **With Rocq formalization:** 35
+- **With ORIGINAL.md:** 30
+- **With original paper:** 23
+- **With proof/ directory:** 35
+- **With refutation/ directory:** 36
+- **With Lean formalization:** 36
+- **With Rocq formalization:** 36
 
 ---
 
