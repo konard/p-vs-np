@@ -230,7 +230,7 @@ Theorem deolalikar_approach_fails :
   (* 4. Solution space complexity ≠ decision complexity *)
   True.
 Proof.
-  refine (conj lfp_breaks_locality (conj _ (conj trivial trivial))).
+  refine (conj lfp_breaks_locality (conj _ (conj I I))).
   intros p alg H x. exact (H x).
 Qed.
 
