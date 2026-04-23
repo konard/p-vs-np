@@ -1,5 +1,5 @@
 /-
-  VegaDelgado2012.lean - Formalization of Vega Delgado's 2012 P≠NP proof attempt
+  VegaDelgado2012Proof.lean - Formalization of Vega Delgado's 2012 P≠NP proof attempt
 
   This file formalizes Frank Vega Delgado's 2012 proof attempt that P ≠ NP,
   which claims to derive a contradiction from P = UP by showing it implies EXP = P.
@@ -7,6 +7,8 @@
   Expected outcome: The proof should fail at the step attempting to derive
   EXP = P from P = UP, as this implication cannot be justified.
 -/
+
+namespace VegaDelgado2012ProofAttempt
 
 -- Basic complexity theory definitions
 
@@ -235,4 +237,6 @@ axiom vega_delgado_insufficient :
 -- #check vega_delgado_claim  -- This depends on unprovable axiom
 -- #check vega_delgado_insufficient  -- This is an axiom (unprovable)
 
-#print "✓ Vega Delgado 2012 proof attempt formalized - errors identified"
+end VegaDelgado2012ProofAttempt
+
+-- Vega Delgado 2012 proof attempt formalized - errors identified

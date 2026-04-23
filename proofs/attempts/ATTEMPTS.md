@@ -48,8 +48,9 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Douglas Youvan | 2012 | [D](douglas-youvan-2012-peqnp/) | - | - |
 | ✓ | Dr. Joachim Mertz | 2005 | [D](dr-joachim-mertz-2005-peqnp/) | - | - |
 | ✓ | Eli Halylaurin | 2016 | [E](eli-halylaurin-2016-peqnp/) | - | - |
-| ✗ | Javier A. Arroyo-Figueroa | 2016 | [F](figueroa-2016-pneqnp/) | - | - |
+| ✗ | Javier A. Arroyo-Figueroa | 2016 | [F](figueroa-2016-pneqnp/) | 📎 | 🔷 🔶 |
 | ✓ | Francesco Capasso | 2005 | [F](francesco-capasso-2005-peqnp/) | - | - |
+| ✗ | Frank Vega Delgado | 2010 | [F](frank-vega-delgado-2010-pneqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Frederic Gillet | 2013 | [F](frederic-gillet-2013-peqnp/) | - | - |
 | ✓ | Guohun Zhu | 2007 | [G](guohun-zhu-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Jose Ignacio Alvarez-Hamelin | 2011 | [F](hamelin-2011-peqnp/) | - | - |
@@ -108,7 +109,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Steven Meyer | 2016 | [S](steven-meyer-2016-peqnp/) | - | - |
 | ✓ | Tang Pushan (唐普山) | 1997 | [T](tang-pushan-1997-peqnp/) | - | - |
 | ✓ | Ted Swart (University of Guelph) | 1986 | [F](ted-swart-1986-87-peqnp/) | - | - |
-| ✗ | Frank Vega Delgado | 2012 | [V](vega-delgado-2012-pneqnp/) | - | - |
+| ✗ | Frank Vega Delgado | 2012 | [V](vega-delgado-2012-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Viktor V. Ivanov | 2005 | [V](viktor-ivanov-2005-pneqnp/) | - | - |
 | ✓ | Xinwen Jiang | 2009 | [X](xinwen-jiang-2009-peqnp/) | - | 🔷 🔶 |
 | ✓ | Yann Dujardin | 2009 | [Y](yann-dujardin-2009-peqnp/) | - | - |
@@ -120,16 +121,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 100
+- **Total attempts:** 101
 - **Claims P = NP:** 57
-- **Claims P ≠ NP:** 42
+- **Claims P ≠ NP:** 43
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 27
-- **With original paper:** 20
-- **With proof/ directory:** 32
-- **With refutation/ directory:** 32
-- **With Lean formalization:** 32
-- **With Rocq formalization:** 32
+- **With ORIGINAL.md:** 30
+- **With original paper:** 22
+- **With proof/ directory:** 35
+- **With refutation/ directory:** 36
+- **With Lean formalization:** 36
+- **With Rocq formalization:** 36
 
 ---
 
