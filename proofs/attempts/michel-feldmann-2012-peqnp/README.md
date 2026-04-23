@@ -70,15 +70,13 @@ Feldmann's framework uses **exact real arithmetic** (continuous probability dist
 - ✗ **Not Proved**: The LP system can be constructed from a SAT formula in polynomial time
 - ✗ **Not Proved**: P = NP
 
-## Folder Structure
+## Files
 
 ```
 michel-feldmann-2012-peqnp/
 ├── README.md              ← This file (overview and error explanation)
-├── original/
-│   ├── README.md          ← Paper description and metadata
-│   ├── ORIGINAL.md        ← Markdown conversion of the paper
-│   └── ORIGINAL.pdf       ← Original paper PDF (arXiv:1205.6658)
+├── ORIGINAL.md            ← Markdown conversion of the paper
+├── ORIGINAL.pdf           ← Original paper PDF (arXiv:1205.6658)
 ├── proof/
 │   ├── README.md          ← Explanation of the forward formalization
 │   ├── lean/
@@ -92,6 +90,11 @@ michel-feldmann-2012-peqnp/
     └── rocq/
         └── FeldmannRefutation.v     ← Rocq refutation
 ```
+
+- [`ORIGINAL.pdf`](ORIGINAL.pdf) — Original paper from arXiv
+- [`ORIGINAL.md`](ORIGINAL.md) — Markdown conversion of the paper
+- [`proof/`](proof/) — Forward formalization of Feldmann's argument
+- [`refutation/`](refutation/) — Formalization of the proof gaps
 
 ## References
 
