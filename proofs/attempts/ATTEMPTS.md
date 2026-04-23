@@ -93,7 +93,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Raju Renjit Grover | 2005 | [R](renjit-grover-2005-pneqnp/) | - | - |
 | ✓ | Riaz Khiyal | 2006 | [K](riaz-khiyal-2006-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Gilberto Rodrigo Diduch | 2012 | [R](rodrigo-diduch-2012-pneqnp/) | 📄 📎 | 🔷 🔶 |
-| ✗ | Roman V. Yampolskiy | 2011 | [F](roman-yampolskiy-2011-pneqnp/) | - | - |
+| ✗ | Roman V. Yampolskiy | 2011 | [F](roman-yampolskiy-2011-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Ron A. Cohen | 2005 | [F](ron-cohen-2005-pneqnp/) | - | - |
 | ✗ | Rubens Ramos Viana | 2006 | [R](rubens-ramos-viana-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Alejandro Sanchez Guinea | 2015 | [S](sanchez-guinea-2015-peqnp/) | - | - |

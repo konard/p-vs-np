@@ -1,19 +1,23 @@
 /-
-  YampolskiyHPTSP.lean - Formalization of Yampolskiy's 2011 P≠NP attempt
+  YampolskiyProof.lean - Forward proof formalization of Yampolskiy's 2011 P≠NP attempt
 
   This file formalizes the "Hashed-Path Traveling Salesperson Problem" (HPTSP)
   from Yampolskiy's 2011 paper "Construction of an NP Problem with an
   Exponential Lower Bound" (arXiv:1111.0305).
 
-  The formalization demonstrates:
-  1. HPTSP is well-defined and in NP (✓ proven)
-  2. The claimed proof that HPTSP ∉ P contains logical gaps (✓ identified)
-  3. The argument relies on unproven cryptographic assumptions (✓ marked with sorry)
+  Following the original paper's argument:
+  1. Define HPTSP (the problem Yampolskiy introduces)
+  2. Prove HPTSP ∈ NP (Yampolskiy's Section 4) - this part is correct
+  3. Attempt to prove HPTSP ∉ P (Yampolskiy's Section 5) - this is where gaps appear
 
-  Status: ⚠️ Incomplete - requires unjustified assumptions to complete Yampolskiy's argument
+  The forward formalization makes Yampolskiy's original argument explicit, showing
+  exactly which steps require unjustified axioms and cannot be formally proven.
+
+  Status: ⚠️ Incomplete - requires unjustified assumptions to complete Yampolskiy's argument.
+  See ../refutation/ for formal analysis of why each step fails.
 -/
 
-namespace YampolskiyHPTSP
+namespace YampolskiyProof
 
 /-! Basic Complexity Theory Definitions -/
 
@@ -258,4 +262,4 @@ def incomplete_proof_marker : String :=
 #check HPTSP_verification_poly_time
 -- #check HPTSP_requires_exponential_time  -- Uses axiom!
 
-end YampolskiyHPTSP
+end YampolskiyProof
