@@ -20,7 +20,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Anatoly Panyukov | 2014 | [A](anatoly-panyukov-2014-peqnp/) | - | - |
 | ✓ | Anatoly D. Plotnikov | 2007 | [A](anatoly-plotnikov-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Andrea Bianchini | 2005 | [A](andrea-bianchini-2005-peqnp/) | - | - |
-| ✓ | Algirdas Antano Maknickas | 2011 | [F](antano-maknickas-2011-peqnp/) | - | - |
+| ✓ | Algirdas Antano Maknickas | 2011 | [F](antano-maknickas-2011-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Ari Blinder | 2009 | [A](ari-blinder-2009-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Arto Annila | 2009 | [A](arto-annila-2009-pneqnp/) | - | - |
 | ✓ | Frank Vega | 2015 | [F](author104-2015-peqnp/) | 📄 📎 | 🔷 🔶 |
@@ -48,7 +48,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Douglas Youvan | 2012 | [D](douglas-youvan-2012-peqnp/) | - | - |
 | ✓ | Dr. Joachim Mertz | 2005 | [D](dr-joachim-mertz-2005-peqnp/) | - | - |
 | ✓ | Eli Halylaurin | 2016 | [E](eli-halylaurin-2016-peqnp/) | - | - |
-| ✗ | Javier A. Arroyo-Figueroa | 2016 | [F](figueroa-2016-pneqnp/) | - | - |
+| ✗ | Javier A. Arroyo-Figueroa | 2016 | [F](figueroa-2016-pneqnp/) | 📎 | 🔷 🔶 |
 | ✓ | Francesco Capasso | 2005 | [F](francesco-capasso-2005-peqnp/) | - | - |
 | ✓ | Frederic Gillet | 2013 | [F](frederic-gillet-2013-peqnp/) | - | - |
 | ✓ | Guohun Zhu | 2007 | [G](guohun-zhu-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
@@ -124,12 +124,12 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 - **Claims P = NP:** 57
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 27
-- **With original paper:** 20
-- **With proof/ directory:** 32
-- **With refutation/ directory:** 32
-- **With Lean formalization:** 32
-- **With Rocq formalization:** 32
+- **With ORIGINAL.md:** 28
+- **With original paper:** 22
+- **With proof/ directory:** 33
+- **With refutation/ directory:** 34
+- **With Lean formalization:** 34
+- **With Rocq formalization:** 34
 
 ---
 
