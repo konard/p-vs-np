@@ -55,15 +55,15 @@ Definition InNP (problem : DecisionProblem) : Prop :=
 (* ============================================================ *)
 (* REFUTATION 1: HasManyWitnesses DOES NOT SEPARATE P FROM NP   *)
 (*                                                              *)
-(* Many P problems have multiple witnesses, so "having many     *)
-(* witnesses" does not characterize NP \ P.                     *)
+(* Many P problems have multiple witnesses, so having many      *)
+(* witnesses does not characterize NP \ P.                      *)
 (* ============================================================ *)
 
 Definition HasManyWitnesses (problem : DecisionProblem) : Prop :=
   forall x : string, problem x ->
     exists witnesses : list string,
       List.length witnesses >= 2 /\
-      forall w, List.In w witnesses -> w <> "".
+      forall w, List.In w witnesses -> String.length w > 0.
 
 (* Refutation: a P problem can have many witnesses *)
 (* For "Is x non-empty?", both "a" and "b" would be witnesses *)
