@@ -33,6 +33,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Givi Bolotashvili | 2003 | [B](author7-2003-peqnp/) | - | - |
 | ✗ | Unknown (Hubert Chen's webpage) | 2003 | [F](author8-2003-pneqnp/) | - | - |
 | ✓ | Algirdas Antano Maknickas | 2013 | [F](author93-2013-peqnp/) | - | - |
+| ✗ | Bangyan Wen Yi Lin | 2010 | [B](bangyan-wen-yi-lin-2010-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Bhupinder Singh Anand | 2008 | [B](bhupinder-singh-anand-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Carlos Barron-Romero | 2010 | [C](carlos-barron-romero-2010-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Changlin Wan (with Zhongzhi Shi) | 2010 | [C](changlin-wan-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
@@ -48,7 +49,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Douglas Youvan | 2012 | [D](douglas-youvan-2012-peqnp/) | - | - |
 | ✓ | Dr. Joachim Mertz | 2005 | [D](dr-joachim-mertz-2005-peqnp/) | - | - |
 | ✓ | Eli Halylaurin | 2016 | [E](eli-halylaurin-2016-peqnp/) | - | - |
-| ✗ | Javier A. Arroyo-Figueroa | 2016 | [F](figueroa-2016-pneqnp/) | - | - |
+| ✗ | Javier A. Arroyo-Figueroa | 2016 | [F](figueroa-2016-pneqnp/) | 📎 | 🔷 🔶 |
 | ✓ | Francesco Capasso | 2005 | [F](francesco-capasso-2005-peqnp/) | - | - |
 | ✓ | Frederic Gillet | 2013 | [F](frederic-gillet-2013-peqnp/) | - | - |
 | ✓ | Guohun Zhu | 2007 | [G](guohun-zhu-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
@@ -120,16 +121,16 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 
 ## Statistics
 
-- **Total attempts:** 100
+- **Total attempts:** 101
 - **Claims P = NP:** 57
-- **Claims P ≠ NP:** 42
+- **Claims P ≠ NP:** 43
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 27
-- **With original paper:** 20
-- **With proof/ directory:** 32
-- **With refutation/ directory:** 32
-- **With Lean formalization:** 32
-- **With Rocq formalization:** 32
+- **With ORIGINAL.md:** 29
+- **With original paper:** 22
+- **With proof/ directory:** 34
+- **With refutation/ directory:** 35
+- **With Lean formalization:** 35
+- **With Rocq formalization:** 35
 
 ---
 
