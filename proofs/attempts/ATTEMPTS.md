@@ -48,7 +48,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Douglas Youvan | 2012 | [D](douglas-youvan-2012-peqnp/) | - | - |
 | ✓ | Dr. Joachim Mertz | 2005 | [D](dr-joachim-mertz-2005-peqnp/) | - | - |
 | ✓ | Eli Halylaurin | 2016 | [E](eli-halylaurin-2016-peqnp/) | - | - |
-| ✗ | Javier A. Arroyo-Figueroa | 2016 | [F](figueroa-2016-pneqnp/) | - | - |
+| ✗ | Javier A. Arroyo-Figueroa | 2016 | [F](figueroa-2016-pneqnp/) | 📎 | 🔷 🔶 |
 | ✓ | Francesco Capasso | 2005 | [F](francesco-capasso-2005-peqnp/) | - | - |
 | ✓ | Frederic Gillet | 2013 | [F](frederic-gillet-2013-peqnp/) | - | - |
 | ✓ | Guohun Zhu | 2007 | [G](guohun-zhu-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
@@ -60,7 +60,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Junichiro Fukuyama | 2012 | [I](infotechnology-center-2012-pneqnp/) | - | - |
 | ✓ | Jason W Steinmetz | 2011 | [J](jason-w-steinmetz-2011-peqnp/) | - | - |
 | ✓ | Javaid Aslam | 2008 | [J](javaid-aslam-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
-| ✗ | Jeffrey W. Holcomb | 2011 | [J](jeffrey-w-holcomb-2011-pneqnp/) | - | - |
+| ✗ | Jeffrey W. Holcomb | 2011 | [J](jeffrey-w-holcomb-2011-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Jerrald Meek | 2008 | [J](jerrald-meek-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Joonmo Kim | 2014 | [J](joonmo-kim-2014-pneqnp/) | - | - |
 | ✗ | Jorma Jormakka | 2008 | [J](jorma-jormakka-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
@@ -124,12 +124,12 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 - **Claims P = NP:** 57
 - **Claims P ≠ NP:** 42
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 27
-- **With original paper:** 20
-- **With proof/ directory:** 32
-- **With refutation/ directory:** 32
-- **With Lean formalization:** 32
-- **With Rocq formalization:** 32
+- **With ORIGINAL.md:** 28
+- **With original paper:** 22
+- **With proof/ directory:** 33
+- **With refutation/ directory:** 34
+- **With Lean formalization:** 34
+- **With Rocq formalization:** 34
 
 ---
 
