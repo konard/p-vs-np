@@ -42,7 +42,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Daegene Song | 2014 | [D](daegene-song-2014-pneqnp/) | - | - |
 | ✗ | Daniel Uribe | 2016 | [D](daniel-uribe-2016-pneqnp/) | - | - |
 | ✓ | Delacorte Czerwinski | 2007 | [D](delacorte-czerwinski-2007-peqnppspace/) | 📄 📎 | 🔷 🔶 |
-| ✗ | Vinay Deolalikar | 2010 | [V](deolalikar-2010-pneqnp/) | - | - |
+| ✗ | Vinay Deolalikar | 2010 | [V](deolalikar-2010-pneqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Dhami | 2014 | [D](dhami-2014-peqnp/) | - | - |
 | ✓ | Dmitriy Nuriyev | 2013 | [D](dmitriy-nuriyev-2013-peqnp/) | - | - |
 | ✓ | Douglas Youvan | 2012 | [D](douglas-youvan-2012-peqnp/) | - | - |
