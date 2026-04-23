@@ -71,11 +71,12 @@ def P_not_equals_NP : Prop := ¬P_equals_NP
 /-- Two classes with different definitions can contain the same problems -/
 theorem definition_difference_insufficient :
     -- Two differently-defined subsets of TimeComplexity can be equal
-    let class_A : TimeComplexity → Prop := fun f => ∃ k, ∀ n, f n ≤ n ^ (2 * k)
-    let class_B : TimeComplexity → Prop := fun f => ∃ k, ∀ n, f n ≤ n ^ k
+    -- class_A: bound of the form n^(2k); class_B: bound of the form n^k
     -- A's definition multiplies the exponent by 2, B's doesn't — they differ syntactically
     -- Yet class_A ⊆ class_B (every bound of the form n^(2k) is also of the form n^k' for k'=2k)
-    ∀ f, class_A f → class_B f := by
+    ∀ (f : TimeComplexity),
+      (∃ k, ∀ n, f n ≤ n ^ (2 * k)) →
+      (∃ k, ∀ n, f n ≤ n ^ k) := by
   intro f hA
   obtain ⟨k, hk⟩ := hA
   exact ⟨2 * k, hk⟩
@@ -102,10 +103,10 @@ theorem epistemological_gap :
     -- that doesn't prove one doesn't exist
     ¬ (∀ (knowledgeBase : TuringMachine → Prop),
         -- If no TM in our knowledge base decides SAT in polynomial time...
-        (¬ ∃ tm, knowledgeBase tm ∧ IsPolynomialTime tm.time ∧
+        (¬ ∃ (tm : TuringMachine), knowledgeBase tm ∧ IsPolynomialTime tm.time ∧
            ∀ x, SAT x ↔ tm.decide x = true) →
         -- ...then no TM at all can decide SAT in polynomial time
-        ¬ ∃ tm, IsPolynomialTime tm.time ∧ ∀ x, SAT x ↔ tm.decide x = true) := by
+        ¬ ∃ (tm : TuringMachine), IsPolynomialTime tm.time ∧ ∀ x, SAT x ↔ tm.decide x = true) := by
   intro h_invalid_reasoning
   /-
     The statement being negated says: "if we don't know a polynomial SAT solver,
