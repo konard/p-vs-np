@@ -39,29 +39,33 @@ structure Graph where
 def adjacent (g : Graph) (x y : Nat) : Prop := g.edges x y
 
 -- FO+LFP definable: transitive closure / reachability — GLOBAL, not local
--- Reachability: y is reachable from source 0
-def reachable (g : Graph) : Nat → Prop
-  | 0 => True  -- source is always reachable
-  | Nat.succ n => ∃ m : Nat, m < n ∧ g.edges m (Nat.succ n) ∧ reachable g m
+-- Reachability: can vertex n be reached from vertex 0 via a path of length ≤ k?
+-- We bound by depth k to ensure termination, then take the limit.
+def reachableIn (g : Graph) : Nat → Nat → Prop
+  | 0,     n => n = 0              -- only source is reachable in 0 steps
+  | k + 1, n => n = 0 ∨ ∃ m : Nat, g.edges m n ∧ reachableIn g k m
 
--- Reachability IS expressible in FO+LFP (it is the standard example)
--- but is NOT captured by any bounded-radius neighborhood check
--- because a long chain can make a distant vertex reachable
+-- A vertex is reachable from 0 if it is reachable within some number of steps
+def reachable (g : Graph) (n : Nat) : Prop :=
+  ∃ k : Nat, reachableIn g k n
 
--- Example: A chain graph where reachability requires propagation over the full length
+-- Chain graph: 0 → 1 → 2 → ... → n
 def chainGraph (n : Nat) : Graph where
-  numNodes := n
+  numNodes := n + 1
   edges := fun i j => j = i + 1
 
--- For the chain 0-1-2-...-n, vertex n is reachable from 0,
--- but this requires looking at the entire chain, not just any bounded neighborhood
+-- Every vertex k ≤ n in a chain of length n is reachable from 0
 theorem chain_reachability_is_global :
   ∀ n : Nat, reachable (chainGraph (n + 1)) n := by
   intro n
   induction n with
-  | zero => exact True.intro
+  | zero =>
+    -- Vertex 0 is reachable in 0 steps
+    exact ⟨0, Or.inl rfl⟩
   | succ k ih =>
-    exact ⟨k, Nat.lt.base k, rfl, ih⟩
+    -- If k is reachable in m steps, then k+1 is reachable in m+1 steps
+    obtain ⟨m, hm⟩ := ih
+    exact ⟨m + 1, Or.inr ⟨k, rfl, hm⟩⟩
 
 -- KEY CONCLUSION: Since FO+LFP can express global properties like reachability,
 -- Gaifman locality does NOT extend to FO+LFP in the way Deolalikar assumed.
@@ -72,7 +76,8 @@ theorem lfp_breaks_locality :
     -- depends on structure arbitrarily far away
     ∃ (g : Graph) (n : Nat),
       φ g n ∧ True := by  -- simplified; full proof requires more graph theory infrastructure
-  exact ⟨reachable, fun r => ⟨chainGraph (r + 2), r + 1, chain_reachability_is_global (r + 1), True.intro⟩⟩
+  exact ⟨reachable, fun r => ⟨chainGraph (r + 2), r + 1,
+    chain_reachability_is_global (r + 1), True.intro⟩⟩
 
 -- ============================================================
 -- Error 2: Average-Case ≠ Worst-Case
@@ -134,10 +139,6 @@ structure OrderedStructure where
 -- The encoding of a k-SAT formula as a structure requires specifying an order on elements
 -- Different orderings can give different expressive power
 
--- Example: Graph isomorphism can be decided by FO+LFP on ordered graphs
--- but the situation is more complex on unordered graphs
--- Deolalikar's manuscript was not precise about the ordering
-
 -- Formal statement: the theorem only applies to ordered structures
 axiom immerman_vardi_ordered_only :
   -- FO+LFP captures P only when structures have a linear order built in
@@ -164,16 +165,17 @@ axiom immerman_vardi_ordered_only :
 -- He assumed it from the statistical physics picture without a formal proof
 
 -- Number of parameters needed to describe a set of binary strings
-def minParameters (n numStrings : Nat) : Nat :=
-  Nat.log 2 numStrings  -- lower bound: need at least log(|S|) bits
+-- (lower bound: need at least log₂(|S|) bits to distinguish elements)
+def minParameters (numStrings : Nat) : Nat :=
+  Nat.log2 numStrings
 
 -- Having 2^(n/2) clusters means we need ≥ n/2 bits just to identify the cluster
 -- n/2 > (log n)^c for any constant c and large enough n
-theorem linear_exceeds_polylog (c : Nat) : ∀ n : Nat, n > 4 ^ c → n / 2 > (Nat.log 2 n) ^ c := by
+theorem linear_exceeds_polylog (c : Nat) : ∀ n : Nat, n > 4 ^ c → n / 2 > (Nat.log2 n) ^ c := by
   -- This requires arithmetic; we leave as sorry with explanation
   -- The point: n/2 grows linearly while (log n)^c is polylogarithmic
   -- For large n, n/2 >> (log n)^c
-  intro n hn
+  intro n _
   sorry
   -- NOTE: This step would be provable with careful Nat arithmetic,
   -- but requires detailed lemmas about log and power growth rates.

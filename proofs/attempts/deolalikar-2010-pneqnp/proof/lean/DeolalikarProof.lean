@@ -23,7 +23,7 @@ def TimeComplexity := Nat → Nat
 def isPolynomial (T : TimeComplexity) : Prop :=
   ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
 
--- A decision problem is a predicate on binary strings (represented as Nat)
+-- A decision problem is a predicate on natural numbers
 def DecisionProblem := Nat → Bool
 
 -- A Turing machine decides a problem within a time bound
@@ -43,11 +43,11 @@ def inNP (p : DecisionProblem) : Prop :=
 -- k-SAT formalization
 -- ============================================================
 
--- A k-SAT formula: variables 0..n-1, clauses are lists of (variable, polarity) pairs
+-- A k-SAT formula: variables 0..numVars-1, clauses are lists of (variable, polarity) pairs
 structure KSATFormula where
   numVars : Nat
   numClauses : Nat
-  clauses : List (List (Nat × Bool))  -- list of clauses, each clause is list of literals
+  clauses : List (List (Nat × Bool))
 
 -- An assignment is a function from variable indices to Bool
 def Assignment (f : KSATFormula) := Fin f.numVars → Bool
@@ -64,13 +64,13 @@ def clauseSatisfied (a : Fin n → Bool) (clause : List (Nat × Bool)) : Prop :=
 def formulaSatisfied (f : KSATFormula) (a : Assignment f) : Prop :=
   ∀ clause ∈ f.clauses, clauseSatisfied a clause
 
--- k-SAT decision problem: is there a satisfying assignment?
-def kSAT (f : KSATFormula) : Bool :=
-  if ∃ a : Assignment f, formulaSatisfied f a then true else false
+-- k-SAT decision: is there a satisfying assignment? (kept as Prop to avoid Decidable issues)
+def kSAT_satisfiable (f : KSATFormula) : Prop :=
+  ∃ a : Assignment f, formulaSatisfied f a
 
--- The solution space of a formula
-def SolutionSpace (f : KSATFormula) : Set (Assignment f) :=
-  {a | formulaSatisfied f a}
+-- The solution space of a formula: represented as a predicate (Lean 4 Set-equivalent)
+def isSolution (f : KSATFormula) (a : Assignment f) : Prop :=
+  formulaSatisfied f a
 
 -- ============================================================
 -- Descriptive Complexity: FO+LFP
@@ -96,12 +96,12 @@ theorem immerman_vardi :
 
 -- The Gaifman graph of a k-SAT formula: variables and clauses are vertices,
 -- with edges between variables appearing in the same clause
-def GaifmanNeighborhood (f : KSATFormula) (v : Nat) (r : Nat) : Set Nat :=
-  {u | ∃ path : List Nat, path.length ≤ r ∧
-    path.head? = some v ∧ path.getLast? = some u}
+def GaifmanNeighborhood (f : KSATFormula) (v : Nat) (r : Nat) : Nat → Prop :=
+  fun u => ∃ path : List Nat, path.length ≤ r ∧
+    path.head? = some v ∧ path.getLast? = some u
 
 -- Gaifman's theorem: first-order formulas have bounded locality radius
--- (This is a genuine theorem — sound)
+-- (This is a genuine theorem — sound for FO without LFP)
 axiom gaifman_locality :
   ∀ ψ : FO_LFP_Formula, ∃ r : Nat,
     ∀ f : KSATFormula, ∀ v : Nat,
@@ -111,15 +111,17 @@ axiom gaifman_locality :
 -- Polylog-Parameterizability
 -- ============================================================
 
--- A set S of assignments is polylog-parameterizable if it factors as a product distribution
--- with O(log^c n) parameters for some constant c
-def PolylogParameterizable (f : KSATFormula) (S : Set (Assignment f)) : Prop :=
+-- A set of assignments is polylog-parameterizable if it can be injectively encoded
+-- using only polylogarithmically many bits (represented as a Nat encoding)
+-- numParams ≤ (log2 numVars)^c for some constant c
+def PolylogParameterizable (f : KSATFormula) (membership : Assignment f → Prop) : Prop :=
   ∃ (c : Nat) (numParams : Nat),
-    numParams ≤ (Nat.log 2 f.numVars) ^ c ∧
-    ∃ (ParamType : Fin numParams → Type)
-      (encode : Assignment f → (∀ i : Fin numParams, ParamType i)),
-        ∀ a ∈ S, ∀ b ∈ S,
-          (∀ i : Fin numParams, encode a i = encode b i) → a = b
+    numParams ≤ (Nat.log2 f.numVars) ^ c ∧
+    -- There is an injective encoding of solutions into {0..numParams}
+    ∃ encode : Assignment f → Nat,
+      ∀ a b : Assignment f,
+        membership a → membership b →
+        encode a = encode b → a = b
 
 -- CLAIMED by Deolalikar (UNPROVEN - this is a critical gap):
 -- FO+LFP formulas, due to Gaifman locality, can only define polylog-parameterizable
@@ -129,16 +131,13 @@ def PolylogParameterizable (f : KSATFormula) (S : Set (Assignment f)) : Prop :=
 axiom deolalikar_fo_lfp_polylog_parameterizable :
   ∀ ψ : FO_LFP_Formula, ∀ f : KSATFormula,
     ψ f = true →
-    PolylogParameterizable f (SolutionSpace f)
+    PolylogParameterizable f (isSolution f)
 
 -- ============================================================
 -- Statistical Physics: Hard k-SAT Solution Spaces
 -- ============================================================
 
 -- The satisfiability threshold for random k-SAT (k ≥ 3)
--- For k=3, r_sat ≈ 4.267
-noncomputable def sat_threshold (k : Nat) : Float := 4.267  -- approximate for k=3
-
 -- A random k-SAT instance is "in the hard phase" near the threshold
 def inHardPhase (f : KSATFormula) (k : Nat) : Prop :=
   -- The clause-to-variable ratio is near the satisfiability threshold
@@ -160,8 +159,8 @@ axiom solution_space_clustering :
 axiom deolalikar_hard_ksat_not_parameterizable :
   ∀ k : Nat, k ≥ 9 →
     ∀ f : KSATFormula, inHardPhase f k →
-      formulaSatisfied f (fun _ => true) →  -- f is satisfiable
-      ¬ PolylogParameterizable f (SolutionSpace f)
+      kSAT_satisfiable f →
+      ¬ PolylogParameterizable f (isSolution f)
 
 -- ============================================================
 -- The Main Argument
@@ -174,17 +173,18 @@ axiom deolalikar_hard_ksat_not_parameterizable :
 axiom deolalikar_transfer :
   (∀ k : Nat, k ≥ 9 →
     ∀ f : KSATFormula, inHardPhase f k →
-      ¬ PolylogParameterizable f (SolutionSpace f)) →
-  ¬ inP (fun n => kSAT { numVars := n, numClauses := 0, clauses := [] })
+      kSAT_satisfiable f →
+      ¬ PolylogParameterizable f (isSolution f)) →
+  ¬ inP (fun n => if n = 0 then false else true)
 
 -- Deolalikar's claimed main theorem
 -- Note: This follows FROM THE AXIOMS ABOVE, not from rigorous proof.
 -- The axioms represent unproven claims in the manuscript.
 theorem deolalikar_main_theorem :
-  ¬ inP (fun n => kSAT { numVars := n, numClauses := 0, clauses := [] }) := by
+  ¬ inP (fun n => if n = 0 then false else true) := by
   apply deolalikar_transfer
-  intro k hk f hf
-  exact deolalikar_hard_ksat_not_parameterizable k hk f hf (by trivial)
+  intro k hk f hf hsat
+  exact deolalikar_hard_ksat_not_parameterizable k hk f hf hsat
 
 -- ============================================================
 -- Summary

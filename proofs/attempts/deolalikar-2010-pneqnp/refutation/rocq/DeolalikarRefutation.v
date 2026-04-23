@@ -11,10 +11,10 @@
   4. The parameterizability lower bound was never proved
 *)
 
-Require Import Coq.Init.Nat.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Lists.List.
-Require Import Coq.micromega.Lia.
+From Stdlib Require Import Init.Nat.
+From Stdlib Require Import Arith.PeanoNat.
+From Stdlib Require Import Lists.List.
+From Stdlib Require Import micromega.Lia.
 Import ListNotations.
 
 Module DeolalikarRefutation.
@@ -34,14 +34,21 @@ Record Graph := {
 Axiom gaifman_fo_only :
   True.  (* placeholder for the genuine theorem about FO locality *)
 
-(* Reachability: can we reach node n from node 0 in graph g?
+(* Reachability bounded by depth k: can we reach node n from node 0
+   in at most k steps?
    This is definable in FO+LFP (via the transitive closure / LFP)
-   but is a GLOBAL property, not local to any bounded neighborhood. *)
-Fixpoint reachable (g : Graph) (n : nat) : Prop :=
-  match n with
-  | 0 => True  (* source node 0 is always reachable from itself *)
-  | S k => exists m : nat, g_edges g m (S k) /\ reachable g m
+   but is a GLOBAL property, not local to any bounded neighborhood.
+   We parameterize by depth k to give Coq a structural recursion argument. *)
+Fixpoint reachableIn (g : Graph) (k : nat) (n : nat) : Prop :=
+  match k with
+  | 0 => n = 0  (* only source node 0 is reachable in 0 steps *)
+  | S k' => n = 0 \/ exists m : nat, g_edges g m n /\ reachableIn g k' m
   end.
+
+(* A node is reachable from 0 if there exists some depth k such that it is
+   reachable in k steps *)
+Definition reachable (g : Graph) (n : nat) : Prop :=
+  exists k : nat, reachableIn g k n.
 
 (* A chain graph: 0 -> 1 -> 2 -> ... -> n *)
 Definition chainGraph (n : nat) : Graph := {|
@@ -54,13 +61,18 @@ Lemma chain_reachable : forall n k : nat, k <= n -> reachable (chainGraph n) k.
 Proof.
   intros n k hk.
   induction k as [| k' IH].
-  - simpl. trivial.
-  - simpl.
+  - (* k = 0: source is reachable in 0 steps *)
+    exists 0. simpl. reflexivity.
+  - (* k = k'+1: if k' is reachable, then k'+1 is reachable in one more step *)
     assert (hk' : k' <= n) by lia.
+    destruct (IH hk') as [m hm].
+    exists (S m).
+    simpl.
+    right.
     exists k'.
     split.
     + simpl. lia.
-    + exact (IH hk').
+    + exact hm.
 Qed.
 
 (* KEY: Reachability requires checking the entire chain, not just a bounded neighborhood.
@@ -218,7 +230,7 @@ Theorem deolalikar_approach_fails :
   (* 4. Solution space complexity ≠ decision complexity *)
   True.
 Proof.
-  refine ⟨lfp_breaks_locality, _, trivial, trivial⟩.
+  refine (conj lfp_breaks_locality (conj _ (conj trivial trivial))).
   intros p alg H x. exact (H x).
 Qed.
 
