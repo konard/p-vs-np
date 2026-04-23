@@ -92,7 +92,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Raju Renjit G | 2006 | [R](renjit-2006-conpeqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Raju Renjit Grover | 2005 | [R](renjit-grover-2005-pneqnp/) | - | - |
 | ✓ | Riaz Khiyal | 2006 | [K](riaz-khiyal-2006-peqnp/) | 📄 📎 | 🔷 🔶 |
-| ✗ | Gilberto Rodrigo Diduch | 2012 | [R](rodrigo-diduch-2012-pneqnp/) | - | - |
+| ✗ | Gilberto Rodrigo Diduch | 2012 | [R](rodrigo-diduch-2012-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Roman V. Yampolskiy | 2011 | [F](roman-yampolskiy-2011-pneqnp/) | - | - |
 | ✗ | Ron A. Cohen | 2005 | [F](ron-cohen-2005-pneqnp/) | - | - |
 | ✗ | Rubens Ramos Viana | 2006 | [R](rubens-ramos-viana-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
@@ -115,21 +115,6 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Yubin Huang | 2015 | [Y](yubin-huang-2015-peqnp/) | - | - |
 | ✓ | Doron Zeilberger | 2009 | [D](zeilberger-2009-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Zohreh O. Akbari | 2008 | [Z](zohreh-akbari-2008-peqnp/) | 📄 | 🔷 🔶 |
-
----
-
-## Statistics
-
-- **Total attempts:** 100
-- **Claims P = NP:** 57
-- **Claims P ≠ NP:** 42
-- **Claims unprovable:** 1
-- **With ORIGINAL.md:** 30
-- **With original paper:** 23
-- **With proof/ directory:** 35
-- **With refutation/ directory:** 36
-- **With Lean formalization:** 36
-- **With Rocq formalization:** 36
 
 ---
 
