@@ -60,7 +60,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Junichiro Fukuyama | 2012 | [I](infotechnology-center-2012-pneqnp/) | - | - |
 | ✓ | Jason W Steinmetz | 2011 | [J](jason-w-steinmetz-2011-peqnp/) | - | - |
 | ✓ | Javaid Aslam | 2008 | [J](javaid-aslam-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
-| ✗ | Jeffrey W. Holcomb | 2011 | [J](jeffrey-w-holcomb-2011-pneqnp/) | - | - |
+| ✗ | Jeffrey W. Holcomb | 2011 | [J](jeffrey-w-holcomb-2011-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Jerrald Meek | 2008 | [J](jerrald-meek-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Joonmo Kim | 2014 | [J](joonmo-kim-2014-pneqnp/) | - | - |
 | ✗ | Jorma Jormakka | 2008 | [J](jorma-jormakka-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
