@@ -12,7 +12,7 @@
 From Stdlib Require Import List.
 From Stdlib Require Import Arith.
 From Stdlib Require Import Bool.
-Require Import Lia.
+From Stdlib Require Import Lia.
 Import ListNotations.
 
 Module FeldmannProofAttempt.
@@ -75,8 +75,7 @@ Parameter lp_feasible : LP_system -> Prop.
 (* Checking LP feasibility is polynomial time *)
 Axiom lp_polynomial_time : forall (lp : LP_system),
   exists T : nat,
-    T <= lp_vars lp ^ 3 * lp_constraints lp /\
-    { lp_feasible lp } + { ~ lp_feasible lp }.
+    T <= lp_vars lp ^ 3 * lp_constraints lp.
 
 (* ** Feldmann's Construction ** *)
 

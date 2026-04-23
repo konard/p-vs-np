@@ -150,9 +150,9 @@ theorem circular_dependency (f : Formula) (C : Construction) (hClaim : FeldmannC
 
 /-! ## Gap 4: Computational Model Mismatch -/
 
-/-- Feldmann's LP framework uses real arithmetic.
-    Standard complexity theory uses discrete Boolean computation.
-    These are not equivalent. -/
+-- Feldmann's LP framework uses real arithmetic.
+-- Standard complexity theory uses discrete Boolean computation.
+-- These are not equivalent.
 
 /-- In Feldmann's model: probabilities are real numbers in [0,1] -/
 def RealProbability := Float  -- Simplified placeholder for ℝ ∩ [0,1]

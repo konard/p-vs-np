@@ -72,7 +72,7 @@ axiom lpFeasible : LPSystem → Prop
 
 /-- Checking LP feasibility is polynomial time -/
 axiom lp_polynomial_time : ∀ lp : LPSystem,
-  ∃ (T : Nat), T ≤ lp.numVars ^ 3 * lp.numConstraints ∧ Decidable (lpFeasible lp)
+  ∃ (T : Nat), T ≤ lp.numVars ^ 3 * lp.numConstraints
 
 /-! ## Feldmann's Construction -/
 
@@ -141,7 +141,7 @@ theorem sat_decidable_in_poly_time
     ∃ (T : Nat), T ≤ (f.numVars ^ 3 * f.clauses.length) ^ 3 ∧
     (Satisfiable f ↔ lpFeasible (C f)) := by
   intro f
-  refine ⟨(f.numVars ^ 3 * f.clauses.length) ^ 3, le_refl _, ?_⟩
+  refine ⟨(f.numVars ^ 3 * f.clauses.length) ^ 3, Nat.le_refl _, ?_⟩
   exact hClaim f
   -- NOTE: The construction step (building C f) is assumed polynomial-time computable,
   -- but this is the unproven part of Feldmann's argument.

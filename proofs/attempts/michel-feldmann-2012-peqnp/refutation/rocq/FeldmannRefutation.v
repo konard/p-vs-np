@@ -13,7 +13,7 @@
 From Stdlib Require Import List.
 From Stdlib Require Import Arith.
 From Stdlib Require Import Bool.
-Require Import Lia.
+From Stdlib Require Import Lia.
 Import ListNotations.
 
 Module FeldmannRefutation.
