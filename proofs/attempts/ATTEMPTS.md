@@ -126,7 +126,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 - **Claims P ≠ NP:** 43
 - **Claims unprovable:** 1
 - **With ORIGINAL.md:** 28
-- **With original paper:** 21
+- **With original paper:** 22
 - **With proof/ directory:** 33
 - **With refutation/ directory:** 34
 - **With Lean formalization:** 34
