@@ -102,7 +102,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Sergey Gubin | 2010 | [S](sergey-gubin-2010-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Sergey V. Yakhontov | 2012 | [S](sergey_v_yakhontov_2012_peqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2005 | [S](singh-anand-2005-pneqnp/) | - | - |
-| ✗ | Bhupinder Singh Anand | 2006 | [S](singh-anand-2006-pneqnp/) | - | - |
+| ✗ | Bhupinder Singh Anand | 2006 | [B](singh-anand-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Stefan Rass | 2016 | [S](stefan-rass-2016-pneqnp/) | - | - |
 | ✗ | Sten-Ake Tarnlund | 2008 | [S](sten-ake-tarnlund-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Steven Meyer | 2016 | [S](steven-meyer-2016-peqnp/) | - | - |
