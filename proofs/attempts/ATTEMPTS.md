@@ -74,6 +74,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Luigi Salemi | 2009 | [L](luigi-salemi-2009-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
 | ✗ | Mathias Hauptmann | 2016 | [M](mathias-hauptmann-2016-pneqnp/) | - | - |
+| ✓ | Matt Groff | 2011 | [M](matt-groff-2011-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Michael LaPlante | 2015 | [M](michael-laplante-2015-peqnp/) | - | - |
 | ✓ | Michel Feldmann | 2012 | [M](michel-feldmann-2012-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Mikhail Katkov | 2010 | [M](mikhail-katkov-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
