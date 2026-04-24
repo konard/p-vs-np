@@ -125,12 +125,12 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 - **Claims P = NP:** 57
 - **Claims P ≠ NP:** 43
 - **Claims unprovable:** 1
-- **With ORIGINAL.md:** 28
+- **With ORIGINAL.md:** 29
 - **With original paper:** 22
-- **With proof/ directory:** 33
-- **With refutation/ directory:** 34
-- **With Lean formalization:** 34
-- **With Rocq formalization:** 34
+- **With proof/ directory:** 34
+- **With refutation/ directory:** 35
+- **With Lean formalization:** 35
+- **With Rocq formalization:** 35
 
 ---
 
