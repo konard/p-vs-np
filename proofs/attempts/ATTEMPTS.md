@@ -53,6 +53,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Eli Halylaurin | 2016 | [E](eli-halylaurin-2016-peqnp/) | - | - |
 | ✗ | Javier A. Arroyo-Figueroa | 2016 | [F](figueroa-2016-pneqnp/) | 📎 | 🔷 🔶 |
 | ✓ | Francesco Capasso | 2005 | [F](francesco-capasso-2005-peqnp/) | - | - |
+| ✗ | Frank Vega Delgado | 2010 | [F](frank-vega-delgado-2010-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Frederic Gillet | 2013 | [F](frederic-gillet-2013-peqnp/) | - | - |
 | ✓ | Guohun Zhu | 2007 | [G](guohun-zhu-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Jose Ignacio Alvarez-Hamelin | 2011 | [F](hamelin-2011-peqnp/) | - | - |
@@ -113,7 +114,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Steven Meyer | 2016 | [S](steven-meyer-2016-peqnp/) | - | - |
 | ✓ | Tang Pushan (唐普山) | 1997 | [T](tang-pushan-1997-peqnp/) | - | - |
 | ✓ | Ted Swart (University of Guelph) | 1986 | [F](ted-swart-1986-87-peqnp/) | - | - |
-| ✗ | Frank Vega Delgado | 2012 | [V](vega-delgado-2012-pneqnp/) | - | - |
+| ✗ | Frank Vega Delgado | 2012 | [V](vega-delgado-2012-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Viktor V. Ivanov | 2005 | [V](viktor-ivanov-2005-pneqnp/) | - | - |
 | ✓ | Xinwen Jiang | 2009 | [X](xinwen-jiang-2009-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Yann Dujardin | 2009 | [Y](yann-dujardin-2009-peqnp/) | - | - |
