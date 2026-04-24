@@ -35,6 +35,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Givi Bolotashvili | 2003 | [B](author7-2003-peqnp/) | - | - |
 | ✗ | Unknown (Hubert Chen's webpage) | 2003 | [F](author8-2003-pneqnp/) | - | - |
 | ✓ | Algirdas Antano Maknickas | 2013 | [F](author93-2013-peqnp/) | 📄 | 🔷 🔶 |
+| ✗ | Bangyan Wen Yi Lin | 2010 | [B](bangyan-wen-yi-lin-2010-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Bhupinder Singh Anand | 2008 | [B](bhupinder-singh-anand-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Carlos Barron-Romero | 2010 | [C](carlos-barron-romero-2010-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Changlin Wan (with Zhongzhi Shi) | 2010 | [C](changlin-wan-2010-peqnp/) | 📄 📎 | 🔷 🔶 |

@@ -133,7 +133,7 @@ The paper attempts to make rigorous the claim that FO+LFP can only define polylo
 
 **Claimed extension**: Deolalikar claims this locality extends to FO+LFP in a way that restricts the global structure of definable solution spaces.
 
-**The parameterizability argument**: 
+**The parameterizability argument**:
 - The formula ψ(x, A) computing a satisfying assignment x for formula A must compute x variable-by-variable
 - Each variable's value in x is determined by a "local" computation on the structure A
 - Local computations correspond to independent parameters (one per variable, determined by local neighborhood structure)
