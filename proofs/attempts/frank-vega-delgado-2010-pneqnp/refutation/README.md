@@ -1,6 +1,6 @@
 # Refutation: Vega Delgado 2010
 
-This directory contains formal refutations of the core claims in Vega Delgado's November 2010 P ≠ NP proof attempt.
+This directory contains formal refutations of the core claims in Vega Delgado's November 2010 `CERTIFYING`-based proof attempt.
 
 ## Contents
 
@@ -9,68 +9,43 @@ This directory contains formal refutations of the core claims in Vega Delgado's 
 
 ## Why the Proof Fails
 
-Vega Delgado's 2010 proof attempt is fundamentally circular.
+Vega Delgado's 2010 proof attempt hinges on a single unsupported implication:
+
+1. `CERTIFYING` is in NP.
+2. If `CERTIFYING` were in P, then some undecidable language would be in NP.
+3. That would contradict the fact that NP languages are decidable.
+
+The problem is step 2. The paper does not supply a valid reduction or a formal machine argument that turns `CERTIFYING ∈ P` into an undecidable NP language.
 
 ---
 
-## The Central Error: Circular Reasoning
+## The Central Error: Missing Reduction
 
-### Background
+The decisive step would need to show:
 
-The proof strategy is:
-1. Construct a candidate one-way function `f`
-2. Show `f` is hard to invert (the failing step)
-3. Conclude one-way functions exist
-4. Apply known theorem: one-way functions exist → P ≠ NP
-
-Steps 3 and 4 are logically correct. The proof collapses at step 2.
-
-### Why Step 2 Fails: Circular Dependence
-
-**One-way functions and P vs NP are equivalent.**
-
-The known relationships are:
-- `one-way functions exist → P ≠ NP` (one direction is established)
-- `P = NP → one-way functions do not exist` (the contrapositive is established)
-- Whether `P ≠ NP → one-way functions exist` is itself an open problem
-
-Therefore:
-- To prove that a candidate function `f` is hard to invert, one must show that no polynomial-time algorithm can find preimages.
-- But "no polynomial-time algorithm can do X" is precisely the kind of statement equivalent to P ≠ NP claims.
-- Any rigorous proof of hardness of inversion would constitute, by itself, a proof of P ≠ NP — making the one-way function route redundant.
-
-**Vega Delgado's proof provides no rigorous argument for hardness of inversion.** The informal argument used in the paper does not constitute a mathematical proof and, upon examination, either implicitly assumes what it tries to prove or makes claims that cannot be substantiated without first establishing P ≠ NP.
-
----
-
-## Formal Statement of the Problem
-
-The circularity can be stated precisely:
-
-```
-Goal: Prove P ≠ NP
-
-Strategy:
-  Lemma A: f is hard to invert
-  Theorem: One-way functions exist (from Lemma A)
-  Theorem: P ≠ NP (from "one-way functions exist → P ≠ NP")
-
-Problem:
-  Proof of Lemma A requires: "no poly-time algorithm inverts f"
-  This is equivalent to: P ≠ NP (in terms of what needs to be shown)
-  Therefore: the strategy is circular
+```text
+CERTIFYING ∈ P  ⇒  ∃ U, Undecidable(U) ∧ U ∈ NP
 ```
 
+But the paper does not establish this implication.
+
+What the paper actually shows is much weaker:
+
+- A candidate input can be checked efficiently, so `CERTIFYING` looks like an NP-style relation.
+- That fact alone does not manufacture an undecidable language.
+- Without the missing reduction, there is no contradiction.
+
 ---
 
-## What Is Actually Needed
+## Why This Matters
 
-To non-circularly prove P ≠ NP via one-way functions, one would need a proof of hardness of inversion that:
-1. Does not assume P ≠ NP (directly or indirectly)
-2. Uses a fundamentally different technique (e.g., circuit complexity lower bounds, algebraization, natural proofs barriers suggest this is very hard)
-3. Is accepted by the complexity theory community
+NP contains only decidable languages. So, if the paper had genuinely proved that an undecidable language belonged to NP, that would indeed be a contradiction.
 
-No such proof has been found in Vega Delgado's work, or anywhere else.
+However, the paper never bridges the gap from a search problem to undecidability:
+
+- It does not specify the undecidable language precisely enough.
+- It does not prove a reduction from `CERTIFYING`.
+- It does not justify why a polynomial-time solver for `CERTIFYING` would change decidability.
 
 ---
 
@@ -78,17 +53,16 @@ No such proof has been found in Vega Delgado's work, or anywhere else.
 
 Both the Lean and Rocq formalizations confirm:
 
-1. **`owf_inversion_hard`** (hardness of inverting the candidate function): Cannot be proven without circularity or unsubstantiated claims. Marked as `sorry` (Lean) / `Admitted` (Rocq).
+1. `CERTIFYING` can be treated as an NP-style problem.
+2. The step from `CERTIFYING ∈ P` to an undecidable language in NP is the missing piece.
+3. The rest of the contradiction depends entirely on that missing piece.
 
-2. **`one_way_functions_exist`**: Depends on the above; also invalid.
-
-3. The valid parts of the proof (the known theorem relating one-way functions to P vs NP) are correctly formalized and compile successfully.
+The refutation files therefore stop exactly where the original proof stops being rigorous.
 
 ---
 
 ## References
 
-- **One-Way Functions**: Goldreich, O. (2001). "Foundations of Cryptography: Volume I, Basic Tools." Cambridge University Press.
-- **P vs NP and OWF**: Impagliazzo, R. (1995). "A personal view of average-case complexity." 10th Annual Structure in Complexity Theory Conference.
-- **Natural Proofs Barrier**: Razborov, A. & Rudich, S. (1994). "Natural proofs." STOC '94.
 - **Woeginger's List**: Entry #68, https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+- **Original paper**: arXiv:1011.2730, `A Solution to the P versus NP Problem`
+- **Computability background**: decidable vs. undecidable languages

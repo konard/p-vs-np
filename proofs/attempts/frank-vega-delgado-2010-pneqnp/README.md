@@ -8,49 +8,49 @@
 
 ## Summary
 
-In November 2010, Frank Vega Delgado claimed to prove that P is not equal to NP. His approach involves investigating the relationship between complexity classes through properties of one-way functions and unambiguous computation, claiming to show that the assumption P = NP leads to a contradiction via the existence of certain cryptographic constructs.
+The November 2010 attempt is the paper `A Solution to the P versus NP Problem` (arXiv:1011.2730). Its core idea is to define a search problem called `CERTIFYING`: given a deterministic Turing machine and an output, find an input that produces that output.
 
-The central argument uses properties of one-way functions (functions easy to compute but hard to invert) and their relationship to complexity classes. The claim is that if P = NP, then one-way functions cannot exist, but the proof argues (without sufficient rigor) that they must exist, yielding a contradiction.
+The paper claims that `CERTIFYING` is in NP and argues that if it were also in P, then NP would contain an undecidable problem. That would contradict basic computability facts, so the paper concludes P ≠ NP.
 
 ## Core Argument
 
 The proof structure follows this pattern:
 
-1. **Assumption**: Suppose P = NP
-2. **One-Way Functions**: Argue that if P = NP, then no one-way functions exist (since inverting any function would become a polynomial-time computable operation)
-3. **Existence Claim**: Claim that one-way functions must exist (via a constructive argument or complexity-theoretic argument)
-4. **Contradiction**: The non-existence and existence claims contradict each other
-5. **Conclusion**: Therefore P ≠ NP
+1. **Define CERTIFYING**: Given a deterministic Turing machine and an output, ask for an input that realizes the output.
+2. **Show membership in NP**: A candidate input can be checked efficiently.
+3. **Claim the critical step**: If `CERTIFYING` were in P, then some undecidable language would belong to NP.
+4. **Derive contradiction**: NP languages are decidable, so an undecidable language cannot be in NP.
+5. **Conclusion**: Therefore `CERTIFYING` is not in P and P ≠ NP.
 
-## Complexity and Cryptographic Concepts Involved
+## Complexity and Computability Concepts Involved
 
 - **P**: Problems solvable in deterministic polynomial time
 - **NP**: Decision problems verifiable in polynomial time
-- **One-way functions**: Functions `f` where computing `f(x)` is easy (polynomial time) but inverting `f` (given `f(x)`, finding any `x'` with `f(x') = f(x)`) is hard (superpolynomial time)
-- **P = NP implication for crypto**: If P = NP, then inverting functions becomes polynomial, destroying all one-way functions
+- **Decidable language**: A language with a total algorithm that always halts with the correct yes/no answer
+- **Undecidable language**: A language for which no such total algorithm exists
+- **CERTIFYING**: The paper'"'"'s search/decision hybrid problem, where one seeks an input producing a specified output from a deterministic machine
 
 ## Known Issues and Refutation
 
-### Critical Error: Unjustified Existence of One-Way Functions
+### Critical Error: Unsupported Leap to an Undecidable NP Language
 
-The existence of one-way functions is itself an **open problem** in complexity theory:
-- It is known that if P = NP, then one-way functions do not exist
-- It is **not** known that one-way functions actually exist — their existence would imply P ≠ NP (the converse is conditional)
-- The proof circularly assumes what it tries to prove: showing one-way functions "must exist" is essentially the same as showing P ≠ NP
+The paper never rigorously shows that `CERTIFYING ∈ P` would force an undecidable language into NP:
 
-### Circularity
+- It does not exhibit a concrete undecidable language and a valid reduction
+- It does not formalize why the ability to solve `CERTIFYING` efficiently would change decidability
+- It conflates a search-style problem with a complexity-class separation argument
 
-The argument structure is circular:
-- To show one-way functions exist, the proof implicitly assumes P ≠ NP (or uses assumptions equivalent to it)
-- Then uses this to derive P ≠ NP
+### Circular or Unjustified Reasoning
+
+The argument only works if the missing implication is true, but that implication is exactly what the paper tries to establish.
 
 ### Lack of Formal Rigor
 
-The arguments in the 2010 paper are presented informally without rigorous mathematical proofs of the key claims. The connection between the existence of one-way functions and complexity class separation is not formally established.
+The 2010 paper is informal on the crucial computability-theoretic step. It does not provide a machine-checked proof or a fully precise reduction from `CERTIFYING` to an undecidable language.
 
 ### Comparison with the 2012 Attempt
 
-Frank Vega Delgado made a different, though similarly flawed, argument in 2012 (Woeginger entry #83, see [`../vega-delgado-2012-pneqnp/`](../vega-delgado-2012-pneqnp/)). The 2012 paper uses UP = P → EXP = P style argument, while the 2010 paper focuses on one-way functions. Both fail for different reasons.
+Frank Vega Delgado made a different, though similarly flawed, argument in 2012 (Woeginger entry #83, see [`../vega-delgado-2012-pneqnp/`](../vega-delgado-2012-pneqnp/)). The 2012 paper uses a `P = UP → EXP = P` style argument, while the 2010 paper focuses on `CERTIFYING` and undecidability. Both fail for different reasons.
 
 ## Formalization Structure
 
@@ -58,7 +58,9 @@ Frank Vega Delgado made a different, though similarly flawed, argument in 2012 (
 frank-vega-delgado-2010-pneqnp/
 ├── README.md (this file)
 ├── original/
-│   └── ORIGINAL.md               - Description of the original paper
+│   ├── README.md                - Description of the original paper
+│   ├── ORIGINAL.md              - Markdown reconstruction of the paper
+│   └── ORIGINAL.pdf             - Source arXiv PDF
 ├── proof/
 │   ├── README.md                 - Explanation of proof formalization
 │   ├── lean/
@@ -76,5 +78,5 @@ frank-vega-delgado-2010-pneqnp/
 ## References
 
 - Woeginger's P versus NP page: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #68)
-- One-way functions and P vs NP: Impagliazzo, R. (1995). "A personal view of average-case complexity." Proceedings of the 10th Annual Structure in Complexity Theory Conference.
+- Vega Delgado, F. (2010). `A Solution to the P versus NP Problem` (arXiv:1011.2730)
 - Related issue: #44

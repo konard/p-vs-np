@@ -61,7 +61,9 @@ Frank Vega Delgado submitted multiple papers over the years with different and s
 vega-delgado-2012-pneqnp/
 ├── README.md (this file)
 ├── original/
-│   └── ORIGINAL.md               - Description of original paper
+│   ├── README.md                - Description of the original paper
+│   ├── ORIGINAL.md              - Description of original paper
+│   └── ORIGINAL.pdf             - Withdrawn arXiv PDF
 ├── proof/
 │   ├── README.md                 - Explanation of proof formalization
 │   ├── lean/
@@ -79,5 +81,6 @@ vega-delgado-2012-pneqnp/
 ## References
 
 - Woeginger's P versus NP page: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm (Entry #83)
+- `P versus UP`: arXiv:1205.3655 (withdrawn)
 - Time Hierarchy Theorem: Hartmanis, J., & Stearns, R. E. (1965). "On the computational complexity of algorithms"
 - UP complexity class: Valiant, L. G. (1976). "Relative complexity of checking and evaluating"

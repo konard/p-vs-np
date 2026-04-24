@@ -1,6 +1,6 @@
 # Forward Proof Formalization: Vega Delgado 2010
 
-This directory contains the formal proof attempt following Vega Delgado's November 2010 approach as faithfully as possible.
+This directory contains the formal proof attempt following Vega Delgado's November 2010 `CERTIFYING` argument as faithfully as possible.
 
 ## Contents
 
@@ -11,46 +11,44 @@ This directory contains the formal proof attempt following Vega Delgado's Novemb
 
 The formalizations attempt to capture:
 
-1. **One-Way Function Definition**: Formal definition of computability and hardness of inversion
-2. **Known Implication**: The established theorem that one-way functions exist → P ≠ NP (equivalently, P = NP → one-way functions do not exist)
-3. **Vega Delgado's Claimed Construction**: The attempt to define and argue existence of a specific one-way function
-4. **Critical Gap Identification**: The step where the argument for hardness of inversion fails
+1. **The CERTIFYING problem**: The paper's search problem, where one asks for an input that produces a given output for a deterministic machine.
+2. **Membership in NP**: The easy direction, where a candidate input can be checked efficiently.
+3. **The claimed contradiction**: The paper's unsupported leap from `CERTIFYING ∈ P` to an undecidable language in NP.
+4. **The refutation point**: The missing reduction/argument that makes the contradiction go through.
 
 ## The Attempted Proof Logic
 
 Vega Delgado's November 2010 argument proceeds:
 
-1. **Define** a candidate one-way function `f` computable in polynomial time
-2. **Claim** that inverting `f` requires superpolynomial time
-3. **Derive** that `f` is a genuine one-way function (the FAILING STEP)
-4. **Apply** the known theorem: one-way functions exist → P ≠ NP
-5. **Conclude** P ≠ NP
+1. **Define** `CERTIFYING` as a problem about reconstructing a machine input from its output
+2. **Show** that `CERTIFYING` lies in NP
+3. **Claim** that `CERTIFYING ∈ P` would force an undecidable language into NP
+4. **Use** the fact that NP languages are decidable to reach a contradiction
+5. **Conclude** that `CERTIFYING ∉ P` and hence P ≠ NP
 
 ## Where the Formalizations Stop
 
-The formalizations include `sorry` (Lean) / `Admitted` (Rocq) placeholders at the critical gaps where the argument fails:
+The formalizations include `sorry` (Lean) / `Admitted` (Rocq) placeholders at the critical gap where the argument fails:
 
-1. **Hardness of inversion** (`owf_inversion_hard`): The claim that the candidate function is hard to invert is not proven — it implicitly assumes P ≠ NP (circular) or makes an unsubstantiated claim about computational hardness.
+1. **Unsupported implication** (`certifying_in_p_implies_undecidable_np`): The claim that `CERTIFYING ∈ P` yields an undecidable language in NP is not proven.
 
-2. **Existence of one-way functions** (`one_way_functions_exist`): Since hardness is not established, the existence of one-way functions cannot be concluded.
+2. **Search-versus-decision gap**: The paper uses a search-style task to argue about class separation, but does not provide the missing reduction needed to make the contradiction rigorous.
 
 ## The Core Error
 
-The proof is circular:
+The proof is incomplete at the only step that would make it work:
 
 | What Vega Delgado Claims | Why It Fails |
 |---|---|
-| Function `f` is hard to invert | Hardness requires P ≠ NP to establish |
-| One-way functions exist | Unproven — equivalent to assuming P ≠ NP |
-| P = NP → no one-way functions | Known theorem (valid) |
-| Contrapositive: one-way functions exist → P ≠ NP | Known theorem (valid) |
-| Conclusion: P ≠ NP | Invalid — built on circular premise |
+| `CERTIFYING ∈ NP` | Plausible at the level of a witness check |
+| `CERTIFYING ∈ P →` undecidable language in NP | Unsupported leap |
+| NP languages are decidable | Correct |
+| Contradiction | Never fully established |
 
-The existence of one-way functions is itself an open problem. Showing they exist is essentially the same as showing P ≠ NP. Vega Delgado's argument attempts to bypass this by constructing a "candidate" function, but does not rigorously prove its hardness without implicitly assuming P ≠ NP.
+The existence of an efficiently checkable witness does not by itself produce an undecidable language. The paper does not supply the missing formal reduction.
 
 ## See Also
 
 - [`../original/ORIGINAL.md`](../original/ORIGINAL.md) - Description of the original paper
 - [`../refutation/README.md`](../refutation/README.md) - Explanation of why the proof fails
 - [`../README.md`](../README.md) - Overview of the attempt
-- [`../../vega-delgado-2012-pneqnp/`](../../vega-delgado-2012-pneqnp/) - Vega Delgado's 2012 attempt (#83) with different approach
