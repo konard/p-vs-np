@@ -10,6 +10,16 @@
 
 Sergey Kardash proposed a "pair cleaning" algorithm claimed to solve k-satisfiability (k-SAT) in polynomial time O(n^{3(k+1)}), specifically O(n^12) for 3-SAT. If correct, this would prove P=NP since 3-SAT is NP-complete.
 
+## Directory Structure
+
+- `README.md` - Overview of the attempt and error analysis
+- `original/` - Original paper materials and English reconstruction
+  - `README.md` - Description of the original proof idea
+  - `ORIGINAL.md` - English reconstruction of the draft paper
+  - `ORIGINAL.pdf` - Original arXiv draft
+- `proof/` - Forward formalization of the claimed pair cleaning method
+- `refutation/` - Formalization of why pair cleaning is incomplete for k-SAT
+
 ## Main Argument
 
 ### The Pair Cleaning Method
@@ -138,6 +148,7 @@ In this directory, we formalize:
   - arXiv:1108.0408 [cs.CC]
   - Submitted: July 30, 2011; Revised: May 31, 2012
   - Available at: https://arxiv.org/abs/1108.0408
+- **Reconstruction**: [`original/README.md`](original/README.md), [`original/ORIGINAL.md`](original/ORIGINAL.md), [`original/ORIGINAL.pdf`](original/ORIGINAL.pdf)
 
 ### Background on Arc Consistency and SAT
 
@@ -150,5 +161,6 @@ In this directory, we formalize:
 
 ## See Also
 
+- [`original/README.md`](original/README.md) — Original proof idea and reconstruction
 - [P = NP Framework](../../p_eq_np/) — General framework for evaluating P = NP claims
 - [Repository README](../../../README.md) — Overview of the P vs NP problem

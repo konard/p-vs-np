@@ -15,6 +15,8 @@ attempt-name/
 ├── README.md              # Overview of the attempt
 ├── original/              # Description of the proof idea
 │   ├── README.md         # Detailed description of the approach
+│   ├── ORIGINAL.md       # Markdown reconstruction of the paper
+│   ├── ORIGINAL.pdf      # Original paper file (or .html/.tex)
 │   └── paper/            # Optional: references to original papers
 ├── proof/                 # The forward proof formalization
 │   ├── lean/             # Lean 4 formalization (*.lean)
@@ -41,6 +43,9 @@ attempt-name/
   - Shows where the proof breaks down
   - Formalizes counterexamples or logical gaps
   - Must have at least Lean or Rocq formalization
+
+The checker still accepts legacy root-level `ORIGINAL.*` files for older
+attempts, but `original/` is the preferred location for new work.
 
 ### Usage
 

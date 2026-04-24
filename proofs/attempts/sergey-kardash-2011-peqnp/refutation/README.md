@@ -100,5 +100,6 @@ But it cannot replace backtracking search for k ≥ 3 SAT.
 ## See Also
 
 - [`../README.md`](../README.md) — Overview of the attempt
-- [`../ORIGINAL.md`](../ORIGINAL.md) — Markdown conversion of the original paper
+- [`../original/README.md`](../original/README.md) — Description of the original proof idea
+- [`../original/ORIGINAL.md`](../original/ORIGINAL.md) — Markdown conversion of the original paper
 - [`../proof/README.md`](../proof/README.md) — Forward proof formalization with the gap marked

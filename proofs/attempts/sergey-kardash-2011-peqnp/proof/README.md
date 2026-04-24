@@ -41,5 +41,6 @@ Specifically: when extending from Bnt(x) to Ant+1(x) by adding clause group Tnt+
 ## See Also
 
 - [`../README.md`](../README.md) — Overview of the attempt
-- [`../ORIGINAL.md`](../ORIGINAL.md) — Markdown conversion of the original paper
+- [`../original/README.md`](../original/README.md) — Description of the original proof idea
+- [`../original/ORIGINAL.md`](../original/ORIGINAL.md) — Markdown conversion of the original paper
 - [`../refutation/README.md`](../refutation/README.md) — Explanation of why the proof fails
