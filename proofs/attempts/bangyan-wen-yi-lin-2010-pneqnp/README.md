@@ -12,6 +12,18 @@ In December 2010, Bangyan Wen and Yi Lin published a paper titled "THE ANSWER TO
 
 The paper applies formal logic and set-theoretic arguments to the definitions of P and NP, attempting to show that the two classes are fundamentally different by analyzing the structural properties of polynomial-time verification versus polynomial-time computation. The core argument relies on informal logical assertions about decidability and computational bounds that are not grounded in rigorous complexity-theoretic formalism.
 
+## Directory Structure
+
+The attempt is organized so the reconstructed source and the formal work stay separate:
+
+- `original/` - English reconstruction of the paper and source notes
+- `original/ORIGINAL.md` - Markdown reconstruction of the paper's argument
+- `proof/` - Forward formalization of the paper's claimed reasoning
+- `refutation/` - Formal refutation of the argument
+
+The root-level `ORIGINAL.md` is retained as a compatibility mirror, but the
+`original/` directory is the preferred location for the reconstructed source.
+
 ## Main Argument
 
 ### The Approach
@@ -124,6 +136,9 @@ The formalization demonstrates that:
   - Published in: Scientific Inquiry - A Journal of the IIGSS, Vol. 11, No. 2, December 2010
   - Available at: http://www.iigss.net/Scientific-Inquiry/Dec2010/table.htm
   - Note: Original paper may no longer be freely accessible online
+
+- **Reconstruction**: [`original/README.md`](original/README.md) and [`original/ORIGINAL.md`](original/ORIGINAL.md)
+  - Canonical English reconstruction and source notes for this attempt
 
 ### Context
 

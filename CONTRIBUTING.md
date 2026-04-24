@@ -12,8 +12,10 @@ Create your formalization in:
 ```
 proofs/attempts/<author-year-claim>/
 ├── README.md              # Overview of the attempt and identified errors (REQUIRED)
-├── ORIGINAL.md            # Markdown reconstruction of the original paper (recommended)
-├── ORIGINAL.pdf           # Original paper PDF (recommended, can be .html/.tex)
+├── original/              # Original proof idea and paper reconstruction (preferred)
+│   ├── README.md          # Description of the original approach
+│   ├── ORIGINAL.md        # Markdown reconstruction of the original paper
+│   └── ORIGINAL.pdf       # Original paper PDF (or .html/.tex)
 ├── proof/                 # Forward proof formalization (recommended)
 │   ├── README.md          # Explanation of proofs
 │   ├── lean/              # Lean 4 formalizations
@@ -30,10 +32,13 @@ proofs/attempts/<author-year-claim>/
 
 **File descriptions:**
 - **README.md** (required): Overview of the proof attempt, including metadata (author, year, claim), summary of the approach, and explanation of why it fails
-- **ORIGINAL.md** (recommended): Markdown conversion/reconstruction of the original paper text, translated to English if needed
-- **ORIGINAL.pdf** (recommended): The original paper in PDF format (or .html/.tex if PDF unavailable)
+- **original/README.md** (recommended): Description of the original proof idea and source material
+- **original/ORIGINAL.md** (recommended): Markdown conversion/reconstruction of the original paper text, translated to English if needed
+- **original/ORIGINAL.pdf** (recommended): The original paper in PDF format (or .html/.tex if PDF unavailable)
 - **proof/**: Contains the forward proof formalization (attempting to follow the original author's approach)
 - **refutation/**: Contains the refutation formalization (showing why the proof fails)
+
+Older attempts may still keep root-level `ORIGINAL.*` copies for compatibility.
 
 You can validate your attempt structure by running:
 ```bash
@@ -103,4 +108,3 @@ feat: Add [Author] [Year] P=[NP/P≠NP] formalization
 ## Questions?
 
 Open an issue if you have questions about contributing.
-
