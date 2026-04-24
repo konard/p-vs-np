@@ -167,7 +167,7 @@ To be fair, the paper does demonstrate something interesting (though not groundb
 
 ## The Proof-Theoretic Challenge
 
-Our formalization attempts to encode Yampolskiy's argument in three proof assistants (Rocq, Lean, Isabelle) with the following goals:
+Our formalization attempts to encode Yampolskiy's argument in proof assistants with the following goals:
 
 1. **Formalize HPTSP**: Define the problem precisely
 2. **Prove HPTSP ∈ NP**: Encode the verification algorithm
@@ -178,22 +178,52 @@ The formalization will make explicit what the paper leaves implicit: the logical
 
 ---
 
+## Folder Structure
+
+```
+roman-yampolskiy-2011-pneqnp/
+├── README.md                          # This file
+├── original/                          # Original paper and reconstruction
+│   ├── README.md                      # Description of the original attempt
+│   ├── ORIGINAL.md                    # Full English reconstruction of the paper
+│   └── ORIGINAL.pdf                   # Original paper PDF (from arXiv:1111.0305)
+├── proof/                             # Forward formalization (Yampolskiy's claimed argument)
+│   ├── README.md                      # Explanation of the forward proof
+│   ├── lean/
+│   │   └── YampolskiyProof.lean       # Lean 4 formalization of HPTSP and claimed proof
+│   └── rocq/
+│       └── YampolskiyProof.v          # Rocq formalization of HPTSP and claimed proof
+└── refutation/                        # Why the proof fails
+    ├── README.md                      # Detailed explanation of each error
+    ├── lean/
+    │   └── YampolskiyRefutation.lean  # Lean 4 formalization of the refutation
+    └── rocq/
+        └── YampolskiyRefutation.v     # Rocq formalization of the refutation
+```
+
+---
+
 ## Formalizations
 
-### Rocq Implementation
-- **File**: `rocq/YampolskiyHPTSP.v`
-- **Status**: Defines HPTSP, proves membership in NP, axiomatizes unproven claims about hash functions
-- **Key Gap**: Cannot prove `HPTSP_not_in_P` without additional axioms
+### Forward Proof (proof/)
 
-### Lean Implementation
-- **File**: `lean/YampolskiyHPTSP.lean`
-- **Status**: Uses dependent types to encode the problem, marks non-constructive proofs with `sorry`
-- **Key Gap**: The statement "no pruning is possible" cannot be formalized rigorously
+The forward proof formalizes Yampolskiy's original argument step by step:
 
-### Isabelle/HOL Implementation
-- **File**: `isabelle/YampolskiyHPTSP.thy`
-- **Status**: Higher-order logic formalization, uses `oops` to mark incomplete proofs
-- **Key Gap**: The leap from "hash functions hide information" to "exponential lower bound" is not derivable
+- **Lean**: `proof/lean/YampolskiyProof.lean` — Defines HPTSP, proves NP membership, marks gaps with `sorry`
+- **Rocq**: `proof/rocq/YampolskiyProof.v` — Same in Rocq, marks unproven claims with `Axiom`
+- **Key Gap**: Cannot prove `HPTSP_requires_exponential_time` without unjustified axioms
+
+### Refutation (refutation/)
+
+The refutation formalizes each specific error in the paper:
+
+- **Lean**: `refutation/lean/YampolskiyRefutation.lean` — Formally shows each logical gap
+- **Rocq**: `refutation/rocq/YampolskiyRefutation.v` — Same in Rocq
+- **Key Results**:
+  - Cryptographic assumptions cannot be formalized as mathematical theorems
+  - "No pruning" does not imply "exponential lower bound" (formally shown)
+  - Compression argument is flawed (demonstrated by polynomial counterexamples)
+  - Circular reasoning with Ladner's theorem is identified
 
 ---
 
@@ -260,7 +290,6 @@ Despite being incorrect, this paper is valuable for teaching because it:
 |----------------|---------------------|---------------------|----------------------------|----------------|
 | Rocq            | ✅                  | ✅                  | ⚠️ (requires axioms)       | ✅             |
 | Lean           | ✅                  | ✅                  | ⚠️ (uses sorry)            | ✅             |
-| Isabelle/HOL   | ✅                  | ✅                  | ⚠️ (uses oops)             | ✅             |
 
 ---
 
@@ -278,5 +307,5 @@ Our formal verification exercise makes this gap explicit and provides a concrete
 
 ---
 
-**Last Updated**: 2025-10-26
-**Formalization by**: AI Issue Solver (Issue #54)
+**Last Updated**: 2026-04-23
+**Formalization by**: AI Issue Solver (Issue #483)
