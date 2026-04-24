@@ -52,5 +52,6 @@ If all elements of TA₁ are equivalent, the constructed diagonal sequence uses 
 ## See Also
 
 - [`../README.md`](../README.md) - Overview of the attempt
-- [`../ORIGINAL.md`](../ORIGINAL.md) - Markdown reconstruction of the original paper
+- [`../original/README.md`](../original/README.md) - Original paper materials and reconstruction summary
+- [`../original/ORIGINAL.md`](../original/ORIGINAL.md) - Markdown reconstruction of the original paper
 - [`../refutation/README.md`](../refutation/README.md) - Explanation of why the proof fails

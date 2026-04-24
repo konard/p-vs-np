@@ -133,3 +133,9 @@ The formalizations in this directory demonstrate:
 - **Cantor, G.** (1890). Diagonal argument (Über eine Elementare Frage der Mannigfaltigkeitslehre).
 - **Tovey, C. A.** (1984). "A simplified satisfiability problem." *Discrete Appl. Math.* 8, 85–89.
 - **Woeginger's List**: Entry #71 — https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+
+## Related Files
+
+- [`../original/README.md`](../original/README.md) - Original paper materials and reconstruction summary
+- [`../original/ORIGINAL.md`](../original/ORIGINAL.md) - English reconstruction of the draft paper
+- [`../original/ORIGINAL.pdf`](../original/ORIGINAL.pdf) - Original arXiv draft

@@ -10,6 +10,20 @@
 
 ---
 
+## Directory Structure
+
+- `README.md` - Overview of the attempt and error analysis
+- `original/` - Original paper materials and English reconstruction
+  - `README.md` - Summary of the original paper and reconstruction links
+  - `ORIGINAL.md` - English reconstruction of arXiv:1101.2018
+  - `ORIGINAL.pdf` - Original arXiv draft
+- `proof/` - Forward formalization of the claimed argument
+- `refutation/` - Formalization of the failure in the diagonal argument
+
+Root-level `ORIGINAL.md` and `ORIGINAL.pdf` files are kept as compatibility copies.
+
+---
+
 ## Summary
 
 Liao introduces a variant of 3SAT called **3SAT_N** (normal expressions), extends Tovey's classification theorem to this variant, and then introduces **aggressive truth assignments** as a tool to study polynomial-time solvability. Using a metric space structure on truth assignments and Cantor's diagonal argument, Liao attempts to show that if a polynomial-time algorithm for 3SAT_N exists, there must be uncountably many such algorithms — a contradiction, since algorithms are countable.
@@ -149,6 +163,11 @@ Liao claims to circumvent these barriers, but the proof technique appears to rel
 
 ### Woeginger's List
 - Entry #71: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+
+### Reconstruction Files
+- [`original/README.md`](original/README.md) - Summary of the original paper and reconstruction links
+- [`original/ORIGINAL.md`](original/ORIGINAL.md) - English reconstruction of the draft paper
+- [`original/ORIGINAL.pdf`](original/ORIGINAL.pdf) - Original arXiv draft
 
 ---
 
