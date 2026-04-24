@@ -135,6 +135,7 @@ The formalizations capture Groff's claimed proof structure while marking the key
   - https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
 - **Cook-Levin Theorem**: Establishes NP-completeness of SAT
 - **k-SAT and NP-completeness**: Karp (1972) showed 3-SAT is NP-complete via reduction from SAT
+- **Original reconstruction**: See [ORIGINAL.md](ORIGINAL.md) and [ORIGINAL.pdf](ORIGINAL.pdf)
 
 ## Key Insights
 
