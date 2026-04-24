@@ -6,8 +6,8 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 - ✓ = Claims P = NP
 - ✗ = Claims P ≠ NP
 - ? = Claims unprovable
-- 📄 = Has ORIGINAL.md
-- 📎 = Has ORIGINAL.pdf
+- 📄 = Has ORIGINAL.md (root or original/)
+- 📎 = Has original paper file (PDF/HTML/TXT/TEX, root or original/)
 - 🔷 = Has Lean formalization
 - 🔶 = Has Rocq formalization
 
@@ -19,6 +19,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Craig Alan Feinstein | 2011 | [A](alan-feinstein-2011-pneqnp/) | - | - |
 | ✓ | Anatoly Panyukov | 2014 | [A](anatoly-panyukov-2014-peqnp/) | - | - |
 | ✓ | Anatoly D. Plotnikov | 2007 | [A](anatoly-plotnikov-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
+| ✗ | Anatoly D. Plotnikov | 2011 | [A](anatoly-plotnikov-2011-pneqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Andrea Bianchini | 2005 | [A](andrea-bianchini-2005-peqnp/) | - | - |
 | ✓ | M. Angela Weiss | 2011 | [A](angela-weiss-2011-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Algirdas Antano Maknickas | 2011 | [F](antano-maknickas-2011-peqnp/) | 📄 📎 | 🔷 🔶 |
@@ -43,7 +44,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Daegene Song | 2014 | [D](daegene-song-2014-pneqnp/) | - | - |
 | ✗ | Daniel Uribe | 2016 | [D](daniel-uribe-2016-pneqnp/) | - | - |
 | ✓ | Delacorte Czerwinski | 2007 | [D](delacorte-czerwinski-2007-peqnppspace/) | 📄 📎 | 🔷 🔶 |
-| ✗ | Vinay Deolalikar | 2010 | [V](deolalikar-2010-pneqnp/) | - | - |
+| ✗ | Vinay Deolalikar | 2010 | [V](deolalikar-2010-pneqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Dhami | 2014 | [D](dhami-2014-peqnp/) | - | - |
 | ✓ | Dmitriy Nuriyev | 2013 | [D](dmitriy-nuriyev-2013-peqnp/) | - | - |
 | ✓ | Douglas Youvan | 2012 | [D](douglas-youvan-2012-peqnp/) | - | - |
@@ -61,12 +62,12 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Junichiro Fukuyama | 2012 | [I](infotechnology-center-2012-pneqnp/) | - | - |
 | ✓ | Jason W Steinmetz | 2011 | [J](jason-w-steinmetz-2011-peqnp/) | - | - |
 | ✓ | Javaid Aslam | 2008 | [J](javaid-aslam-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
-| ✗ | Jeffrey W. Holcomb | 2011 | [J](jeffrey-w-holcomb-2011-pneqnp/) | - | - |
+| ✗ | Jeffrey W. Holcomb | 2011 | [J](jeffrey-w-holcomb-2011-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Jerrald Meek | 2008 | [J](jerrald-meek-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Joonmo Kim | 2014 | [J](joonmo-kim-2014-pneqnp/) | - | - |
 | ✗ | Jorma Jormakka | 2008 | [J](jorma-jormakka-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Ki Bong Nam Sh Wang And Yang Gon Kim Published | 2004 | [K](ki-bong-nam-sh-wang-and-yang-gon-kim-published-2004-pneqnp/) | - | - |
-| ✗ | Koji Kobayashi | 2012 | [K](koji-kobayashi-2012-pneqnp/) | - | - |
+| ✗ | Koji Kobayashi | 2012 | [K](koji-kobayashi-2012-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Krieger Jones | 2008 | [C](krieger-jones-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Lev Gordeev | 2005 | [F](lev-gordeev-2005-pneqnp/) | - | - |
 | ✓ | Lizhi Du | 2010 | [L](lizhi-du-2010-peqnp/) | 📄 | 🔷 🔶 |
@@ -75,6 +76,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Luigi Salemi | 2009 | [L](luigi-salemi-2009-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | André Luiz Barbosa | 2009 | [L](luiz-barbosa-2009-pneqnp/) | - | - |
 | ✗ | Mathias Hauptmann | 2016 | [M](mathias-hauptmann-2016-pneqnp/) | - | - |
+| ✓ | Matt Groff | 2011 | [M](matt-groff-2011-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Michael LaPlante | 2015 | [M](michael-laplante-2015-peqnp/) | - | - |
 | ✓ | Michel Feldmann | 2012 | [M](michel-feldmann-2012-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Mikhail Katkov | 2010 | [M](mikhail-katkov-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
@@ -93,17 +95,18 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Raju Renjit G | 2006 | [R](renjit-2006-conpeqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Raju Renjit Grover | 2005 | [R](renjit-grover-2005-pneqnp/) | - | - |
 | ✓ | Riaz Khiyal | 2006 | [K](riaz-khiyal-2006-peqnp/) | 📄 📎 | 🔷 🔶 |
-| ✗ | Gilberto Rodrigo Diduch | 2012 | [R](rodrigo-diduch-2012-pneqnp/) | - | - |
-| ✗ | Roman V. Yampolskiy | 2011 | [F](roman-yampolskiy-2011-pneqnp/) | - | - |
+| ✗ | Gilberto Rodrigo Diduch | 2012 | [R](rodrigo-diduch-2012-pneqnp/) | 📄 📎 | 🔷 🔶 |
+| ✗ | Roman V. Yampolskiy | 2011 | [F](roman-yampolskiy-2011-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Ron A. Cohen | 2005 | [F](ron-cohen-2005-pneqnp/) | - | - |
 | ✗ | Rubens Ramos Viana | 2006 | [R](rubens-ramos-viana-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Alejandro Sanchez Guinea | 2015 | [S](sanchez-guinea-2015-peqnp/) | - | - |
 | ✗ | Satoshi Tazawa | 2012 | [S](satoshi-tazawa-2012-pneqnp/) | - | - |
-| ✓ | Sergey Gubin | 2006 | [S](sergey-gubin-2006-peqnp/) | - | 🔷 🔶 |
+| ✓ | Sergey Gubin | 2006 | [S](sergey-gubin-2006-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Sergey Gubin | 2010 | [S](sergey-gubin-2010-peqnp/) | 📄 | 🔷 🔶 |
+| ✓ | Sergey Kardash | 2011 | [S](sergey-kardash-2011-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Sergey V. Yakhontov | 2012 | [S](sergey_v_yakhontov_2012_peqnp/) | - | - |
 | ✗ | Bhupinder Singh Anand | 2005 | [S](singh-anand-2005-pneqnp/) | - | - |
-| ✗ | Bhupinder Singh Anand | 2006 | [S](singh-anand-2006-pneqnp/) | - | - |
+| ✗ | Bhupinder Singh Anand | 2006 | [B](singh-anand-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Stefan Rass | 2016 | [S](stefan-rass-2016-pneqnp/) | - | - |
 | ✗ | Sten-Ake Tarnlund | 2008 | [S](sten-ake-tarnlund-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Steven Meyer | 2016 | [S](steven-meyer-2016-peqnp/) | - | - |
@@ -111,26 +114,11 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Ted Swart (University of Guelph) | 1986 | [F](ted-swart-1986-87-peqnp/) | - | - |
 | ✗ | Frank Vega Delgado | 2012 | [V](vega-delgado-2012-pneqnp/) | - | - |
 | ✗ | Viktor V. Ivanov | 2005 | [V](viktor-ivanov-2005-pneqnp/) | - | - |
-| ✓ | Xinwen Jiang | 2009 | [X](xinwen-jiang-2009-peqnp/) | - | 🔷 🔶 |
+| ✓ | Xinwen Jiang | 2009 | [X](xinwen-jiang-2009-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Yann Dujardin | 2009 | [Y](yann-dujardin-2009-peqnp/) | - | - |
 | ✓ | Yubin Huang | 2015 | [Y](yubin-huang-2015-peqnp/) | - | - |
 | ✓ | Doron Zeilberger | 2009 | [D](zeilberger-2009-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Zohreh O. Akbari | 2008 | [Z](zohreh-akbari-2008-peqnp/) | 📄 | 🔷 🔶 |
-
----
-
-## Statistics
-
-- **Total attempts:** 101
-- **Claims P = NP:** 58
-- **Claims P ≠ NP:** 42
-- **Claims unprovable:** 1
-- **With ORIGINAL.md:** 31
-- **With original paper:** 24
-- **With proof/ directory:** 36
-- **With refutation/ directory:** 37
-- **With Lean formalization:** 37
-- **With Rocq formalization:** 37
 
 ---
 

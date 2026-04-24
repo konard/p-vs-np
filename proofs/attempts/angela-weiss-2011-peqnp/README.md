@@ -6,6 +6,16 @@
 **Claim**: P = NP
 **Status**: Refuted
 
+## Directory Structure
+
+- `README.md` - Overview of the attempt and error analysis
+- `original/` - Original source material and English reconstruction
+  - `README.md` - Short summary of the original proof idea
+  - `ORIGINAL.md` - English reconstruction of the draft paper
+  - `ORIGINAL.pdf` - Closest available original source from the author's website
+- `proof/` - Forward formalization of the claimed argument
+- `refutation/` - Formal refutation and gap analysis
+
 ## Summary
 
 In Spring 2011, M. Angela Weiss (University of São Paulo, IME/USP) proposed a polynomial-time
@@ -153,6 +163,7 @@ The formalization demonstrates that:
   - Available at: http://www.ime.usp.br/~weiss/
   - Institution: Instituto de Matemática e Estatística, Universidade de São Paulo (IME/USP)
   - Spring 2011
+- **Original reconstruction**: [`original/README.md`](original/README.md), [`original/ORIGINAL.md`](original/ORIGINAL.md), [`original/ORIGINAL.pdf`](original/ORIGINAL.pdf)
 
 ### Context
 
