@@ -65,7 +65,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Joonmo Kim | 2014 | [J](joonmo-kim-2014-pneqnp/) | - | - |
 | ✗ | Jorma Jormakka | 2008 | [J](jorma-jormakka-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Ki Bong Nam Sh Wang And Yang Gon Kim Published | 2004 | [K](ki-bong-nam-sh-wang-and-yang-gon-kim-published-2004-pneqnp/) | - | - |
-| ✗ | Koji Kobayashi | 2012 | [K](koji-kobayashi-2012-pneqnp/) | - | - |
+| ✗ | Koji Kobayashi | 2012 | [K](koji-kobayashi-2012-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Krieger Jones | 2008 | [C](krieger-jones-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Lev Gordeev | 2005 | [F](lev-gordeev-2005-pneqnp/) | - | - |
 | ✓ | Lizhi Du | 2010 | [L](lizhi-du-2010-peqnp/) | 📄 | 🔷 🔶 |
