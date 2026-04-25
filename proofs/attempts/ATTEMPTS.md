@@ -101,6 +101,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Roman V. Yampolskiy | 2011 | [F](roman-yampolskiy-2011-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Ron A. Cohen | 2005 | [F](ron-cohen-2005-pneqnp/) | - | - |
 | ✗ | Rubens Ramos Viana | 2006 | [R](rubens-ramos-viana-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
+| ✗ | Ruijia Liao | 2011 | [R](ruijia-liao-2011-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Alejandro Sanchez Guinea | 2015 | [S](sanchez-guinea-2015-peqnp/) | - | - |
 | ✗ | Satoshi Tazawa | 2012 | [S](satoshi-tazawa-2012-pneqnp/) | - | - |
 | ✓ | Sergey Gubin | 2006 | [S](sergey-gubin-2006-peqnp/) | 📄 | 🔷 🔶 |
