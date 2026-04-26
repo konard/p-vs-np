@@ -17,6 +17,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 |:-----:|--------|------|-------|:----:|:------:|
 | ✗ | Craig Alan Feinstein | 2005 | [A](alan-feinstein-2005-pneqnp/) | - | - |
 | ✗ | Craig Alan Feinstein | 2011 | [A](alan-feinstein-2011-pneqnp/) | - | - |
+| ✓ | Amar Mukherjee | 2011 | [A](amar-mukherjee-2011-peqnp/) | 📄 | 🔷 🔶 |
 | ✓ | Anatoly Panyukov | 2014 | [A](anatoly-panyukov-2014-peqnp/) | - | - |
 | ✓ | Anatoly D. Plotnikov | 2007 | [A](anatoly-plotnikov-2007-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Anatoly D. Plotnikov | 2011 | [A](anatoly-plotnikov-2011-pneqnp/) | 📄 | 🔷 🔶 |
