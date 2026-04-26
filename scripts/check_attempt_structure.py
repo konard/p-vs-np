@@ -4,8 +4,12 @@ Script to verify P vs NP attempt structure and generate markdown lists.
 
 This script checks that each attempt follows the required directory structure:
 - README.md        (required - overview of the attempt)
-- ORIGINAL.md      (recommended - markdown reconstruction of paper)
-- ORIGINAL.pdf     (recommended - original paper file)
+- original/        (preferred location for the original paper materials)
+  - README.md      (recommended - description of the original proof idea)
+  - ORIGINAL.md    (recommended - markdown reconstruction of paper)
+  - ORIGINAL.pdf   (recommended - original paper file)
+- ORIGINAL.md      (legacy location, still accepted for compatibility)
+- ORIGINAL.pdf     (legacy location, still accepted for compatibility)
 - proof/           (forward proof formalization)
   - README.md      (recommended - explanation of proofs)
   - lean/          (optional - Lean 4 formalizations)
@@ -46,6 +50,8 @@ class StructureValidation:
     """Results of validating an attempt's structure."""
     path: Path
     has_readme: bool = False
+    has_original_dir: bool = False
+    has_original_readme: bool = False
     has_original_md: bool = False
     has_original_file: bool = False  # PDF, HTML, or other original format
     original_file_ext: str = ""
@@ -93,9 +99,9 @@ class StructureValidation:
         if not self.has_readme:
             missing.append("README.md (required)")
         if not self.has_original_md:
-            missing.append("ORIGINAL.md (recommended)")
+            missing.append("ORIGINAL.md (recommended, root or original/)")
         if not self.has_original_file:
-            missing.append("ORIGINAL.pdf or ORIGINAL.html (recommended)")
+            missing.append("ORIGINAL.pdf or ORIGINAL.html (recommended, root or original/)")
         if not self.has_proof:
             missing.append("proof/ directory (recommended)")
         elif not self.has_proof_readme:
@@ -187,16 +193,27 @@ def validate_attempt_structure(attempt_path: Path) -> StructureValidation:
     if result.has_readme:
         result.metadata = parse_metadata_from_readme(readme_path)
 
-    # Check ORIGINAL.md
-    result.has_original_md = (attempt_path / "ORIGINAL.md").exists()
+    # Check original paper reconstruction in either the preferred or legacy location.
+    original_path = attempt_path / "original"
+    result.has_original_dir = original_path.exists() and original_path.is_dir()
+    result.has_original_readme = (original_path / "README.md").exists()
+    result.has_original_md = (
+        (attempt_path / "ORIGINAL.md").exists() or
+        (original_path / "ORIGINAL.md").exists()
+    )
 
     # Check for original paper file (PDF, HTML, etc.)
     original_extensions = ['.pdf', '.html', '.htm', '.txt', '.tex']
-    for ext in original_extensions:
-        original_file = attempt_path / f"ORIGINAL{ext}"
-        if original_file.exists():
-            result.has_original_file = True
-            result.original_file_ext = ext
+    for base_path in (attempt_path, original_path):
+        if not base_path.exists() or not base_path.is_dir():
+            continue
+        for ext in original_extensions:
+            original_file = base_path / f"ORIGINAL{ext}"
+            if original_file.exists():
+                result.has_original_file = True
+                result.original_file_ext = ext
+                break
+        if result.has_original_file:
             break
 
     # Check proof/ directory
@@ -249,8 +266,6 @@ def validate_attempt_structure(attempt_path: Path) -> StructureValidation:
         result.warnings.append("Legacy: coq/ should be renamed to rocq/")
     if (attempt_path / "isabelle").exists():
         result.warnings.append("Deprecated: isabelle/ - Isabelle support has been sunset")
-    if (attempt_path / "original").exists():
-        result.warnings.append("Legacy: original/ folder. ORIGINAL.md and ORIGINAL.pdf should be at root level")
 
     return result
 
@@ -293,7 +308,7 @@ def print_report(validations: List[StructureValidation]):
     print()
 
     if complete:
-        print("COMPLETE ATTEMPTS (has README.md, ORIGINAL.md, ORIGINAL.pdf, proof/, refutation/)")
+        print("COMPLETE ATTEMPTS (has README.md, original materials, proof/, refutation/)")
         print("-" * 80)
         for v in complete:
             status = []
@@ -349,8 +364,10 @@ def print_report(validations: List[StructureValidation]):
     print("""
 attempt-name/
 ├── README.md              # Overview of the attempt (REQUIRED)
-├── ORIGINAL.md            # Markdown reconstruction of paper (recommended)
-├── ORIGINAL.pdf           # Original paper PDF (recommended, can be .html/.tex)
+├── original/              # Original proof idea and paper reconstruction
+│   ├── README.md          # Description of the original approach
+│   ├── ORIGINAL.md        # Markdown reconstruction of paper
+│   └── ORIGINAL.pdf       # Original paper PDF (or .html/.tex)
 ├── proof/                 # Forward proof formalization (recommended)
 │   ├── README.md          # Explanation of proofs
 │   ├── lean/              # Lean 4 formalizations
@@ -364,6 +381,7 @@ attempt-name/
     └── rocq/              # Rocq formalizations
         └── Refutation.v
 """)
+    print("Legacy attempts may also keep root-level ORIGINAL.* files; the checker accepts either layout.")
 
 
 def generate_markdown_list(validations: List[StructureValidation], output_path: Optional[Path] = None) -> str:
@@ -377,8 +395,8 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
     lines.append("- ✓ = Claims P = NP")
     lines.append("- ✗ = Claims P ≠ NP")
     lines.append("- ? = Claims unprovable")
-    lines.append("- 📄 = Has ORIGINAL.md")
-    lines.append("- 📎 = Has ORIGINAL.pdf")
+    lines.append("- 📄 = Has ORIGINAL.md (root or original/)")
+    lines.append("- 📎 = Has original paper file (PDF/HTML/TXT/TEX, root or original/)")
     lines.append("- 🔷 = Has Lean formalization")
     lines.append("- 🔶 = Has Rocq formalization")
     lines.append("")
@@ -423,35 +441,6 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
 
     lines.append("")
 
-    # Statistics
-    lines.append("---")
-    lines.append("")
-    lines.append("## Statistics")
-    lines.append("")
-
-    total = len(validations)
-    with_original_md = sum(1 for v in validations if v.has_original_md)
-    with_original_file = sum(1 for v in validations if v.has_original_file)
-    with_lean = sum(1 for v in validations if v.has_lean())
-    with_rocq = sum(1 for v in validations if v.has_rocq())
-    with_proof = sum(1 for v in validations if v.has_proof)
-    with_refutation = sum(1 for v in validations if v.has_refutation)
-
-    p_eq_np = sum(1 for v in validations if v.get_claim_emoji() == "✓")
-    p_neq_np = sum(1 for v in validations if v.get_claim_emoji() == "✗")
-    unprovable = sum(1 for v in validations if v.get_claim_emoji() == "?")
-
-    lines.append(f"- **Total attempts:** {total}")
-    lines.append(f"- **Claims P = NP:** {p_eq_np}")
-    lines.append(f"- **Claims P ≠ NP:** {p_neq_np}")
-    lines.append(f"- **Claims unprovable:** {unprovable}")
-    lines.append(f"- **With ORIGINAL.md:** {with_original_md}")
-    lines.append(f"- **With original paper:** {with_original_file}")
-    lines.append(f"- **With proof/ directory:** {with_proof}")
-    lines.append(f"- **With refutation/ directory:** {with_refutation}")
-    lines.append(f"- **With Lean formalization:** {with_lean}")
-    lines.append(f"- **With Rocq formalization:** {with_rocq}")
-    lines.append("")
     lines.append("---")
     lines.append("")
     lines.append("*This file is auto-generated by `scripts/check_attempt_structure.py --generate-list`*")
