@@ -89,6 +89,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Mohamed Mimouni | 2006 | [M](mohamed-mimouni-2006-peqnp/) | - | 🔷 🔶 |
 | ✓ | Moustapha Diaby | 2004 | [M](moustapha-diaby-2004-peqnp/) | - | - |
 | ✓ | Narendra S. Chaudhari | 2009 | [N](narendra-chaudhari-2009-peqnp/) | - | 🔷 🔶 |
+| ? | Natalia L. Malinina | 2012 | [N](natalia-malinina-2012-unprovable/) | 📄 | 🔷 🔶 |
 | ? | Ncada Costa Fa Doria | 2003 | [F](ncada-costa-fa-doria-2003-unprovable/) | - | - |
 | ✓ | Peng Cui | 2014 | [P](peng-cui-2014-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Wen-Qi Duan | 2012 | [Q](qi-duan-2012-peqnp/) | - | - |
