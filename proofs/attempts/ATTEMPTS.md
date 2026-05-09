@@ -70,6 +70,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✗ | Joonmo Kim | 2014 | [Joonmo Kim (2014) - P≠NP Attempt](joonmo-kim-2014-pneqnp/) | - | - |
 | ✗ | Jorma Jormakka | 2008 | [Jorma Jormakka (2008) - P≠NP Proof Attempt](jorma-jormakka-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Ki-Bong Nam, S.H. Wang, and Yang Gon Kim | 2004 | [Ki-Bong Nam, S.H. Wang, and Yang Gon Kim (2004) - P≠NP Attempt](ki-bong-nam-sh-wang-and-yang-gon-kim-published-2004-pneqnp/) | - | - |
+| ✗ | Koji Kobayashi | 2011 | [Koji Kobayashi (2011) - P != NP via CHAOS Dependency Relations](koji-kobayashi-2011-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Koji Kobayashi | 2012 | [Koji Kobayashi (2012): P ≠ NP via Topological Approach](koji-kobayashi-2012-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Cynthia Ann Harlan Krieger & Lee K. Jones | 2008 | [Cynthia Ann Harlan Krieger & Lee K. Jones (2008) - P=NP via Polynomial Hamiltonian Circuit Detection](krieger-jones-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Lev Gordeev | 2005 | [Formalization: Lev Gordeev (2005) - P≠NP](lev-gordeev-2005-pneqnp/) | - | - |
