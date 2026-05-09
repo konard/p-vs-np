@@ -91,6 +91,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Narendra S. Chaudhari | 2009 | [Narendra S. Chaudhari (2009) - P=NP Attempt](narendra-chaudhari-2009-peqnp/) | - | 🔷 🔶 |
 | ? | Natalia L. Malinina | 2012 | [Natalia L. Malinina (2012) - P vs NP is Unprovable in ZFC](natalia-malinina-2012-unprovable/) | 📄 | 🔷 🔶 |
 | ? | Newton C.A. da Costa & Francisco A. Doria | 2003 | [Formalization: N.C.A. da Costa & F.A. Doria (2003) - P vs NP Unprovability Claim](ncada-costa-fa-doria-2003-unprovable/) | - | - |
+| ? | Nicholas Argall | 2003 | [Nicholas Argall (2003) - P=NP is Undecidable](nicholas-argall-2003-undecidable/) | 📄 | 🔷 🔶 |
 | ✓ | Peng Cui | 2014 | [Peng Cui (2014) - P=NP Claim](peng-cui-2014-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Wen-Qi Duan | 2012 | [Qi Duan (2012) - P=NP Proof Attempt](qi-duan-2012-peqnp/) | - | - |
 | ✗ | Radoslaw Hofman | 2006 | [Radoslaw Hofman (2006) - P≠NP Attempt](radoslaw-hofman-2006-pneqnp/) | 📄 📎 | 🔷 🔶 |
