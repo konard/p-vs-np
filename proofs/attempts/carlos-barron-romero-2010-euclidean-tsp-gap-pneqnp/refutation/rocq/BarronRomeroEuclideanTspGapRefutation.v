@@ -51,7 +51,11 @@ Theorem always_true_in_p : InP alwaysTrueProblem.
 Proof.
   exists constantTruePolyTime.
   intro x.
-  split; intro _; reflexivity.
+  split.
+  - intro _.
+    reflexivity.
+  - intro _.
+    exact I.
 Qed.
 
 Theorem always_true_lacks_triangle_reduction :
