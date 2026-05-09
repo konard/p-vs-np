@@ -38,6 +38,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Algirdas Antano Maknickas | 2013 | [Formalization: Maknickas (2013) - P=NP via Linear Programming](author93-2013-peqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Bangyan Wen & Yi Lin | 2010 | [Bangyan Wen & Yi Lin (2010) - P≠NP via Formal Logic Reasoning](bangyan-wen-yi-lin-2010-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Bhupinder Singh Anand | 2008 | [Bhupinder Singh Anand (2008) - P≠NP Attempt](bhupinder-singh-anand-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
+| ✗ | Carlos Barron-Romero | 2010 | [Carlos Barron-Romero (2010) - P≠NP via E2DTSP versus GAP](carlos-barron-romero-2010-euclidean-tsp-gap-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Carlos Barron-Romero | 2010 | [Carlos Barron-Romero (2010) - P≠NP via Complexity of Solution Verification](carlos-barron-romero-2010-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Changlin Wan (with Zhongzhi Shi) | 2010 | [Changlin Wan (2010) - P=NP Attempt](changlin-wan-2010-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✓ | Charles Sauerbier | 2002 | [Charles Sauerbier (2002) - P=NP Attempt](charles-sauerbier-2002-peqnp/) | - | - |
