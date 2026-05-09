@@ -21,17 +21,54 @@ This script checks that each attempt follows the required directory structure:
 
 Usage:
     python3 scripts/check_attempt_structure.py
+    python3 scripts/check_attempt_structure.py --offline
+    python3 scripts/check_attempt_structure.py --json attempts_report.json
     python3 scripts/check_attempt_structure.py --path proofs/attempts/specific-attempt
     python3 scripts/check_attempt_structure.py --generate-list
     python3 scripts/check_attempt_structure.py --generate-list --output proofs/attempts/ATTEMPTS.md
 """
 
-import os
+import json
 import sys
 import re
+from html.parser import HTMLParser
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import List, Tuple, Optional
+from typing import Dict, List, Optional, Set, Tuple
+from urllib.error import HTTPError, URLError
+from urllib.parse import urljoin
+from urllib.request import urlopen
+
+
+WOEGINGER_URL = "https://wscor.win.tue.nl/woeginger/P-versus-NP.htm"
+STOPWORDS = {
+    "abs", "and", "are", "arxiv", "article", "attempt", "available", "based",
+    "class", "contains", "equal", "from", "http", "https", "into", "model",
+    "not", "org", "paper", "papers", "problem", "proof", "proves", "showed",
+    "shows", "solution", "that", "the", "this", "time", "versus", "with",
+}
+
+
+@dataclass(frozen=True)
+class WoegingerAttempt:
+    """A live entry parsed from Woeginger's P-versus-NP page."""
+    entry_id: int
+    claim: str
+    year: str
+    author: str
+    title: str
+    summary: str
+    source_url: str
+    links: Tuple[str, ...] = ()
+
+
+@dataclass
+class WoegingerMatch:
+    """Best repository match for a live Woeginger entry."""
+    attempt: WoegingerAttempt
+    validation: Optional["StructureValidation"]
+    score: int
+    reasons: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -133,6 +170,443 @@ class StructureValidation:
         return "-"
 
 
+class WoegingerHTMLParser(HTMLParser):
+    """Extract top-level milestone entries from Woeginger's HTML page.
+
+    The source HTML omits closing </li> tags, so each new <li> finalizes the
+    previous entry.
+    """
+
+    def __init__(self, source_url: str):
+        super().__init__(convert_charrefs=True)
+        self.source_url = source_url
+        self._in_h2 = False
+        self._seen_milestones = False
+        self._in_milestones = False
+        self._current_text: Optional[List[str]] = None
+        self._current_links: Optional[List[str]] = None
+        self.items: List[Tuple[str, Tuple[str, ...]]] = []
+
+    def handle_starttag(self, tag: str, attrs: List[Tuple[str, Optional[str]]]):
+        attrs_dict = dict(attrs)
+        if tag == "h2":
+            self._in_h2 = True
+            return
+
+        if tag == "ol" and self._seen_milestones and not self._in_milestones:
+            self._in_milestones = True
+            return
+
+        if tag == "li" and self._in_milestones:
+            self._finish_item()
+            self._current_text = []
+            self._current_links = []
+            return
+
+        if tag == "a" and self._current_links is not None:
+            href = attrs_dict.get("href")
+            if href:
+                self._current_links.append(urljoin(self.source_url, href))
+
+    def handle_endtag(self, tag: str):
+        if tag == "h2":
+            self._in_h2 = False
+        elif tag == "ol" and self._in_milestones:
+            self._finish_item()
+            self._in_milestones = False
+
+    def handle_data(self, data: str):
+        if self._in_h2 and "milestones" in data.lower():
+            self._seen_milestones = True
+        if self._current_text is not None:
+            self._current_text.append(data)
+
+    def _finish_item(self):
+        if self._current_text is None:
+            return
+        text = normalize_whitespace("".join(self._current_text))
+        if text:
+            self.items.append((text, tuple(self._current_links or [])))
+        self._current_text = None
+        self._current_links = None
+
+
+def normalize_whitespace(text: str) -> str:
+    """Collapse whitespace in parsed prose."""
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def normalize_token_text(text: str) -> str:
+    """Normalize text for fuzzy matching."""
+    text = text.lower().replace("≠", " not equal ").replace("=/=", " not equal ")
+    text = text.replace("!=", " not equal ").replace("=", " equal ")
+    return re.sub(r"[^a-z0-9]+", " ", text)
+
+
+def significant_tokens(text: str) -> Set[str]:
+    """Tokenize text and remove common low-information words."""
+    return {
+        token
+        for token in normalize_token_text(text).split()
+        if len(token) > 2 and token not in STOPWORDS
+    }
+
+
+def first_year(text: str) -> str:
+    """Return the first four-digit year in text, or an empty string."""
+    match = re.search(r"\b(19|20)\d{2}\b", text)
+    return match.group(0) if match else ""
+
+
+def normalize_claim(claim: str) -> str:
+    """Normalize claim labels used in folder names, READMEs, and Woeginger."""
+    lowered = normalize_token_text(claim)
+    if "unprovable" in lowered:
+        return "unprovable"
+    if "undecidable" in lowered:
+        return "undecidable"
+    if "not equal" in lowered or "pneqnp" in lowered or "pne np" in lowered:
+        return "pneqnp"
+    if "p np" in lowered or "peqnp" in lowered or "equal np" in lowered:
+        return "peqnp"
+    if "both" in lowered:
+        return "both"
+    return ""
+
+
+def infer_claim_from_folder(folder_name: str) -> str:
+    """Infer normalized claim from an attempt directory name."""
+    lowered = folder_name.lower()
+    if "unprovable" in lowered:
+        return "unprovable"
+    if "undecidable" in lowered:
+        return "undecidable"
+    if "pneqnp" in lowered:
+        return "pneqnp"
+    if "peqnp" in lowered or "peqnppspace" in lowered:
+        return "peqnp"
+    if "both" in lowered:
+        return "both"
+    return ""
+
+
+def extract_claim(text: str) -> Tuple[str, str]:
+    """Extract Woeginger's leading bracketed claim label."""
+    match = re.match(r"\[(Equal|Not equal|Undecidable|Unprovable)\]:\s*(.*)", text, re.IGNORECASE)
+    if match:
+        label = match.group(1).lower()
+        body = match.group(2)
+        claims = {
+            "equal": "P = NP",
+            "not equal": "P != NP",
+            "undecidable": "Undecidable",
+            "unprovable": "Unprovable",
+        }
+        return claims[label], body
+
+    lowered = text.lower()
+    if "p-not-equal-to-np" in lowered or "p is not equal to np" in lowered:
+        return "P != NP", text
+    if "p=np" in lowered or "p = np" in lowered:
+        return "P = NP", text
+    return "Unclassified", text
+
+
+def extract_title(text: str) -> str:
+    """Extract a likely paper title from a Woeginger entry."""
+    for pattern in (
+        r'"([^"]{3,180})"',
+        r"“([^”]{3,180})”",
+        r"paper\s+([^.;]{3,180}?)\s+by\s+[A-Z]",
+        r"called\s+([^.,;]{3,180})",
+        r"title\s+([^.,;]{3,180})",
+    ):
+        match = re.search(pattern, text)
+        if match:
+            title = normalize_whitespace(match.group(1))
+            if title.lower() not in {"p versus np", "p=np", "p = np", "p not equal np"}:
+                return title
+            return title
+
+    first_sentence = re.split(r"(?<=[.!?])\s+", text, maxsplit=1)[0]
+    return first_sentence[:120].rstrip(" ,;")
+
+
+def extract_author(text: str) -> str:
+    """Heuristically extract the author names from a Woeginger entry."""
+    name = r"(?:[A-Z][A-Za-zÀ-ÖØ-öø-ÿ.\-']+|[a-z]{1,3})"
+    patterns = [
+        rf"(?:In|Around|On|Since)\s+(?:[A-Za-z]+\s+)?(?:\d{{4}}(?:/\d{{2}})?|summer\s+\d{{4}}|spring\s+\d{{4}})[:,]?\s+({name}(?:\s+(?:{name}|and|&|,)){{0,12}}?)\s+(?:proved|constructed|designed|showed|established|introduced|wrote|provided|published|made|put|started|claimed)",
+        r"Here is\s+([A-Z][A-Za-zÀ-ÖØ-öø-ÿ.\-'\s]+?)'s",
+        rf"\bThe authors are\s+({name}(?:\s+(?:{name}|and|&|,)){{0,12}})",
+        rf"\bpaper\s+[^.]+?\s+by\s+({name}(?:\s+{name}){{0,5}})",
+        rf"^({name}(?:\s+(?:{name}|and|&|,)){{0,12}}?)\s+(?:proved|constructed|designed|showed|established|introduced|wrote|provided|published|made|put|has|started)",
+        rf"\bby\s+({name}(?:\s+(?:{name}|and|&|,)){{0,12}})",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if not match:
+            continue
+        author = normalize_whitespace(match.group(1))
+        author = re.split(r"(?<!\b[A-Z])\.\s+", author, maxsplit=1)[0]
+        author = re.sub(r"\s+(?:that|with|from|in|on|at)$", "", author, flags=re.IGNORECASE)
+        author = author.strip(" ,.;")
+        if not re.search(r"[A-Z]", author):
+            continue
+        if 2 < len(author) <= 120:
+            return author
+    return ""
+
+
+def parse_woeginger_html(html: str, source_url: str = WOEGINGER_URL) -> List[WoegingerAttempt]:
+    """Parse live Woeginger HTML into milestone entries."""
+    parser = WoegingerHTMLParser(source_url)
+    parser.feed(html)
+
+    attempts = []
+    for index, (raw_text, links) in enumerate(parser.items, start=1):
+        claim, body = extract_claim(raw_text)
+        attempts.append(
+            WoegingerAttempt(
+                entry_id=index,
+                claim=claim,
+                year=first_year(body),
+                author=extract_author(body),
+                title=extract_title(body),
+                summary=body,
+                source_url=source_url,
+                links=links,
+            )
+        )
+    return attempts
+
+
+def fetch_woeginger_attempts(url: str = WOEGINGER_URL) -> List[WoegingerAttempt]:
+    """Fetch and parse Woeginger's live P-versus-NP page."""
+    with urlopen(url) as response:
+        charset = response.headers.get_content_charset() or "latin-1"
+        html = response.read().decode(charset, errors="replace")
+    attempts = parse_woeginger_html(html, url)
+    if not attempts:
+        raise ValueError(f"No Woeginger milestone entries parsed from {url}")
+    return attempts
+
+
+def validation_match_text(validation: StructureValidation) -> str:
+    """Collect searchable text from one repository attempt."""
+    metadata = validation.metadata or AttemptMetadata()
+    pieces = [
+        validation.path.name,
+        metadata.author,
+        metadata.year,
+        metadata.claim,
+        metadata.title,
+        metadata.source,
+        format_folder_name(validation.path.name),
+    ]
+    return " ".join(piece for piece in pieces if piece)
+
+
+def score_woeginger_match(attempt: WoegingerAttempt, validation: StructureValidation) -> Tuple[int, List[str]]:
+    """Score how well a repository attempt matches one Woeginger entry."""
+    metadata = validation.metadata or AttemptMetadata()
+    repo_text = validation_match_text(validation)
+    repo_tokens = significant_tokens(repo_text)
+    attempt_tokens = significant_tokens(
+        f"{attempt.author} {attempt.year} {attempt.title} {attempt.summary[:240]}"
+    )
+    reasons: List[str] = []
+    score = 0
+
+    overlap = attempt_tokens & repo_tokens
+    if overlap:
+        score += min(len(overlap), 8)
+        reasons.append(f"token overlap: {', '.join(sorted(overlap)[:5])}")
+
+    if attempt.year and attempt.year in repo_text:
+        score += 5
+        reasons.append(f"year {attempt.year}")
+    elif attempt.year and (metadata.year or re.search(r"\b(19|20)\d{2}\b", validation.path.name)):
+        score -= 5
+        reasons.append(f"year mismatch for {attempt.year}")
+
+    author_tokens = significant_tokens(attempt.author)
+    repo_author_tokens = significant_tokens(metadata.author)
+    if author_tokens:
+        author_overlap = author_tokens & (repo_author_tokens or repo_tokens)
+        if author_overlap:
+            score += 4 + len(author_overlap)
+            reasons.append(f"author: {', '.join(sorted(author_overlap))}")
+        elif repo_author_tokens:
+            score -= 6
+            reasons.append("author mismatch")
+
+    title_tokens = significant_tokens(attempt.title)
+    title_overlap = title_tokens & repo_tokens
+    if len(title_overlap) >= 2:
+        score += 3
+        reasons.append("title")
+
+    attempt_claim = normalize_claim(attempt.claim)
+    repo_claim = normalize_claim((validation.metadata.claim if validation.metadata else "")) or infer_claim_from_folder(validation.path.name)
+    if attempt_claim and repo_claim and (attempt_claim == repo_claim or "both" in {attempt_claim, repo_claim}):
+        score += 2
+        reasons.append(f"claim {attempt.claim}")
+
+    return score, reasons
+
+
+def compare_with_woeginger(
+    validations: List[StructureValidation],
+    attempts: List[WoegingerAttempt],
+    minimum_score: int = 9,
+) -> Tuple[List[WoegingerMatch], List[StructureValidation]]:
+    """Match live Woeginger entries to repository attempt directories."""
+    available = set(range(len(validations)))
+    matches: List[WoegingerMatch] = []
+
+    for attempt in attempts:
+        best_index: Optional[int] = None
+        best_score = -1
+        best_reasons: List[str] = []
+
+        for index in available:
+            score, reasons = score_woeginger_match(attempt, validations[index])
+            if score > best_score:
+                best_index = index
+                best_score = score
+                best_reasons = reasons
+
+        if best_index is not None and best_score >= minimum_score:
+            matches.append(WoegingerMatch(attempt, validations[best_index], best_score, best_reasons))
+            available.remove(best_index)
+        else:
+            matches.append(WoegingerMatch(attempt, None, max(best_score, 0), best_reasons))
+
+    unmatched_repo = [validations[index] for index in sorted(available)]
+    return matches, unmatched_repo
+
+
+def print_woeginger_report(matches: List[WoegingerMatch], unmatched_repo: List[StructureValidation], source_url: str):
+    """Print comparison against Woeginger's live milestone list."""
+    missing = [match for match in matches if match.validation is None]
+    matched = [match for match in matches if match.validation is not None]
+
+    print("=" * 80)
+    print("WOEGINGER LIVE LIST COMPARISON")
+    print("=" * 80)
+    print(f"Source: {source_url}")
+    print()
+    print("SUMMARY")
+    print("-" * 80)
+    print(f"Woeginger entries parsed:      {len(matches)}")
+    print(f"Matched repository attempts:   {len(matched)}")
+    print(f"Missing repository attempts:   {len(missing)}")
+    print(f"Unmatched repository attempts: {len(unmatched_repo)}")
+    print()
+
+    if missing:
+        print("MISSING WOEGINGER ENTRIES")
+        print("-" * 80)
+        for match in missing:
+            attempt = match.attempt
+            label = f"#{attempt.entry_id} {attempt.claim}"
+            author = attempt.author or "Unknown author"
+            year = attempt.year or "Unknown year"
+            print(f"  {label}: {author} ({year})")
+            print(f"      {attempt.title}")
+            print(f"      Suggested issue title: Formalize Woeginger entry #{attempt.entry_id}: {author}")
+        print()
+
+    if unmatched_repo:
+        print("REPOSITORY ATTEMPTS NOT MATCHED TO WOEGINGER")
+        print("-" * 80)
+        for validation in unmatched_repo:
+            print(f"  {validation.path.name}")
+        print()
+
+    print("=" * 80)
+
+
+def serialize_validation(validation: StructureValidation) -> Dict:
+    """Convert a structure validation to JSON-friendly data."""
+    metadata = validation.metadata or AttemptMetadata()
+    return {
+        "path": str(validation.path),
+        "name": validation.path.name,
+        "metadata": {
+            "author": metadata.author,
+            "year": metadata.year,
+            "claim": metadata.claim,
+            "title": metadata.title,
+            "source": metadata.source,
+            "attempt_id": metadata.attempt_id,
+        },
+        "is_valid": validation.is_valid(),
+        "is_complete": validation.is_complete(),
+        "missing": validation.get_missing(),
+        "warnings": validation.warnings,
+        "has_lean": validation.has_lean(),
+        "has_rocq": validation.has_rocq(),
+    }
+
+
+def serialize_woeginger_match(match: WoegingerMatch) -> Dict:
+    """Convert a Woeginger comparison match to JSON-friendly data."""
+    return {
+        "entry": {
+            "entry_id": match.attempt.entry_id,
+            "claim": match.attempt.claim,
+            "year": match.attempt.year,
+            "author": match.attempt.author,
+            "title": match.attempt.title,
+            "summary": match.attempt.summary,
+            "source_url": match.attempt.source_url,
+            "links": list(match.attempt.links),
+        },
+        "matched_directory": match.validation.path.name if match.validation else None,
+        "score": match.score,
+        "reasons": match.reasons,
+    }
+
+
+def save_json_report(
+    output_path: Path,
+    validations: List[StructureValidation],
+    woeginger_matches: Optional[List[WoegingerMatch]] = None,
+    unmatched_repo: Optional[List[StructureValidation]] = None,
+    woeginger_source_url: str = WOEGINGER_URL,
+):
+    """Save a machine-readable structure and Woeginger comparison report."""
+    report = {
+        "summary": {
+            "attempts_scanned": len(validations),
+            "valid": sum(1 for validation in validations if validation.is_valid()),
+            "complete": sum(1 for validation in validations if validation.is_complete()),
+            "invalid": sum(1 for validation in validations if not validation.is_valid()),
+            "with_warnings": sum(1 for validation in validations if validation.warnings),
+        },
+        "attempts": [serialize_validation(validation) for validation in validations],
+    }
+    if woeginger_matches is not None:
+        missing = [match for match in woeginger_matches if match.validation is None]
+        report["woeginger"] = {
+            "source": woeginger_source_url,
+            "entries": len(woeginger_matches),
+            "matched": len(woeginger_matches) - len(missing),
+            "missing": len(missing),
+            "unmatched_repository_attempts": len(unmatched_repo or []),
+            "matches": [serialize_woeginger_match(match) for match in woeginger_matches],
+            "unmatched_repository": [
+                serialize_validation(validation)
+                for validation in (unmatched_repo or [])
+            ],
+        }
+
+    output_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    print(f"JSON report saved: {output_path}")
+
+
 def parse_metadata_from_readme(readme_path: Path) -> Optional[AttemptMetadata]:
     """Extract metadata from README.md file."""
     if not readme_path.exists():
@@ -145,14 +619,15 @@ def parse_metadata_from_readme(readme_path: Path) -> Optional[AttemptMetadata]:
 
     metadata = AttemptMetadata()
 
-    # Extract title from first H1
-    title_match = re.search(r'^#\s+(.+?)(?:\s+-\s+|\s+\()?(P[≠=!]?N?P)?', content, re.MULTILINE)
+    # Extract title from the first H1. Keep the full heading; earlier versions used
+    # a non-greedy regex that reduced many generated titles to a single letter.
+    title_match = re.search(r'^#\s+(.+?)\s*$', content, re.MULTILINE)
     if title_match:
         metadata.title = title_match.group(1).strip()
 
     # Extract metadata fields
     patterns = {
-        'author': r'\*\*Author\*\*[:\s]*(.+?)(?:\n|$)',
+        'author': r'\*\*Authors?\*\*[:\s]*(.+?)(?:\n|$)',
         'year': r'\*\*Year\*\*[:\s]*(\d{4})',
         'claim': r'\*\*Claim\*\*[:\s]*(.+?)(?:\n|$)',
         'source': r'\*\*Source\*\*[:\s]*\[?([^\]\n]+)',
@@ -445,7 +920,7 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
     lines.append("")
     lines.append("*This file is auto-generated by `scripts/check_attempt_structure.py --generate-list`*")
 
-    content = "\n".join(lines)
+    content = "\n".join(lines) + "\n"
 
     if output_path:
         output_path.write_text(content, encoding='utf-8')
@@ -512,6 +987,37 @@ def main():
         help='Output file for the markdown list (default: stdout)'
     )
     parser.add_argument(
+        '--json',
+        type=Path,
+        help='Write a machine-readable validation report to this path'
+    )
+    parser.add_argument(
+        '--offline',
+        action='store_true',
+        help="Skip fetching Woeginger's live milestone list"
+    )
+    parser.add_argument(
+        '--woeginger-url',
+        default=WOEGINGER_URL,
+        help=f"Woeginger milestone URL (default: {WOEGINGER_URL})"
+    )
+    parser.add_argument(
+        '--minimum-match-score',
+        type=int,
+        default=9,
+        help='Minimum fuzzy score required to match a Woeginger entry (default: 9)'
+    )
+    parser.add_argument(
+        '--require-woeginger',
+        action='store_true',
+        help='Exit with an error if the live Woeginger list cannot be fetched or parsed'
+    )
+    parser.add_argument(
+        '--fail-on-missing-woeginger',
+        action='store_true',
+        help='Exit with an error if any live Woeginger entry is not matched to a repository attempt'
+    )
+    parser.add_argument(
         '--quiet',
         action='store_true',
         help='Only output errors and the generated list'
@@ -533,6 +1039,24 @@ def main():
             sys.exit(1)
         validations = [validate_attempt_structure(attempt) for attempt in attempts]
 
+    woeginger_matches: Optional[List[WoegingerMatch]] = None
+    unmatched_repo: Optional[List[StructureValidation]] = None
+    if not args.path and not args.offline:
+        try:
+            woeginger_attempts = fetch_woeginger_attempts(args.woeginger_url)
+            woeginger_matches, unmatched_repo = compare_with_woeginger(
+                validations,
+                woeginger_attempts,
+                minimum_score=args.minimum_match_score,
+            )
+        except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
+            message = f"Warning: could not compare against Woeginger live list: {exc}"
+            if args.require_woeginger:
+                print(message, file=sys.stderr)
+                sys.exit(1)
+            if not args.quiet:
+                print(message, file=sys.stderr)
+
     if args.generate_list:
         content = generate_markdown_list(validations, args.output)
         if not args.output:
@@ -540,12 +1064,29 @@ def main():
     else:
         if not args.quiet:
             print_report(validations)
+            if woeginger_matches is not None:
+                print_woeginger_report(woeginger_matches, unmatched_repo or [], args.woeginger_url)
+
+    if args.json:
+        save_json_report(
+            args.json,
+            validations,
+            woeginger_matches,
+            unmatched_repo,
+            woeginger_source_url=args.woeginger_url,
+        )
 
     # Exit with error if any attempts are invalid (missing README)
     invalid = [v for v in validations if not v.is_valid()]
     if invalid:
         print(f"\n{len(invalid)} attempt(s) are invalid (missing README.md).")
         sys.exit(1)
+
+    if args.fail_on_missing_woeginger and woeginger_matches is not None:
+        missing = [match for match in woeginger_matches if match.validation is None]
+        if missing:
+            print(f"\n{len(missing)} Woeginger entries are missing repository attempts.")
+            sys.exit(1)
 
 
 if __name__ == '__main__':

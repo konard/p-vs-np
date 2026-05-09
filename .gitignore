@@ -155,3 +155,12 @@ Makefile.coq.conf
 # Isabelle build artifacts
 .isabelle/
 *.thy~
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Generated reports (can be regenerated with scripts)
+attempts_report.json
