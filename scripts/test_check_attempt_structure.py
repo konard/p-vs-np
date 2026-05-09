@@ -103,6 +103,59 @@ class CheckAttemptStructureTests(unittest.TestCase):
         self.assertGreaterEqual(matches[0].score, 9)
         self.assertEqual(unmatched, [])
 
+    def test_compare_with_woeginger_keeps_feinstein_entries_distinct(self):
+        validations = [
+            StructureValidation(
+                path=Path("proofs/attempts/craig-feinstein-2003-pneqnp"),
+                has_readme=True,
+                metadata=AttemptMetadata(
+                    author="Craig Alan Feinstein",
+                    year="2003",
+                    claim="P ≠ NP",
+                    title="Craig Alan Feinstein (2003-04) - P≠NP Attempt",
+                ),
+            ),
+            StructureValidation(
+                path=Path("proofs/attempts/craig-feinstein-2006-pneqnp"),
+                has_readme=True,
+                metadata=AttemptMetadata(
+                    author="Craig Alan Feinstein",
+                    year="2006",
+                    claim="P ≠ NP",
+                    title="A New and Elegant Argument that P is not NP",
+                ),
+            ),
+        ]
+        attempts = [
+            WoegingerAttempt(
+                entry_id=11,
+                claim="P != NP",
+                year="2003",
+                author="Craig Alan Feinstein",
+                title="P vs NP attempts",
+                summary="In 2003 Craig Alan Feinstein claimed P is not equal to NP.",
+                source_url="https://example.test/P-versus-NP.htm",
+            ),
+            WoegingerAttempt(
+                entry_id=31,
+                claim="P != NP",
+                year="2006",
+                author="Craig Alan Feinstein",
+                title="A New and Elegant Argument that P is not NP",
+                summary=(
+                    "In 2006 Craig Alan Feinstein wrote "
+                    "\"A New and Elegant Argument that P is not NP\"."
+                ),
+                source_url="https://example.test/P-versus-NP.htm",
+            ),
+        ]
+
+        matches, unmatched = compare_with_woeginger(validations, attempts)
+
+        self.assertEqual(matches[0].validation.path.name, "craig-feinstein-2003-pneqnp")
+        self.assertEqual(matches[1].validation.path.name, "craig-feinstein-2006-pneqnp")
+        self.assertEqual(unmatched, [])
+
 
 if __name__ == "__main__":
     unittest.main()
