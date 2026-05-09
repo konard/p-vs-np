@@ -90,7 +90,7 @@ This directory contains formalizations in three proof assistants that expose the
 
 ### Implementations
 
-1. **[Coq](coq/Chen2003Attempt.v)** - Coq formalization showing where the argument breaks down
+1. **[Rocq](rocq/Chen2003Attempt.v)** - Rocq formalization showing where the argument breaks down
 2. **[Lean 4](lean/Chen2003Attempt.lean)** - Lean formalization with detailed error analysis
 3. **[Isabelle/HOL](isabelle/Chen2003Attempt.thy)** - Isabelle formalization demonstrating the gap
 
@@ -157,16 +157,16 @@ This attempt doesn't engage with any of these barriers.
 
 ## Verification Status
 
-- ✅ **Coq**: Formalization complete - Shows invalid inference
+- ✅ **Rocq**: Formalization complete - Shows invalid inference
 - ✅ **Lean 4**: Formalization complete - Identifies axiom gap
 - ✅ **Isabelle/HOL**: Formalization complete - Proves incompleteness
 
 ## How to Verify
 
-### Coq
+### Rocq
 ```bash
-cd coq
-coqc Chen2003Attempt.v
+cd rocq
+rocq compile Chen2003Attempt.v
 ```
 
 ### Lean 4

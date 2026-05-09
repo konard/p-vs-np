@@ -169,9 +169,9 @@ The error is compounded by:
 
 ## Formalization Results
 
-All three formal systems (Coq, Lean, Isabelle) identified the error when attempting to formalize the equivalence claim:
+All three formal systems (Rocq, Lean, Isabelle) identified the error when attempting to formalize the equivalence claim:
 
-- **Coq**: `Cohen_equivalence_claim_is_false` theorem shows the claim is ill-defined
+- **Rocq**: `Cohen_equivalence_claim_is_false` theorem shows the claim is ill-defined
 - **Lean**: `cohen_equivalence_claim_is_false` exposes the input encoding issue
 - **Isabelle**: `cohen_equivalence_claim_is_false` demonstrates the circular reasoning
 

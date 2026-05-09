@@ -178,7 +178,7 @@ This error represents a **common pattern** in failed P vs NP attempts:
 
 This attempt has been formalized in three proof assistants:
 
-1. **Coq** ([TangPushan.v](coq/TangPushan.v))
+1. **Rocq** ([TangPushan.v](rocq/TangPushan.v))
    - Formalizes CLIQUE problem
    - Proves HEWN polynomial for fixed j
    - Proves HEWN exponential when j=n

@@ -26,13 +26,13 @@ Each attempt folder contains:
 ```
 attempt-folder/
 ├── README.md          # Description of the attempt and known errors
-├── coq/              # Coq formalization
+├── rocq/              # Rocq formalization
 │   └── *.v
-├── lean/             # Lean 4 formalization
-│   └── *.lean
-└── isabelle/         # Isabelle/HOL formalization
-    └── *.thy
+└── lean/             # Lean 4 formalization
+    └── *.lean
 ```
+
+> **Note:** Isabelle/HOL support has been sunset. Existing Isabelle proofs are archived in [`../../archive/isabelle/`](../../archive/isabelle/) for reference.
 
 ## Attempts Catalog
 

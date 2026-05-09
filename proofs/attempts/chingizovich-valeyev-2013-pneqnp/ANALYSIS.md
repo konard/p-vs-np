@@ -55,7 +55,7 @@ This formalization demonstrates:
 
 ## Formalization Details
 
-The formal verification in Coq, Lean, and Isabelle shows:
+The formal verification in Rocq, Lean, and Isabelle shows:
 
 1. **IF** ExhaustiveSearchIsOptimal **THEN** P ≠ NP ✓ (logic is valid)
 2. **BUT** ExhaustiveSearchIsOptimal is assumed, not proven ✗ (proof is invalid)
@@ -65,6 +65,6 @@ This makes it clear that the logical structure is sound, but the proof is incomp
 ## References
 
 - Main analysis: [README.md](README.md)
-- Coq formalization: [coq/ValeyevAttempt.v](coq/ValeyevAttempt.v)
+- Rocq formalization: [rocq/ValeyevAttempt.v](rocq/ValeyevAttempt.v)
 - Lean formalization: [lean/ValeyevAttempt.lean](lean/ValeyevAttempt.lean)
 - Isabelle formalization: [isabelle/ValeyevAttempt.thy](isabelle/ValeyevAttempt.thy)

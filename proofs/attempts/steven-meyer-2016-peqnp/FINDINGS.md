@@ -19,7 +19,7 @@ Steven Meyer's 2016 attempt to prove P = NP is fundamentally flawed. The argumen
 
 **Reality**: Complexity classes P and NP are **robust** across all polynomial-time equivalent computational models.
 
-**Formal Proof**: We proved in all three proof assistants (Coq, Lean, Isabelle):
+**Formal Proof**: We proved in all three proof assistants (Rocq, Lean, Isabelle):
 ```
 ∀ problem. InP_TM problem ↔ InP_MRAM problem
 ```
@@ -91,7 +91,7 @@ Steven Meyer's 2016 attempt to prove P = NP is fundamentally flawed. The argumen
 
 Our formalizations in three proof assistants successfully demonstrate the errors:
 
-### Coq (MeyerAttempt.v)
+### Rocq (MeyerAttempt.v)
 - ✓ Formalized TM, RAM, and MRAM models
 - ✓ Proved polynomial-time equivalence
 - ✓ Proved P is model-independent: `P_model_independent_TM_MRAM`
@@ -134,7 +134,7 @@ Steven Meyer's 2016 attempt fails to prove P = NP because it is based on a funda
 - **Lack of awareness** of the robustness of P and NP
 - **Absence** of the required algorithmic or proof content
 
-The formal verification in Coq, Lean, and Isabelle conclusively demonstrates that changing computational models does not affect the P vs NP question.
+The formal verification in Rocq, Lean, and Isabelle conclusively demonstrates that changing computational models does not affect the P vs NP question.
 
 **Final Assessment**: The attempt contains no valid mathematical content that advances toward resolving P vs NP.
 
@@ -146,6 +146,6 @@ The formal verification in Coq, Lean, and Isabelle conclusively demonstrates tha
 - **Polynomial-time Church-Turing Thesis**: Cobham (1965), Edmonds (1965)
 - **Model Equivalence**: Arora & Barak, "Computational Complexity: A Modern Approach", Chapter 1
 - **Our Formalizations**:
-  - [Coq](coq/MeyerAttempt.v)
+  - [Rocq](rocq/MeyerAttempt.v)
   - [Lean](lean/MeyerAttempt.lean)
   - [Isabelle](isabelle/MeyerAttempt.thy)

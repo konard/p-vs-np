@@ -168,7 +168,7 @@ The approach is a variation of **LP relaxation**, which is well-studied in appro
 
 ## Formalization Goal
 
-Our formalizations in Coq, Lean, and Isabelle will:
+Our formalizations in Rocq, Lean, and Isabelle will:
 
 1. **Define the transformation** from k-SAT to the LP formulation
 2. **Formalize the recovery function** (floor + modulo)
@@ -179,7 +179,7 @@ This will make the error **formally verifiable** and serve as an educational res
 
 ## Files
 
-- **[coq/MaknickasAttempt.v](coq/MaknickasAttempt.v)** - Coq formalization showing the gap
+- **[rocq/MaknickasAttempt.v](rocq/MaknickasAttempt.v)** - Rocq formalization showing the gap
 - **[lean/MaknickasAttempt.lean](lean/MaknickasAttempt.lean)** - Lean 4 formalization
 - **[isabelle/MaknickasAttempt.thy](isabelle/MaknickasAttempt.thy)** - Isabelle/HOL formalization
 
@@ -214,13 +214,28 @@ This formalization demonstrates:
 3. **Importance of correctness proofs**: Claims require rigorous proof
 4. **Proof verification**: How formal methods catch subtle errors
 
+## Files
+
+- [`ORIGINAL.pdf`](ORIGINAL.pdf) — Original paper from arXiv:1203.6020v2
+- [`ORIGINAL.md`](ORIGINAL.md) — Markdown reconstruction of the paper
+- [`proof/`](proof/) — Forward proof formalization (following Maknickas's argument)
+  - [`proof/README.md`](proof/README.md) — Explanation of what compiles and what fails
+  - [`proof/lean/MaknickasProof.lean`](proof/lean/MaknickasProof.lean) — Lean 4 formalization
+  - [`proof/rocq/MaknickasProof.v`](proof/rocq/MaknickasProof.v) — Rocq formalization
+- [`refutation/`](refutation/) — Formal demonstration of the errors
+  - [`refutation/README.md`](refutation/README.md) — Explanation of each error
+  - [`refutation/lean/MaknickasRefutation.lean`](refutation/lean/MaknickasRefutation.lean) — Lean 4 refutation
+  - [`refutation/rocq/MaknickasRefutation.v`](refutation/rocq/MaknickasRefutation.v) — Rocq refutation
+
 ## Status
 
-- ✅ Coq formalization: Complete - identifies the gap
-- ✅ Lean formalization: Complete - identifies the gap
-- ✅ Isabelle formalization: Complete - identifies the gap
-- ✅ Error documentation: Complete
+- ✅ Rocq forward proof: Complete — formalizes Maknickas's argument with Axiom for false main claim
+- ✅ Lean forward proof: Complete — formalizes Maknickas's argument with sorry for false main claim
+- ✅ Rocq refutation: Complete — formally proves the main claim is false with counterexamples
+- ✅ Lean refutation: Complete — formally proves the main claim is false with counterexamples
+- ✅ Error documentation: Complete — four errors documented in code and refutation/README.md
+- 📁 Isabelle: Archived — see [archive/isabelle/proofs/attempts/antano-maknickas-2011-peqnp/](../../../archive/isabelle/proofs/attempts/antano-maknickas-2011-peqnp/)
 
 ---
 
-**Navigation:** [↑ Back to Repository Root](../../../README.md) | [Parent Issue #44](https://github.com/konard/p-vs-np/issues/44) | [This Issue #79](https://github.com/konard/p-vs-np/issues/79)
+**Navigation:** [↑ Back to Repository Root](../../../README.md) | [Parent Issue #44](https://github.com/konard/p-vs-np/issues/44) | [This Issue #486](https://github.com/konard/p-vs-np/issues/486)

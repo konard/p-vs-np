@@ -75,7 +75,7 @@ cd lean
 lake build
 ```
 
-### Coq Implementation (`coq/PNotEqualNP.v`)
+### Rocq Implementation (`rocq/PNotEqualNP.v`)
 
 **Features**:
 - Classical logic via `Classical_Prop`
@@ -84,7 +84,7 @@ lake build
 - Standard library integration
 
 **Key Structures**:
-```coq
+```rocq
 Record ProofOfPNotEqualNP : Type := {
   proves : P_not_equals_NP;
   usesValidMethod : bool
@@ -93,8 +93,8 @@ Record ProofOfPNotEqualNP : Type := {
 
 **Verification**:
 ```bash
-cd coq
-coqc PNotEqualNP.v
+cd rocq
+rocq compile PNotEqualNP.v
 ```
 
 ### Isabelle/HOL Implementation (`isabelle/PNotEqualNP.thy`)
@@ -219,7 +219,7 @@ This framework is provided for research and educational purposes. See repository
 ## Status
 
 - ✅ Lean 4 implementation: Complete and verified
-- ✅ Coq implementation: Complete and verified
+- ✅ Rocq implementation: Complete and verified
 - ✅ Isabelle/HOL implementation: Complete and verified
 - 🚧 Agda implementation: Basic definitions only
 

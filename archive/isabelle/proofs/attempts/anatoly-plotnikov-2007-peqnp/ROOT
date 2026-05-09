@@ -1,0 +1,4 @@
+session PlotnikovMISP = HOL +
+  options [timeout = 300]
+  theories
+    PlotnikovMISP

@@ -2,185 +2,90 @@
 
 This directory contains utility scripts for managing the P vs NP attempts repository.
 
-## check_attempts.py
+## check_attempt_structure.py
 
-A comprehensive verification script that checks all P vs NP attempts against Woeginger's authoritative list.
+`check_attempt_structure.py` verifies that each attempt in `proofs/attempts/`
+uses the current directory layout and, by default, compares the repository
+against Gerhard Woeginger's live P-versus-NP milestones page.
 
-### Purpose
+### Required Structure
 
-This script helps maintain the quality and completeness of the repository by:
+Each attempt should follow this structure:
 
-1. **Comparing against Woeginger's list**: Ensures we haven't missed any documented P vs NP attempts
-2. **Verifying structure**: Checks that each attempt follows the expected pattern
-3. **Identifying gaps**: Reports missing or incomplete formalizations
-4. **Generating reports**: Produces both human-readable and JSON reports
-
-### Expected Structure Pattern
-
-Each attempt in `proofs/attempts/` should follow this structure:
-
-```
-proofs/attempts/<author>-<year>-<claim>/
-├── README.md                    # REQUIRED: Detailed description
-├── papers/                      # Optional: Original papers (PDF)
-├── lean/                        # At least one formalization required
-│   ├── <AttemptName>.lean      # Main formalization
-│   └── <AttemptName>Refutation.lean  # Optional: Formal refutation
-├── coq/                         # Optional alternative formalization
-│   ├── <AttemptName>.v
-│   └── <AttemptName>Refutation.v
-└── isabelle/                    # Optional alternative formalization
-    ├── <AttemptName>.thy
-    └── <AttemptName>Refutation.thy
+```text
+attempt-name/
+├── README.md              # Overview of the attempt
+├── original/              # Original proof idea and source material
+│   ├── README.md          # Detailed description of the approach
+│   ├── ORIGINAL.md        # Markdown reconstruction of the paper
+│   ├── ORIGINAL.pdf       # Original paper file (or .html/.tex)
+│   └── paper/             # Optional: references to original papers
+├── proof/                 # Forward proof formalization
+│   ├── README.md          # Explanation of the proof structure
+│   ├── lean/              # Lean 4 formalization (*.lean)
+│   └── rocq/              # Rocq formalization (*.v)
+└── refutation/            # Refutation formalization
+    ├── README.md          # Explanation of why the proof fails
+    ├── lean/              # Lean 4 refutation (*.lean)
+    └── rocq/              # Rocq refutation (*.v)
 ```
 
-### Naming Convention
+The checker still accepts legacy root-level `ORIGINAL.*` files for older
+attempts, but `original/` is the preferred location for new work.
 
-Directory names follow this pattern:
-- `<author>-<year>-<claim>`
-- Author names are normalized (lowercase, spaces replaced with hyphens)
-- Claim is either `peqnp` (for P=NP) or `pneqnp` (for P≠NP)
+### Woeginger Coverage
 
-Examples:
-- `moustapha-diaby-2004-peqnp`
-- `lev-gordeev-2005-pneqnp`
-- `mathias-hauptmann-2016-pneqnp`
+For full repository scans, the checker fetches:
 
-### README.md Requirements
+```text
+https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+```
 
-Each attempt's README.md should contain:
+It parses the live milestone list, matches entries to local attempt directories
+using author, year, claim, title, directory name, and README metadata, then
+reports missing live entries and unmatched local directories. Missing live
+entries should be tracked with GitHub issues before the PR is finalized.
 
-1. **Header Section**:
-   - Attempt ID (from Woeginger's list)
-   - Author name(s)
-   - Year
-   - Claim (P=NP, P≠NP, etc.)
-   - Status (Refuted, Unresolved, etc.)
-
-2. **Summary**: Brief overview of the attempt
-
-3. **Main Argument**:
-   - The core idea
-   - The approach taken
-   - Key technical claims
-
-4. **The Error** (if refuted):
-   - Fundamental flaw(s) in the argument
-   - Why the error matters
-   - Counter-examples (if applicable)
-
-5. **Broader Context**:
-   - Why this approach is tempting
-   - Common misconceptions
-   - Related work
-
-6. **Formalization Goals**:
-   - What is being formalized
-   - What the formalization demonstrates
-   - Limitations
-
-7. **References**:
-   - Original papers
-   - Refutations
-   - Related discussions
-
-### Formalization Requirements
-
-At least ONE of Lean/Coq/Isabelle formalization must be present.
-
-Each formalization should include:
-
-1. **Basic Definitions**: Formal definitions of key concepts
-2. **Attempt Formalization**: The proof attempt formalized as code
-3. **Comments**: Extensive comments explaining:
-   - What each part does
-   - Where the proof breaks down
-   - Why it breaks down
-4. **Refutation** (optional but encouraged): Formal proof showing where the error occurs
+Use `--offline` when a deterministic local-only structure check is needed.
 
 ### Usage
 
-Run the script from the repository root:
-
 ```bash
-# Basic usage
-python3 scripts/check_attempts.py
+# Check structure and compare with Woeginger's live list
+python3 scripts/check_attempt_structure.py
 
-# Save JSON report
-python3 scripts/check_attempts.py --json attempts_report.json
+# Check structure without network access
+python3 scripts/check_attempt_structure.py --offline
 
-# Specify different base directory
-python3 scripts/check_attempts.py --base-dir /path/to/repo
+# Save a machine-readable report
+python3 scripts/check_attempt_structure.py --json attempts_report.json
+
+# Fail if any live Woeginger entry does not match a repository attempt
+python3 scripts/check_attempt_structure.py --fail-on-missing-woeginger
+
+# Check a specific attempt directory
+python3 scripts/check_attempt_structure.py --path proofs/attempts/craig-feinstein-2003-pneqnp
+
+# Generate the repository attempt index
+python3 scripts/check_attempt_structure.py --offline --generate-list --output proofs/attempts/ATTEMPTS.md
 ```
 
 ### Output
 
-The script generates a report with:
+The script reports:
 
-1. **Summary Statistics**:
-   - Total attempts in Woeginger's list
-   - Total attempts in repository
-   - Matched, complete, and incomplete attempts
+- Total attempts scanned
+- Complete attempts with original material, proof formalization, and refutation
+- Partial or invalid attempts that need structure work
+- Legacy layout warnings, including old root-level `lean/`, `coq/`, or `isabelle/`
+- Live Woeginger entries that are missing from `proofs/attempts/`
+- Repository attempts that do not match Woeginger's list
 
-2. **Missing Attempts**: Attempts from Woeginger's list not yet in the repository
+### Notes
 
-3. **Incomplete Attempts**: Attempts missing required files (README.md or formalizations)
-
-4. **Unmatched Directories**: Directories in the repo not matched to Woeginger's list
-
-5. **Statistics by Claim Type**: Breakdown by P=NP, P≠NP, etc.
-
-### Example Output
-
-```
-================================================================================
-P vs NP ATTEMPTS - COMPLETENESS REPORT
-================================================================================
-
-SUMMARY
---------------------------------------------------------------------------------
-Total attempts in Woeginger's list: 120
-Total attempts in repository:      70
-Matched attempts:                   68
-Complete formalizations:            45
-Incomplete formalizations:          23
-Missing from repository:            52
-Unmatched directories:              2
-
-MISSING ATTEMPTS (Not in repository)
---------------------------------------------------------------------------------
-  [1] Ted Swart (1986) - P=NP
-      Linear programming formulations for Hamiltonian cycle
-      Expected directory: ted-swart-1986-peqnp
-
-...
-```
-
-### Integration with Development Workflow
-
-This script should be run:
-
-1. **Before creating new issues**: To identify what work needs to be done
-2. **After adding new attempts**: To verify structure is correct
-3. **Periodically**: To ensure completeness as Woeginger's list updates
-4. **In CI/CD**: To automatically verify repository quality (future enhancement)
-
-### Woeginger's List
-
-The script includes a snapshot of Woeginger's list as of January 2026. The authoritative list is maintained at:
-- https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
-
-To update the list in the script:
-1. Visit Woeginger's page
-2. Update the `WOEGINGER_ATTEMPTS` list in `check_attempts.py`
-3. Run the script to generate an updated report
-
-### Future Enhancements
-
-Potential improvements:
-- Fetch Woeginger's list automatically from the web
-- Check README.md content quality (not just existence)
-- Verify formalization syntax (run Lean/Coq/Isabelle checks)
-- Generate GitHub issues automatically for missing work
-- Track refutation status more precisely
-- Add paper verification (check if papers exist and are accessible)
+- Isabelle support has been sunset. Existing Isabelle files should be archived,
+  not included in new attempts.
+- New attempts should include both `proof/` and `refutation/` directories.
+- At least one of Lean or Rocq is expected in each formalization directory.
+- The `original/paper/` subdirectory is optional and can hold supporting source
+  references.

@@ -67,7 +67,7 @@ Due to the unavailability of the source material, we **cannot formalize** this s
 
 ### Placeholder Formalizations
 
-1. **[coq/MironTeplitz2005.v](coq/MironTeplitz2005.v)** - Coq placeholder documenting the unavailability
+1. **[rocq/MironTeplitz2005.v](rocq/MironTeplitz2005.v)** - Rocq placeholder documenting the unavailability
 2. **[lean/MironTeplitz2005.lean](lean/MironTeplitz2005.lean)** - Lean placeholder documenting the unavailability
 3. **[isabelle/MironTeplitz2005.thy](isabelle/MironTeplitz2005.thy)** - Isabelle/HOL placeholder documenting the unavailability
 
@@ -92,7 +92,7 @@ To complete this formalization, one would need to:
    - Locate any errors, gaps, or invalid assumptions
 
 3. **Formalize the attempt**:
-   - Model the proof structure in Coq, Lean, and Isabelle
+   - Model the proof structure in Rocq, Lean, and Isabelle
    - Continue formalization until the error is revealed
    - Document the specific flaw in the argument
 

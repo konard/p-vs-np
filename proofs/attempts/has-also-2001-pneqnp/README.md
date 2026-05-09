@@ -144,7 +144,7 @@ This serves as a cautionary tale about:
 
 ## Verification Status
 
-- ✅ Coq formalization: `coq/GramRefutation.v`
+- ✅ Rocq formalization: `rocq/GramRefutation.v`
 - ✅ Lean formalization: `lean/GramRefutation.lean`
 - ✅ Isabelle formalization: `isabelle/GramRefutation.thy`
 

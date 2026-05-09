@@ -83,7 +83,7 @@ The paper lacks:
 
 ## Formalization Strategy
 
-Our formalization in Coq, Lean, and Isabelle will:
+Our formalization in Rocq, Lean, and Isabelle will:
 
 1. **Define the problem**: Hamiltonian cycle, TSP, and the 0-1 cost reduction
 2. **Formalize the algorithm**: Express the growth process as precisely as possible given the limited details
@@ -120,7 +120,7 @@ This formalization demonstrates:
 ```
 proofs/attempts/qi-duan-2012-peqnp/
 ├── README.md (this file)
-├── coq/
+├── rocq/
 │   └── QiDuan2012.v
 ├── lean/
 │   └── QiDuan2012.lean
@@ -143,4 +143,4 @@ All formalizations are designed to:
 - ✅ Explicitly mark unproven claims
 - ❌ Do NOT claim to prove P = NP (because the original proof is flawed)
 
-The use of `Admitted` (Coq), `sorry` (Lean), and `oops` (Isabelle) honestly represents our inability to complete the proof, which reflects the actual flaw in Duan's argument.
+The use of `Admitted` (Rocq), `sorry` (Lean), and `oops` (Isabelle) honestly represents our inability to complete the proof, which reflects the actual flaw in Duan's argument.
