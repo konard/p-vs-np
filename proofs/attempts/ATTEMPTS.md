@@ -67,6 +67,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Jason W Steinmetz | 2011 | [Jason W. Steinmetz (2011) - P=NP Attempt](jason-w-steinmetz-2011-peqnp/) | - | - |
 | ✓ | Javaid Aslam | 2008 | [Javaid Aslam (2008) - P=NP via Counting Hamiltonian Circuits](javaid-aslam-2008-peqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Jeffrey W. Holcomb | 2011 | [Jeffrey W. Holcomb (2011) - P≠NP Proof Attempt](jeffrey-w-holcomb-2011-pneqnp/) | 📄 📎 | 🔷 🔶 |
+| ✗ | Jerrald Meek | 2008 | [Jerrald Meek (2008) - Karp Postulates P!=NP Attempt](jerrald-meek-2008-karp-postulates-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Jerrald Meek | 2008 | [Jerrald Meek (2008) - P≠NP Attempt](jerrald-meek-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
 | ✗ | Joonmo Kim | 2014 | [Joonmo Kim (2014) - P≠NP Attempt](joonmo-kim-2014-pneqnp/) | - | - |
 | ✗ | Jorma Jormakka | 2008 | [Jorma Jormakka (2008) - P≠NP Proof Attempt](jorma-jormakka-2008-pneqnp/) | 📄 📎 | 🔷 🔶 |
