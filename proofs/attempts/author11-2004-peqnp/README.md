@@ -61,7 +61,7 @@ The formalization reveals that:
 ## Formalization Status
 
 This directory contains formalizations in:
-- **Coq**: Demonstrates the invalid reasoning by showing the hidden exponential resource assumption
+- **Rocq**: Demonstrates the invalid reasoning by showing the hidden exponential resource assumption
 - **Lean**: Formalizes the gap between physical processes and computational complexity classes
 - **Isabelle**: Proves that the argument relies on an unproven (and likely false) assumption about polynomial resources
 

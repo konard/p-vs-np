@@ -83,7 +83,7 @@ To validly prove TSP requires exponential time, one would need:
 
 ## Formalization Strategy
 
-Our formalization in Coq, Lean, and Isabelle will:
+Our formalization in Rocq, Lean, and Isabelle will:
 
 1. **Model TSP**: Define the Traveling Salesman Problem formally
 2. **Model the Held-Karp Algorithm**: Formalize the dynamic programming approach
@@ -147,7 +147,7 @@ This formalization demonstrates:
 ```
 proofs/attempts/alan-feinstein-2011-pneqnp/
 ├── README.md (this file)
-├── coq/
+├── rocq/
 │   └── FeinsteinsProof.v
 ├── lean/
 │   └── FeinsteinsProof.lean
@@ -158,7 +158,7 @@ proofs/attempts/alan-feinstein-2011-pneqnp/
 ## Status
 
 - ✅ Paper analyzed and error identified
-- 🚧 Coq formalization: In progress
+- 🚧 Rocq formalization: In progress
 - 🚧 Lean formalization: In progress
 - 🚧 Isabelle formalization: In progress
 

@@ -106,7 +106,7 @@ The withdrawal of this paper does not affect the P vs NP question because:
 
 ## Formalization Notes
 
-Our formalizations in Coq, Lean, and Isabelle:
+Our formalizations in Rocq, Lean, and Isabelle:
 
 1. **Correctly formalize** the PARTITION reduction
 2. **Sketch** the Diophantine equation theory (full formalization would be extensive)

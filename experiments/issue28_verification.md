@@ -16,13 +16,13 @@ This document systematically verifies all 10 claims made in Issue #28 by GPT-5 r
 ✅ **CLAIM IS INCORRECT**
 - **Files DO exist:**
   - `proofs/basic/lean/Basic.lean` ✓ EXISTS
-  - `proofs/basic/coq/Basic.v` ✓ EXISTS
+  - `proofs/basic/rocq/Basic.v` ✓ EXISTS
   - `proofs/basic/isabelle/Basic.thy` ✓ EXISTS
   - `proofs/basic/agda/Basic.agda` ✓ EXISTS
 - **Path discrepancy:** The issue claims files should be at `proofs/Basic.*` but README correctly references `proofs/basic/{assistant}/Basic.*`
 - **CI verification:** GitHub Actions workflows DO exist:
   - `.github/workflows/lean.yml`
-  - `.github/workflows/coq.yml`
+  - `.github/workflows/rocq.yml`
   - `.github/workflows/isabelle.yml`
   - `.github/workflows/verification.yml`
   - Recent runs show SUCCESS status

@@ -144,7 +144,7 @@ Barbosa's 2009 attempt to prove P≠NP fails on two fundamental levels:
 1. **Technically**: The proof that XG-SAT ∈ NP is invalid due to non-uniform polynomial bounds
 2. **Meta-theoretically**: Even if valid, the approach would be equivalent to solving the standard P vs NP problem
 
-The formalization in Coq, Lean, and Isabelle makes these errors explicit and machine-checkable, serving as a valuable resource for understanding uniformity requirements in computational complexity theory.
+The formalization in Rocq, Lean, and Isabelle makes these errors explicit and machine-checkable, serving as a valuable resource for understanding uniformity requirements in computational complexity theory.
 
 ## References
 

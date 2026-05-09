@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Trivial Solution to the PvNP Problem</title>
+    <style>
+        body {
+            font-family: "Times New Roman", serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            font-size: 20pt;
+            margin-bottom: 10px;
+        }
+        .author {
+            text-align: center;
+            font-size: 12pt;
+            margin-bottom: 5px;
+        }
+        .affiliation {
+            text-align: center;
+            font-size: 10pt;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+        .abstract {
+            margin: 30px 0;
+        }
+        .abstract-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin: 20px 0;
+        }
+        .section-title {
+            font-weight: bold;
+            font-size: 14pt;
+            margin: 20px 0 10px 0;
+        }
+        .reference {
+            font-size: 10pt;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>A Trivial Solution to the PvNP Problem</h1>
+
+    <div class="author">Bhupinder Singh Anand</div>
+    <div class="affiliation">
+        Mumbai, India<br>
+        Email: alixcomsi@gmail.com
+    </div>
+
+    <div class="abstract">
+        <div class="abstract-title">Abstract</div>
+        <p>
+            We consider an arithmetical relation R(n) which—when treated as a Boolean function—is
+            constructively computable as true for any given natural number n, but which is not
+            Turing-computable as true for any given natural number n.
+        </p>
+        <p>
+            We argue that, since R(n) can be labelled as an NP language, this suggests that the
+            current formulation of the PvNP problem admits a trivial logical solution that is not
+            significant computationally.
+        </p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">1. Introduction</div>
+        <p>
+            In this paper, we examine Gödel's construction in his seminal 1931 paper on formally
+            undecidable propositions. We show that this construction defines an arithmetical relation
+            that can be verified constructively for any specific natural number, but which cannot be
+            decided algorithmically by a Turing machine.
+        </p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">2. The Gödelian Relation</div>
+        <p>
+            Gödel defined an arithmetical relation R(n) such that:
+        </p>
+        <ul>
+            <li>For any given natural number n, we can constructively verify whether R(n) holds</li>
+            <li>There is no Turing machine that can compute R(n) for all n</li>
+        </ul>
+        <p>
+            This demonstrates a distinction between constructive computability (verification) and
+            Turing computability (algorithmic decision).
+        </p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">3. The Analogy to P vs NP</div>
+        <p>
+            We observe that this distinction mirrors the relationship between NP (verification in
+            polynomial time) and P (decision in polynomial time). The Gödelian relation R(n) can be
+            viewed as demonstrating that verification and decision are fundamentally different
+            computational tasks.
+        </p>
+        <p>
+            Since R(n) can be verified constructively but not decided algorithmically, and since
+            this relation can be formulated as an NP problem, we suggest that this provides a logical
+            solution to the P vs NP question.
+        </p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">4. Conclusion</div>
+        <p>
+            We have shown that Gödel's incompleteness results imply a formal distinction between
+            verification and decision. This distinction, when interpreted in the context of complexity
+            theory, suggests that P ≠ NP in a formal logical sense.
+        </p>
+        <p>
+            However, we acknowledge that this solution is trivial in the sense that it does not
+            provide computational insights into the complexity of specific NP problems, and is therefore
+            not significant from a computational perspective.
+        </p>
+    </div>
+
+    <div class="reference">
+        <div class="section-title">References</div>
+        <p>
+            [1] K. Gödel, "Über formal unentscheidbare Sätze der Principia Mathematica und verwandter
+            Systeme I," <em>Monatshefte für Mathematik und Physik</em>, vol. 38, pp. 173-198, 1931.
+        </p>
+        <p>
+            [2] S. A. Cook, "The complexity of theorem-proving procedures," <em>Proceedings of the third
+            annual ACM symposium on Theory of computing</em>, pp. 151-158, 1971.
+        </p>
+        <p>
+            [3] A. M. Turing, "On computable numbers, with an application to the Entscheidungsproblem,"
+            <em>Proceedings of the London Mathematical Society</em>, vol. 42, pp. 230-265, 1936.
+        </p>
+    </div>
+
+    <div class="reference" style="margin-top: 40px; font-size: 9pt; color: #666;">
+        <p>
+            <strong>Note:</strong> This is a reconstruction of the paper's content based on the abstract
+            and available information. The original paper was presented at the 2008 International Conference
+            on Foundations of Computer Science (FCS 2008), Las Vegas, USA, pp. 224-227.
+        </p>
+        <p>
+            <strong>Source:</strong>
+            <a href="https://www.academia.edu/22390807/A_Trivial_Solution_to_the_PvNP_Problem">
+                Academia.edu
+            </a>
+        </p>
+    </div>
+</body>
+</html>

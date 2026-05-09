@@ -126,7 +126,7 @@ This attempt appears on Gerhard Woeginger's famous list of P=NP attempts (Entry 
 
 ## Formalization Strategy
 
-Our formal verification in Coq, Lean, and Isabelle:
+Our formal verification in Rocq, Lean, and Isabelle:
 
 1. **Formalizes the 3-SAT problem** and the notion of polynomial-time algorithms
 2. **Defines the "understanding" concept** and related definitions (concepts, types C⁺/C*)
@@ -139,7 +139,7 @@ The formalization makes explicit what the paper leaves implicit: the **recursive
 ## Files in This Directory
 
 - `README.md` - This file, documenting the attempt and its error
-- `coq/SanchezGuinea2015.v` - Coq formalization
+- `rocq/SanchezGuinea2015.v` - Rocq formalization
 - `lean/SanchezGuinea2015.lean` - Lean 4 formalization
 - `isabelle/SanchezGuinea2015.thy` - Isabelle/HOL formalization
 - `isabelle/ROOT` - Isabelle build configuration

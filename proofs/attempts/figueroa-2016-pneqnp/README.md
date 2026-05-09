@@ -89,7 +89,7 @@ Arroyo-Figueroa's approach doesn't address these barriers and uses informal prob
 
 ## Formalization Goals
 
-This directory contains formalizations in Coq, Lean, and Isabelle that attempt to:
+This directory contains formalizations in Rocq, Lean, and Isabelle that attempt to:
 
 1. **Define the basic concepts**:
    - Universal hash functions
@@ -117,13 +117,16 @@ This directory contains formalizations in Coq, Lean, and Isabelle that attempt t
 
 ```
 figueroa-2016-pneqnp/
-├── README.md           (this file)
-├── coq/               (Coq formalization)
-│   └── Figueroa2016.v
-├── lean/              (Lean 4 formalization)
-│   └── Figueroa2016.lean
-└── isabelle/          (Isabelle/HOL formalization)
-    └── Figueroa2016.thy
+├── README.md                (this file)
+├── ORIGINAL.pdf             (original paper: arXiv:1604.03758)
+└── refutation/              (refutation formalization)
+    ├── README.md            (error explanation)
+    ├── lean/                (Lean 4 formalizations)
+    │   ├── FigueroaAttempt.lean
+    │   └── Figueroa2016.lean
+    └── rocq/                (Rocq formalizations)
+        ├── FigueroaAttempt.v
+        └── Figueroa2016.v
 ```
 
 ## Educational Value

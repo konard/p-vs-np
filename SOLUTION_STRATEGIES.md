@@ -45,7 +45,7 @@ These strategies focus on creating machine-checkable frameworks for validating p
   2. NP-complete problem not in P
   3. SAT hardness
   4. Super-polynomial lower bound
-- Implement in Lean 4, Coq, Isabelle/HOL, and Agda
+- Implement in Lean 4, Rocq, Isabelle/HOL, and Agda
 
 **Implementation Status:** ✅ **COMPLETE**
 - Location: `proofs/p_not_equal_np/`
@@ -64,7 +64,7 @@ These strategies focus on creating machine-checkable frameworks for validating p
 - Subject to soundness of proof assistant
 
 **References:**
-- Implemented: `proofs/p_not_equal_np/lean/`, `coq/`, `isabelle/`, `agda/`
+- Implemented: `proofs/p_not_equal_np/lean/`, `rocq/`, `isabelle/`, `agda/`
 
 ---
 
@@ -95,7 +95,7 @@ These strategies focus on creating machine-checkable frameworks for validating p
 - No computational evidence either way
 
 **References:**
-- Implemented: `proofs/p_vs_np_decidable/lean/`, `coq/`, `isabelle/`, `agda/`
+- Implemented: `proofs/p_vs_np_decidable/lean/`, `rocq/`, `isabelle/`, `agda/`
 
 ---
 
@@ -126,7 +126,7 @@ These strategies focus on creating machine-checkable frameworks for validating p
 - Would require model theory for full rigor
 
 **References:**
-- Implemented: `proofs/p_vs_np_undecidable/lean/`, `coq/`, `isabelle/`, `agda/`
+- Implemented: `proofs/p_vs_np_undecidable/lean/`, `rocq/`, `isabelle/`, `agda/`
 
 ---
 
@@ -891,7 +891,7 @@ This matrix shows how strategies can be combined for maximum impact:
 - Share formalization libraries
 
 ### Proof Assistant Communities
-- Lean Zulip, Coq Discourse
+- Lean Zulip, Rocq Discourse
 - Isabelle users mailing list
 - Agda community
 - Share verification frameworks

@@ -152,7 +152,7 @@ By formalizing the argument, we make explicit the hidden assumptions and invalid
 
 ## Files in This Directory
 
-- **coq/**: Coq formalization of Feinstein's argument and the error
+- **rocq/**: Rocq formalization of Feinstein's argument and the error
 - **lean/**: Lean formalization of Feinstein's argument and the error
 - **isabelle/**: Isabelle/HOL formalization of Feinstein's argument and the error
 - **README.md**: This file
@@ -171,7 +171,7 @@ By formalizing the argument, we make explicit the hidden assumptions and invalid
 ## Status
 
 - ✅ Paper analyzed and error identified
-- 🚧 Coq formalization in progress
+- 🚧 Rocq formalization in progress
 - 🚧 Lean formalization in progress
 - 🚧 Isabelle formalization in progress
 

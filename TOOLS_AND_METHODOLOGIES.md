@@ -448,7 +448,7 @@ This repository includes working examples of four major proof assistants, with b
    - Configuration: `lakefile.lean`, `Main.lean`
    - Verified by GitHub Actions on every push
 
-2. **Coq** ([proofs/Basic.v](proofs/Basic.v))
+2. **Rocq** ([proofs/Basic.v](proofs/Basic.v))
    - Mature proof assistant based on Calculus of Inductive Constructions
    - Strong ecosystem and extensive libraries (MathComp, Stdpp)
    - Used for verified software (CompCert) and mathematics
@@ -481,9 +481,9 @@ This repository includes working examples of four major proof assistants, with b
 - Automated proof checking via CI/CD
 
 **Notable Verified Proofs:**
-- Four-color theorem ([Gonthier 2008](https://doi.org/10.1090/S0002-9904-2008-01217-9), Coq)
+- Four-color theorem ([Gonthier 2008](https://doi.org/10.1090/S0002-9904-2008-01217-9), Rocq)
 - Kepler conjecture ([Hales et al. 2017](https://doi.org/10.1017/fmp.2017.1), Isabelle)
-- Odd order theorem ([Gonthier et al. 2013](https://doi.org/10.1007/978-3-642-39634-2_14), Coq/MathComp)
+- Odd order theorem ([Gonthier et al. 2013](https://doi.org/10.1007/978-3-642-39634-2_14), Rocq/MathComp)
 
 **Automated Theorem Provers**
 - **Examples:** E, Vampire, SPASS

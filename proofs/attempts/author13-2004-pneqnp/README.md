@@ -151,8 +151,8 @@ Furthermore, proving any specific problem requires super-polynomial time is exac
 ```
 author13-2004-pneqnp/
 ├── README.md (this file)
-├── coq/
-│   └── OWMF.v (Coq formalization)
+├── rocq/
+│   └── OWMF.v (Rocq formalization)
 ├── lean/
 │   └── OWMF.lean (Lean formalization)
 └── isabelle/
@@ -161,7 +161,7 @@ author13-2004-pneqnp/
 
 ## Formalization Status
 
-- [ ] Coq formalization complete
+- [ ] Rocq formalization complete
 - [ ] Lean formalization complete
 - [ ] Isabelle formalization complete
 - [ ] Error identified and documented

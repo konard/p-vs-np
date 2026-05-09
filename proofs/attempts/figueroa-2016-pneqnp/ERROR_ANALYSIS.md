@@ -101,8 +101,8 @@ The logical chain breaks:
 
 A formal proof system would **immediately reject** this proof because:
 
-```coq
-(* Coq would reject: *)
+```rocq
+(* Rocq would reject: *)
 Definition tau : BitSeq -> BitSeq := fun input =>
   (* ... construction that produces n² bits ... *)
 
@@ -153,9 +153,9 @@ theorem tau_type (input : BitSeq) (h : bitLength input = n) :
 
 ## Formalization Results
 
-All three formal systems (Coq, Lean, Isabelle) successfully expose this error:
+All three formal systems (Rocq, Lean, Isabelle) successfully expose this error:
 
-### Coq (FigueroaAttempt.v)
+### Rocq (FigueroaAttempt.v)
 - ✓ Models the construction
 - ✓ Shows actual output length is n²
 - ✓ Proves type mismatch theorem

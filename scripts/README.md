@@ -1,95 +1,91 @@
 # Scripts
 
-This directory contains utility scripts for managing and tracking P vs NP proof attempts.
+This directory contains utility scripts for managing the P vs NP attempts repository.
 
-## check_attempts.py
+## check_attempt_structure.py
 
-A Python script that compares the repository's formalized attempts against [Woeginger's P vs NP page](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm) and checks the completeness of each formalization.
+`check_attempt_structure.py` verifies that each attempt in `proofs/attempts/`
+uses the current directory layout and, by default, compares the repository
+against Gerhard Woeginger's live P-versus-NP milestones page.
 
-### Requirements Checked
+### Required Structure
 
-Per the specifications in [Issue #44](https://github.com/konard/p-vs-np/issues/44), each formalization should have:
+Each attempt should follow this structure:
 
-1. **README.md** - Detailed description of the attempt, including:
-   - How the attempt was structured
-   - The core idea
-   - How it intended to solve P vs NP
-   - Detailed explanation of the errors found
+```text
+attempt-name/
+├── README.md              # Overview of the attempt
+├── original/              # Original proof idea and source material
+│   ├── README.md          # Detailed description of the approach
+│   ├── ORIGINAL.md        # Markdown reconstruction of the paper
+│   ├── ORIGINAL.pdf       # Original paper file (or .html/.tex)
+│   └── paper/             # Optional: references to original papers
+├── proof/                 # Forward proof formalization
+│   ├── README.md          # Explanation of the proof structure
+│   ├── lean/              # Lean 4 formalization (*.lean)
+│   └── rocq/              # Rocq formalization (*.v)
+└── refutation/            # Refutation formalization
+    ├── README.md          # Explanation of why the proof fails
+    ├── lean/              # Lean 4 refutation (*.lean)
+    └── rocq/              # Rocq refutation (*.v)
+```
 
-2. **Original Papers** - The original paper(s) or at minimum a README.md documenting the attempt
+The checker still accepts legacy root-level `ORIGINAL.*` files for older
+attempts, but `original/` is the preferred location for new work.
 
-3. **Formalization** (Coq/Lean/Isabelle) - Full proof draft (formal version of the paper) with:
-   - All parts that break apart commented
-   - Explanations on why and how they break
+### Woeginger Coverage
 
-4. **Formal Refutation** (Coq/Lean/Isabelle) - Not just showing errors in words, but proving the refutation formally
+For full repository scans, the checker fetches:
+
+```text
+https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+```
+
+It parses the live milestone list, matches entries to local attempt directories
+using author, year, claim, title, directory name, and README metadata, then
+reports missing live entries and unmatched local directories. Missing live
+entries should be tracked with GitHub issues before the PR is finalized.
+
+Use `--offline` when a deterministic local-only structure check is needed.
 
 ### Usage
 
 ```bash
-# Basic report
-python3 scripts/check_attempts.py
+# Check structure and compare with Woeginger's live list
+python3 scripts/check_attempt_structure.py
 
-# JSON output (for CI integration)
-python3 scripts/check_attempts.py --json
+# Check structure without network access
+python3 scripts/check_attempt_structure.py --offline
 
-# Verbose output with details
-python3 scripts/check_attempts.py --verbose
+# Save a machine-readable report
+python3 scripts/check_attempt_structure.py --json attempts_report.json
 
-# Show only missing attempts
-python3 scripts/check_attempts.py --missing-only
+# Fail if any live Woeginger entry does not match a repository attempt
+python3 scripts/check_attempt_structure.py --fail-on-missing-woeginger
 
-# Show only incomplete attempts
-python3 scripts/check_attempts.py --incomplete-only
+# Check a specific attempt directory
+python3 scripts/check_attempt_structure.py --path proofs/attempts/craig-feinstein-2003-pneqnp
 
-# Generate markdown report (writes to ATTEMPTS_STATUS.md)
-python3 scripts/check_attempts.py --markdown
-
-# Generate markdown to custom file
-python3 scripts/check_attempts.py --markdown --markdown-file my_report.md
-
-# Check folder structure consistency
-python3 scripts/check_attempts.py --check-structure
-
-# Create GitHub issues for missing and incomplete attempts (dry run)
-python3 scripts/check_attempts.py --dry-run
-
-# Create GitHub issues for missing and incomplete attempts
-python3 scripts/check_attempts.py --create-issues
+# Generate the repository attempt index
+python3 scripts/check_attempt_structure.py --offline --generate-list --output proofs/attempts/ATTEMPTS.md
 ```
 
 ### Output
 
-The script produces:
+The script reports:
 
-- **Summary Statistics** - Total counts for each component (README, papers, formalizations, refutations)
-- **Missing Attempts** - Attempts from Woeginger's list not yet mapped to the repository
-- **Incomplete Attempts** - Mapped attempts that need additional work
-- **Unmapped Folders** - Repository folders not matching any attempt in Woeginger's list
-- **Markdown Report** - A comprehensive markdown document with comparison tables (when using `--markdown`)
-- **GitHub Issues** - Automatically created issues for tracking missing/incomplete work (when using `--create-issues`)
+- Total attempts scanned
+- Complete attempts with original material, proof formalization, and refutation
+- Partial or invalid attempts that need structure work
+- Legacy layout warnings, including old root-level `lean/`, `coq/`, or `isabelle/`
+- Live Woeginger entries that are missing from `proofs/attempts/`
+- Repository attempts that do not match Woeginger's list
 
-### Completeness Score
+### Notes
 
-Each attempt is scored 0-100% based on:
-- Has folder: 10%
-- Has README.md: 10%
-- README has detailed description: 10%
-- README has error explanation: 10%
-- Has original paper: 10%
-- Has Lean formalization: 10%
-- Has Coq formalization: 10%
-- Has Isabelle formalization: 10%
-- Has formal refutation (in any prover): 20%
-
-### Status Emoji Legend
-
-- ✅ Complete (90-100%)
-- 🟡 Nearly complete (70-89%)
-- 🟠 In progress (50-69%)
-- 🔴 Started (1-49%)
-- ⬜ Not started (0%)
-
-## Reference
-
-Source list: https://wscor.win.tue.nl/woeginger/P-versus-NP.htm
+- Isabelle support has been sunset. Existing Isabelle files should be archived,
+  not included in new attempts.
+- New attempts should include both `proof/` and `refutation/` directories.
+- At least one of Lean or Rocq is expected in each formalization directory.
+- The `original/paper/` subdirectory is optional and can hold supporting source
+  references.

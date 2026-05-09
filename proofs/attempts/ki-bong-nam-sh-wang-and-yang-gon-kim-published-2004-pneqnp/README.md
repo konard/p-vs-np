@@ -84,7 +84,7 @@ Our formal verification attempts to capture:
 
 We formalize this attempt in three proof assistants to identify exactly where the logical gap occurs:
 
-- **Coq** (`coq/`): Uses computational types and complexity definitions
+- **Rocq** (`rocq/`): Uses computational types and complexity definitions
 - **Lean 4** (`lean/`): Leverages dependent type theory for computational complexity
 - **Isabelle/HOL** (`isabelle/`): Uses higher-order logic for algorithm analysis
 

@@ -360,4 +360,4 @@ Song's 2014 paper does **not** prove P ≠ NP. The main errors are:
 ---
 
 **Formalization Status**: ✅ Complete
-**Verification**: See Coq, Lean, and Isabelle formalizations in this directory
+**Verification**: See Rocq, Lean, and Isabelle formalizations in this directory
