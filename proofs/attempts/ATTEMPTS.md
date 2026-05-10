@@ -44,6 +44,7 @@ This document provides a comparison of all documented P vs NP proof attempts in 
 | ✓ | Charles Sauerbier | 2002 | [Charles Sauerbier (2002) - P=NP Attempt](charles-sauerbier-2002-peqnp/) | - | - |
 | ✗ | Rustem Chingizovich Valeyev | 2013 | [Chingizovich Valeyev (2013) - P≠NP Proof Attempt](chingizovich-valeyev-2013-pneqnp/) | - | - |
 | ✗ | Craig Alan Feinstein | 2003 | [Craig Alan Feinstein (2003-04) - P≠NP Attempt](craig-feinstein-2003-pneqnp/) | - | 🔷 🔶 |
+| ✗ | Craig Alan Feinstein | 2006 | [Craig Alan Feinstein (2006) - P!=NP Attempt](craig-feinstein-2006-pneqnp/) | 📄 | 🔷 🔶 |
 | ✗ | Daegene Song | 2014 | [Daegene Song (2014) - P≠NP via Quantum Self-Reference](daegene-song-2014-pneqnp/) | - | - |
 | ✗ | Daniel Uribe | 2016 | [Daniel Uribe (2016) - P≠NP](daniel-uribe-2016-pneqnp/) | - | - |
 | ✓ | Matthew Delacorte / Reiner Czerwinski | 2007 | [Delacorte/Czerwinski (2007) - P=NP/PSPACE via Graph Isomorphism](delacorte-czerwinski-2007-peqnppspace/) | 📄 📎 | 🔷 🔶 |
