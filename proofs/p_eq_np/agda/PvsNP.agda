@@ -1,3 +1,6 @@
+{- HISTORICAL TOY MODEL: The definitions below do not use the shared finite
+   machine semantics in proofs/complexity/agda/Complexity.agda. -}
+
 {-
   PvsNP.agda - Formal specification and test/check for P = NP
 

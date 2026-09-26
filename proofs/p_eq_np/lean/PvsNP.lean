@@ -1,3 +1,9 @@
+/-!
+HISTORICAL TOY MODEL: The machine and runtime predicates below are separate
+from `proofs.complexity.lean.Complexity`. Results in this file do not establish
+claims about the shared finite-machine model or the Clay P versus NP problem.
+-/
+
 /-
   PvsNP.lean - Formal specification and test/check for P vs NP
 

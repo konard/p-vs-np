@@ -6,13 +6,13 @@
 
 **An Educational Resource for Researchers and Students**
 
-*Last Updated: November 2025*
+*Last Updated: September 2026*
 
 This repository contains extensive educational documentation for studying the P versus NP problem, one of the seven Clay Mathematics Institute Millennium Prize Problems.
 
-## 🎯 Key Insight: Reframing the Problem
+## 🎯 Current formalization scope
 
-**✅ PROVEN: P ⊆ NP** — Every problem solvable in polynomial time is also verifiable in polynomial time.
+**P ⊆ NP is checked for the repository's [finite-machine model](proofs/complexity/README.md).** Its programs are finite instruction tables, costs count actual transitions, and NP certificates have polynomial length bounds. The proof converts a P machine into a verifier that ignores its certificate. Equivalence of this implementation to every conventional machine model has not been formalized here.
 
 See formal proofs in multiple proof assistants:
 - [Lean 4 proof](proofs/p_vs_np_decidable/lean/PSubsetNP.lean)
@@ -20,17 +20,17 @@ See formal proofs in multiple proof assistants:
 - [Agda proof](proofs/p_vs_np_decidable/agda/PSubsetNP.agda)
 - [Detailed documentation](proofs/p_vs_np_decidable/README.md)
 
-> **Note:** Isabelle/HOL proofs have been archived to [`./archive/isabelle/`](archive/isabelle/) as the project focuses on Rocq and Lean for CI/CD.
+> **Note:** Isabelle/HOL proofs have been archived to [`./archive/isabelle/`](archive/isabelle/). Lean, Rocq, and the shared-model Agda files are checked in CI.
 
 **❓ THE QUESTION: Is NP ⊆ P true?**
 
 For P = NP to be true, we need **both**:
-1. P ⊆ NP (✅ **proven**)
+1. P ⊆ NP (proved in the stated finite-machine model)
 2. NP ⊆ P (❓ **unknown**)
 
-Therefore: **P vs NP is provable/unprovable if and only if NP ⊆ P is provable/unprovable.**
+The remaining question is whether every language in NP also belongs to P. The classical statement `P = NP ∨ P ≠ NP` does not decide which side holds.
 
-This framing clarifies that the entire P vs NP question reduces to determining whether every polynomial-time verifiable problem is also polynomial-time solvable.
+**Model warning:** The older P=NP example in [`proofs/p_eq_np/`](proofs/p_eq_np/) and the archived Isabelle files use separate toy encodings. Their checked results must not be read as statements about the finite-machine P and NP definitions above or the Clay problem.
 
 ## Overview
 
@@ -127,26 +127,26 @@ These files serve as tutorials for researchers learning to use proof assistants 
 The repository contains four distinct proof frameworks exploring different aspects of the P vs NP problem:
 
 1. **[P = NP Formalization](proofs/p_eq_np/)** (`proofs/p_eq_np/`)
-   - Framework for verifying hypothetical proofs that P equals NP
-   - Implements four test methods for validating P = NP claims
+   - Historical toy-model framework for hypothetical P=NP claims; it does not use the shared machine semantics
+   - Its examples and tests do not establish the Clay P versus NP statement
    - Available in Lean and Rocq
 
 2. **[P ≠ NP Formalization](proofs/p_not_equal_np/)** (`proofs/p_not_equal_np/`)
-   - Framework for verifying proofs that P does not equal NP
+   - Conditional criteria for proofs that P does not equal NP in the shared machine model
    - See [detailed documentation](proofs/p_not_equal_np/README.md)
-   - Includes four mathematically equivalent test methods
+   - SAT membership and NP-completeness are premises, not established results
    - Available in Lean, Rocq, and Agda
 
 3. **[P ⊆ NP Formal Proof & Classical Tautology](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
-   - **Contains the formal proof that P ⊆ NP** ([detailed documentation](proofs/p_vs_np_decidable/README.md))
+   - **Contains the P ⊆ NP proof for the finite-machine model** ([detailed documentation](proofs/p_vs_np_decidable/README.md))
    - Formalizes that P vs NP has a definite answer in classical logic via law of excluded middle
    - See [detailed documentation](proofs/p_vs_np_decidable/README.md)
    - **Note:** "Decidable" here means the classical tautology that (P=NP) ∨ (P≠NP) holds, NOT algorithmic decidability
-   - **The key question:** Is NP ⊆ P provable/unprovable? This determines whether P vs NP is provable/unprovable.
+   - **The key question:** Does NP ⊆ P hold?
    - Available in Lean, Rocq, and Agda
 
 4. **[Possible Independence from ZFC](proofs/p_vs_np_undecidable/)** (`proofs/p_vs_np_undecidable/`)
-   - Framework for reasoning about potential independence from ZFC (meta-mathematical exploration)
+   - Conditional schema for an explicitly supplied proof relation; no ZFC independence result is claimed
    - See [detailed documentation](proofs/p_vs_np_undecidable/README.md)
    - Explores whether P vs NP could be independent of standard axiom systems
    - Available in Lean, Rocq, and Agda
@@ -162,7 +162,7 @@ The repository includes formal analysis of historical claimed proofs of P vs NP,
    - See [detailed documentation](proofs/attempts/ted-swart-1986-87-peqnp/README.md)
    - Formalized in Lean and Rocq
 
-All proof files are automatically verified by GitHub Actions workflows to ensure correctness. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
+Lean and Rocq files and the shared-model Agda files are checked by GitHub Actions. The other Agda files and archived Isabelle files are historical examples outside this CI check. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
 
 ## Key Highlights
 

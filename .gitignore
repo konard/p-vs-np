@@ -151,6 +151,10 @@ lake-manifest.json
 Makefile.coq
 Makefile.coq.conf
 .coqdeps.d
+.lia.cache
+
+# Agda build artifacts
+*.agdai
 
 # Isabelle build artifacts
 .isabelle/

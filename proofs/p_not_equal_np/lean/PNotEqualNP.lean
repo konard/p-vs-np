@@ -1,174 +1,94 @@
-/-
-  PNotEqualNP.lean - Formal test/check for P ≠ NP
+import proofs.complexity.lean.Complexity
 
-  This file provides a formal specification and test framework for
-  verifying whether P ≠ NP, establishing the necessary definitions
-  and criteria that any proof of P ≠ NP must satisfy.
+/-!
+Conditional tests for P ≠ NP over the shared finite machine semantics.
+NP-completeness and SAT membership are explicit premises: this file contains
+no axiom asserting either of them and no runtime-free reduction function.
 -/
 
--- Basic complexity theory definitions
+namespace PNotEqualNP
 
-/-- A decision problem is represented as a predicate on strings (inputs) -/
-def DecisionProblem := String → Prop
+abbrev DecisionProblem := Complexity.Language
+abbrev TuringMachine := Complexity.Machine
+abbrev InP := Complexity.InP
+abbrev InNP := Complexity.InNP
 
-/-- Time complexity function: maps input size to time bound -/
-def TimeComplexity := Nat → Nat
-
-/-- A problem is polynomial-time if there exists a polynomial time bound -/
-def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
-
-/-- A Turing machine model (abstract representation) -/
-structure TuringMachine where
-  compute : String → Bool
-  timeComplexity : TimeComplexity
-
-/-- A problem is in P if it can be decided by a polynomial-time TM -/
-def InP (problem : DecisionProblem) : Prop :=
-  ∃ (tm : TuringMachine),
-    (IsPolynomialTime tm.timeComplexity) ∧
-    (∀ (x : String), problem x ↔ tm.compute x = true)
-
-/-- A verifier is a TM that checks certificates/witnesses -/
-structure Verifier where
-  verify : String → String → Bool
-  timeComplexity : TimeComplexity
-
-/-- A problem is in NP if solutions can be verified in polynomial time -/
-def InNP (problem : DecisionProblem) : Prop :=
-  ∃ (v : Verifier) (certSize : Nat → Nat),
-    (IsPolynomialTime v.timeComplexity) ∧
-    (IsPolynomialTime certSize) ∧
-    (∀ (x : String),
-      problem x ↔ ∃ (cert : String),
-        cert.length ≤ certSize x.length ∧
-        v.verify x cert = true)
-
-/-- Basic axiom: P ⊆ NP (every problem in P is also in NP) -/
-axiom P_subset_NP : ∀ problem, InP problem → InNP problem
-
-/-- A problem is NP-complete if it's in NP and all NP problems reduce to it -/
-def IsNPComplete (problem : DecisionProblem) : Prop :=
-  InNP problem ∧
-  ∀ (npProblem : DecisionProblem), InNP npProblem →
-    ∃ (reduction : String → String) (timeComplexity : TimeComplexity),
-      IsPolynomialTime timeComplexity ∧
-      ∀ (x : String), npProblem x ↔ problem (reduction x)
-
-/-- SAT problem (Boolean satisfiability) - canonical NP-complete problem -/
-axiom SAT : DecisionProblem
-axiom SAT_is_NP_complete : IsNPComplete SAT
-
-/-
-  FORMAL TEST FOR P ≠ NP
-
-  This defines what it means for P ≠ NP to hold and provides
-  a formal criterion that any proof must satisfy.
--/
-
-/-- The central question: Does P = NP? -/
 def P_equals_NP : Prop := ∀ problem, InP problem ↔ InNP problem
-
-/-- The alternative: P ≠ NP -/
 def P_not_equals_NP : Prop := ¬P_equals_NP
 
-/-
-  TEST 1: Existence test
-  P ≠ NP holds iff there exists a problem in NP that is not in P
--/
-axiom test_existence_of_hard_problem :
-  P_not_equals_NP ↔ ∃ (problem : DecisionProblem), InNP problem ∧ ¬InP problem
+theorem P_subset_NP (problem : DecisionProblem) :
+    InP problem → InNP problem := Complexity.pSubsetNP problem
 
-/-
-  TEST 2: NP-complete problem test
-  If any NP-complete problem is not in P, then P ≠ NP
--/
-theorem test_NP_complete_not_in_P :
-  (∃ (problem : DecisionProblem), IsNPComplete problem ∧ ¬InP problem) →
-  P_not_equals_NP := by
-  intro ⟨problem, h_npc, h_not_p⟩
-  rw [test_existence_of_hard_problem]
-  exact ⟨problem, h_npc.1, h_not_p⟩
+theorem test_existence_of_hard_problem :
+    P_not_equals_NP ↔ ∃ problem, InNP problem ∧ ¬InP problem := by
+  constructor
+  · intro hneq
+    apply Classical.byContradiction
+    intro hnone
+    apply hneq
+    intro problem
+    constructor
+    · exact P_subset_NP problem
+    · intro hnp
+      apply Classical.byContradiction
+      intro hnotp
+      exact hnone ⟨problem, hnp, hnotp⟩
+  · rintro ⟨problem, hnp, hnotp⟩ heq
+    exact hnotp ((heq problem).mpr hnp)
 
-/-
-  TEST 3: SAT hardness test
-  If SAT is not in P, then P ≠ NP
-  (This is the most common approach to proving P ≠ NP)
--/
-theorem test_SAT_not_in_P :
-  ¬InP SAT → P_not_equals_NP := by
-  intro h_sat_not_p
-  apply test_NP_complete_not_in_P
-  exact ⟨SAT, SAT_is_NP_complete, h_sat_not_p⟩
+/-- An NP-completeness claim must include a separate proof of NP membership.
+    A sound polynomial reduction formalization is not assumed here. -/
+theorem test_NP_complete_not_in_P
+    (IsNPComplete : DecisionProblem → Prop)
+    (complete_in_NP : ∀ problem, IsNPComplete problem → InNP problem) :
+    (∃ problem, IsNPComplete problem ∧ ¬InP problem) →
+    P_not_equals_NP := by
+  rintro ⟨problem, hcomplete, hnotp⟩
+  exact test_existence_of_hard_problem.mpr
+    ⟨problem, complete_in_NP problem hcomplete, hnotp⟩
 
-/-
-  TEST 4: Lower bound test
-  If there exists a problem in NP with a proven super-polynomial lower bound,
-  then P ≠ NP
--/
+theorem test_SAT_not_in_P (sat : DecisionProblem)
+    (sat_in_NP : InNP sat) : ¬InP sat → P_not_equals_NP := by
+  intro hnotp
+  exact test_existence_of_hard_problem.mpr ⟨sat, sat_in_NP, hnotp⟩
+
+/-- A lower bound quantifies over every finite machine and every polynomial
+    bound, and refers to actual halting runs of that machine. -/
 def HasSuperPolynomialLowerBound (problem : DecisionProblem) : Prop :=
-  ∀ (tm : TuringMachine),
-    (∀ (x : String), problem x ↔ tm.compute x = true) →
-    ¬IsPolynomialTime tm.timeComplexity
+  ∀ (machine : TuringMachine) (bound : Complexity.Polynomial),
+    ¬(∀ x, ∃ t b,
+      t ≤ bound.eval x.length ∧
+      Complexity.Run machine (Complexity.initial x) t b ∧
+      (problem x = true ↔ b = true))
 
 theorem test_super_polynomial_lower_bound :
-  (∃ (problem : DecisionProblem), InNP problem ∧ HasSuperPolynomialLowerBound problem) →
-  P_not_equals_NP := by
-  intro ⟨problem, h_np, h_lower⟩
-  rw [test_existence_of_hard_problem]
-  exact ⟨problem, h_np, by
-    intro h_in_p
-    unfold InP at h_in_p
-    obtain ⟨tm, h_poly, h_decides⟩ := h_in_p
-    exact h_lower tm h_decides h_poly⟩
+    (∃ problem, InNP problem ∧ HasSuperPolynomialLowerBound problem) →
+    P_not_equals_NP := by
+  rintro ⟨problem, hnp, hlower⟩
+  apply test_existence_of_hard_problem.mpr
+  refine ⟨problem, hnp, ?_⟩
+  rintro ⟨p, hp⟩
+  apply hlower p.machine p.bound
+  intro x
+  obtain ⟨t, b, ht, hr⟩ := p.terminates x
+  refine ⟨t, b, ht, hr, ?_⟩
+  rw [← hp]
+  exact p.correct x t b hr
 
-/-
-  VERIFICATION FRAMEWORK
-
-  To verify a proof of P ≠ NP, check that it satisfies at least one test:
--/
-
-/-- A formal proof of P ≠ NP must satisfy verification criteria -/
 structure ProofOfPNotEqualNP where
-  /-- The proof establishes P ≠ NP -/
   proves : P_not_equals_NP
 
-  /-- The proof must use one of the valid test methods -/
-  usesValidMethod :
-    (∃ (problem : DecisionProblem), InNP problem ∧ ¬InP problem) ∨
-    (∃ (problem : DecisionProblem), IsNPComplete problem ∧ ¬InP problem) ∨
-    (¬InP SAT) ∨
-    (∃ (problem : DecisionProblem), InNP problem ∧ HasSuperPolynomialLowerBound problem)
+/-- Proof validation is the type checker checking `proves`, not this value. -/
+def verifyPNotEqualNPProof (_proof : ProofOfPNotEqualNP) : Bool := true
 
-/-
-  MAIN VERIFICATION FUNCTION
-
-  This function checks if a claimed proof of P ≠ NP is valid
--/
-def verifyPNotEqualNPProof (_proof : ProofOfPNotEqualNP) : Bool :=
-  true  -- Placeholder
-
-/-
-  EXAMPLE: How to use the verification framework
--/
-
-/-- Helper: Check if a specific problem witness satisfies P ≠ NP -/
-def checkProblemWitness (problem : DecisionProblem)
+theorem checkProblemWitness (problem : DecisionProblem)
     (h_np : InNP problem) (h_not_p : ¬InP problem) : ProofOfPNotEqualNP :=
-  { proves := test_existence_of_hard_problem.mpr ⟨problem, h_np, h_not_p⟩,
-    usesValidMethod := Or.inl ⟨problem, h_np, h_not_p⟩ }
+  ⟨test_existence_of_hard_problem.mpr ⟨problem, h_np, h_not_p⟩⟩
 
-/-- Helper: Check if SAT hardness witness satisfies P ≠ NP -/
-def checkSATWitness (h_sat_not_p : ¬InP SAT) : ProofOfPNotEqualNP :=
-  { proves := test_SAT_not_in_P h_sat_not_p,
-    usesValidMethod := Or.inr (Or.inr (Or.inl h_sat_not_p)) }
+theorem checkSATWitness (sat : DecisionProblem)
+    (h_sat_np : InNP sat) (h_sat_not_p : ¬InP sat) : ProofOfPNotEqualNP :=
+  ⟨test_SAT_not_in_P sat h_sat_np h_sat_not_p⟩
 
--- Verification checks
-#check verifyPNotEqualNPProof
-#check test_existence_of_hard_problem
-#check test_NP_complete_not_in_P
-#check test_SAT_not_in_P
-#check test_super_polynomial_lower_bound
-#check ProofOfPNotEqualNP
+#print axioms test_existence_of_hard_problem
 
-#print "✓ P ≠ NP formal test/check framework verified successfully"
+end PNotEqualNP
