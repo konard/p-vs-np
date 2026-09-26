@@ -387,7 +387,7 @@ individual attempt README or refutation notes for the detailed argument.
 | [alan-feinstein-2011-pneqnp](alan-feinstein-2011-pneqnp/) | Lower bound assumed from an exponential upper bound |
 | [amar-mukherjee-2011-peqnp](amar-mukherjee-2011-peqnp/) | Withdrawn/incomplete claimed 3-SAT algorithm; likely hidden exponential or correctness gap |
 | [anatoly-panyukov-2014-peqnp](anatoly-panyukov-2014-peqnp/) | LP relaxation assumed to have integer optimum |
-| [anatoly-plotnikov-2007-peqnp](anatoly-plotnikov-2007-peqnp/) | Conditional theorem and nonconstructive graph/poset conversion used as algorithm |
+| [anatoly-plotnikov-2007-peqnp](anatoly-plotnikov-2007-peqnp/) | Unproved Conjecture 1 leaves the correctness claim conditional; iteration bound also needs justification |
 | [anatoly-plotnikov-2011-pneqnp](anatoly-plotnikov-2011-pneqnp/) | Invalid diagonalization and circular construction |
 | [andrea-bianchini-2005-peqnp](andrea-bianchini-2005-peqnp/) | Encoding and reduction do not preserve the hard problem correctly |
 | [angela-weiss-2011-peqnp](angela-weiss-2011-peqnp/) | Hidden exponential tableau/macro enumeration |
