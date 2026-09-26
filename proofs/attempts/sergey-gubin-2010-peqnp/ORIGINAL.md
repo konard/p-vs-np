@@ -1,8 +1,9 @@
 # Original Paper: A Polynomial Time Algorithm for The Traveling Salesman Problem
 
-> This file is a high-level reconstruction, not a transcription of the paper's
-> variables and inequalities. The current Lean and Rocq files do not check
-> those inequalities against a published counterexample.
+> This overview is a high-level reconstruction. The separate
+> [paper counterexample](refutation/README.md) transcribes equations (1.8) and
+> (1.9) for a six-vertex instance and checks a new rational witness in Lean
+> and Rocq.
 
 **Author:** Sergey Gubin
 **Year:** 2010 (originally submitted October 9, 2006; revised through September 25, 2008)
@@ -98,7 +99,7 @@ Every valid ATSP tour must correspond to some extreme point.
 ### D. Optimization Preservation
 The LP objective must agree with ATSP tour costs at these extreme points.
 
-**These properties have not been verified in the formal files in this repository.**
+**The paper's asserted correspondence fails for the formal six-vertex witness.**
 
 ---
 
@@ -148,11 +149,12 @@ Gubin positions his work as "complementary" to Yannakakis' theorem:
 
 ## 7. Refutation
 
-Hofman's [2006 report](https://arxiv.org/abs/cs/0610125) presents
-counterexamples to several LP approaches and says they also apply to Gubin's
-paper. No such counterexample has been verified against the original
-inequalities in this repository. The historical attribution to Rizzi in
-Woeginger's list is not formal evidence by itself.
+The [formal six-vertex counterexample](refutation/README.md) gives a rational
+point satisfying equations (1.8) and (1.9) although its graph has no
+Hamiltonian cycle. It directly refutes the paper's Theorem 1.2. Hofman's
+[2006 report](https://arxiv.org/abs/cs/0610125) describes separate
+counterexamples; these are not encoded here. The attribution to Rizzi in
+Woeginger's list is a historical reference, not an axiom of the formal proof.
 
 ---
 

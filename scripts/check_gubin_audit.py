@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reject unproved assumptions in the four Gubin 2010 proof files.
+"""Reject unproved assumptions in the Gubin 2010 proof files.
 
 Both proof assistants already compile these files in CI. This extra check
 catches the exact regression from issue #578: turning an unsupported historical
@@ -20,6 +20,8 @@ FILES = [
         ("proof", "rocq", "GubinProof.v"),
         ("refutation", "lean", "GubinRefutation.lean"),
         ("refutation", "rocq", "GubinRefutation.v"),
+        ("refutation", "lean", "GubinPaperCounterexample.lean"),
+        ("refutation", "rocq", "GubinPaperCounterexample.v"),
     )
 ]
 UNPROVED = re.compile(

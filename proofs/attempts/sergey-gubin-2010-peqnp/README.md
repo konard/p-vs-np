@@ -6,10 +6,9 @@
 **Claim**: P = NP
 **Status**: Refuted
 
-**Formalization status:** The Lean and Rocq files in this directory do not
-encode Gubin's actual LP and do not formally refute his paper. See the
-[audit](refutation/README.md) for proved illustrative examples and the
-remaining paper level obligations.
+**Formalization status:** The [refutation audit](refutation/README.md) now
+checks a six-vertex counterexample against Gubin's actual equations (1.8) and
+(1.9) in both Lean and Rocq. The earlier abstract refutations were withdrawn.
 
 ## Summary
 
@@ -51,25 +50,23 @@ However, Yannakakis' result is a fundamental barrier, and circumventing it requi
 3. For the approach to work, the LP projection and objective must recover valid tours and their costs
 4. Integrality of every extended coordinate would be one strong sufficient condition, but is not necessary for every extended formulation
 
-### Missing Proof of Exact Correspondence
+### Failure of Exact Correspondence
 
-The critical missing piece in this repository is a rigorous model and proof that:
-- The LP constraints are the equations in the paper
-- The relevant feasible or optimal LP points project to valid ATSP tours
-- Tour costs and LP objective values agree
-- Every tour has a corresponding feasible LP point
+The new formal counterexample uses two disjoint directed 3-cycles. The paper's
+equations (1.8) and (1.9) have an explicit rational feasible point for this
+graph, yet the graph has no Hamiltonian tour. Thus its Theorem 1.2, which
+identifies that feasible region with the convex hull of solution grids, fails.
 
-Without this proof, the LP formulation may:
-- Have fractional optimal solutions that don't correspond to tours
-- Fail to capture all valid tours as extreme points
-- Not actually solve the ATSP problem
+This failed correspondence allows feasible LP points that do not represent
+tours. The example proves this directly for the paper's constraints.
 
 ### Refutation
 
-Hofman's [2006 report](https://arxiv.org/abs/cs/0610125) states that its
-counterexamples also apply to Gubin's work. The counterexamples and Gubin's
-actual inequalities have not been encoded in this repository. The historical
-criticism must not be treated as a proved theorem of the present files.
+The [paper counterexample](refutation/README.md) is checked directly in Lean
+and Rocq. It is an independent six-vertex witness, not a formalization of
+Hofman's or Rizzi's historical counterexample. Hofman's
+[2006 report](https://arxiv.org/abs/cs/0610125) states that its own examples
+also apply to Gubin's work.
 
 ## Historical Context
 
@@ -119,11 +116,11 @@ But the fundamental barrier remains: **integrality is hard**.
 ## Formalization Status
 
 The forward files specify the required tour/vertex correspondence without
-asserting it. The audit files define genuine feasibility, vertex, integrality,
-tour and coordinate symmetry predicates, then prove two small LP countermodels.
-Those examples show why size counts and asymmetry alone cannot establish the
-paper's conclusion. The next step is to encode Gubin's particular constraints
-and check a published counterexample against them.
+asserting it. The original audit files prove two illustrative LP countermodels.
+The new paper counterexample files transcribe equations (1.8) and (1.9) for
+six vertices and prove that they admit a feasible point for a graph without a
+Hamiltonian tour. They do not formalize the paper's symmetry or complexity
+claims, which are unnecessary for this refutation of Theorem 1.2.
 
 ## References
 

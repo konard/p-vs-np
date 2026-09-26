@@ -1,45 +1,53 @@
-# Audit of the Gubin 2010 formalization
+# Gubin 2010 LP refutation audit
 
-The former Lean and Rocq files were inconsistent. They described an LP only by
-variable and constraint counts, treated every point as a vertex and every vertex
-order as a tour, and asserted both asymmetry and a published refutation as
-axioms. In Lean, those assumptions proved `False`. In Rocq, `isIntegral` was
-defined as `True` while an axiom supplied a point satisfying `~ isIntegral`.
+The old Lean and Rocq files were inconsistent. They treated every point as an
+LP vertex and every vertex order as a tour, then asserted incompatible facts
+as axioms. The [reproduction](../../../../experiments/issue578/README.md)
+shows that both proof assistants accepted proofs of `False` from those files.
+Those assertions and their dependent theorems have been withdrawn.
 
-The revised files withdraw those axioms and all theorems derived from them.
-They define feasibility, extreme points, integral coordinates, valid directed
-tours, an explicit tour encoding, and coordinate symmetry. Two small LPs then
-establish limited, fully proved facts in both systems:
+## Counterexample to the paper
 
-1. The equations `x₀ = 1/2` and `x₁ = 0` have a fractional extreme point. The
-   feasible region is not invariant under swapping its two coordinates.
-2. The equation `x₀ = 0` has an integral extreme point even when paired with a
-   directed graph with no tour. Consequently, LP size and integrality alone do
-   not imply the abstract tour/vertex correspondence.
+The new [Lean](lean/GubinPaperCounterexample.lean) and
+[Rocq](rocq/GubinPaperCounterexample.v) files transcribe Gubin's arXiv
+version [cs/0610042v3][gubin], equations (1.8) and (1.9), for six vertices.
+They check all the equalities, nonnegativity bounds, and compatibility zeros
+using exact rational arithmetic.
 
-These are **illustrative countermodels**, not instances of Gubin's LP. The
-`IsCoordinateSymmetric` / `isCoordinateSymmetric` predicates test permutations
-of LP coordinates. Yannakakis' symmetry condition concerns graph vertex
-relabelings and their induced action on extended variables. No such action for
-Gubin's construction has been encoded here.
+The graph is the disjoint union of directed cycles `0→1→2→0` and
+`3→4→5→3`. It has no Hamiltonian tour. An explicit LP point nevertheless
+satisfies every constraint. Its diagonal variables are `y(j,ν) = 1/6`. For
+distinct position indices `i,j` and distinct graph vertices `a,b`, its
+off-diagonal variables are:
 
-Neither formal file proves that the correspondence in [Gubin's paper][gubin]
-is false, nor does it encode [Hofman's published counterexamples][hofman] for
-the paper. A paper level refutation still requires the original inequalities,
-the projection to ATSP tours, a vertex relabeling action, and a concrete
-counterexample checked against those inequalities. Until then, the historical
-refutation remains a literature claim rather than a theorem in this repository.
+- `x(i,j,a,b) = 1/6` when `j` follows `i` and `a→b` is an edge, or when
+  `i` follows `j` and `b→a` is an edge;
+- `x(i,j,a,b) = 1/18` when the position indices are nonadjacent and `a,b`
+  lie in different components;
+- `x(i,j,a,b) = 0` otherwise.
+
+The theorems `paper_correspondence_fails` prove feasibility and the absence
+of a tour in both systems. Since there are no solution grids for this graph,
+their convex hull is empty. The feasible LP point therefore refutes the
+paper's Theorem 1.2, which equates that convex hull with the region defined
+by (1.8) and (1.9). This witness is independent of the historically cited
+Hofman and Rizzi refutations.
+
+The older [Lean](lean/GubinRefutation.lean) and
+[Rocq](rocq/GubinRefutation.v) audit files also prove two illustrative facts
+about separate small LPs: coordinate asymmetry does not imply integrality,
+and an integral LP vertex alone does not imply a tour correspondence. Those
+examples are not instances of Gubin's LP. Their coordinate symmetry predicate
+does not model Yannakakis' graph relabeling action; the paper counterexample
+does not need that action.
 
 ## Verification
 
 ```sh
-lean proofs/attempts/sergey-gubin-2010-peqnp/refutation/lean/GubinRefutation.lean
-rocq compile proofs/attempts/sergey-gubin-2010-peqnp/refutation/rocq/GubinRefutation.v
+python3 experiments/issue578/check_paper_lp.py
 python3 scripts/check_gubin_audit.py
+lean proofs/attempts/sergey-gubin-2010-peqnp/refutation/lean/GubinPaperCounterexample.lean
+rocq compile proofs/attempts/sergey-gubin-2010-peqnp/refutation/rocq/GubinPaperCounterexample.v
 ```
 
-The old contradictions and reproduction commands are recorded in
-[`experiments/issue578/README.md`](../../../../experiments/issue578/README.md).
-
-[gubin]: https://combinatorialpress.com/article/jcmcc/Volume%20074/vol-074-paper%2024.pdf
-[hofman]: https://arxiv.org/abs/cs/0610125
+[gubin]: https://arxiv.org/pdf/cs/0610042

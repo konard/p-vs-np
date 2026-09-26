@@ -15,5 +15,8 @@ complexity reduction. The abstract `HasCorrespondence` predicate records two
 necessary directions of the correspondence without asserting that Gubin's
 construction satisfies them.
 
-See the [refutation audit](../refutation/README.md) for concrete LP examples
-and the remaining work needed to assess the historical paper formally.
+The [six-vertex refutation](../refutation/README.md) separately checks the
+paper's equations (1.8) and (1.9) against a graph with no Hamiltonian tour.
+
+See the [refutation audit](../refutation/README.md) for the concrete LP
+counterexample and the separate illustrative examples.
