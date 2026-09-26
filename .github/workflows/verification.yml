@@ -29,13 +29,13 @@ jobs:
       id: changes
       run: |
         if [ "${{ github.event_name }}" = "push" ]; then
-          # For push to main, always verify all files
+          # For push to main, run every configured verification job
           echo "lean=true" >> $GITHUB_OUTPUT
           echo "rocq=true" >> $GITHUB_OUTPUT
           echo "agda=true" >> $GITHUB_OUTPUT
-          echo "Push to main - will verify ALL files"
+          echo "Push to main - will run all verification jobs"
         else
-          # For PRs, only verify modified files
+          # For PRs, run verification jobs for languages with modified files
           LEAN_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.lean$|lakefile\.lean|lean-toolchain' || true)
           ROCQ_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.v$|_CoqProject' || true)
           AGDA_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.agda$' || true)
@@ -237,9 +237,9 @@ jobs:
 
         echo "" >> $GITHUB_STEP_SUMMARY
         if [ "${{ github.event_name }}" = "push" ]; then
-          echo "_Push to main: verified ALL files_" >> $GITHUB_STEP_SUMMARY
+          echo "_Push to main: ran every configured verification job_" >> $GITHUB_STEP_SUMMARY
         else
-          echo "_Pull request: verified only MODIFIED files_" >> $GITHUB_STEP_SUMMARY
+          echo "_Pull request: ran verification jobs for languages with modified files_" >> $GITHUB_STEP_SUMMARY
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "_Note: Isabelle proofs archived to ./archive/isabelle/_" >> $GITHUB_STEP_SUMMARY
