@@ -1,85 +1,86 @@
-(**
-  PlotnikovRefutation.v - Refutation of Anatoly Plotnikov's 2007 P=NP attempt
-
-  This file demonstrates why Plotnikov's approach fails:
-  The algorithm's correctness depends on Conjecture 1, which is never proven.
-  Without proving this conjecture, the claim that P = NP is invalid.
-*)
+(** Audit of Plotnikov's 2007 P=NP argument. The predicates below name the
+    mathematical obligations in the paper; they do not implement its algorithm.
+    No missing obligation is introduced as an axiom. *)
 
 Require Import Coq.Arith.Arith.
+Require Import Coq.micromega.Lia.
 
-Section PlotnikovRefutation.
+Module PlotnikovRefutation.
 
-(** Basic definitions *)
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
   exists (c k : nat), forall n : nat, T n <= c * n ^ k.
 
-(** The CRITICAL ERROR: Unproven Conjecture *)
+(** An instance represents a VS-digraph and its initiating set V⁰. The graph,
+    fictitious-arc type, and induced set size remain abstract; a full audit
+    must link them to an implementation of the paper's construction. *)
+Record VSInstance := {
+  initialSize : nat;
+  largerIndependentSet : Prop;
+  FictitiousArc : Type;
+  inducedSize : FictitiousArc -> nat
+}.
 
-(** Plotnikov's Conjecture 1 is stated but NEVER PROVEN *)
-Axiom conjecture_1_stated_not_proven :
-  exists (C : Prop),
-    (* The conjecture is stated in the paper (page 9) *)
-    True /\
-    (* But no proof is provided *)
-    ~ (exists (proof : C), True).
+Definition QualifyingArc (i : VSInstance) : Prop :=
+  exists arc : FictitiousArc i, inducedSize i arc >= initialSize i - 1.
 
-(** The algorithm's correctness DEPENDS on Conjecture 1
-    From Theorem 5 (page 9): "If the conjecture 1 is true then the stated
-    algorithm finds a MMIS of the graph G ∈ Lₙ." *)
-Axiom algorithm_requires_conjecture :
-  forall (AlgorithmCorrect Conjecture1 : Prop),
-    (* Algorithm correctness is CONDITIONAL on Conjecture 1 *)
-    (Conjecture1 -> AlgorithmCorrect) /\
-    (* Without Conjecture 1, correctness is not established *)
-    (~ Conjecture1 -> ~ AlgorithmCorrect).
+Definition Conjecture1 (validInstance : VSInstance -> Prop) : Prop :=
+  forall i : VSInstance, validInstance i -> largerIndependentSet i -> QualifyingArc i.
 
-(** Empirical testing is NOT a proof *)
-Axiom empirical_testing_insufficient :
-  ~ (forall (Conjecture : Prop),
-      (* Testing on random instances... *)
-      (exists test_cases : nat, True) ->
-      (* ...does NOT constitute a mathematical proof *)
-      Conjecture).
+(** Graph is an input graph, inLn restricts it to the paper's graph class Lₙ,
+    and findsMMIS says that the proposed algorithm returns a maximum
+    independent set. None of these predicates is established here. *)
+Definition AlgorithmCorrect (Graph : Type) (inLn findsMMIS : Graph -> Prop) : Prop :=
+  forall g : Graph, inLn g -> findsMMIS g.
 
-(** Circular reasoning: Assuming the algorithm works to prove it works *)
-Axiom circular_reasoning_error :
-  forall (AlgorithmWorks : Prop),
-    (* Assuming the algorithm finds MMIS... *)
-    ~ (AlgorithmWorks -> AlgorithmWorks = AlgorithmWorks).
+(** Theorem 5 has the form Conjecture 1 -> algorithm correctness. Both the
+    implication and Conjecture 1 are explicit proof obligations. *)
+Theorem correctness_if_conjecture
+    (Graph : Type)
+    (validInstance : VSInstance -> Prop)
+    (inLn findsMMIS : Graph -> Prop)
+    (theorem5 : Conjecture1 validInstance -> AlgorithmCorrect Graph inLn findsMMIS)
+    (conjecture1 : Conjecture1 validInstance) :
+    AlgorithmCorrect Graph inLn findsMMIS.
+Proof.
+  exact (theorem5 conjecture1).
+Qed.
 
-(** Why polynomial-time MISP would prove P=NP *)
-Axiom misp_is_np_complete :
-  forall (MISP_PolynomialAlg P_equals_NP : Prop),
-    (* MISP is NP-complete *)
-    True ->
-    (* Polynomial algorithm for MISP would imply P = NP *)
-    MISP_PolynomialAlg -> P_equals_NP.
+(** Failure to prove the conjecture cannot refute algorithm correctness. *)
+Theorem missing_conjecture_does_not_refute_algorithm :
+    ~ (forall C A : Prop, (C -> A) -> ~ C -> ~ A).
+Proof.
+  intro h.
+  assert (implication : False -> True) by (intro f; contradiction).
+  assert (not_false : ~ False) by (intro f; exact f).
+  exact (h False True implication not_false I).
+Qed.
 
-(** Summary: Why Plotnikov's claim fails *)
-(** The key axioms above demonstrate the error:
-    1. Conjecture 1 is unproven (conjecture_1_stated_not_proven)
-    2. Algorithm correctness depends on Conjecture 1 (algorithm_requires_conjecture)
-    3. Empirical testing is insufficient (empirical_testing_insufficient) *)
+(** An assumption of correctness only yields that same assumption. *)
+Theorem identity_implication (P : Prop) : P -> P.
+Proof.
+  intros h. exact h.
+Qed.
 
-(** Additional issues *)
+Theorem identity_does_not_establish_claim :
+    ~ (forall P : Prop, (P -> P) -> P).
+Proof.
+  intro h. exact (h False (identity_implication False)).
+Qed.
 
-(** Issue 1: Non-constructive use of Dilworth's Theorem
-    Finding minimum chain partitions is computationally hard *)
-Axiom dilworth_computational_hardness :
-  forall (PosetPartitioning : Prop),
-    (* Dilworth's Theorem guarantees existence... *)
-    (exists partition : nat, True) /\
-    (* ...but computing it efficiently is non-trivial *)
-    ~ isPolynomial (fun n => n * n * n).
+(** A polynomial running-time conclusion needs a bound on that running time.
+    An unproved correctness conjecture alone supplies no such bound. *)
+Theorem polynomial_time_if_bound (T : TimeComplexity)
+    (bound : forall n : nat, T n <= n ^ 8) : isPolynomial T.
+Proof.
+  exists 1, 8. intro n. rewrite Nat.mul_1_l. exact (bound n).
+Qed.
 
-(** Issue 2: Complexity analysis assumes Conjecture 1 *)
-Axiom complexity_depends_on_conjecture :
-  forall (O_n8_complexity Conjecture1 : Prop),
-    (* O(n⁸) bound assumes bounded iterations *)
-    (* But iteration count depends on Conjecture 1 being true *)
-    ~ Conjecture1 -> ~ O_n8_complexity.
+(** The old refutation negated polynomiality of this cubic function. *)
+Theorem cubic_is_polynomial : isPolynomial (fun n => n * n * n).
+Proof.
+  exists 1, 3. intro n. simpl. nia.
+Qed.
 
 End PlotnikovRefutation.
