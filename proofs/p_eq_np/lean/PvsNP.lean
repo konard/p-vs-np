@@ -275,6 +275,10 @@ axiom P_eq_NP_implies_NP_closed_complement :
 
 #print axioms empty_in_P
 #print axioms universal_in_P
+#print axioms P_subseteq_NP
+#print axioms P_eq_or_neq_NP
+#print axioms P_closed_under_complement
+#print axioms P_eq_NP_implies_NP_closed_complement
 
 #print "✓ P vs NP formal specification compiled successfully"
 

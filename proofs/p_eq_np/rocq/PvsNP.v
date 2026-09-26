@@ -389,5 +389,9 @@ Check test_in_NP.
 Check poly_time_reduction.
 Print Assumptions empty_in_P.
 Print Assumptions universal_in_P.
+Print Assumptions P_subseteq_NP.
+Print Assumptions P_eq_or_neq_NP.
+Print Assumptions P_closed_under_complement.
+Print Assumptions P_eq_NP_implies_NP_closed_complement.
 
 (** All formal specifications compiled successfully *)
