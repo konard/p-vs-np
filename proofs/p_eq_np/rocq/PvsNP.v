@@ -1,3 +1,7 @@
+(** HISTORICAL TOY MODEL: These machine/runtime predicates are not linked to
+    proofs/complexity/rocq/Complexity.v. This file does not establish the
+    Clay P versus NP statement. *)
+
 (**
   PvsNP.v - Formal specification and test/check for P vs NP
 
