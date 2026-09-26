@@ -1,5 +1,9 @@
 # Original Paper: A Polynomial Time Algorithm for The Traveling Salesman Problem
 
+> This file is a high-level reconstruction, not a transcription of the paper's
+> variables and inequalities. The current Lean and Rocq files do not check
+> those inequalities against a published counterexample.
+
 **Author:** Sergey Gubin
 **Year:** 2010 (originally submitted October 9, 2006; revised through September 25, 2008)
 **arXiv ID:** [cs/0610042](https://arxiv.org/abs/cs/0610042)
@@ -76,10 +80,14 @@ Based on the paper's title and abstract, the approach involves:
 
 ## 4. Critical Requirements (Not Proven)
 
-For the argument to succeed, Gubin would need to prove:
+One strong route to the claimed conclusion would be to prove the following.
+An exact extended formulation can also use fractional auxiliary coordinates
+when its projection and objective still recover tours correctly.
 
 ### A. Integrality of Extreme Points
-All extreme points (vertices) of the LP polytope must be integral (have integer coordinates).
+All relevant extreme points have integral coordinates. This is a sufficient
+condition for the route described here, not a general requirement for every
+extended formulation.
 
 ### B. Correspondence with Tours
 Each integral extreme point must correspond to exactly one valid ATSP tour.
@@ -90,7 +98,7 @@ Every valid ATSP tour must correspond to some extreme point.
 ### D. Optimization Preservation
 The LP objective must agree with ATSP tour costs at these extreme points.
 
-**None of these properties are rigorously proven in the paper.**
+**These properties have not been verified in the formal files in this repository.**
 
 ---
 
@@ -140,16 +148,11 @@ Gubin positions his work as "complementary" to Yannakakis' theorem:
 
 ## 7. Refutation
 
-### Romeo Rizzi (2011)
-In January 2011, Romeo Rizzi published a refutation of Gubin's arguments:
-- Listed in Woeginger's P vs NP page as refuting this attempt
-- Specific publication details not widely available
-
-### Standard Refutation Pattern
-Like other LP-based P=NP attempts, the refutation likely demonstrates:
-- Counter-examples with fractional extreme points
-- Cases where LP optimal differs from ATSP optimal
-- Failure of the claimed correspondence
+Hofman's [2006 report](https://arxiv.org/abs/cs/0610125) presents
+counterexamples to several LP approaches and says they also apply to Gubin's
+paper. No such counterexample has been verified against the original
+inequalities in this repository. The historical attribution to Rizzi in
+Woeginger's list is not formal evidence by itself.
 
 ---
 

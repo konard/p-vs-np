@@ -6,6 +6,11 @@
 **Claim**: P = NP
 **Status**: Refuted
 
+**Formalization status:** The Lean and Rocq files in this directory do not
+encode Gubin's actual LP and do not formally refute his paper. See the
+[audit](refutation/README.md) for proved illustrative examples and the
+remaining paper level obligations.
+
 ## Summary
 
 In August 2010, Sergey Gubin published a paper titled "Complementary to Yannakakis' Theorem" claiming to prove P = NP. The work was presented at the 22nd MCCCC conference in Las Vegas in 2008 and later published in Volume 74 of *The Journal of Combinatorial Mathematics and Combinatorial Computing* (pages 313-321).
@@ -43,15 +48,16 @@ However, Yannakakis' result is a fundamental barrier, and circumventing it requi
 **Why This Matters**:
 1. The TSP/ATSP requires integer solutions (tours are discrete structures)
 2. An LP formulation naturally allows fractional solutions
-3. For the approach to work, the LP polytope must have a special property: all extreme points must be integral and correspond to valid tours
-4. This property (integrality) is precisely what makes the problem hard
+3. For the approach to work, the LP projection and objective must recover valid tours and their costs
+4. Integrality of every extended coordinate would be one strong sufficient condition, but is not necessary for every extended formulation
 
-### Missing Proof of Integrality
+### Missing Proof of Exact Correspondence
 
-The critical missing piece is a rigorous proof that:
-- All extreme points of the proposed LP polytope are integral
-- These integral extreme points correspond exactly to valid ATSP tours
-- No fractional extreme points exist in the polytope
+The critical missing piece in this repository is a rigorous model and proof that:
+- The LP constraints are the equations in the paper
+- The relevant feasible or optimal LP points project to valid ATSP tours
+- Tour costs and LP objective values agree
+- Every tour has a corresponding feasible LP point
 
 Without this proof, the LP formulation may:
 - Have fractional optimal solutions that don't correspond to tours
@@ -60,10 +66,10 @@ Without this proof, the LP formulation may:
 
 ### Refutation
 
-**Romeo Rizzi (2011)**: In January 2011, Romeo Rizzi published a refutation of Gubin's arguments. While specific details of the refutation are not widely available in online sources, this follows the pattern of other LP-based attempts:
-- The claimed correspondence between LP solutions and combinatorial structures fails
-- Counter-examples can be constructed
-- The integrality property is not proven
+Hofman's [2006 report](https://arxiv.org/abs/cs/0610125) states that its
+counterexamples also apply to Gubin's work. The counterexamples and Gubin's
+actual inequalities have not been encoded in this repository. The historical
+criticism must not be treated as a proved theorem of the present files.
 
 ## Historical Context
 
@@ -98,7 +104,7 @@ But proving such claims requires rigorous mathematical proof, which is typically
 
 2. **Other ATSP/TSP LP attempts**: Multiple researchers have tried similar approaches
    - All face the same fundamental issue: the LP/ILP gap
-   - Counter-examples typically show non-integral extreme points
+   - Counterexamples can expose invalid projections or incorrect objective values
 
 ### Why These Approaches Are Tempting
 
@@ -110,22 +116,14 @@ The strategy is appealing because:
 
 But the fundamental barrier remains: **integrality is hard**.
 
-## Formalization Goals
+## Formalization Status
 
-In this directory, we formalize:
-
-1. **The ATSP Problem**: Definition as an NP-complete problem
-2. **LP Formulation Claims**: What it means to have a polynomial-sized LP for ATSP
-3. **The Integrality Requirement**: The critical property needed for the argument to work
-4. **Why This Would Imply P = NP**: The logical structure of the argument
-5. **The Gap**: Where the proof fails (integrality not proven)
-6. **The Barrier**: Connection to Yannakakis' theorem and fundamental limitations
-
-The formalization demonstrates that:
-- The argument structure is well-formed
-- The critical step (proving integrality and correspondence) is non-trivial
-- Without this proof, the argument fails
-- This is a common pattern in failed P = NP attempts
+The forward files specify the required tour/vertex correspondence without
+asserting it. The audit files define genuine feasibility, vertex, integrality,
+tour and coordinate symmetry predicates, then prove two small LP countermodels.
+Those examples show why size counts and asymmetry alone cannot establish the
+paper's conclusion. The next step is to encode Gubin's particular constraints
+and check a published counterexample against them.
 
 ## References
 
@@ -138,6 +136,8 @@ The formalization demonstrates that:
 
 ### Refutations
 
+- **Radoslaw Hofman (2006)**: [Report on article: P=NP Linear programming formulation of the Traveling Salesman Problem](https://arxiv.org/abs/cs/0610125)
+  - Its abstract explicitly includes Gubin's paper among the affected works.
 - **Romeo Rizzi (2011)**: Refutation published in January 2011
   - Specific publication details not widely available
   - Listed in Woeginger's P vs NP page as refuting Gubin's claim
@@ -167,7 +167,7 @@ The formalization demonstrates that:
 
 1. **The LP/ILP Distinction**: The gap between continuous and discrete optimization is fundamental to computational complexity
 
-2. **Integrality is Hard**: Proving that an LP polytope has integral extreme points is typically as hard as the original problem
+2. **Exactness Needs Proof**: A polynomial size count does not establish that an LP solves the original optimization problem
 
 3. **Yannakakis' Barrier**: Fundamental limitations exist on polyhedral approaches to NP-complete problems
 
