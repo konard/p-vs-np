@@ -14,6 +14,7 @@ jobs:
     outputs:
       lean_changed: ${{ steps.changes.outputs.lean }}
       rocq_changed: ${{ steps.changes.outputs.rocq }}
+      agda_changed: ${{ steps.changes.outputs.agda }}
       is_push: ${{ github.event_name == 'push' }}
     steps:
     - name: Checkout repository
@@ -28,11 +29,13 @@ jobs:
           # For push to main, always verify all files
           echo "lean=true" >> $GITHUB_OUTPUT
           echo "rocq=true" >> $GITHUB_OUTPUT
+          echo "agda=true" >> $GITHUB_OUTPUT
           echo "Push to main - will verify ALL files"
         else
           # For PRs, only verify modified files
           LEAN_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.lean$|lakefile\.lean|lean-toolchain' || true)
           ROCQ_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.v$|_CoqProject' || true)
+          AGDA_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.agda$' || true)
 
           if [ -n "$LEAN_CHANGED" ]; then
             echo "lean=true" >> $GITHUB_OUTPUT
@@ -50,6 +53,15 @@ jobs:
           else
             echo "rocq=false" >> $GITHUB_OUTPUT
             echo "No Rocq files changed"
+          fi
+
+          if [ -n "$AGDA_CHANGED" ]; then
+            echo "agda=true" >> $GITHUB_OUTPUT
+            echo "Agda files changed:"
+            echo "$AGDA_CHANGED"
+          else
+            echo "agda=false" >> $GITHUB_OUTPUT
+            echo "No Agda files changed"
           fi
         fi
 
@@ -99,6 +111,7 @@ jobs:
           lake build
           echo "✓ Lean build completed successfully!"
           echo ""
+          bash experiments/issue571/check.sh
           lake test || echo "No tests defined"
         else
           echo "✓ No Lean files - skipping"
@@ -144,9 +157,11 @@ jobs:
               make -f Makefile.coq
             else
               echo "Verifying Rocq files..."
-              find . -name "*.v" -type f | while read -r file; do
+              # Shared semantics must be compiled before its consumers.
+              rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+              find . -name "*.v" -type f ! -path './proofs/complexity/rocq/Complexity.v' | while read -r file; do
                 echo "Checking: $file"
-                rocq compile "$file" && echo "✓ $file verified successfully" || exit 1
+                rocq compile -Q . '' "$file" && echo "✓ $file verified successfully" || exit 1
               done
             fi
             echo "✓ All Rocq files verified successfully!"
@@ -159,74 +174,31 @@ jobs:
 # Isabelle verification removed - proofs archived to ./archive/isabelle/
 # See https://github.com/konard/p-vs-np/issues/530
 
-# Temporarily disabled - Agda installation takes ~20 minutes
-  # TODO: Re-enable once we have better caching or use pre-built Agda
-  # agda-verification:
-  #   name: Agda Verification
-  #   runs-on: ubuntu-latest
-  #
-  #   steps:
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v4
-  #
-  #   - name: Check for Agda files
-  #     id: check-agda
-  #     run: |
-  #       if find . -name "*.agda" -print -quit | grep -q .; then
-  #         echo "has_files=true" >> $GITHUB_OUTPUT
-  #       else
-  #         echo "has_files=false" >> $GITHUB_OUTPUT
-  #         echo "✓ No Agda files - skipping"
-  #       fi
-  #
-  #   - name: Set up Haskell
-  #     if: steps.check-agda.outputs.has_files == 'true'
-  #     uses: haskell/actions/setup@v2
-  #     with:
-  #       ghc-version: '9.4'
-  #       cabal-version: '3.10'
-  #
-  #   - name: Cache Agda
-  #     if: steps.check-agda.outputs.has_files == 'true'
-  #     uses: actions/cache@v4
-  #     with:
-  #       path: |
-  #         ~/.cabal/store
-  #         ~/.cabal/bin
-  #         dist-newstyle
-  #       key: ${{ runner.os }}-agda-${{ hashFiles('**/*.agda') }}
-  #       restore-keys: |
-  #         ${{ runner.os }}-agda-
-  #
-  #   - name: Install Agda
-  #     if: steps.check-agda.outputs.has_files == 'true'
-  #     run: |
-  #       if ! command -v agda &> /dev/null; then
-  #         cabal update
-  #         cabal install Agda
-  #       else
-  #         echo "✓ Agda already installed (from cache)"
-  #       fi
-  #       echo "$HOME/.cabal/bin" >> $GITHUB_PATH
-  #
-  #   - name: Build and test Agda
-  #     if: steps.check-agda.outputs.has_files == 'true'
-  #     run: |
-  #       echo "=== Agda Verification ==="
-  #       agda --version
-  #       echo ""
-  #       echo "Verifying Agda files..."
-  #       find . -name "*.agda" -type f -print0 | while IFS= read -r -d '' file; do
-  #         echo "Checking: $file"
-  #         agda --safe "$file" && echo "✓ $file verified successfully" || exit 1
-  #       done
-  #       echo ""
-  #       echo "✓ All Agda files verified successfully!"
+  agda-verification:
+    name: Agda Verification
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.agda_changed == 'true'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Check shared complexity formalizations
+      run: |
+        docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work \
+          ghcr.io/codewars/agda@sha256:d56bf738f23befbd02352bd207483bbefe513de612683747ebc35675549e9d0e \
+          sh -c '
+            set -e
+            agda -i . proofs/complexity/agda/Complexity.agda
+            agda -i . proofs/p_vs_np_decidable/agda/PSubsetNP.agda
+            agda -i . proofs/p_vs_np_decidable/agda/PvsNPDecidable.agda
+            agda -i . proofs/p_not_equal_np/agda/PNotEqualNP.agda
+            agda -i . proofs/p_vs_np_undecidable/agda/PvsNPUndecidable.agda
+          '
 
   summary:
     name: Verification Summary
     runs-on: ubuntu-latest
-    needs: [detect-changes, lean-verification, rocq-verification]
+    needs: [detect-changes, lean-verification, rocq-verification, agda-verification]
     if: always()
 
     steps:
@@ -239,6 +211,7 @@ jobs:
 
         LEAN_RESULT="${{ needs.lean-verification.result }}"
         ROCQ_RESULT="${{ needs.rocq-verification.result }}"
+        AGDA_RESULT="${{ needs.agda-verification.result }}"
 
         # Show skipped status if no files changed
         if [ "$LEAN_RESULT" = "skipped" ]; then
@@ -253,6 +226,12 @@ jobs:
           echo "| Rocq | $ROCQ_RESULT |" >> $GITHUB_STEP_SUMMARY
         fi
 
+        if [ "$AGDA_RESULT" = "skipped" ]; then
+          echo "| Agda | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| Agda | $AGDA_RESULT |" >> $GITHUB_STEP_SUMMARY
+        fi
+
         echo "" >> $GITHUB_STEP_SUMMARY
         if [ "${{ github.event_name }}" = "push" ]; then
           echo "_Push to main: verified ALL files_" >> $GITHUB_STEP_SUMMARY
@@ -261,12 +240,13 @@ jobs:
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "_Note: Isabelle proofs archived to ./archive/isabelle/_" >> $GITHUB_STEP_SUMMARY
-        echo "_Note: Agda verification temporarily disabled due to long build times (~20 minutes)_" >> $GITHUB_STEP_SUMMARY
+        echo "_Agda checks cover the shared complexity formalizations._" >> $GITHUB_STEP_SUMMARY
 
     - name: Check results
       run: |
         LEAN_RESULT="${{ needs.lean-verification.result }}"
         ROCQ_RESULT="${{ needs.rocq-verification.result }}"
+        AGDA_RESULT="${{ needs.agda-verification.result }}"
 
         # Consider 'success' and 'skipped' as passing
         if [[ "$LEAN_RESULT" != "success" && "$LEAN_RESULT" != "skipped" ]]; then
@@ -276,6 +256,11 @@ jobs:
 
         if [[ "$ROCQ_RESULT" != "success" && "$ROCQ_RESULT" != "skipped" ]]; then
           echo "::error::Rocq verification failed"
+          exit 1
+        fi
+
+        if [[ "$AGDA_RESULT" != "success" && "$AGDA_RESULT" != "skipped" ]]; then
+          echo "::error::Agda verification failed"
           exit 1
         fi
 
