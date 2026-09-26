@@ -21,6 +21,9 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Check Gubin audit for unproved assumptions
+      run: python3 scripts/check_gubin_audit.py
+
     - name: Detect changed files
       id: changes
       run: |
