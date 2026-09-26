@@ -1,221 +1,191 @@
-(*
-  GubinRefutation.v - Refutation of Gubin's 2010 P=NP Proof Attempt
+(* A sound audit of abstract LP claims previously attributed to Gubin.
+   The paper's actual inequalities, projection and relabeling action have not
+   been encoded. These examples are not a refutation of his formulation. *)
 
-  This file formalizes the critical errors in Sergey Gubin's 2010 attempted
-  proof of P = NP via ATSP polytope formulation.
+From Stdlib Require Import QArith.QArith ZArith.ZArith Lia.
+Local Open Scope nat_scope.
 
-  The proof fails because:
-  1. The integrality claim is not proven
-  2. The LP/ILP gap is a fundamental barrier
-  3. Asymmetry does not imply integrality
-  4. Rizzi (2011) refuted the correspondence claim
-
-  References:
-  - Gubin (2010): "Complementary to Yannakakis' Theorem"
-  - Rizzi (2011): Refutation
-  - Yannakakis (1991): Symmetric formulation limits
-  - Woeginger's List, Entry #66
-*)
-
-Require Import Coq.Init.Nat.
-Require Import Coq.Arith.PeanoNat.
-Require Import Coq.Lists.List.
-Require Import Coq.Strings.String.
-Require Import Coq.micromega.Lia.
-Import ListNotations.
-
-Module GubinRefutation.
-
-(** ** 1. Basic Definitions (shared with proof formalization) *)
-
-Definition TimeComplexity := nat -> nat.
-
-Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
-
-(** ** 2. Linear Programming Framework *)
+Module GubinAudit.
 
 Record LPProblem := {
-  lp_numVars : nat;
-  lp_numConstraints : nat
+  numVars : nat;
+  feasible : (nat -> Q) -> Prop
 }.
 
-Record LPSolution (lp : LPProblem) := {
-  lps_valid : True
-}.
+(* Equality is rational equality, restricted to the LP's variables. *)
+Definition pointEq (lp : LPProblem) (x y : nat -> Q) : Prop :=
+  forall i, i < numVars lp -> Qeq (x i) (y i).
+
+Definition isVertex (lp : LPProblem) (x : nat -> Q) : Prop :=
+  feasible lp x /\
+  forall y z t, Qlt 0 t -> Qlt t 1 ->
+    feasible lp y -> feasible lp z ->
+    pointEq lp x (fun i => (t * y i + (1 - t) * z i)%Q) ->
+    pointEq lp y x /\ pointEq lp z x.
 
 Record ExtremePoint (lp : LPProblem) := {
-  ep_solution : LPSolution lp;
-  ep_isVertex : True
+  ep_point : nat -> Q;
+  ep_vertex : isVertex lp ep_point
 }.
 
-Definition isIntegral (lp : LPProblem) (ep : ExtremePoint lp) : Prop := True.
-
-Axiom LP_in_polynomial_time :
-  forall lp : LPProblem, exists (T : TimeComplexity), isPolynomial T.
-
-(** ** 3. ATSP and Gubin's Construction *)
+Definition isIntegral (lp : LPProblem) (x : nat -> Q) : Prop :=
+  forall i, i < numVars lp -> exists z : Z, Qeq (x i) (inject_Z z).
 
 Record DirectedGraph := {
-  dg_numNodes : nat;
-  dg_weight : nat -> nat -> nat
+  numNodes : nat;
+  edge : nat -> nat -> Prop
 }.
 
+(* The range and bijection fields make order a vertex permutation. The final
+   successor uses modulo, so cycleEdges includes the closing edge. *)
 Record ATSPTour (g : DirectedGraph) := {
-  atsp_order : nat -> nat;
-  atsp_isValid : True
+  order : nat -> nat;
+  order_range : forall i, i < numNodes g -> order i < numNodes g;
+  order_injective : forall i j, i < numNodes g -> j < numNodes g ->
+    order i = order j -> i = j;
+  order_surjective : forall j, j < numNodes g ->
+    exists i, i < numNodes g /\ order i = j;
+  cycleEdges : forall i, i < numNodes g ->
+    edge g (order i) (order ((S i) mod numNodes g))
 }.
 
-Definition gubinLPFormulation (g : DirectedGraph) : LPProblem :=
-  {| lp_numVars := (dg_numNodes g) ^ 9;
-     lp_numConstraints := (dg_numNodes g) ^ 7
-  |}.
+Definition HasIntegralCorrespondence (g : DirectedGraph) (lp : LPProblem)
+    (encode : ATSPTour g -> nat -> Q) : Prop :=
+  (forall tour, exists ep : ExtremePoint lp,
+    pointEq lp (ep_point lp ep) (encode tour) /\
+    isIntegral lp (ep_point lp ep)) /\
+  (forall ep : ExtremePoint lp,
+    isIntegral lp (ep_point lp ep) ->
+    exists tour, pointEq lp (encode tour) (ep_point lp ep)).
 
-Definition HasIntegralCorrespondence (g : DirectedGraph) : Prop :=
-  (forall tour : ATSPTour g,
-    exists ep : ExtremePoint (gubinLPFormulation g),
-      isIntegral (gubinLPFormulation g) ep) /\
-  (forall ep : ExtremePoint (gubinLPFormulation g),
-    isIntegral (gubinLPFormulation g) ep ->
-    exists tour : ATSPTour g, True).
+Definition isCoordinateSymmetric (lp : LPProblem) : Prop :=
+  forall sigma : nat -> nat,
+    (forall i, i < numVars lp -> sigma i < numVars lp) ->
+    (forall i j, i < numVars lp -> j < numVars lp ->
+      sigma i = sigma j -> i = j) ->
+    (forall j, j < numVars lp ->
+      exists i, i < numVars lp /\ sigma i = j) ->
+    forall x, feasible lp x -> feasible lp (fun i => x (sigma i)).
 
-Record SymmetricFormulation := {
-  sym_baseProblem : LPProblem;
-  sym_isSymmetric : True
-}.
+Definition halfPoint (i : nat) : Q :=
+  if Nat.eq_dec i 0 then 1 # 2 else 0.
 
-Axiom gubin_formulation_is_asymmetric :
-  forall g : DirectedGraph,
-    ~ exists sym : SymmetricFormulation,
-      sym_baseProblem sym = gubinLPFormulation g.
+(* The two linear equations x_0 = 1/2 and x_1 = 0. *)
+Definition halfLP : LPProblem :=
+  {| numVars := 2;
+     feasible := fun x => Qeq (x 0) (1 # 2) /\ Qeq (x 1) 0 |}.
 
-(** ** 4. ERROR 1: Integrality Not Proven *)
+Lemma half_feasible : feasible halfLP halfPoint.
+Proof. split; reflexivity. Qed.
 
-(** The fundamental issue: LP polytopes CAN have fractional extreme points *)
-Axiom fractional_extreme_points_exist :
+Lemma half_unique : forall x, feasible halfLP x -> pointEq halfLP x halfPoint.
+Proof.
+  intros x [h0 h1] i hi.
+  destruct i as [|i]; [exact h0|].
+  destruct i as [|i]; [exact h1|].
+  simpl in hi; lia.
+Qed.
+
+Lemma half_vertex : isVertex halfLP halfPoint.
+Proof.
+  split; [exact half_feasible|].
+  intros y z t _ _ hy hz _.
+  split; [exact (half_unique y hy)|exact (half_unique z hz)].
+Qed.
+
+Lemma half_not_integral : ~ isIntegral halfLP halfPoint.
+Proof.
+  intro h.
+  destruct (h 0 ltac:(simpl; lia)) as [z hz].
+  unfold halfPoint in hz; simpl in hz.
+  unfold Qeq, inject_Z in hz; simpl in hz.
+  lia.
+Qed.
+
+Theorem fractional_vertex_exists :
   exists lp : LPProblem, exists ep : ExtremePoint lp,
-    ~ isIntegral lp ep.
-
-(** Gubin does not prove that his LP has only integral extreme points *)
-(* This theorem shows the gap - we cannot derive integrality from the construction *)
-Theorem gubin_lacks_integrality_proof :
-  ~ (forall g : DirectedGraph,
-    forall ep : ExtremePoint (gubinLPFormulation g),
-    isIntegral (gubinLPFormulation g) ep).
+    ~ isIntegral lp (ep_point lp ep).
 Proof.
-  (* Without proof of integrality, we cannot assume all extreme points are integral *)
-  (* This is marked as Admitted because it represents a logical gap, not a proof failure *)
-Admitted.
-
-(** ** 5. ERROR 2: The LP/ILP Gap *)
-
-(** Integer Linear Programming is NP-complete *)
-Axiom ILP_is_NP_complete : True.
-
-(** The fundamental gap: LP is easy, ILP is hard *)
-Theorem LP_ILP_gap :
-  (forall lp : LPProblem, exists T : TimeComplexity, isPolynomial T) /\
-  True. (* Second part represents ILP is NP-complete *)
-Proof.
-  split.
-  - exact LP_in_polynomial_time.
-  - exact I.
+  exists halfLP, {| ep_point := halfPoint; ep_vertex := half_vertex |}.
+  exact half_not_integral.
 Qed.
 
-(** ** 6. ERROR 3: Asymmetry Does Not Imply Integrality *)
+Definition swap (i : nat) : nat := if Nat.eq_dec i 0 then 1 else 0.
 
-(** Being asymmetric avoids Yannakakis' barrier *)
-Theorem gubin_avoids_yannakakis :
-  forall g : DirectedGraph,
-    ~ exists sym : SymmetricFormulation,
-      sym_baseProblem sym = gubinLPFormulation g.
+Lemma half_asymmetric : ~ isCoordinateSymmetric halfLP.
 Proof.
-  intros g.
-  exact (gubin_formulation_is_asymmetric g).
+  intro hs.
+  assert (hrange : forall i, i < numVars halfLP -> swap i < numVars halfLP).
+  { intros i hi. unfold swap. destruct (Nat.eq_dec i 0); simpl; lia. }
+  assert (hinj : forall i j, i < numVars halfLP -> j < numVars halfLP ->
+                    swap i = swap j -> i = j).
+  { intros i j hi hj heq.
+    assert (i = 0 \/ i = 1) as hi' by (simpl in hi; lia).
+    assert (j = 0 \/ j = 1) as hj' by (simpl in hj; lia).
+    destruct hi' as [hi'|hi']; destruct hj' as [hj'|hj']; subst;
+    unfold swap in heq; simpl in heq; lia. }
+  assert (hsurj : forall j, j < numVars halfLP ->
+    exists i, i < numVars halfLP /\ swap i = j).
+  { intros j hj. assert (j = 0 \/ j = 1) as h by (simpl in hj; lia).
+    destruct h as [h|h]; subst j.
+    - exists 1; split; [simpl; lia|reflexivity].
+    - exists 0; split; [simpl; lia|reflexivity]. }
+  pose proof (hs swap hrange hinj hsurj halfPoint half_feasible) as h.
+  destruct h as [h0 _].
+  unfold swap, halfPoint in h0; simpl in h0.
+  unfold Qeq in h0; simpl in h0.
+  lia.
 Qed.
 
-(** But asymmetry alone does NOT imply integrality *)
-(* This theorem shows the logical gap in Gubin's reasoning *)
-Theorem asymmetry_insufficient :
-  (forall g : DirectedGraph,
-    ~ exists sym : SymmetricFormulation,
-      sym_baseProblem sym = gubinLPFormulation g) ->
-  ~ (forall g : DirectedGraph, HasIntegralCorrespondence g).
+Theorem asymmetry_does_not_imply_integrality :
+  exists lp : LPProblem, ~ isCoordinateSymmetric lp /\
+    exists ep : ExtremePoint lp, ~ isIntegral lp (ep_point lp ep).
 Proof.
-  (* This is the logical gap: asymmetry ≠ integrality *)
-  (* Cannot derive integrality from asymmetry alone *)
-Admitted.
-
-(** ** 7. ERROR 4: Rizzi's Refutation (2011) *)
-
-(** Rizzi's refutation: The correspondence claim is FALSE *)
-Axiom rizzi_refutation_2011 :
-  ~ (forall g : DirectedGraph, HasIntegralCorrespondence g).
-
-(** Therefore Gubin's correspondence claim is false *)
-Theorem gubin_correspondence_is_false :
-  ~ (forall g : DirectedGraph, HasIntegralCorrespondence g).
-Proof.
-  exact rizzi_refutation_2011.
+  exists halfLP. split; [exact half_asymmetric|].
+  exists {| ep_point := halfPoint; ep_vertex := half_vertex |}.
+  exact half_not_integral.
 Qed.
 
-(** ** 8. Key Lessons Formalized *)
+Definition noEdgeGraph : DirectedGraph :=
+  {| numNodes := 1; edge := fun _ _ => False |}.
 
-(** Lesson 1: Polynomial size alone is insufficient *)
-Theorem size_not_enough :
-  isPolynomial (fun n => n ^ 9) /\
-  ~ (forall g : DirectedGraph, HasIntegralCorrespondence g).
+Lemma no_tour : ATSPTour noEdgeGraph -> False.
 Proof.
-  split.
-  - exists 1, 9. intros. simpl. lia.
-  - exact gubin_correspondence_is_false.
+  intro tour.
+  exact (cycleEdges noEdgeGraph tour 0 ltac:(simpl; lia)).
 Qed.
 
-(** Lesson 2: Avoiding Yannakakis doesn't solve the problem *)
-Theorem yannakakis_not_only_barrier :
-  (forall g : DirectedGraph,
-    ~ exists sym : SymmetricFormulation,
-      sym_baseProblem sym = gubinLPFormulation g) /\
-  ~ (forall g : DirectedGraph, HasIntegralCorrespondence g).
+Definition zeroPoint (_ : nat) : Q := 0.
+Definition zeroLP : LPProblem :=
+  {| numVars := 1; feasible := fun x => Qeq (x 0) 0 |}.
+
+Lemma zero_unique : forall x, feasible zeroLP x -> pointEq zeroLP x zeroPoint.
 Proof.
-  split.
-  - intro g. apply gubin_formulation_is_asymmetric.
-  - exact gubin_correspondence_is_false.
+  intros x hx i hi.
+  assert (i = 0) as -> by (simpl in hi; lia).
+  exact hx.
 Qed.
 
-(** Lesson 3: The LP/ILP gap is fundamental *)
-Theorem fundamental_gap :
-  ((forall lp : LPProblem, exists T : TimeComplexity, isPolynomial T) /\
-   True) /\
-  ~ (forall g : DirectedGraph, HasIntegralCorrespondence g).
+Lemma zero_vertex : isVertex zeroLP zeroPoint.
 Proof.
-  split.
-  - exact LP_ILP_gap.
-  - exact gubin_correspondence_is_false.
+  split; [reflexivity|].
+  intros y z t _ _ hy hz _.
+  split; [exact (zero_unique y hy)|exact (zero_unique z hz)].
 Qed.
 
-(** ** 9. Summary *)
+Lemma zero_integral : isIntegral zeroLP zeroPoint.
+Proof.
+  intros i hi. exists 0%Z. reflexivity.
+Qed.
 
-(*
-  SUMMARY: WHY THE PROOF FAILS
+Theorem abstract_correspondence_can_fail :
+  forall encode : ATSPTour noEdgeGraph -> nat -> Q,
+    ~ HasIntegralCorrespondence noEdgeGraph zeroLP encode.
+Proof.
+  intros encode [_ backward].
+  destruct (backward {| ep_point := zeroPoint; ep_vertex := zero_vertex |}
+    zero_integral) as [tour _].
+  exact (no_tour tour).
+Qed.
 
-  Gubin's proof structure:
-  1. Polynomial-sized LP formulation ✓ (valid)
-  2. Asymmetric formulation ✓ (valid, avoids Yannakakis)
-  3. LP solvable in polynomial time ✓ (well-known)
-  4. Integrality correspondence ✗ (UNPROVEN AND FALSE)
-  5. Therefore P = NP ✗ (does not follow)
-
-  The proof fails at step 4. The integrality correspondence is:
-  - Not proven by Gubin
-  - Refuted by Rizzi (2011)
-  - Not implied by asymmetry alone
-  - Blocked by the fundamental LP/ILP gap
-
-  This is the same failure mode as many other LP-based P=NP attempts.
-*)
-
-End GubinRefutation.
-
-(* This file compiles successfully *)
-(* It demonstrates the errors in Gubin's argument *)
+End GubinAudit.

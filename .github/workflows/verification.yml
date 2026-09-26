@@ -22,6 +22,12 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Check Gubin audit for unproved assumptions
+      run: python3 scripts/check_gubin_audit.py
+
+    - name: Check exact Gubin paper LP witness
+      run: python3 experiments/issue578/check_paper_lp.py
+
     - name: Check Plotnikov refutation assumptions
       run: python3 -m unittest discover -s experiments/issue577 -p 'test_*.py' -v
 
