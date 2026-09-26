@@ -1,6 +1,6 @@
 # Forward Proof Formalization: Plotnikov 2007
 
-This directory contains the formal proof attempt following Plotnikov's approach as faithfully as possible.
+This directory contains a partial sketch of Plotnikov's approach. Its abstract graph definitions and axioms do not verify the algorithm or Conjecture 1. See the [refutation audit](../refutation/README.md) for a sound conditional formulation.
 
 ## Contents
 
@@ -30,7 +30,7 @@ Plotnikov's argument proceeds:
 
 ## Where the Formalizations Stop
 
-The formalizations use `sorry` (Lean) and `Axiom` (Rocq) for the critical unproven claims:
+The forward files introduce unproved claims with `axiom` (Lean) and `Axiom` (Rocq). These are placeholders, not established results:
 
 1. **Conjecture 1**: The paper explicitly states (Theorem 5, page 9):
    > "**If the conjecture 1 is true** then the stated algorithm finds a MMIS of the graph G ∈ Lₙ."
@@ -39,7 +39,7 @@ The formalizations use `sorry` (Lean) and `Axiom` (Rocq) for the critical unprov
 
 2. **VS-Digraph Construction Correctness**: The properties of vertex-saturated digraphs and their relationship to MMIS optimality are assumed
 
-3. **Complexity Bounds**: The O(n⁸) analysis assumes the number of iterations is bounded by O(n), which depends on Conjecture 1
+3. **Complexity Bounds**: The O(n⁸) analysis assumes the number of successful iterations is bounded by O(n) and needs a bound on all arc tests and reconstruction work
 
 ## The Core Error
 
@@ -48,10 +48,10 @@ From the paper (page 9, Theorem 5):
 > "**If the conjecture 1 is true** then the stated algorithm finds a MMIS of the graph G ∈ Lₙ."
 
 **This conditional statement means:**
-- Algorithm correctness requires Conjecture 1 to be proven
+- The stated conditional argument needs Conjecture 1 to establish correctness
 - Conjecture 1 is nowhere proven in the paper
 - Therefore, algorithm correctness is NOT established
-- Therefore, the claim that P = NP is INVALID
+- Therefore, the claim that P = NP is not established
 
 **The author's defense (page 9):**
 > "The pascal-programs were written for the proposed algorithm. Long testing the program for random graphs has shown that the algorithm runs stably and correctly."
@@ -63,20 +63,20 @@ From the paper (page 9, Theorem 5):
 
 ## Additional Issues
 
-### Issue 1: Non-Constructive Use of Dilworth's Theorem
+### Issue 1: Graph and Poset Correspondence
 
-Plotnikov relies on finding minimum chain partitions (MCP) of partially ordered sets. While Dilworth's Theorem guarantees their existence, **computing MCPs is computationally non-trivial**:
+Plotnikov relies on minimum chain partitions (MCP) of partially ordered sets. For finite posets these can be computed through polynomial-time bipartite matching; the missing part is a proof that the paper's graph construction and later operations have the required properties:
 
-- The Ford-Fulkerson algorithm works for bipartite matching
+- The Ford-Fulkerson method supplies a matching subroutine
 - The correspondence between poset antichains and graph independent sets requires careful proof
-- The efficiency claims for MCP computation are not rigorously established
+- The complexity of the full graph algorithm needs its own analysis
 
 ### Issue 2: Complexity Analysis Gaps
 
 The O(n⁸) analysis (Theorem 6) makes unverified assumptions:
 - Assumes exactly O(n) iterations needed
 - Assumes each iteration increases independent set size by 1
-- Depends on Conjecture 1 being true for the iteration bound
+- Needs a separate proof of the iteration bound
 
 ### Issue 3: Lack of Rigorous Proofs
 

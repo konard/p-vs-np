@@ -8,7 +8,7 @@
 **Claim**: P = NP
 **Paper Title**: "Experimental Algorithm for the Maximum Independent Set Problem"
 **Publication**: arXiv:0706.3565 (2007); later published in Cybernetics and Systems Analysis, Vol. 48, Issue 5 (2012), pp. 673-680
-**Status**: Refuted (relies on unproven conjecture)
+**Status**: P = NP claim unproved (correctness is conditional on Conjecture 1)
 
 ## Summary
 
@@ -47,7 +47,7 @@ The paper claims O(n⁸) time complexity:
 
 ## The Error in the Proof
 
-The fundamental error in Plotnikov's proof is that **the entire algorithm's correctness depends on an unproven Conjecture 1**, which the author admits has not been proven.
+The paper's stated correctness argument depends on Conjecture 1, for which it provides no proof. This leaves its P = NP conclusion unestablished; it does not establish that Conjecture 1 or the algorithm is false.
 
 ### Critical Flaw: Reliance on Unproven Conjecture
 
@@ -56,31 +56,28 @@ The fundamental error in Plotnikov's proof is that **the entire algorithm's corr
 **Conjecture 1** (stated by Plotnikov):
 > "Let a saturated digraph G⃗(V⁰) has an independent set U ⊂ V such that Card(U) > Card(V⁰). Then it will be found a fictitious arc vᵢ ≫ vⱼ such that in the digraph G⃗(Z⁰), induced by removing this arc, the relation Card(Z⁰) ≥ Card(V⁰) - 1 is satisfied."
 
-**Why this is fatal**:
+**Missing steps**:
 
 1. **Algorithm correctness depends on the conjecture** (Theorem 5, page 9):
    > "**If the conjecture 1 is true** then the stated algorithm finds a MMIS of the graph G ∈ Lₙ."
 
 2. **No proof is provided**: The paper offers no proof of Conjecture 1. The author merely states it and builds the algorithm upon it.
 
-3. **Circular reasoning**: The conjecture essentially assumes that the algorithm's greedy approach will work, without proving it.
-
-4. **Empirical testing is insufficient**: The author claims:
+3. **Empirical testing is insufficient**: The author claims:
    > "The pascal-programs were written for the proposed algorithm. Long testing the program for random graphs has shown that the algorithm runs stably and correctly."
 
    However, testing on random graphs does not constitute a proof. A counterexample could exist that was not encountered in testing.
 
 ### Additional Issues
 
-#### Issue 1: Non-Constructive Use of Dilworth's Theorem
+#### Issue 1: Graph and Poset Correspondence
 
 **Location**: Throughout the algorithm, particularly in the VS construction
 
-Plotnikov relies on finding minimum chain partitions (MCP) of partially ordered sets. While Dilworth's Theorem guarantees existence, **computing the MCP is itself computationally hard** for general posets:
+Plotnikov uses minimum chain partitions (MCP) of partially ordered sets. These can be computed via polynomial-time bipartite matching for finite posets. The remaining question is whether the particular graph-to-poset construction and cutting operations have the claimed properties:
 
-- The Ford-Fulkerson algorithm mentioned works for bipartite matching in O(n^5/2)
-- However, the correctness of applying this to the specific posets constructed from graphs is not rigorously established
-- The correspondence between poset antichains and graph independent sets is assumed but not fully proven
+- The correctness of applying the matching method to the specific posets constructed from graphs needs justification
+- The correspondence between the resulting antichains and graph independent sets needs a proof
 
 #### Issue 2: Complexity Analysis Gaps
 
@@ -88,10 +85,10 @@ Plotnikov relies on finding minimum chain partitions (MCP) of partially ordered 
 
 The O(n⁸) complexity analysis makes several assumptions:
 
-- Assumes exactly O(n) iterations are needed in the worst case
-- Assumes each iteration increases the independent set size by 1
-- Does not account for potential exponential blowup in special cases
-- The claimed polynomial bound depends on Conjecture 1 being true
+- Assumes O(n) successful iterations in the worst case
+- Requires a proof that each successful iteration increases the independent set size
+- Requires a bound on all attempted arc tests and reconstruction work
+- The displayed O(n⁸) estimate is not a formal bound on an implemented running-time function
 
 #### Issue 3: Lack of Rigorous Proofs
 
@@ -112,48 +109,11 @@ The maximum independent set problem remains NP-complete because:
 - **No known polynomial algorithm**: Despite decades of research, no polynomial-time exact algorithm exists
 - **Successful algorithms**: Only exponential-time exact algorithms (e.g., O(1.2^n)) and polynomial-time approximations with weak guarantees
 
-## Formalization Strategy
+## Formalization Scope
 
-To verify and understand the errors, we formalize the proof in three theorem provers:
+The forward Lean and Rocq files sketch Plotnikov's graph definitions and claims. They contain placeholders and unproved axioms, so compilation of those files does not verify the paper's algorithm. The refutation files state Conjecture 1 as a conditional property of VS-digraph instances and model Theorem 5 as an explicit hypothesis. They prove the conditional consequence only when both the hypothesis and Conjecture 1 are supplied. They also prove that a cubic running time is polynomial under the local definition, correcting the old contradictory axiom.
 
-### 1. Coq (`coq/` directory)
-- Define graphs, independent sets, and digraphs formally
-- Formalize the vertex-saturated digraph construction
-- Attempt to prove Conjecture 1 or construct a counterexample
-- Show the algorithm's correctness gap
-
-### 2. Lean 4 (`lean/` directory)
-- Use Mathlib's graph theory library
-- Define the MISP problem formally
-- Implement Plotnikov's algorithm structure
-- Prove that without Conjecture 1, correctness cannot be established
-
-### 3. Isabelle/HOL (`isabelle/` directory)
-- Use Isabelle's graph theory and complexity frameworks
-- Formalize the algorithm step-by-step
-- Use automated provers to identify gaps in reasoning
-- Attempt to find counterexamples to Conjecture 1
-
-## Formalization Goals
-
-Each formalization aims to:
-
-1. **Define the problem**: Formal specification of MISP
-2. **Model the algorithm**: Implement Plotnikov's approach
-3. **Identify the gap**: Show where Conjecture 1 is needed
-4. **Assess completeness**: Determine if Conjecture 1 could be proven or if counterexamples exist
-5. **Verify complexity**: Check if the claimed O(n⁸) bound is sound given the assumptions
-
-## Known Refutation
-
-While there is no published explicit refutation of Plotnikov's specific paper, the claim contradicts:
-
-- **Widespread belief that P ≠ NP**: Based on decades of failed attempts
-- **Lack of verification**: If correct, this would have won the Clay Millennium Prize ($1 million)
-- **Community consensus**: No acceptance by the theoretical computer science community
-- **Unproven conjecture**: The author himself acknowledges the algorithm's correctness depends on an unproven conjecture
-
-The paper appeared on arXiv but was never validated or accepted by mainstream complexity theory conferences or journals as a valid proof.
+The following proof obligations remain open: a faithful graph-level definition of a qualifying fictitious arc, a proof of Conjecture 1, a proof of Theorem 5 for the implemented algorithm, and a bound on that algorithm's running time. The refutation formalizations prove neither a counterexample to Conjecture 1 nor that Plotnikov's algorithm is incorrect.
 
 ## References
 
@@ -178,21 +138,20 @@ The paper appeared on arXiv but was never validated or accepted by mainstream co
 ```
 anatoly-plotnikov-2007-peqnp/
 ├── README.md (this file)
-├── coq/
-│   └── PlotnikovMISP.v
-├── lean/
-│   └── PlotnikovMISP.lean
-└── isabelle/
-    ├── PlotnikovMISP.thy
-    └── ROOT
+├── ORIGINAL.md and ORIGINAL.pdf
+├── proof/
+│   ├── lean/PlotnikovProof.lean
+│   └── rocq/PlotnikovProof.v
+└── refutation/
+    ├── lean/PlotnikovRefutation.lean
+    └── rocq/PlotnikovRefutation.v
 ```
 
 ## Status
 
-- [ ] Coq formalization
-- [ ] Lean formalization
-- [ ] Isabelle formalization
-- [ ] Formal identification of conjecture dependency
+- [x] Lean and Rocq conditional audit of the conjecture dependency
+- [ ] Complete graph-level formalization of the algorithm
+- [ ] Proof of Conjecture 1 and the conditional correctness theorem
 - [ ] Counterexample search for Conjecture 1
 - [ ] Complexity analysis verification
 
@@ -200,10 +159,8 @@ anatoly-plotnikov-2007-peqnp/
 
 1. **Unproven conjectures invalidate proofs**: A proof that depends on an unproven conjecture is not a proof of the original claim
 2. **Empirical testing ≠ Mathematical proof**: Testing on random graphs cannot replace rigorous mathematical proof
-3. **NP-completeness is robust**: Decades of failed attempts suggest P ≠ NP remains the likely answer
-4. **Algorithmic claims need rigorous analysis**: Polynomial-time claims for NP-complete problems require extraordinary evidence
-5. **Poset techniques have limitations**: While Ford-Fulkerson's method is powerful, it doesn't automatically solve NP-hard problems
-6. **Circular reasoning trap**: Assuming the algorithm works to prove the algorithm works is a common error in P vs NP attempts
+3. **Correctness and running time are separate obligations**: A conditional correctness statement does not establish the claimed O(n⁸) bound
+4. **Graph transformations need proofs**: A polynomial-time matching subroutine alone does not establish correctness of the full algorithm
 
 ---
 

@@ -107,14 +107,11 @@ def contradictoryFormula : CNF := [[Literal.pos 1], [Literal.neg 1]]
 -- This formula is indeed unsatisfiable
 theorem contradictory_is_unsat : ¬ Satisfiable contradictoryFormula := by
   intro ⟨a, ha⟩
-  simp [evalCNF, contradictoryFormula] at ha
-  have hp : a 1 = true := by
-    have h := ha [Literal.pos 1] (by exact List.Mem.head _)
-    simpa [evalClause, evalLiteral] using h
-  have hn : (!a 1) = true := by
-    have h := ha [Literal.neg 1] (by exact List.Mem.tail _ (List.Mem.head _))
-    simpa [evalClause, evalLiteral] using h
-  simp [hp] at hn
+  simp [evalCNF, contradictoryFormula, evalClause] at ha
+  have hp := ha [Literal.pos 1] (by apply List.Mem.head)
+  have hn := ha [Literal.neg 1] (by apply List.Mem.tail; apply List.Mem.head)
+  simp [evalLiteral] at hp hn
+  simp_all
 
 -- LP constraints for [Pos 1] and [Neg 1] are identical
 -- The encoding completely ignores whether a literal is negated

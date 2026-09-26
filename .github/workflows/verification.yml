@@ -24,6 +24,9 @@ jobs:
     - name: Check Gubin audit for unproved assumptions
       run: python3 scripts/check_gubin_audit.py
 
+    - name: Check Plotnikov refutation assumptions
+      run: python3 -m unittest discover -s experiments/issue577 -p 'test_*.py' -v
+
     - name: Detect changed files
       id: changes
       run: |
