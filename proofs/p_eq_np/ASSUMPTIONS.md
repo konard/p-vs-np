@@ -25,7 +25,8 @@ axiom. Rocq reports both theorems as closed under the global context.
 
 `PolyTimeReduction` / `poly_time_reduction` now correctly compares `L1 x`
 with `L2 (f x)`, but it bounds only the *length* of `f x`. It does not prove that
-`f` can be computed in polynomial time. The previous
+`f` can be computed in polynomial time. Accordingly, `IsNPComplete` /
+`is_NP_complete` is only a candidate under this weaker relation. The previous
 `NPComplete_in_P_implies_P_eq_NP` / `NP_complete_in_P_implies_P_eq_NP`
 assertion was therefore removed. Restoring it requires a machine model for
 reductions and a proof that composing it with a decider preserves polynomial

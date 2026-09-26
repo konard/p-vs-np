@@ -173,7 +173,8 @@ def PolyTimeReduction (L1 L2 : DecisionProblem) : Prop :=
     (∀ x, inputSize (f x) ≤ time (inputSize x)) ∧
     (∀ x, L1 x ↔ L2 (f x))
 
-/-- Test 4: NP-completeness -/
+/-- Test 4: A completeness candidate for the length-bounded reduction model.
+    This is not yet standard NP-completeness. -/
 def IsNPComplete (L : DecisionProblem) : Prop :=
   InNP L ∧
   ∀ L', InNP L' → PolyTimeReduction L' L

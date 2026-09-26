@@ -237,17 +237,18 @@ Definition test_in_NP (L : DecisionProblem)
 (** ** Test 3: A many-one reduction with polynomially bounded output length.
     The computation time of f is not modeled. *)
 
-(** A problem L1 reduces to L2 in polynomial time if there's a poly-time function f
-    such that x ∈ L1 iff f(x) ∈ L2 *)
+(** L1 reduces to L2 through f with a polynomial bound on output length;
+    the runtime of f is not constrained. *)
 Definition poly_time_reduction (L1 L2 : DecisionProblem) : Prop :=
   exists (f : BinaryString -> BinaryString) (time : nat -> nat),
     is_polynomial time /\
-    (* f computable in polynomial time *)
+    (* Polynomial output-length bound, not a computation-time bound *)
     (forall x, input_size (f x) <= time (input_size x)) /\
     (* Reduction property *)
     (forall x, L1 x <-> L2 (f x)).
 
-(** ** Test 4: Verify NP-completeness *)
+(** ** Test 4: A completeness candidate under the length-bounded reduction
+    model, not standard NP-completeness. *)
 
 (** A problem L is NP-complete if:
     1. L is in NP
