@@ -11,6 +11,7 @@
 
 From Stdlib Require Import Arith.
 From Stdlib Require Import List.
+From Stdlib Require Import Lia.
 From Stdlib Require Import FunctionalExtensionality.
 Import ListNotations.
 
@@ -53,16 +54,16 @@ Proof.
   unfold is_polynomial.
   exists 1, 1.
   intros n.
-  (* The full proof requires arithmetic lemmas, admitted for simplicity *)
-Admitted.
+  simpl. lia.
+Qed.
 
 Theorem quadratic_is_poly : is_polynomial (fun n => n * n).
 Proof.
   unfold is_polynomial.
   exists 2, 1.
   intros n.
-  (* The full proof requires arithmetic lemmas, admitted for simplicity *)
-Admitted.
+  simpl. nia.
+Qed.
 
 (** Sum and product of polynomials are polynomial *)
 Theorem poly_sum : forall f g,
@@ -91,16 +92,46 @@ Record TuringMachine := {
   TM_reject_state : nat;
 }.
 
-(** Configuration of a TM: (current_state, tape, head_position, step_count) *)
-Definition Configuration : Set := (nat * list nat * nat * nat)%type.
+(** An unbounded tape, a current state, and a head position. *)
+Record Configuration := {
+  config_state : nat;
+  config_tape : nat -> nat;
+  config_head : nat
+}.
+
+(** Binary input is written at the beginning of an otherwise blank tape. *)
+Definition initial_configuration (M : TuringMachine) (input : BinaryString) : Configuration :=
+  {| config_state := TM_initial_state M;
+     config_tape := fun i => if nth i input false then 1 else 0;
+     config_head := 0 |}.
+
+(** Halted configurations stay fixed. The head is bounded below by zero. *)
+Definition step (M : TuringMachine) (c : Configuration) : Configuration :=
+  if orb (Nat.eqb (config_state c) (TM_accept_state M))
+         (Nat.eqb (config_state c) (TM_reject_state M)) then c
+  else
+    let '(next_state, symbol, move_right) :=
+      TM_transition M (config_state c) (config_tape c (config_head c)) in
+    {| config_state := next_state;
+       config_tape := fun i => if Nat.eqb i (config_head c) then symbol else config_tape c i;
+       config_head := if move_right then S (config_head c) else pred (config_head c) |}.
+
+Fixpoint run (M : TuringMachine) (input : BinaryString) (steps : nat) : Configuration :=
+  match steps with
+  | 0 => initial_configuration M input
+  | S n => step M (run M input n)
+  end.
+
+Definition accepts (M : TuringMachine) (input : BinaryString) : Prop :=
+  exists steps, config_state (run M input steps) = TM_accept_state M.
 
 (** Time bound for a TM on an input *)
 Definition TM_time_bounded (M : TuringMachine) (time : nat -> nat) : Prop :=
   forall (input : BinaryString),
     exists (steps : nat),
       steps <= time (input_size input) /\
-      (* TM halts within 'steps' steps *)
-      True. (* Abstract halting condition *)
+      (config_state (run M input steps) = TM_accept_state M \/
+       config_state (run M input steps) = TM_reject_state M).
 
 (** * 4. Complexity Class P *)
 
@@ -115,7 +146,7 @@ Definition in_P (L : DecisionProblem) : Prop :=
     is_polynomial time /\
     TM_time_bounded M time /\
     forall (x : BinaryString),
-      L x <-> True. (* Abstract: M accepts x iff L x *)
+      L x <-> accepts M x.
 
 (** * 5. Complexity Class NP *)
 
@@ -180,7 +211,22 @@ Axiom P_eq_or_neq_NP : P_equals_NP \/ P_neq_NP.
 Definition test_in_P (L : DecisionProblem) (M : TuringMachine)
                      (time : nat -> nat) (poly_proof : is_polynomial time) : Prop :=
   TM_time_bounded M time /\
-  forall x, L x <-> True. (* Abstract correctness check *)
+  forall x, L x <-> accepts M x.
+
+(** A one-step example checks that the transition reads the input tape. *)
+Local Definition first_bit_machine : TuringMachine :=
+  {| TM_states := 3; TM_alphabet := 2;
+     TM_transition := fun _ symbol =>
+       (if Nat.eqb symbol 1 then 1 else 2, symbol, true);
+     TM_initial_state := 0; TM_accept_state := 1; TM_reject_state := 2 |}.
+
+Example first_bit_accepted :
+  config_state (run first_bit_machine [true] 1) = TM_accept_state first_bit_machine.
+Proof. reflexivity. Qed.
+
+Example first_bit_rejected :
+  config_state (run first_bit_machine [false] 1) = TM_reject_state first_bit_machine.
+Proof. reflexivity. Qed.
 
 (** ** Test 2: Verify a problem is in NP *)
 
@@ -192,19 +238,21 @@ Definition test_in_NP (L : DecisionProblem)
                       (poly_verifier_proof : polynomial_time_verifier V) : Prop :=
   forall x, L x <-> exists c, input_size c <= cert_size (input_size x) /\ V x c = true.
 
-(** ** Test 3: Check if a polynomial-time reduction exists *)
+(** ** Test 3: A many-one reduction with polynomially bounded output length.
+    The computation time of f is not modeled. *)
 
-(** A problem L1 reduces to L2 in polynomial time if there's a poly-time function f
-    such that x ∈ L1 iff f(x) ∈ L2 *)
+(** L1 reduces to L2 through f with a polynomial bound on output length;
+    the runtime of f is not constrained. *)
 Definition poly_time_reduction (L1 L2 : DecisionProblem) : Prop :=
   exists (f : BinaryString -> BinaryString) (time : nat -> nat),
     is_polynomial time /\
-    (* f computable in polynomial time *)
+    (* Polynomial output-length bound, not a computation-time bound *)
     (forall x, input_size (f x) <= time (input_size x)) /\
     (* Reduction property *)
-    (forall x, L1 x <-> L2 x).
+    (forall x, L1 x <-> L2 (f x)).
 
-(** ** Test 4: Verify NP-completeness *)
+(** ** Test 4: A completeness candidate under the length-bounded reduction
+    model, not standard NP-completeness. *)
 
 (** A problem L is NP-complete if:
     1. L is in NP
@@ -213,12 +261,8 @@ Definition is_NP_complete (L : DecisionProblem) : Prop :=
   in_NP L /\
   forall L', in_NP L' -> poly_time_reduction L' L.
 
-(** If any NP-complete problem is in P, then P = NP *)
-Theorem NP_complete_in_P_implies_P_eq_NP :
-  forall L, is_NP_complete L -> in_P L -> P_equals_NP.
-Proof.
-  (* Full proof requires composition of polynomial-time computations *)
-Admitted.
+(** The standard NP-completeness theorem needs a machine computing f in
+    polynomial time and a proven composition bound, so it is not asserted. *)
 
 (** * 8. Example Problems *)
 
@@ -268,16 +312,45 @@ Definition empty_language : DecisionProblem := fun _ => False.
 
 Theorem empty_in_P : in_P empty_language.
 Proof.
-  (* Proof omitted for simplicity *)
-Admitted.
+  pose (reject_machine :=
+    {| TM_states := 2; TM_alphabet := 2;
+       TM_transition := fun _ _ => (0, 0, true);
+       TM_initial_state := 0; TM_accept_state := 1; TM_reject_state := 0 |}).
+  exists reject_machine, (fun _ => 0).
+  split; [apply constant_is_poly |].
+  split.
+  - intro input. exists 0. split; [apply Nat.le_refl | right; reflexivity].
+  - intro input. split.
+    + unfold empty_language. intro H. contradiction.
+    + unfold accepts. intros [steps Haccept].
+      assert (Hreject : forall n, config_state (run reject_machine input n) =
+        TM_reject_state reject_machine).
+      { intro n. induction n as [| n IH].
+        - reflexivity.
+        - simpl. unfold step. rewrite IH.
+          cbn [reject_machine TM_accept_state TM_reject_state Nat.eqb orb].
+          exact IH. }
+      specialize (Hreject steps). rewrite Hreject in Haccept.
+      discriminate Haccept.
+Qed.
 
 (** ** Check 2: Universal language is in P *)
 Definition universal_language : DecisionProblem := fun _ => True.
 
 Theorem universal_in_P : in_P universal_language.
 Proof.
-  (* Proof omitted for simplicity *)
-Admitted.
+  pose (accept_machine :=
+    {| TM_states := 2; TM_alphabet := 2;
+       TM_transition := fun _ _ => (0, 0, true);
+       TM_initial_state := 1; TM_accept_state := 1; TM_reject_state := 0 |}).
+  exists accept_machine, (fun _ => 0).
+  split; [apply constant_is_poly |].
+  split.
+  - intro input. exists 0. split; [apply Nat.le_refl | left; reflexivity].
+  - intro input. split.
+    + intro H. unfold accepts. exists 0. reflexivity.
+    + intro H. exact I.
+Qed.
 
 (** ** Check 3: P is closed under complement *)
 Theorem P_closed_under_complement : forall L,
@@ -319,5 +392,11 @@ Check is_NP_complete.
 Check test_in_P.
 Check test_in_NP.
 Check poly_time_reduction.
+Print Assumptions empty_in_P.
+Print Assumptions universal_in_P.
+Print Assumptions P_subseteq_NP.
+Print Assumptions P_eq_or_neq_NP.
+Print Assumptions P_closed_under_complement.
+Print Assumptions P_eq_NP_implies_NP_closed_complement.
 
 (** All formal specifications compiled successfully *)

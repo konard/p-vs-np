@@ -116,6 +116,7 @@ jobs:
           echo ""
           bash experiments/issue571/check.sh
           lake test || echo "No tests defined"
+          python3 experiments/issue570/check_contradiction.py --lean
         else
           echo "✓ No Lean files - skipping"
         fi
@@ -167,6 +168,7 @@ jobs:
                 rocq compile -Q . '' "$file" && echo "✓ $file verified successfully" || exit 1
               done
             fi
+            python3 experiments/issue570/check_contradiction.py --rocq
             echo "✓ All Rocq files verified successfully!"
           endGroup
 
