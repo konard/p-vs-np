@@ -39,7 +39,7 @@ The forward files introduce unproved claims with `axiom` (Lean) and `Axiom` (Roc
 
 2. **VS-Digraph Construction Correctness**: The properties of vertex-saturated digraphs and their relationship to MMIS optimality are assumed
 
-3. **Complexity Bounds**: The O(n⁸) analysis assumes the number of iterations is bounded by O(n), which depends on Conjecture 1
+3. **Complexity Bounds**: The O(n⁸) analysis assumes the number of successful iterations is bounded by O(n) and needs a bound on all arc tests and reconstruction work
 
 ## The Core Error
 
@@ -51,7 +51,7 @@ From the paper (page 9, Theorem 5):
 - The stated conditional argument needs Conjecture 1 to establish correctness
 - Conjecture 1 is nowhere proven in the paper
 - Therefore, algorithm correctness is NOT established
-- Therefore, the claim that P = NP is INVALID
+- Therefore, the claim that P = NP is not established
 
 **The author's defense (page 9):**
 > "The pascal-programs were written for the proposed algorithm. Long testing the program for random graphs has shown that the algorithm runs stably and correctly."
@@ -63,7 +63,7 @@ From the paper (page 9, Theorem 5):
 
 ## Additional Issues
 
-### Issue 1: Non-Constructive Use of Dilworth's Theorem
+### Issue 1: Graph and Poset Correspondence
 
 Plotnikov relies on minimum chain partitions (MCP) of partially ordered sets. For finite posets these can be computed through polynomial-time bipartite matching; the missing part is a proof that the paper's graph construction and later operations have the required properties:
 
@@ -76,7 +76,7 @@ Plotnikov relies on minimum chain partitions (MCP) of partially ordered sets. Fo
 The O(n⁸) analysis (Theorem 6) makes unverified assumptions:
 - Assumes exactly O(n) iterations needed
 - Assumes each iteration increases independent set size by 1
-- Depends on Conjecture 1 being true for the iteration bound
+- Needs a separate proof of the iteration bound
 
 ### Issue 3: Lack of Rigorous Proofs
 
