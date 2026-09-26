@@ -1,4 +1,4 @@
-"""Generate paired, standalone finite tests for issue #532.
+"""Generate paired, standalone diagnostics for issue #532.
 
 Run from the repository root: python3 experiments/issue532/generate.py
 The output is deterministic. The research log explains what each test does and
@@ -6,6 +6,8 @@ does not establish about the open P versus NP problem.
 """
 
 from pathlib import Path
+
+from more_cases import MORE_CASES
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -205,18 +207,21 @@ CASES = [
     ),
 ]
 
+CASES.extend(MORE_CASES)
+
 
 def main():
     for slug, lean, rocq in CASES:
         for language in ("lean", "rocq"):
             (OUT / language).mkdir(parents=True, exist_ok=True)
         namespace = "Idea" + slug[:2]
+        scope = "Finite model only" if int(slug[:2]) <= 20 else "General lemma or countermodel only"
         (OUT / "lean" / f"{namespace}.lean").write_text(
-            f"/- Issue #532: {slug}. Finite model only; see RESEARCH_LOG.md. -/\n"
+            f"/- Issue #532: {slug}. {scope}; see RESEARCH_LOG.md. -/\n"
             f"namespace Issue532.{namespace}\n{lean}\nend Issue532.{namespace}\n"
         )
         (OUT / "rocq" / f"{namespace}.v").write_text(
-            f"(* Issue #532: {slug}. Finite model only; see RESEARCH_LOG.md. *)\n"
+            f"(* Issue #532: {slug}. {scope}; see RESEARCH_LOG.md. *)\n"
             "From Stdlib Require Import Bool.Bool Arith.PeanoNat Lists.List Lia.\n"
             f"{rocq}\n"
         )

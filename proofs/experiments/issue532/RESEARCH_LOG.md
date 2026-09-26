@@ -1,17 +1,19 @@
-# Issue 532: twenty paired idea checks
+# Issue 532: forty paired idea checks
 
-This is a ranked queue of **research directions**, not a ranking of numerical
-probabilities. Priority reflects how directly a successful *uniform,
-unrestricted* theorem could bear on P versus NP, and whether its first proof
-obligation can be stated precisely. Each row links to an independent Lean 4
-file and Rocq file. Both prove the same small statement without `sorry`,
+This is a queue of **research directions**, not a ranking of numerical
+probabilities. The first twenty rows are finite diagnostics. The second twenty
+isolate general proof steps and countermodels suggested by the first batch and
+the repository's failed-attempt catalogue. Each row links to an independent
+Lean 4 file and Rocq file. Both prove the same small statement without `sorry`,
 `Admitted`, or new axioms.
 
-The files are **finite diagnostic models**. A successful check establishes only
-the displayed finite claim. A counterexample rejects the stated shortcut, not
-every possible method in that research area. No file proves P = NP or P ≠ NP.
-In particular, checking a fixed input size gives no asymptotic running-time
-bound or circuit lower bound.
+The files establish only the statements displayed in the code. A
+counterexample rejects the stated shortcut, not every method in that area.
+General lemmas in the second batch are often *conditional*: the missing
+hypothesis is the actual research problem. No file proves P = NP or P ≠ NP.
+In particular, a fixed input size gives no asymptotic running-time bound or
+circuit lower bound. Nor does a logical implication provide the polynomial
+resource bounds absent from its assumptions.
 
 | Rank | Direction and test | Observed result | Next proof obligation |
 | --- | --- | --- | --- |
@@ -36,6 +38,54 @@ bound or circuit lower bound.
 | 19 | **Advice and nonuniformity** ([Lean](lean/Idea19.lean), [Rocq](rocq/Idea19.v)): input-dependent advice makes a solver trivial. | **Works only because the hint contains the answer.** | Restrict advice to depend on input *length* and bound its size; prove any transfer to uniform computation separately. |
 | 20 | **Parallel and physical cost models** ([Lean](lean/Idea20.lean), [Rocq](rocq/Idea20.v)): independent tasks take a max, dependent tasks retain a sum. | **Toy scheduling check passes.** | Specify a computational model, bounded processors and precision, and a uniform simulation theorem before comparing complexity classes. |
 
+## Second round: twenty more concrete routes
+
+The most direct positive route is a uniform exact SAT algorithm with a proved
+polynomial bound (21–22, 29). The most direct negative route is an unrestricted
+lower bound with a correct simulation from every polynomial-time algorithm
+(30). These are *targets*, not achieved results. The other rows test proposed
+ingredients or expose a condition that an attempted transfer must satisfy.
+The row number continues the first batch; it is not a probability estimate.
+
+| No. | Candidate direction and paired check | Checked result | Missing theorem or decisive next test |
+| --- | --- | --- | --- |
+| 21 | **Exact SAT branching** ([Lean](lean/Idea21.lean), [Rocq](rocq/Idea21.v)): an existential Boolean branch is equivalent to its two cases. | General logical equivalence proved. | Find a sound rule that avoids exhaustive branching on unrestricted SAT and prove a uniform polynomial total cost. |
+| 22 | **Decision-to-search self-reduction** ([Lean](lean/Idea22.lean), [Rocq](rocq/Idea22.v)): an *exact* decision answer selects a satisfiable branch. | Conditional selection lemma proved. | Supply an exact polynomial-time decider; count all adaptive oracle calls and reduction costs. |
+| 23 | **Resolution-based SAT reasoning** ([Lean](lean/Idea23.lean), [Rocq](rocq/Idea23.v)): the resolvent follows from its parent clauses. | Soundness of one inference proved. | Establish polynomially bounded refutations for every unsatisfiable CNF, or explain why stronger reasoning escapes known size limits. |
+| 24 | **Unit propagation** ([Lean](lean/Idea24.lean), [Rocq](rocq/Idea24.v)): a unit clause and a compatible clause imply the remaining literal. | Soundness proved. | Characterize a complete polynomial propagation rule for unrestricted SAT; a rule that works on a tractable fragment is insufficient. |
+| 25 | **Decomposable constraints** ([Lean](lean/Idea25.lean), [Rocq](rocq/Idea25.v)): independent components have a product witness. | General decomposition lemma proved. | Find a polynomially computable decomposition for all hard instances, with bounded interfaces and exact witness reconstruction. |
+| 26 | **Separator consistency** ([Lean](lean/Idea26.lean), [Rocq](rocq/Idea26.v)): separately satisfiable components can disagree on a shared bit. | Explicit countermodel proved. | Track all shared assignments and prove the resulting state space remains polynomial for the intended unrestricted family. |
+| 27 | **Variable elimination** ([Lean](lean/Idea27.lean), [Rocq](rocq/Idea27.v)): existentially removing one Boolean variable preserves the two branches. | General equivalence proved. | Bound intermediate representation size and elimination order on every CNF, or prove a new compact exact representation. |
+| 28 | **Definitional extensions** ([Lean](lean/Idea28.lean), [Rocq](rocq/Idea28.v)): an auxiliary variable with an equivalence constraint preserves satisfiability. | General equivalence proved. | Show that the extended encoding makes exact solving polynomial, including encoding and decoding cost. |
+| 29 | **Reduction chain to SAT** ([Lean](lean/Idea29.lean), [Rocq](rocq/Idea29.v)): preservation and target correctness compose. | General conditional transfer proved. | Formalize an actual NP-complete reduction, input encodings, and polynomial time bounds for each composition. |
+| 30 | **Unrestricted circuit lower bound** ([Lean](lean/Idea30.lean), [Rocq](rocq/Idea30.v)): lower bound plus uniform simulation and size bound excludes a fast algorithm. | General conditional contradiction proved. | Prove the lower bound for unrestricted circuits computing an explicit NP language and the quantitative machine-to-circuit simulation; audit [known barriers](#research-context). |
+| 31 | **Length-wise advice** ([Lean](lean/Idea31.lean), [Rocq](rocq/Idea31.v)): a two-entry table stores any one-bit-input function. | Finite nonuniform representation proved. | Bound advice for every input length and distinguish a family of circuits from one uniformly constructible algorithm. |
+| 32 | **Promise algorithms** ([Lean](lean/Idea32.lean), [Rocq](rocq/Idea32.v)): correctness on a promise leaves an outside input wrong. | Countermodel proved. | Prove the promise covers all reductions from the NP-complete target or give a total solver. |
+| 33 | **Average-case transfer** ([Lean](lean/Idea33.lean), [Rocq](rocq/Idea33.v)): a function works on three of four points yet fails at one. | Countermodel proved. | Establish a worst-case-to-average-case reduction with a specified distribution and quantitative success bound. |
+| 34 | **Adversarial lower-bound quantifiers** ([Lean](lean/Idea34.lean), [Rocq](rocq/Idea34.v)): every toy algorithm can have a hard input with no input hard for all algorithms. | Quantifier countermodel proved. | State hardness as `∀ algorithm, ∃ input` at arbitrarily large sizes, with the required resource bound; never silently exchange quantifiers. |
+| 35 | **Exact compression** ([Lean](lean/Idea35.lean), [Rocq](rocq/Idea35.v)): a lossless encode/decode pair forces an injective encoder. | General theorem proved. | Specify the compressed object, decoder, exactness condition, and total construction/decoding cost; test for an information bottleneck. |
+| 36 | **Exact relaxation and rounding** ([Lean](lean/Idea36.lean), [Rocq](rocq/Idea36.v)): a sound rounding map converts a relaxed witness into a discrete witness. | Conditional witness transfer proved. | Construct such a map for every relevant relaxed solution and prove polynomial bit complexity; otherwise document an integrality gap. |
+| 37 | **Parameterized structure** ([Lean](lean/Idea37.lean), [Rocq](rocq/Idea37.v)): a monotone parameter cost is bounded when the parameter is bounded. | Conditional cost lemma proved. | Prove the parameter is uniformly bounded, or sufficiently small as a function of input length, on an NP-complete family. |
+| 38 | **Relativization audit** ([Lean](lean/Idea38.lean), [Rocq](rocq/Idea38.v)): a property true in one abstract world need not hold in another. | Logical countermodel proved; **not** an oracle separation theorem. | State the candidate proof in an oracle model and identify its nonrelativizing step. |
+| 39 | **Proof-system scope** ([Lean](lean/Idea39.lean), [Rocq](rocq/Idea39.v)): no proof in a weak system is consistent with a proof in a stronger one. | Countermodel to lower-bound transfer proved. | Establish a simulation from every relevant stronger proof/algorithm into the restricted system before drawing an unrestricted conclusion. |
+| 40 | **Size-uniform invariant** ([Lean](lean/Idea40.lean), [Rocq](rocq/Idea40.v)): base case and a genuine induction step yield all input sizes. | General induction principle instantiated. | Prove a step that preserves correctness and a polynomial resource invariant for actual encoded instances; finite experiments cannot supply this step. |
+
+### Research context
+
+The official [P versus NP problem description](https://www.claymath.org/wp-content/uploads/2022/02/MPPc.pdf)
+sets the asymptotic target. The [relativization result](https://doi.org/10.1137/0204037),
+[natural proofs](https://www1.karlin.mff.cuni.cz/~krajicek/rr.pdf), and
+[algebrization barrier](https://eccc.weizmann.ac.il/eccc-reports/2008/TR08-005/Paper.pdf)
+inform the audit in row 30 and 38. Existing research on
+[algorithms yielding circuit lower bounds](https://people.csail.mit.edu/rrw/improved-algs-lbs2.pdf)
+motivates pursuing a precise algorithm-to-lower-bound transfer, but its
+theorems do not by themselves separate P from NP. These papers are context
+for the proposed routes; the paired files do not formalize their results.
+The [resolution width–size tradeoff](https://people.inf.ethz.ch/emo/SatSem05/Papers/BensassonWidgerson01.pdf)
+and [extended-formulation lower bounds](https://arxiv.org/abs/1111.0837)
+illustrate why rows 23 and 36 must specify the exact proof or optimization
+system to which a bound applies.
+
 ## Failed attempts used as filters
 
 The repository's [common-errors index](../../attempts/COMMON_ERRORS.md)
@@ -47,10 +97,17 @@ special-case and heuristic claims motivate rows 13–14 and 18. Those earlier
 attempts are examples of obligations to check, not evidence that every
 direction above is impossible.
 
+For the second batch, error families 1 and 16 motivate the unrestricted
+simulation check in row 30; families 4 and 17 motivate reduction and encoding
+accounting in row 29; families 2 and 7 motivate the representation and cost
+checks in rows 27 and 35; families 3 and 5 motivate exact rounding in row 36;
+and families 12–14 motivate the quantifier and barrier audits in rows 34 and
+38–39.
+
 ## Reproduction and evidence
 
 Run `python3 experiments/issue532/generate.py` from the repository root to
-regenerate all forty files. Then run `lake build` and the Rocq verification
+regenerate all eighty files. Then run `lake build` and the Rocq verification
 command used by `.github/workflows/verification.yml`:
 
 ```sh
@@ -60,8 +117,9 @@ find proofs/experiments/issue532/rocq -name '*.v' -type f -print0 |
 
 The Lean and Rocq theorems are checked independently. Their names are aligned
 by number, and each file is standalone so it can be removed or expanded as a
-research direction progresses. Future work should replace these toy models
-with explicit encodings, cost semantics, and general theorems while keeping
+research direction progresses. Future work should extend these diagnostic
+models and conditional lemmas with explicit encodings, cost semantics, and
+substantive general theorems while keeping
 counterexamples and failed approaches in the log.
 
 ## Verification log (2026-09-26)
@@ -76,3 +134,13 @@ counterexamples and failed approaches in the log.
   had failed at `MaknickasRefutation.lean:108` with two unsolved goals; its
   Rocq job passed. The PR's earlier green run only checked the changed
   `.gitkeep` file, so both formal jobs were skipped.
+
+## Second-round verification log (2026-09-26)
+
+- All 20 new Lean files and all 20 new Rocq files compiled individually. The
+  Rocq proof-system-scope script was corrected after its first compile exposed
+  an over-eager `repeat split` tactic.
+- `lake build` completed with 231 jobs for the full project.
+- The full Rocq sweep compiled all 228 `.v` files under `proofs/`.
+- `python3 -m py_compile` passed for both generator files. No second-round
+  formal file uses `sorry`, `Admitted`, or an axiom.
