@@ -5,15 +5,25 @@
    returns a satisfying assignment of every satisfiable CNF whose variables
    lie in vs (search_correct), asks exactly length vs questions
    (search_calls), and costs at most length vs times a polynomial bound on
-   the questions (searchCost_le).  The open obligation ExactPolyDecider
-   (relative to a cost model) yields polynomial search (decision_to_search);
-   a correct search yields a decider (search_gives_decider); an exponential
-   exact decider exists unconditionally (satDec_correct), and the obligation
-   is trivial in the zero cost model (zero_cost_trivial).
+   the questions (searchCost_le, searchCost_le_measure).  The schema
+   ExactPolyDeciderFor (relative to an abstract cost model) yields
+   PolySearchFor (decision_to_search_for); it is trivial in the zero cost
+   model (zero_cost_trivial).  In the shared machine model the open
+   obligation ExactPolyDecider (PolyDec SAT) yields PolySearch, a machine
+   whose answers drive the self-reduction with total Run step count
+   polynomial in the encoding length (decision_to_search); with SATHard it
+   gives P = NP (pEqualsNP_of_exactPolyDecider).  A correct search yields a
+   decider (search_gives_decider) and an exponential exact decider exists
+   unconditionally (satDec_correct).
+   Rocq difference from Lean: machineDec and runTime are clocked by an
+   explicit polynomial (computed with runFor / timeFor) instead of being
+   chosen classically, so PolySearch uses the same polynomial p for the
+   halting bound and for the clock.
    Verdict: correct tool, insufficient alone. *)
 
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
 
 (* ---------- SAT core ---------- *)
 
@@ -358,18 +368,50 @@ Proof.
   lia.
 Qed.
 
+(** Cost of the self-reduction for any size measure: if restriction does not
+    increase the measure [mu] and each question costs at most [B (mu psi)]
+    for a monotone [B], the whole search costs at most
+    [length vs * B (mu phi)]. *)
+Theorem searchCost_le_measure : forall (dec : CNF -> bool) (cost : CNF -> nat)
+    (mu : CNF -> nat) (B : nat -> nat),
+  (forall m n, m <= n -> B m <= B n) ->
+  (forall v b psi, mu (restrict v b psi) <= mu psi) ->
+  (forall psi, cost psi <= B (mu psi)) ->
+  forall vs phi, searchCost dec cost vs phi <= length vs * B (mu phi).
+Proof.
+  intros dec cost mu B hB hmu hc vs. induction vs as [|v vs IH]; intros phi; [cbn; lia|].
+  cbn [searchCost length].
+  pose proof (Nat.le_trans _ _ _ (hc (restrict v true phi)) (hB _ _ (hmu v true phi))) as H1.
+  pose proof (Nat.le_trans _ _ _ (IH (restrict v (dec (restrict v true phi)) phi))
+    (Nat.mul_le_mono_l _ _ (length vs) (hB _ _ (hmu v (dec (restrict v true phi)) phi))))
+    as H2.
+  lia.
+Qed.
+
+(** A cost model for the schema below: a cost for running a decider on an
+    input.  The schema is only as meaningful as the cost model it is
+    instantiated with (in the model that charges nothing it holds trivially,
+    see [zero_cost_trivial]); the machine-model statements are
+    [ExactPolyDecider] and [PolySearch] below. *)
 Definition CostModel : Type := (CNF -> bool) -> CNF -> nat.
 
-(* Open obligation: an exact SAT decider of polynomially bounded cost. *)
-Definition ExactPolyDecider (Cost : CostModel) : Prop :=
+(** Schema (abstract cost model, not the machine model): an exact SAT
+    decider whose cost in [Cost] is polynomially bounded in [size]. *)
+Definition ExactPolyDeciderFor (Cost : CostModel) : Prop :=
   exists dec c k, Decides dec /\ forall psi, Cost dec psi <= polyEval c k (size psi).
 
-Definition PolySearch (Cost : CostModel) : Prop :=
+(** Schema (abstract cost model): a decider whose self-reduction finds a
+    satisfying assignment of every satisfiable CNF at polynomial total query
+    cost. *)
+Definition PolySearchFor (Cost : CostModel) : Prop :=
   exists dec c k, forall phi,
     (Satisfiable phi -> evalCNF (fst (fullSearch dec phi)) phi = true) /\
     searchCost dec (Cost dec) (varsOf phi) phi <= polyEval c (k + 1) (size phi).
 
-Theorem decision_to_search : forall Cost, ExactPolyDecider Cost -> PolySearch Cost.
+(** Decision to search, schema form: for every cost model, a polynomially
+    bounded exact decider yields polynomial search with total query cost
+    [c (size phi + 1)^(k+1)]. *)
+Theorem decision_to_search_for : forall Cost, ExactPolyDeciderFor Cost -> PolySearchFor Cost.
 Proof.
   intros Cost [dec [c [k [Hdec Hc]]]]. exists dec, c, k. intros phi. split.
   - apply fullSearch_correct. exact Hdec.
@@ -387,7 +429,8 @@ Proof.
   intros phi. unfold satDec. apply solve_correct. apply varsOf_spec.
 Qed.
 
-Theorem zero_cost_trivial : ExactPolyDecider (fun _ _ => 0).
+(** The schema is trivial in the cost model that charges nothing. *)
+Theorem zero_cost_trivial : ExactPolyDeciderFor (fun _ _ => 0).
 Proof.
   exists satDec, 0, 0. split; [exact satDec_correct | intros; lia].
 Qed.
@@ -396,4 +439,210 @@ Theorem unconditional_search : forall phi, Satisfiable phi ->
   evalCNF (fst (fullSearch satDec phi)) phi = true.
 Proof.
   intros phi Hs. apply fullSearch_correct; [exact satDec_correct | exact Hs].
+Qed.
+
+(* ---------- The shared machine model ---------- *)
+
+(** The Machines.v names [Lit], [Clause], [CNF], [evalLit], [evalClause],
+    [evalCNF], [Satisfiable], [mkLit] are shadowed by this file's own
+    definitions and are written with the qualifier [Machines.] below. *)
+
+(** The shared layer's literal with the same variable and polarity. *)
+Definition toMLit (l : Lit) : Machines.Lit := Machines.mkLit (var l) (pos l).
+
+(** A CNF of this file as a CNF of the shared layer. *)
+Definition toM (phi : CNF) : Machines.CNF := map (map toMLit) phi.
+
+(** The word encoding of a CNF (the shared layer's [encodeCNF]). *)
+Definition enc (phi : CNF) : Word := encodeCNF (toM phi).
+
+(** Encoding length, the input size of the machine model. *)
+Definition encLen (phi : CNF) : nat := length (enc phi).
+
+Theorem evalCNF_toM : forall (a : Assignment) (phi : CNF),
+  Machines.evalCNF a (toM phi) = evalCNF a phi.
+Proof.
+  intros a phi. induction phi as [|C phi IH]; [reflexivity|].
+  assert (hC : Machines.evalClause a (map toMLit C) = evalClause a C).
+  { induction C as [|l C IHC]; [reflexivity|].
+    cbn [map Machines.evalClause evalClause]. rewrite IHC.
+    unfold Machines.evalLit, evalLit, toMLit. simpl.
+    destruct (pos l), (a (var l)); reflexivity. }
+  cbn [toM map Machines.evalCNF evalCNF]. unfold toM in IH. rewrite hC, IH. reflexivity.
+Qed.
+
+Theorem satisfiable_toM : forall phi, Machines.Satisfiable (toM phi) <-> Satisfiable phi.
+Proof.
+  intro phi. split.
+  - intros [a h]. exists a. rewrite <- evalCNF_toM. exact h.
+  - intros [a h]. exists a. rewrite evalCNF_toM. exact h.
+Qed.
+
+Theorem sat_enc : forall phi, SAT (enc phi) = true <-> Satisfiable phi.
+Proof. intro phi. unfold enc. rewrite sat_encode. apply satisfiable_toM. Qed.
+
+Theorem length_encodeClause_removeVar : forall v C,
+  length (encodeClause (map toMLit (removeVar v C))) <=
+    length (encodeClause (map toMLit C)).
+Proof.
+  intros v C. induction C as [|l C IH]; [cbn; lia|].
+  cbn [removeVar]. destruct (Nat.eqb (var l) v).
+  - cbn [map encodeClause]. rewrite length_app. lia.
+  - cbn [map encodeClause]. rewrite !length_app. lia.
+Qed.
+
+(** Restriction never lengthens the encoding. *)
+Theorem encLen_restrict_le : forall v b phi, encLen (restrict v b phi) <= encLen phi.
+Proof.
+  intros v b phi. unfold encLen, enc, toM. induction phi as [|C phi IH]; [cbn; lia|].
+  pose proof (length_encodeClause_removeVar v C) as hC.
+  cbn [restrict]. destruct (clauseHas v b C).
+  - cbn [map encodeCNF]. rewrite length_app. lia.
+  - cbn [map encodeCNF]. rewrite !length_app. lia.
+Qed.
+
+Theorem length_encodeClause_ge : forall C, length C + 1 <= length (encodeClause (map toMLit C)).
+Proof.
+  intro C. induction C as [|l C IH]; [cbn; lia|].
+  cbn [map encodeClause]. unfold encodeLit. rewrite !length_app. cbn [length] in *. lia.
+Qed.
+
+(** The literal-count size is at most the encoding length. *)
+Theorem size_le_encLen : forall phi, size phi <= encLen phi.
+Proof.
+  intro phi. unfold encLen, enc, toM. induction phi as [|C phi IH]; [cbn; lia|].
+  pose proof (length_encodeClause_ge C).
+  cbn [size map encodeCNF]. rewrite length_app. lia.
+Qed.
+
+(** Step-bounded step counter: the [Run] step count of [m] from [c] if it
+    halts within [fuel] steps. *)
+Fixpoint timeFor (m : Machine) (c : Config) (fuel : nat) : option nat :=
+  match fuel with
+  | 0 => None
+  | S f => match step m c with
+           | inl _ => Some 1
+           | inr c' => option_map S (timeFor m c' f)
+           end
+  end.
+
+Theorem timeFor_of_run : forall m c t b, Run m c t b ->
+  forall fuel, t <= fuel -> timeFor m c fuel = Some t.
+Proof.
+  intros m c t b h. induction h as [c b hs | c c' t b hs _ IH]; intros fuel hf;
+    (destruct fuel as [| fuel]; [lia |]); simpl; rewrite hs; [reflexivity |].
+  rewrite IH by lia. reflexivity.
+Qed.
+
+(** The answer of machine [m] on input [x] when it halts within [p(|x|)]
+    steps ([false] otherwise).  Lean's [machineDec m x] is the classical
+    unclocked answer; Rocq clocks it by an explicit polynomial [p]. *)
+Definition machineDec (m : Machine) (p : Polynomial) (x : Word) : bool :=
+  match runFor m (initial x) (evalPoly p (length x)) with
+  | Some b => b
+  | None => false
+  end.
+
+(** The [Run] step count of [m] on [x] when it halts within [p(|x|)] steps
+    ([0] otherwise). *)
+Definition runTime (m : Machine) (p : Polynomial) (x : Word) : nat :=
+  match timeFor m (initial x) (evalPoly p (length x)) with
+  | Some t => t
+  | None => 0
+  end.
+
+Theorem machineDec_eq : forall m p x t b, Run m (initial x) t b ->
+  t <= evalPoly p (length x) -> machineDec m p x = b.
+Proof.
+  intros m p x t b h ht. unfold machineDec. rewrite (runFor_of_run _ _ _ _ h _ ht).
+  reflexivity.
+Qed.
+
+Theorem runTime_eq : forall m p x t b, Run m (initial x) t b ->
+  t <= evalPoly p (length x) -> runTime m p x = t.
+Proof.
+  intros m p x t b h ht. unfold runTime. rewrite (timeFor_of_run _ _ _ _ h _ ht).
+  reflexivity.
+Qed.
+
+(** A machine deciding [SAT] decides satisfiability of every CNF of this
+    file. *)
+Theorem decides_of_decidesWithin : forall m p, DecidesWithin m p SAT ->
+  Decides (fun psi => machineDec m p (enc psi)).
+Proof.
+  intros m p h psi. destruct (h (enc psi)) as [t [b [ht [hr hb]]]].
+  cbn beta. rewrite (machineDec_eq _ _ _ _ _ hr ht), hb. apply sat_enc.
+Qed.
+
+(** Open obligation.  An exact SAT decider in the machine model: one
+    [Machine] decides [SAT] within a polynomial number of [Run] steps.  This
+    is [InP SAT] ([polyDec_iff_inP]); the self-reduction below shows it also
+    gives polynomial-time search. *)
+Definition ExactPolyDecider : Prop := PolyDec SAT.
+
+(** Polynomial search in the machine model: a machine that halts within
+    [p(|x|)] steps on every input, whose answers drive the self-reduction to
+    a satisfying assignment of every satisfiable CNF, with total [Run] step
+    count of all questions bounded by a polynomial in the encoding length. *)
+Definition PolySearch : Prop :=
+  exists (m : Machine) (p q : Polynomial),
+    (forall x, exists t b, t <= evalPoly p (length x) /\ Run m (initial x) t b) /\
+    forall phi,
+      (Satisfiable phi ->
+         evalCNF (fst (fullSearch (fun psi => machineDec m p (enc psi)) phi)) phi = true) /\
+      searchCost (fun psi => machineDec m p (enc psi)) (fun psi => runTime m p (enc psi))
+        (varsOf phi) phi <= evalPoly q (encLen phi).
+
+(** [n * c (n+1)^d <= c (n+1)^(d+1)]. *)
+Theorem mul_eval_le : forall (p : Polynomial) n,
+  n * evalPoly p n <=
+    evalPoly {| coefficient := coefficient p; degree := degree p + 1 |} n.
+Proof. intros p n. exact (mul_polyEval_le (coefficient p) (degree p) n). Qed.
+
+(** Decision to search in the machine model: from a polynomial-time machine
+    decider for [SAT], the self-reduction finds a satisfying assignment of
+    every satisfiable CNF, asking at most [size phi] questions whose total
+    [Run] step count is at most [size phi * p(encLen phi)], a polynomial in
+    the encoding length. *)
+Theorem decision_to_search : ExactPolyDecider -> PolySearch.
+Proof.
+  intros [m [p hm]].
+  pose proof (decides_of_decidesWithin m p hm) as hdec.
+  assert (hcost : forall psi, runTime m p (enc psi) <= evalPoly p (encLen psi)).
+  { intro psi. destruct (hm (enc psi)) as [t [b [ht [hr _]]]].
+    rewrite (runTime_eq _ _ _ _ _ hr ht). exact ht. }
+  exists m, p, {| coefficient := coefficient p; degree := degree p + 1 |}.
+  split.
+  - intro x. destruct (hm x) as [t [b [ht [hr _]]]]. exists t, b. auto.
+  - intro phi. split.
+    + apply fullSearch_correct. exact hdec.
+    + pose proof (searchCost_le_measure (fun psi => machineDec m p (enc psi))
+        (fun psi => runTime m p (enc psi)) encLen (evalPoly p)
+        (fun a b hab => polynomial_eval_mono p a b hab) encLen_restrict_le hcost
+        (varsOf phi) phi) as h1.
+      assert (h2 : length (varsOf phi) <= encLen phi)
+        by exact (Nat.le_trans _ _ _ (varsOf_length_le phi) (size_le_encLen phi)).
+      eapply Nat.le_trans; [exact h1 |].
+      eapply Nat.le_trans; [apply Nat.mul_le_mono_r; exact h2 |].
+      apply mul_eval_le.
+Qed.
+
+(** Conditional theorem: the obligation is [InP SAT]. *)
+Theorem inP_sat_of_exactPolyDecider : ExactPolyDecider -> InP SAT.
+Proof. intro h. exact (proj1 (polyDec_iff_inP SAT) h). Qed.
+
+(** Conditional theorem: with the NP-hardness half of Cook-Levin
+    ([SATHard], a known theorem used only as an explicit premise), the
+    obligation gives P = NP. *)
+Theorem pEqualsNP_of_exactPolyDecider : SATHard -> ExactPolyDecider -> PEqualsNP.
+Proof.
+  intros hard h. exact (pEqualsNP_of_inP_sat hard (inP_sat_of_exactPolyDecider h)).
+Qed.
+
+(** Non-vacuity: polynomial-time machine decidability, the property that
+    [ExactPolyDecider] asserts of [SAT], fails for some language. *)
+Theorem exists_not_polyDec : exists L : Language, ~ PolyDec L.
+Proof.
+  destruct exists_not_inP as [L hL]. exists L. intro h.
+  exact (hL (proj1 (polyDec_iff_inP L) h)).
 Qed.

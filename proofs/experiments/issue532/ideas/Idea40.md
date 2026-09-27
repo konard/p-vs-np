@@ -119,8 +119,14 @@ makes one call. That is exactly an additive-cost self-reduction.
 Helper lemmas `succ_le_two_pow`, `lt_two_pow_self`, `linear_lt_exp` and
 `dyadic_bracket` are proved in both files. The definitions `branchCost`, `run`,
 `runCost` and the schema appear in both files. The recurrence and schema proofs
-are constructive; the non-vacuity part uses classical choice (`mapOf`,
-`acceptsOf`). Both files check `branchCost (fun _ => 0) 5 = 32` by computation.
+are constructive; in Lean the non-vacuity part uses classical choice (`mapOf`,
+`acceptsOf`). Rocq-specific difference: Rocq's `mapOf` and `acceptsOf` are
+computable step-bounded interpreters clocked by an explicit polynomial
+(`exitWithin`/`readOutput` and `runFor`), so `selfReductionLanguage` and
+`encPair` are indexed by `((m, p), (d, q))`; `machineSelfReductionOf_eq` is
+stated pointwise (no function extensionality), and non-vacuity is a direct
+diagonal (`selfReductionDiag`, decoded by `decPair`) instead of the Cantor
+family lemma. The Rocq file is fully constructive. Both files check `branchCost (fun _ => 0) 5 = 32` by computation.
 
 ## 4. Complete argument
 

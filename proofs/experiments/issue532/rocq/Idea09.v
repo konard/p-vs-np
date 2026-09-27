@@ -12,12 +12,25 @@
 
    Part B: abstract Levin universal search with restart semantics:
    soundness, completeness by phase i + L when t <= 2^L, total work
-   < 2^(J+2), the bound totalWork < 8 * 2^i * t, and the conditional
-   theorem from the open obligation PolyTimeWitnessProgramExists.
+   < 2^(J+2), the bound totalWork < 8 * 2^i * t, and the schema theorem
+   levin_poly_for over abstract runs (PolyTimeWitnessProgramExistsFor).
 
-   Verdict: "shortest implies fastest" refuted as a route; Levin search
-   developed; whether it is polynomial is the open obligation (equivalent to
-   P = NP for SAT).  Nothing here proves or refutes P = NP. *)
+   Part C: the obligation in the shared machine model (Machines.v).  The
+   open obligation is SATWitnessMachine: one Machine computes (Computes m f p)
+   a satisfying assignment of every satisfiable encoded formula.  It gives
+   InP SAT and, with SATHard, PEqualsNP, using the known composition theorem
+   WitnessCheckInP as an explicit premise.  Levin search over an enumeration
+   of machines (machineRuns) is polynomial under the obligation.
+
+   Differences from Lean: Rocq has no function extensionality and this file
+   uses no classical logic.  The output reader machineRuns is a computable
+   step-bounded interpreter (exitWithin, readOutput) where Lean uses
+   classical choice; the non-vacuity theorem diagonalises directly against
+   the computable clocked language outputsTrue (indexed by machine and
+   polynomial) instead of applying the Cantor lemma to the classical
+   outputsTrue of Lean.  The exported statements are the same.
+
+   Nothing here proves or refutes P = NP. *)
 
 From Stdlib Require Import Arith PeanoNat Lia Bool.
 
@@ -414,22 +427,23 @@ Qed.
 
 End Levin.
 
-(** * Instance-indexed Levin search and the open obligation *)
+(** * Instance-indexed Levin search: the abstract schema *)
 
-(** Open obligation (not assumed anywhere): one program index [i] finds a
-    verified witness within [c * n^d + c] steps on every satisfiable
-    instance of size [n].  For SAT this is equivalent to P = NP. *)
-Definition PolyTimeWitnessProgramExists {X W : Type} (sz : X -> nat)
+(** Schema (abstract [runs], not the obligation of this file): one program
+    index [i] finds a verified witness within [c * n^d + c] steps on every
+    satisfiable instance of size [n].  The machine-model statement is
+    [SATWitnessMachine] below. *)
+Definition PolyTimeWitnessProgramExistsFor {X W : Type} (sz : X -> nat)
   (runs : nat -> X -> nat -> option W) (V : X -> W -> bool) : Prop :=
   exists i c d, forall x, (exists w, V x w = true) ->
     exists t w, t <= c * sz x ^ d + c /\ runs i x t = Some w /\ V x w = true.
 
-(** Conditional theorem: under the obligation, Levin search is polynomial on
-    every satisfiable instance with the fixed factor [K = 8 * 2^i]. *)
-Theorem levin_poly_of_obligation : forall {X W : Type} (sz : X -> nat)
+(** Schema theorem: under the schema, Levin search is polynomial on every
+    satisfiable instance with the fixed factor [K = 8 * 2^i]. *)
+Theorem levin_poly_for : forall {X W : Type} (sz : X -> nat)
   (runs : nat -> X -> nat -> option W) (V : X -> W -> bool),
   (forall x, MonotoneRuns (fun i t => runs i x t)) ->
-  PolyTimeWitnessProgramExists sz runs V ->
+  PolyTimeWitnessProgramExistsFor sz runs V ->
   exists K c d, forall x, (exists w, V x w = true) ->
     exists J w, search (fun i t => runs i x t) (V x) J = Some w /\ V x w = true /\
       totalWork J < K * (c * sz x ^ d + c + 1).
@@ -444,4 +458,308 @@ Proof.
   assert (8 * 2 ^ i * (t + 1) <= 8 * 2 ^ i * (c * sz x ^ d + c + 1))
     by (apply Nat.mul_le_mono_l; lia).
   lia.
+Qed.
+
+(** * Part C: the obligation in the shared machine model *)
+
+From Stdlib Require Import List.
+Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
+
+(** The SAT verifier: the word [w], read as an assignment, satisfies the
+    formula encoded by [x]. *)
+Definition satCheck (x w : Word) : bool := evalCNF (toAssign w) (decode x).
+
+(** [SAT] is exactly the set of words that have a [satCheck] witness. *)
+Theorem sat_iff_exists_witness : forall x : Word,
+  SAT x = true <-> exists w, satCheck x w = true.
+Proof.
+  intro x. rewrite sat_iff. split.
+  - intros [a ha]. exists (prefixOf a (numVars (decode x))). unfold satCheck.
+    rewrite (evalCNF_congr (toAssign (prefixOf a (numVars (decode x)))) a
+               (numVars (decode x)) (decode x)).
+    + exact ha.
+    + intros i hi. apply toAssign_prefixOf. exact hi.
+    + apply varsBelow_numVars.
+  - intros [w hw]. exists (toAssign w). exact hw.
+Qed.
+
+(** A single machine that, in polynomial time, outputs a [V]-witness for
+    every [x] that has one. *)
+Definition PolyWitnessMachine (V : Word -> Word -> bool) : Prop :=
+  exists (m : Machine) (f : Word -> Word) (p : Polynomial), Computes m f p /\
+    forall x, (exists w, V x w = true) -> V x (f x) = true.
+
+(** Open obligation.  One [Machine] outputs, within a polynomial number of
+    [Reaches] steps, a satisfying assignment of every satisfiable encoded
+    formula.  This is the machine-model form of "one fixed program finds SAT
+    witnesses in polynomial time", the condition under which Levin search
+    is polynomial.  It is not proved or refuted here. *)
+Definition SATWitnessMachine : Prop := PolyWitnessMachine satCheck.
+
+(** Known theorem, not mechanised here: if [m] computes [f] in polynomial
+    time, then checking the SAT verifier on [(x, f x)] is in P: copy [x], run
+    [m] on the copy, then evaluate the formula [decode x] under the
+    assignment [f x], all in time polynomial in [|x|] (the output [f x] has
+    polynomial length by [computes_output_poly]).  This is the closure of P
+    under composition with polynomial-time functions, using the polynomial
+    simulation of multi-tape by single-tape machines: Sipser, Introduction to
+    the Theory of Computation, 3rd ed. (2013), Theorem 7.8; Arora and Barak,
+    Computational Complexity: A Modern Approach (2009), Chapter 1.  It is
+    used only as an explicit premise. *)
+Definition WitnessCheckInP : Prop :=
+  forall (m : Machine) (f : Word -> Word) (p : Polynomial), Computes m f p ->
+    InP (fun x => satCheck x (f x)).
+
+(** Conditional theorem: the open obligation (with the known composition
+    theorem) puts [SAT] in P. *)
+Theorem inP_sat_of_witnessMachine : WitnessCheckInP -> SATWitnessMachine -> InP SAT.
+Proof.
+  intros hC [m [f [p [hm hf]]]].
+  apply (inP_ext (fun x => satCheck x (f x))); [| exact (hC m f p hm)].
+  intro x. destruct (SAT x) eqn:hs.
+  - exact (hf x (proj1 (sat_iff_exists_witness x) hs)).
+  - destruct (satCheck x (f x)) eqn:hw; [| reflexivity].
+    assert (h : SAT x = true) by (apply sat_iff_exists_witness; exists (f x); exact hw).
+    rewrite hs in h. discriminate h.
+Qed.
+
+(** Conditional theorem: the open obligation, the composition theorem and
+    the NP-hardness half of Cook-Levin ([SATHard]) give P = NP. *)
+Theorem pEqualsNP_of_witnessMachine :
+  WitnessCheckInP -> SATHard -> SATWitnessMachine -> PEqualsNP.
+Proof.
+  intros hC hard h. exact (pEqualsNP_of_inP_sat hard (inP_sat_of_witnessMachine hC h)).
+Qed.
+
+(** ** A computable output reader
+
+    Lean reads a machine's output with classical choice.  Rocq uses a
+    step-bounded interpreter: [exitWithin m c fuel] follows at most [fuel]
+    non-halting steps from [c] until the exit state [length (program m)],
+    and [readOutput] reads [map ofBool w ++ blanks k] off a tape whose head
+    is on the leftmost cell. *)
+
+Fixpoint exitWithin (m : Machine) (c : Config) (fuel : nat) : option Config :=
+  if Nat.eqb (state c) (length (program m)) then Some c else
+  match fuel with
+  | 0 => None
+  | S f => match step m c with
+           | inl _ => None
+           | inr c' => exitWithin m c' f
+           end
+  end.
+
+Theorem exitWithin_of_reaches : forall m c s d, Reaches m c s d ->
+  state d = length (program m) -> forall fuel, s <= fuel -> exitWithin m c fuel = Some d.
+Proof.
+  intros m c s d h. induction h as [c | c c' d t hs hr IH]; intros hd fuel hf.
+  - destruct fuel; simpl; rewrite (proj2 (Nat.eqb_eq _ _) hd); reflexivity.
+  - destruct fuel as [| fuel]; [lia |].
+    pose proof (state_lt_of_step _ _ _ hs) as hlt.
+    assert (hne : Nat.eqb (state c) (length (program m)) = false)
+      by (apply Nat.eqb_neq; lia).
+    simpl. rewrite hne, hs.
+    apply IH; [exact hd | lia].
+Qed.
+
+Theorem reaches_of_exitWithin : forall m fuel c d, exitWithin m c fuel = Some d ->
+  exists s, s <= fuel /\ Reaches m c s d /\ state d = length (program m).
+Proof.
+  intros m fuel. induction fuel as [| fuel IH]; intros c d h; simpl in h;
+    destruct (Nat.eqb (state c) (length (program m))) eqn:he.
+  - injection h as <-. exists 0. split; [lia |].
+    split; [apply reaches_refl | apply Nat.eqb_eq; exact he].
+  - discriminate h.
+  - injection h as <-. exists 0. split; [lia |].
+    split; [apply reaches_refl | apply Nat.eqb_eq; exact he].
+  - destruct (step m c) as [b | c'] eqn:hs; [discriminate h |].
+    destruct (IH c' d h) as [s [hs' [hr hd]]].
+    exists (S s). split; [lia | split; [apply reaches_next with c'; assumption | exact hd]].
+Qed.
+
+Definition isBlank (a : Symbol) : bool := match a with blank => true | _ => false end.
+
+(** Read [map ofBool w ++ blanks k] back as [w]. *)
+Fixpoint readBits (l : list Symbol) : option Word :=
+  match l with
+  | [] => Some []
+  | zero :: r => option_map (cons false) (readBits r)
+  | one :: r => option_map (cons true) (readBits r)
+  | blank :: r => if forallb isBlank r then Some [] else None
+  | separator :: _ => None
+  end.
+
+Theorem readBits_bits : forall w k, readBits (map ofBool w ++ blanks k) = Some w.
+Proof.
+  induction w as [| b w IH]; intro k.
+  - destruct k as [| k]; [reflexivity |]. simpl.
+    assert (h : forallb isBlank (repeat blank k) = true)
+      by (induction k as [| k IHk]; [reflexivity | exact IHk]).
+    rewrite h. reflexivity.
+  - destruct b; simpl; rewrite IH; reflexivity.
+Qed.
+
+Theorem blanks_of_forallb : forall l, forallb isBlank l = true -> l = blanks (length l).
+Proof.
+  induction l as [| a l IH]; intro h; [reflexivity |].
+  simpl in h. apply andb_prop in h. destruct h as [ha h].
+  destruct a; try discriminate ha. unfold blanks. simpl. f_equal. exact (IH h).
+Qed.
+
+Theorem bits_of_readBits : forall l w, readBits l = Some w ->
+  exists k, l = map ofBool w ++ blanks k.
+Proof.
+  induction l as [| a l IH]; intros w h.
+  - injection h as <-. exists 0. reflexivity.
+  - destruct a; simpl in h.
+    + destruct (forallb isBlank l) eqn:hb; [| discriminate h].
+      injection h as <-. exists (S (length l)). simpl.
+      rewrite (blanks_of_forallb l hb). unfold blanks. rewrite repeat_length.
+      reflexivity.
+    + destruct (readBits l) as [v |] eqn:hr; [| discriminate h].
+      injection h as <-. destruct (IH v eq_refl) as [k hk].
+      exists k. rewrite hk. reflexivity.
+    + destruct (readBits l) as [v |] eqn:hr; [| discriminate h].
+      injection h as <-. destruct (IH v eq_refl) as [k hk].
+      exists k. rewrite hk. reflexivity.
+    + discriminate h.
+Qed.
+
+Definition readOutput (c : Config) : option Word :=
+  match tapeLeft c with
+  | [] => readBits (tapeHead c :: tapeRight c)
+  | _ :: _ => None
+  end.
+
+(** The output of [m] on [x] if it exits within [t] steps. *)
+Definition outputFor (m : Machine) (x : Word) (t : nat) : option Word :=
+  obind (exitWithin m (initial x) t) readOutput.
+
+(** ** Non-vacuity *)
+
+(** The language "[m] outputs [[true]] on [w] within [p(|w|)] steps".  Lean
+    uses the classical [decide] of "some function computed by [m] maps [w]
+    to [[true]]"; this clocked version is computable. *)
+Definition outputsTrue (x : Machine * Polynomial) : Language := fun w =>
+  match outputFor (fst x) w (evalPoly (snd x) (length w)) with
+  | Some [true] => true
+  | _ => false
+  end.
+
+(** The diagonal against [outputsTrue]. *)
+Definition witnessDiag : Language := fun w =>
+  match decMachinePoly w with
+  | Some x => negb (outputsTrue x w)
+  | None => true
+  end.
+
+(** The verifier "[w = [L x]]". *)
+Definition singletonCheck (L : Language) (x w : Word) : bool :=
+  match w with
+  | [b] => Bool.eqb b (L x)
+  | _ => false
+  end.
+
+(** Non-vacuity: [PolyWitnessMachine] is not a property of every verifier.
+    For the verifier "[w = [L x]]" a witness machine computes [L], and no
+    machine computes the diagonal [witnessDiag]. *)
+Theorem not_forall_polyWitnessMachine : ~ (forall V : Word -> Word -> bool, PolyWitnessMachine V).
+Proof.
+  intro hall.
+  destruct (hall (singletonCheck witnessDiag)) as [m [f [p [hm hf]]]].
+  set (w := encMachinePoly (m, p)).
+  assert (hfw : f w = [witnessDiag w]).
+  { assert (h : singletonCheck witnessDiag w (f w) = true).
+    { apply hf. exists [witnessDiag w]. simpl. apply Bool.eqb_reflx. }
+    unfold singletonCheck in h. destruct (f w) as [| b [| b' r]]; try discriminate h.
+    apply Bool.eqb_prop in h. rewrite h. reflexivity. }
+  destruct (hm w) as [t [c [ht [hr [hcs [hcl [k hck]]]]]]].
+  assert (ho : outputsTrue (m, p) w = witnessDiag w).
+  { unfold outputsTrue, outputFor. simpl fst. simpl snd.
+    rewrite (exitWithin_of_reaches _ _ _ _ hr hcs _ ht). simpl.
+    unfold readOutput. rewrite hcl, hck, readBits_bits, hfw.
+    destruct (witnessDiag w); reflexivity. }
+  assert (hd : witnessDiag w = negb (outputsTrue (m, p) w)).
+  { unfold witnessDiag at 1. unfold w at 1. rewrite decMachinePoly_encMachinePoly.
+    reflexivity. }
+  rewrite ho in hd. destruct (witnessDiag w); discriminate hd.
+Qed.
+
+(** ** Levin search over machines
+
+    [OutputsWithin m x t w]: machine [m] started on [x] reaches its exit
+    state with output [w] within [t] steps.  [machineRuns e] feeds this into
+    the Levin schema for an enumeration [e] of machines. *)
+
+(** Machine [m] on input [x] exits with output [w] within [t] [Reaches]
+    steps. *)
+Definition OutputsWithin (m : Machine) (x : Word) (t : nat) (w : Word) : Prop :=
+  exists s c k, s <= t /\ Reaches m (initial x) s c /\ state c = length (program m) /\
+    tapeLeft c = [] /\ tapeHead c :: tapeRight c = map ofBool w ++ blanks k.
+
+Theorem outputsWithin_unique : forall m x t t' w w',
+  OutputsWithin m x t w -> OutputsWithin m x t' w' -> w = w'.
+Proof.
+  intros m x t t' w w' [s [c [k [_ [hc [hcs [_ hck]]]]]]] [s' [d [l [_ [hd [hds [_ hdl]]]]]]].
+  pose proof (reaches_exit_unique _ _ _ _ _ _ hc hd hcs hds). subst d.
+  rewrite hck in hdl. exact (map_ofBool_blanks_injective _ _ _ _ hdl).
+Qed.
+
+(** The [runs] of Levin's schema for the machine enumeration [e]: the output
+    of machine [e i] on [x] if it exits within [t] steps (computable, where
+    Lean uses classical choice). *)
+Definition machineRuns (e : nat -> Machine) (i : nat) (x : Word) (t : nat) : option Word :=
+  outputFor (e i) x t.
+
+Theorem machineRuns_eq : forall e i x t w,
+  OutputsWithin (e i) x t w -> machineRuns e i x t = Some w.
+Proof.
+  intros e i x t w [s [c [k [hs [hr [hcs [hcl hck]]]]]]].
+  unfold machineRuns, outputFor.
+  rewrite (exitWithin_of_reaches _ _ _ _ hr hcs _ hs). simpl.
+  unfold readOutput. rewrite hcl, hck. apply readBits_bits.
+Qed.
+
+Theorem machineRuns_spec : forall e i x t w,
+  machineRuns e i x t = Some w -> OutputsWithin (e i) x t w.
+Proof.
+  intros e i x t w h. unfold machineRuns, outputFor in h.
+  destruct (exitWithin (e i) (initial x) t) as [c |] eqn:he; [| discriminate h].
+  simpl in h. destruct (reaches_of_exitWithin _ _ _ _ he) as [s [hs [hr hcs]]].
+  unfold readOutput in h. destruct (tapeLeft c) as [| a l] eqn:hl; [| discriminate h].
+  destruct (bits_of_readBits _ _ h) as [k hk].
+  exists s, c, k. auto.
+Qed.
+
+Theorem machineRuns_monotone : forall e x, MonotoneRuns (fun i t => machineRuns e i x t).
+Proof.
+  intros e x i t t' w htt' h.
+  destruct (machineRuns_spec e i x t w h) as [s [c [k [hs hr]]]].
+  apply machineRuns_eq. exists s, c, k. split; [lia | exact hr].
+Qed.
+
+(** Levin search over machines: under the open obligation, for any
+    enumeration [e] that lists every machine, Levin search with the SAT
+    verifier finds a satisfying assignment of every satisfiable [x] with
+    total simulated work below [K * (p(|x|) + 1)] for a constant [K].  The
+    simulated work counts [Reaches] steps of the enumerated machines; the
+    overhead of a universal simulator and of the verifier calls is not
+    counted here. *)
+Theorem levin_sat_of_witnessMachine : forall e : nat -> Machine,
+  (forall m, exists i, e i = m) -> SATWitnessMachine ->
+  exists (K : nat) (p : Polynomial), forall x, SAT x = true ->
+    exists J w, search (fun i t => machineRuns e i x t) (satCheck x) J = Some w /\
+      satCheck x w = true /\ totalWork J < K * (evalPoly p (length x) + 1).
+Proof.
+  intros e he [m [f [p [hm hf]]]].
+  destruct (he m) as [i hi].
+  exists (8 * 2 ^ i), p. intros x hx.
+  pose proof (hf x (proj1 (sat_iff_exists_witness x) hx)) as hv.
+  destruct (hm x) as [t [c [ht [hr [hcs [hcl [k hck]]]]]]].
+  assert (hrun : machineRuns e i x (evalPoly p (length x) + 1) = Some (f x)).
+  { apply machineRuns_eq. rewrite hi. exists t, c, k.
+    split; [lia | auto]. }
+  exact (levin_search_bound (fun i t => machineRuns e i x t) (satCheck x)
+    (machineRuns_monotone e x) i (evalPoly p (length x) + 1) (f x) ltac:(lia) hrun hv).
 Qed.

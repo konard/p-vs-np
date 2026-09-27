@@ -104,8 +104,14 @@ The precise claims are:
 | `pEqualsNP_of_exactPolyDecider` | `SATHard → ExactPolyDecider → PEqualsNP`. | [Idea22.lean](../lean/Idea22.lean) | [Idea22.v](../rocq/Idea22.v) |
 | `exists_not_polyDec` | Non-vacuity: some language has no polynomial-time machine decider. | [Idea22.lean](../lean/Idea22.lean) | [Idea22.v](../rocq/Idea22.v) |
 
-The machine-model rows (from `evalCNF_toM` on) are in the Lean file; the Rocq
-file still states the earlier cost-model version and has not been ported yet.
+Rocq-specific difference: Lean's `machineDec m` and `runTime m` are chosen
+classically from the unclocked run; Rocq computes them with the step-bounded
+interpreters `runFor` and `timeFor`, clocked by an explicit polynomial, as
+`machineDec m p` and `runTime m p` (lemmas `machineDec_eq`, `runTime_eq`,
+`timeFor_of_run`). Accordingly `PolySearch` in Rocq uses the same polynomial
+`p` as the halting bound and as the clock. Rocq also keeps
+`zero_cost_trivial` (the schema `ExactPolyDeciderFor` is trivial in the
+zero cost model). All Rocq proofs are constructive.
 Rocq uses `fst`/`snd` where Lean uses `.1`/`.2`.
 
 ## 4. Complete argument

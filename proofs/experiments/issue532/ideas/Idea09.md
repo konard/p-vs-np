@@ -124,6 +124,13 @@ as a named hypothesis.
 | `machineRuns_monotone` | Machine runs `machineRuns e · x` are monotone, so Levin's schema applies to them. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
 | `levin_sat_of_witnessMachine` | Under `SATWitnessMachine`, for every enumeration `e` listing all machines, there are `K` and a polynomial `p` with: on every `x` with `SAT x = true`, Levin search over `machineRuns e` returns a satisfying assignment with `totalWork J < K · (p(|x|) + 1)`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
 
+Rocq-specific difference: Lean reads machine outputs with classical choice;
+Rocq's `machineRuns` is computable (step-bounded `exitWithin` and
+`readOutput`), `outputsWithin_unique`, `machineRuns_eq` and `machineRuns_spec`
+take explicit arguments, and `not_forall_polyWitnessMachine` is a direct
+diagonal over clocked machine/polynomial codes (`outputsTrue`, `witnessDiag`)
+instead of the Cantor family lemma. The Rocq file is fully constructive.
+
 No theorem in either file proves or refutes P = NP.
 
 ## 4. Complete argument
