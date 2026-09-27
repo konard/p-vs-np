@@ -13,19 +13,28 @@ a decider is a `Complexity.Machine` and its time is the step count `t` of a
   equivalence with `Complexity.InP`.
 * `Reaches`, `Computes`, `PolyReduces`: function-computing machines and
   polynomial-time many-one reductions.
-* `inP_of_reduces`: P is closed under these reductions. The proof builds the
-  composed machine (the reducer's table followed by the decider's table with
-  shifted state numbers) and proves it correct and polynomially bounded.
+* `computes_output_length`: a machine's output is at most as long as its input
+  plus its running time plus one, so reductions need no separate size bound.
+* `compose_run`, `inP_of_promise_reduction`, `inP_of_reduces`: running a
+  function machine and then a decider is a run of one composed table (the
+  reducer's table followed by the decider's table with shifted state numbers).
+  P is closed under reductions, and a machine map into a promise composed with a
+  machine that is correct only on the promise decides the whole language.
+* `flipMachine`, `inP_complement`, `npEqualsCoNP_of_pEqualsNP`: P is closed
+  under complement, so P = NP implies NP = coNP.
 * `NPHard`, `NPComplete`, `npComplete_inP_iff`: an NP-complete language is in P
   if and only if P = NP.
-* `encMachine_injective`, `diag_not_inP`, `exists_not_inP`: an injective
-  encoding of machines as words and a diagonal language outside P, so
-  statements of the form `InP L` are not provable for every `L`.
-* `CNF`, `encodeCNF`, `decode_encode`, `SAT`: CNF formulas, a lossless binary
-  encoding, and SAT as a `Complexity.Language`.
-* `CookLevin`: the Cook–Levin theorem stated in this model. It is a known
-  theorem; this file does not prove it and no idea file assumes it silently:
-  every use is an explicit hypothesis named `CookLevin`.
+* `encMachine_injective`, `diag_not_inP`, `exists_not_inP`,
+  `exists_language_not_in_family`: an injective encoding of machines as words,
+  a diagonal language outside P, and a Cantor lemma, so statements of the form
+  `InP L` are not provable for every `L`.
+* `CNF`, `bruteForce_correct`, `encodeCNF`, `decode_encode`, `SAT`, `sat_iff`:
+  CNF formulas, the brute-force decider, a lossless binary encoding with a total
+  parser, and SAT as a computable `Complexity.Language`.
+* `SATInNP`, `SATHard`, `CookLevin`, `inP_sat_iff`: the Cook–Levin theorem
+  stated in this model, and "SAT ∈ P ↔ P = NP" under it. Cook–Levin is a known
+  theorem that this file does **not** prove; every use is an explicit
+  hypothesis named `SATInNP`, `SATHard` or `CookLevin`.
 -/
 
 namespace Issue532.Machines
@@ -799,6 +808,140 @@ def evalCNF (a : Assignment) : CNF → Bool
 
 def Satisfiable (φ : CNF) : Prop := ∃ a : Assignment, evalCNF a φ = true
 
+/-! ### Brute force over the variables that occur (moved from Idea 01) -/
+
+/-- All variables of `φ` are `< n`. -/
+def VarsBelow (n : Nat) (φ : CNF) : Prop := ∀ c ∈ φ, ∀ l ∈ c, l.var < n
+
+theorem evalClause_congr (a b : Assignment) (n : Nat) (c : Clause)
+    (hab : ∀ i, i < n → a i = b i) (hc : ∀ l ∈ c, l.var < n) :
+    evalClause a c = evalClause b c := by
+  induction c with
+  | nil => rfl
+  | cons l c ih =>
+    simp only [evalClause, evalLit]
+    rw [hab l.var (hc l (List.mem_cons_self ..)),
+      ih (fun l' hl' => hc l' (List.mem_cons_of_mem _ hl'))]
+
+/-- Formulas with variables `< n` only look at the first `n` values. -/
+theorem evalCNF_congr (a b : Assignment) (n : Nat) (φ : CNF)
+    (hab : ∀ i, i < n → a i = b i) (hφ : VarsBelow n φ) :
+    evalCNF a φ = evalCNF b φ := by
+  induction φ with
+  | nil => rfl
+  | cons c φ ih =>
+    simp only [evalCNF]
+    rw [evalClause_congr a b n c hab (hφ c (List.mem_cons_self ..)),
+      ih (fun c' hc' => hφ c' (List.mem_cons_of_mem _ hc'))]
+
+/-! ## Enumerating all assignments -/
+
+/-- All `2^n` bit vectors of length `n` (bit `0` is the head). -/
+def allAssignments : Nat → List (List Bool)
+  | 0 => [[]]
+  | n + 1 => (allAssignments n).map (false :: ·) ++ (allAssignments n).map (true :: ·)
+
+/-- Bit vector to assignment: index `i` ↦ bit `i`, `false` beyond the end. -/
+def toAssign : List Bool → Assignment
+  | [], _ => false
+  | b :: _, 0 => b
+  | _ :: v, i + 1 => toAssign v i
+
+/-- The first `n` values of an assignment, as a bit vector. -/
+def prefixOf (a : Assignment) : Nat → List Bool
+  | 0 => []
+  | n + 1 => a 0 :: prefixOf (fun i => a (i + 1)) n
+
+/-- The enumeration contains exactly the vectors of length `n`. -/
+theorem mem_allAssignments_iff (n : Nat) (v : List Bool) :
+    v ∈ allAssignments n ↔ v.length = n := by
+  induction n generalizing v with
+  | zero =>
+    cases v with
+    | nil => simp [allAssignments]
+    | cons b v => simp [allAssignments]
+  | succ n ih =>
+    cases v with
+    | nil => simp [allAssignments]
+    | cons b v =>
+      cases b <;> simp [allAssignments, ih]
+
+theorem length_prefixOf (a : Assignment) (n : Nat) : (prefixOf a n).length = n := by
+  induction n generalizing a with
+  | zero => rfl
+  | succ n ih => simp [prefixOf, ih]
+
+theorem toAssign_prefixOf (a : Assignment) (n i : Nat) (h : i < n) :
+    toAssign (prefixOf a n) i = a i := by
+  induction n generalizing a i with
+  | zero => omega
+  | succ n ih =>
+    cases i with
+    | zero => rfl
+    | succ i => exact ih (fun j => a (j + 1)) i (by omega)
+
+/-! ## The brute-force decider -/
+
+/-- Try every vector of length `n`. -/
+def bruteForce (n : Nat) (φ : CNF) : Bool :=
+  (allAssignments n).any (fun v => evalCNF (toAssign v) φ)
+
+/-- Soundness: acceptance yields a satisfying assignment. -/
+theorem brute_force_sound (n : Nat) (φ : CNF) :
+    bruteForce n φ = true → Satisfiable φ := by
+  intro h
+  obtain ⟨v, _, hv⟩ := List.any_eq_true.mp h
+  exact ⟨toAssign v, hv⟩
+
+/-- Completeness: if all variables are `< n`, every satisfiable formula is
+accepted, because every assignment agrees on `0, …, n-1` with a listed vector. -/
+theorem brute_force_complete (n : Nat) (φ : CNF) (hφ : VarsBelow n φ) :
+    Satisfiable φ → bruteForce n φ = true := by
+  intro ⟨a, ha⟩
+  apply List.any_eq_true.mpr
+  refine ⟨prefixOf a n, (mem_allAssignments_iff n _).mpr (length_prefixOf a n), ?_⟩
+  rw [evalCNF_congr (toAssign (prefixOf a n)) a n φ
+    (fun i hi => toAssign_prefixOf a n i hi) hφ]
+  exact ha
+
+/-! ## Number of variables -/
+
+def clauseBound : Clause → Nat
+  | [] => 0
+  | l :: c => max (l.var + 1) (clauseBound c)
+
+/-- One more than the largest variable index (0 for variable-free formulas). -/
+def numVars : CNF → Nat
+  | [] => 0
+  | c :: φ => max (clauseBound c) (numVars φ)
+
+theorem lt_clauseBound (c : Clause) : ∀ l ∈ c, l.var < clauseBound c := by
+  induction c with
+  | nil => intro l hl; cases hl
+  | cons l c ih =>
+    intro l' hl'
+    simp only [clauseBound]
+    rcases List.mem_cons.mp hl' with h | h
+    · subst h; omega
+    · have := ih l' h; omega
+
+theorem varsBelow_numVars (φ : CNF) : VarsBelow (numVars φ) φ := by
+  induction φ with
+  | nil => intro c hc; cases hc
+  | cons c φ ih =>
+    intro c' hc' l hl
+    simp only [numVars]
+    rcases List.mem_cons.mp hc' with h | h
+    · subst h; have := lt_clauseBound c' l hl; omega
+    · have := ih c' h l hl; omega
+
+/-- The uniform decider: brute force over the variables that occur. -/
+theorem bruteForce_correct (φ : CNF) :
+    bruteForce (numVars φ) φ = true ↔ Satisfiable φ :=
+  ⟨brute_force_sound _ φ, brute_force_complete _ φ (varsBelow_numVars φ)⟩
+
+/-! ### The word encoding -/
+
 def ticks : Nat → List Bool
   | 0 => []
   | k + 1 => true :: true :: ticks k
@@ -851,15 +994,15 @@ theorem decode_encode (φ : CNF) : decode (encodeCNF φ) = φ := by
 theorem encode_injective {φ ψ : CNF} (h : encodeCNF φ = encodeCNF ψ) : φ = ψ := by
   rw [← decode_encode φ, h, decode_encode]
 
-open Classical in
 /-- SAT as a language of the shared model. Every word denotes a formula through
 the total parser `decode` (malformed tails are dropped), so a machine for SAT
 never needs a separate well-formedness check; on encodings, `decode` inverts
-`encodeCNF` (`decode_encode`). -/
-noncomputable def SAT : Language := fun w => decide (Satisfiable (decode w))
+`encodeCNF` (`decode_encode`). The definition is the exponential brute-force
+search, which is computable and correct (`sat_iff`). -/
+def SAT : Language := fun w => bruteForce (numVars (decode w)) (decode w)
 
-theorem sat_iff (w : Word) : SAT w = true ↔ Satisfiable (decode w) := by
-  simp [SAT]
+theorem sat_iff (w : Word) : SAT w = true ↔ Satisfiable (decode w) :=
+  bruteForce_correct (decode w)
 
 theorem sat_encode (φ : CNF) : SAT (encodeCNF φ) = true ↔ Satisfiable φ := by
   rw [sat_iff, decode_encode]
