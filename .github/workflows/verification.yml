@@ -48,6 +48,9 @@ jobs:
     - name: Check verification workflow regressions
       run: python3 -m unittest discover -s experiments/issue584 -p 'test_*.py' -v
 
+    - name: Check issue 532 idea dossiers
+      run: python3 -m unittest discover -s experiments/issue532 -p 'test_*.py' -v
+
     - name: Detect changed files
       id: changes
       run: |
