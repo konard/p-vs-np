@@ -1,27 +1,39 @@
 import proofs.complexity.lean.Complexity
 
 /-!
-A conditional schema for syntactic independence. `Theory.proves` must be
-instantiated with a formal proof relation before the schema says anything
-about ZFC. In particular, no independence result is asserted here.
+A conditional schema for syntactic independence. `Statement` is syntax,
+separate from the propositions it denotes. `Provable` must be instantiated
+with a formal proof relation before the schema says anything about ZFC.
+No independence result is asserted here.
 -/
 namespace PvsNPUndecidable
 
 abbrev PEqualsNP := Complexity.PEqualsNP
 abbrev PNotEqualsNP := Complexity.PNotEqualsNP
 
-structure Theory where
-  proves : Prop → Prop
+inductive Statement where
+  | pEqualsNP
+  | neg (statement : Statement)
 
-def Independent (theory : Theory) (statement : Prop) : Prop :=
-  ¬theory.proves statement ∧ ¬theory.proves (¬statement)
+def Statement.denotes : Statement → Prop
+  | .pEqualsNP => PEqualsNP
+  | .neg statement => ¬statement.denotes
+
+structure Theory where
+  proves : Statement → Prop
+
+def Provable (theory : Theory) (statement : Statement) : Prop :=
+  theory.proves statement
+
+def Independent (theory : Theory) (statement : Statement) : Prop :=
+  ¬Provable theory statement ∧ ¬Provable theory (.neg statement)
 
 def PvsNPIsIndependent (theory : Theory) : Prop :=
-  Independent theory PEqualsNP
+  Independent theory .pEqualsNP
 
 theorem independence_has_no_proof (theory : Theory)
     (h : PvsNPIsIndependent theory) :
-    ¬theory.proves PEqualsNP ∧ ¬theory.proves PNotEqualsNP := h
+    ¬Provable theory .pEqualsNP ∧ ¬Provable theory (.neg .pEqualsNP) := h
 
 theorem pSubsetNP (L : Complexity.ClassP) :
     ∃ L' : Complexity.ClassNP, ∀ x, L.language x = L'.language x :=
