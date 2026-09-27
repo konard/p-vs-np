@@ -2,7 +2,7 @@
 
 ## Why the Proof Fails
 
-Kardash's 2011 P=NP attempt contains a fundamental error: **pair cleaning (arc consistency) does not decide satisfiability for k ≥ 3**.
+Kardash's 2011 P=NP attempt contains a fundamental error: **the proof that a non-empty pair cleaning result implies satisfiability (Lemma 1) does not hold up for k ≥ 3**. Pair cleaning is a local consistency method. An empty result correctly proves that a formula is unsatisfiable, but the paper never justifies the step from local agreement between tables to one global satisfying assignment.
 
 ## The Fatal Error: Confusing Local with Global Consistency
 
@@ -10,25 +10,32 @@ Kardash's 2011 P=NP attempt contains a fundamental error: **pair cleaning (arc c
 
 Kardash claimed that his pair cleaning method — iterative pairwise removal of inconsistent variable assignments from overlapping clause groups — decides k-SAT in polynomial time O(n^12) for k=3.
 
-### The Problem
+## What Pair Cleaning Computes
 
-**Pair cleaning** is exactly **arc consistency** (specifically, a form of AC-3/AC-4) applied to a constraint satisfaction problem encoding of k-SAT. It is a fundamental theorem of constraint programming that:
+The paper defines the operation in Definitions 3–15 ([`../original/ORIGINAL.md`](../original/ORIGINAL.md)):
 
-| Property | Pair Cleaning (Arc Consistency) | k-SAT (k ≥ 3) |
-|----------|--------------------------------|----------------|
-| **Complexity** | Polynomial O(ed³) | NP-complete |
-| **Correctness** | Local pairwise consistency only | Global satisfiability required |
-| **Complete for** | 2-SAT (binary constraints) | k ≥ 3 requires backtracking |
+1. **Clause groups** (Definition 3): clauses with the same set of variable indices form one group. A k-CNF with nt groups has *degree* nt (Definition 4).
+2. **Tables** (Definitions 5–10): for every combination of k + 1 clause groups, the *value set* lists every assignment to the combination's variables that satisfies all of its clauses. When nt ≤ k + 1, Lemma 1's base case uses the single combination of all groups.
+3. **Clearing** (Definitions 14–15): for two tables with common variables, a row of one table is deleted when no row of the other table agrees with it on those variables. Clearing all pairs is repeated until nothing changes.
+4. **Result** (Definition 12): the result is *empty* when some table is empty. Theorem 1 claims that the formula is satisfiable exactly when the result is non-empty.
+
+In constraint programming terms this is **pairwise consistency** (Bessière 2006) on the tables of clause combinations. It is not the same as arc consistency:
+
+- **Arc consistency** removes *domain values of single variables* that have no support in some constraint. On the network with one binary constraint per 2-literal clause it removes nothing, because every clause over two variables allows both values of each of its variables.
+- **Pair cleaning** removes *rows of joint tables* over up to (k + 1)·k variables, checking each row against every other table. This is strictly stronger: both 2-SAT formulas below fit in a single table, which is exactly the set of satisfying assignments, so pair cleaning empties it while arc consistency changes nothing.
+
+Pair cleaning is:
+- **Sound for UNSAT detection**: every row of a satisfying assignment's restriction survives every clearing, so if pair cleaning empties a table the formula is unsatisfiable
+- **Not shown to be complete**: the paper's argument that a non-empty result contains a satisfying assignment (Lemma 1) has the gap described below
+
+| Property | Pair cleaning | k-SAT (k ≥ 3) |
+|----------|---------------|----------------|
+| **Complexity** | Polynomial (O(n^12) for k = 3) | NP-complete |
+| **What it checks** | Pairwise agreement of tables of k + 1 clause groups | One assignment satisfying all clauses |
 | **Result when empty** | Formula is UNSAT ✓ | Correct |
-| **Result when non-empty** | May still be UNSAT ✗ | **Incorrect claim** |
+| **Result when non-empty** | Satisfiability not proved for k ≥ 3 ✗ | **Unjustified claim** |
 
-### Why This Is Fatal
-
-Pair cleaning (arc consistency) is:
-- **Sound for UNSAT detection**: If pair cleaning empties any table, the formula IS unsatisfiable
-- **Incomplete for SAT detection**: If pair cleaning leaves all tables non-empty, the formula may still be UNSATISFIABLE
-
-This incompleteness is the fundamental flaw in Theorem 1.
+If pair cleaning did decide 3-SAT, it would be a polynomial-time algorithm for an NP-complete problem, so the burden is on Lemma 1. Its inductive step is where the proof fails.
 
 ## The Error in Lemma 1
 
@@ -40,62 +47,84 @@ Kardash proves Lemma 1 by induction on nt (number of clause groups). The inducti
 
 **The critical claim**: "these clause combinations [containing Tnt+1] don't give any new variables to clause combinations of RB and F(Tnt+1, Ti1, Ti2, …, Tik, A). This fact and the fact that in V¹_B all values of the same variables in different clause combinations are the same can give us a hint that value of each clause combination which contains Tnt+1 consisted of the same variable values as they presented in V¹_B."
 
-**Why this fails**: The existence of a value V^B_{Tnt+1} in VC (the cleaned full structure) that matches V¹_B on common variables is assumed because "it can't be deleted during clearing." But the clearing process is iterated until a fixpoint — a value can survive all pairwise clears yet still be part of an unsatisfiable sub-formula when considered globally. Pairwise consistency does not guarantee global consistency.
+**Why this fails**: The existence of a value V^B_{Tnt+1} in VC (the cleaned full structure) that matches V¹_B on common variables is assumed because "it can't be deleted during clearing." But clearing only guarantees that each surviving row agrees with *some* row of each other table, one table at a time. It does not guarantee that the particular single-valued choice V¹_B made for the smaller formula can be matched by one row of every table containing Tnt+1 simultaneously. The proof gives no argument for that step.
 
-### The Constraint Propagation Incompleteness Theorem
+### Local Consistency Is Not Global Consistency
 
-**Theorem** (well-known in constraint programming): There exist constraint satisfaction problem instances that are arc-consistent (no domain value can be eliminated by pairwise consistency) yet have no solution.
+**Theorem** (well-known in constraint programming): There exist constraint satisfaction problem instances that are arc-consistent (no domain value can be eliminated by arc consistency) yet have no solution. The disequality triangle x ≠ y, y ≠ z, z ≠ x over Boolean domains (see below) is the smallest example.
 
-**Corollary for k-SAT**: There exist k-SAT formulas (k ≥ 3) such that after applying pair cleaning to fixpoint, all value tables remain non-empty, yet the formula is unsatisfiable.
+Pair cleaning is stronger than arc consistency, so such instances do not refute it directly. The point is that local agreement, at any fixed level, needs an argument before it can imply a global solution. For k = 2 such an argument exists (next section). For k ≥ 3 the paper supplies none, and the formalization records this gap with informal axioms rather than a concrete counterexample.
 
-## A Concrete Counterexample Structure
+## 2-SAT: Propagation Is Not a Decision Procedure
 
-### The Principle
+An earlier version of this refutation said that for k = 2 unit propagation and arc consistency coincide, that they decide 2-SAT, and that this is Krom's 1967 result; the Lean and Rocq files stated it as an assumption of type `True`. All three statements were wrong ([issue #587](https://github.com/konard/p-vs-np/issues/587)). The two formulas below are kept as counterexamples to that explanation and are checked in both proof assistants (section `TwoSATCounterexamples`).
 
-Arc consistency (pair cleaning) considers only interactions between pairs of overlapping clause groups. Global consistency requires simultaneous compatibility across ALL clause groups, which involves checking exponentially many combinations.
+**Counterexample 1**: (x ∨ y) ∧ (x ∨ ¬y) ∧ (¬x ∨ y) ∧ (¬x ∨ ¬y).
 
-### Specific Construction
+- Every assignment falsifies one clause, so the formula is unsatisfiable.
+- Unit propagation from the empty assignment does nothing: no clause is unit and none is falsified. A conflict appears only after a *decision* such as x := true.
+- Arc consistency with one binary constraint per clause removes nothing.
 
-Consider a 3-coloring problem instance (which reduces to 3-SAT):
-- Graph vertices: variables (each taking 3 colors = values)
-- Edges: constraints (adjacent vertices must have different colors)
-- The formula is arc-consistent (every arc between adjacent vertices is consistent)
-- But the graph is non-3-colorable (global constraint cannot be satisfied)
+**Counterexample 2**: the triangle x ≠ y, y ≠ z, z ≠ x over {true, false}.
 
-Pair cleaning on the SAT encoding of this instance would leave all tables non-empty (arc consistent) yet the formula is UNSAT. This disproves Kardash's Theorem 1.
+- Two colours cannot colour an odd cycle, so it has no solution.
+- It is arc-consistent with full domains: every value of every variable has a support on every edge.
+- Its CNF encoding (x ∨ y) ∧ (¬x ∨ ¬y) ∧ (y ∨ z) ∧ (¬y ∨ ¬z) ∧ (z ∨ x) ∧ (¬z ∨ ¬x) is a fixpoint of unit propagation, and clause-wise arc consistency removes nothing. Merging the constraints on each scope does not help either (this merged form is what catches Counterexample 1).
 
-### Example: Kempe's Fallacy Graph
+**A complete method**: the implication graph has a node for each literal, and a clause l₁ ∨ l₂ gives the edges ¬l₁ → l₂ and ¬l₂ → l₁. A 2-CNF is unsatisfiable iff for some variable x the literals x and ¬x lie in the same strongly connected component, i.e. there are paths x ⇝ ¬x and ¬x ⇝ x (Aspvall, Plass & Tarjan 1979, linear time). For Counterexample 1 the paths are x → y → ¬x and ¬x → y → x; for the triangle it is x → ¬y → z → ¬x → y → ¬z → x. The proof assistants prove the soundness direction (`contradictory_cycle_unsat`) and exhibit both cycles.
 
-A graph that is arc-consistent under 3-coloring constraints but cannot be 3-colored (e.g., certain Mycielski graphs or odd-cycle substructures) provides a concrete family of counterexamples where Kardash's algorithm would incorrectly output "satisfiable."
+| Procedure | Time | Decides 2-SAT? |
+|-----------|------|----------------|
+| Unit propagation, no decisions | Polynomial | **No** (Counterexample 1) |
+| Arc consistency, one constraint per clause | Polynomial | **No** (Counterexample 1) |
+| Arc consistency, constraints merged per scope | Polynomial | **No** (Counterexample 2) |
+| Implication-graph strongly connected components (Aspvall, Plass & Tarjan 1979) | Linear | Yes |
+| Resolution restricted to binary clauses (Krom 1967) | Polynomial | Yes |
+| Unit propagation with decisions: try both values of a variable, keep one that propagates without conflict (Even, Itai & Shamir 1976) | Polynomial | Yes |
+| Pair cleaning, k = 2 | Polynomial | Yes (informal sketch below, tested) |
+| DPLL / CDCL with backtracking | Exponential worst case | Yes (and for every k) |
+
+Pair cleaning for k = 2 does decide 2-SAT, but not for the reason the old text gave. Sketch (not formalized): at a non-empty fixpoint, pairwise consistency makes the projection of a table onto a set S of its variables the same for every table containing S, so each S has a well-defined projection P_S. If nt ≤ 3 there is a single table and it is exact. Otherwise every three variables occur in a common table (each lies in some clause group, and any three groups are part of some combination of three groups), so the binary network of the P_S for |S| = 2 is strongly 3-consistent. Every Boolean binary relation is closed under the majority operation, and for such networks strong 3-consistency implies global consistency (Jeavons, Cohen & Cooper 1998). A global solution of that network satisfies every clause, since P_S only contains rows that satisfy the clauses on S. The experiments in [`experiments/issue587`](../../../../experiments/issue587) compare pair cleaning with brute force on every 2-CNF over three variables and on random 2-CNFs over four to six variables.
+
+This argument uses the majority closure of *binary* Boolean relations. Clauses with three literals are not closed under majority, so it does not carry over to k ≥ 3.
 
 ## The Subproblem Complexity Gap
 
-### What Arc Consistency Tracks
-State per arc: (value in domain of x_i, value in domain of x_j) for constraint (i,j)
-Number of states: O(n · d²) — polynomial where d = domain size
+### What Pair Cleaning Tracks
+State per table: rows over the variables of k + 1 clause groups, at most (k + 1)·k variables
+Number of states: O(nt^(k+1) · 2^((k+1)k)) — polynomial for fixed k
 
 ### What Satisfiability Requires
 State per assignment: (value of x₁, value of x₂, …, value of x_m) — joint assignment to ALL variables
-Number of states: d^m — exponential
+Number of states: 2^m — exponential
 
-The gap grows exponentially with the number of variables. No polynomial procedure can enumerate all global states.
+Pair cleaning never stores a joint assignment to all variables; Lemma 1 has to show that the local tables determine one, and that is the step it does not justify.
 
-## The Correct Role of Arc Consistency in SAT Solving
+## The Correct Role of Local Consistency in SAT Solving
 
-Arc consistency (and pair cleaning) IS useful:
+Local consistency (arc consistency, pairwise consistency, unit propagation) IS useful:
 - **As preprocessing**: Reduce domain sizes before backtracking search
 - **As propagation in CDCL solvers**: Within each search node, propagate locally
-- **For 2-SAT specifically**: Unit propagation IS complete (Krom 1967)
+- **For 2-SAT specifically**: The implication-graph strongly connected component test decides satisfiability in linear time; propagation alone does not
 
-But it cannot replace backtracking search for k ≥ 3 SAT.
+But the paper gives no valid argument that it can replace backtracking search for k ≥ 3 SAT.
 
 ## Summary of Why the Claimed O(n^12) Algorithm Fails
 
 1. **The algorithm runs in polynomial time** — this part is CORRECT
-2. **The algorithm does NOT correctly decide k-SAT** — this is the error
-3. **The algorithm computes arc consistency**, which is necessary but not sufficient
+2. **An empty result correctly proves unsatisfiability** — pair cleaning is sound
+3. **The algorithm is not shown to decide k-SAT** — pair cleaning is a local consistency (pairwise consistency on clause-combination tables)
 4. **Lemma 1's inductive proof** has an unjustified step (local → global consistency)
-5. **Therefore Theorem 1 is false** and P=NP is not established
+5. **Therefore Theorem 1 is not established** and P=NP is not established
+
+## References
+
+- Aspvall, B., Plass, M. F., & Tarjan, R. E. (1979). "A linear-time algorithm for testing the truth of certain quantified Boolean formulas." *Information Processing Letters* 8(3), 121–123.
+- Bessière, C. (2006). "Constraint propagation." In *Handbook of Constraint Programming*, ch. 3. Elsevier.
+- Even, S., Itai, A., & Shamir, A. (1976). "On the complexity of timetable and multicommodity flow problems." *SIAM Journal on Computing* 5(4), 691–703.
+- Jeavons, P., Cohen, D., & Cooper, M. C. (1998). "Constraints, consistency and closure." *Artificial Intelligence* 101(1–2), 251–265.
+- Krom, M. R. (1967). "The decision problem for a class of first-order formulas in which all disjunctions are binary." *Zeitschrift für mathematische Logik und Grundlagen der Mathematik* 13, 15–20.
+- Mackworth, A. K. (1977). "Consistency in networks of relations." *Artificial Intelligence* 8(1), 99–118.
 
 ## See Also
 
@@ -103,3 +132,4 @@ But it cannot replace backtracking search for k ≥ 3 SAT.
 - [`../original/README.md`](../original/README.md) — Description of the original proof idea
 - [`../original/ORIGINAL.md`](../original/ORIGINAL.md) — Markdown conversion of the original paper
 - [`../proof/README.md`](../proof/README.md) — Forward proof formalization with the gap marked
+- [`lean/KardashRefutation.lean`](lean/KardashRefutation.lean), [`rocq/KardashRefutation.v`](rocq/KardashRefutation.v) — Formal refutation, including the checked 2-SAT counterexamples
