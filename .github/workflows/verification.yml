@@ -48,6 +48,9 @@ jobs:
     - name: Check verification workflow regressions
       run: python3 -m unittest discover -s experiments/issue584 -p 'test_*.py' -v
 
+    - name: Check Kardash 2-SAT counterexamples
+      run: python3 -m unittest discover -s experiments/issue587 -p 'test_*.py' -v
+
     - name: Detect changed files
       id: changes
       run: |
@@ -161,6 +164,7 @@ jobs:
           fi
           python3 experiments/issue570/check_contradiction.py --lean
           bash experiments/issue573/check.sh --lean
+          bash experiments/issue587/check.sh --lean
         else
           echo "✓ No Lean files - skipping"
         fi
@@ -221,6 +225,7 @@ jobs:
             rocq compile -Q . '' experiments/issue574/PolynomialRegression.v
             python3 experiments/issue570/check_contradiction.py --rocq
             bash experiments/issue573/check.sh --rocq
+            bash experiments/issue587/check.sh --rocq
             echo "✓ Rocq historical sources compile successfully!"
           endGroup
 
