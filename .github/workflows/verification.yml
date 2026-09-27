@@ -15,7 +15,6 @@ jobs:
       lean_changed: ${{ steps.changes.outputs.lean }}
       rocq_changed: ${{ steps.changes.outputs.rocq }}
       agda_changed: ${{ steps.changes.outputs.agda }}
-      is_push: ${{ github.event_name == 'push' }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -31,48 +30,55 @@ jobs:
     - name: Check Plotnikov refutation assumptions
       run: python3 -m unittest discover -s experiments/issue577 -p 'test_*.py' -v
 
+    - name: Check verification workflow regressions
+      run: python3 -m unittest discover -s experiments/issue584 -p 'test_*.py' -v
+
     - name: Detect changed files
       id: changes
       run: |
-        if [ "${{ github.event_name }}" = "push" ]; then
-          # For push to main, run every configured verification job
-          echo "lean=true" >> $GITHUB_OUTPUT
-          echo "rocq=true" >> $GITHUB_OUTPUT
-          echo "agda=true" >> $GITHUB_OUTPUT
-          echo "Push to main - will run all verification jobs"
-        else
-          # For PRs, run verification jobs for languages with modified files
-          LEAN_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.lean$|lakefile\.lean|lean-toolchain' || true)
-          ROCQ_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.v$|_CoqProject' || true)
-          AGDA_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.agda$' || true)
+        case "$GITHUB_EVENT_NAME" in
+          push|workflow_dispatch)
+            # Pushes and manual runs verify every configured prover.
+            lean=true
+            rocq=true
+            agda=true
+            ;;
+          pull_request)
+            if [ -z "${GITHUB_BASE_REF:-}" ]; then
+              echo "::error::Pull request base ref is missing"
+              exit 1
+            fi
+            if ! changed_files=$(git diff --name-only "origin/$GITHUB_BASE_REF...HEAD" --); then
+              echo "::error::Could not detect changed files"
+              exit 1
+            fi
 
-          if [ -n "$LEAN_CHANGED" ]; then
-            echo "lean=true" >> $GITHUB_OUTPUT
-            echo "Lean files changed:"
-            echo "$LEAN_CHANGED"
-          else
-            echo "lean=false" >> $GITHUB_OUTPUT
-            echo "No Lean files changed"
-          fi
+            lean=false
+            rocq=false
+            agda=false
+            if grep -Eq '\.lean$|(^|/)(lakefile\.lean|lean-toolchain|lake-manifest\.json)$' <<< "$changed_files"; then
+              lean=true
+            fi
+            if grep -Eq '\.v$|(^|/)_CoqProject$' <<< "$changed_files"; then
+              rocq=true
+            fi
+            if grep -Eq '\.agda$' <<< "$changed_files"; then
+              agda=true
+            fi
+            if grep -Eq '^\.github/workflows/verification\.yml$' <<< "$changed_files"; then
+              lean=true
+              rocq=true
+              agda=true
+            fi
+            ;;
+          *)
+            echo "::error::Unsupported event: $GITHUB_EVENT_NAME"
+            exit 1
+            ;;
+        esac
 
-          if [ -n "$ROCQ_CHANGED" ]; then
-            echo "rocq=true" >> $GITHUB_OUTPUT
-            echo "Rocq files changed:"
-            echo "$ROCQ_CHANGED"
-          else
-            echo "rocq=false" >> $GITHUB_OUTPUT
-            echo "No Rocq files changed"
-          fi
-
-          if [ -n "$AGDA_CHANGED" ]; then
-            echo "agda=true" >> $GITHUB_OUTPUT
-            echo "Agda files changed:"
-            echo "$AGDA_CHANGED"
-          else
-            echo "agda=false" >> $GITHUB_OUTPUT
-            echo "No Agda files changed"
-          fi
-        fi
+        printf 'lean=%s\nrocq=%s\nagda=%s\n' "$lean" "$rocq" "$agda" >> "$GITHUB_OUTPUT"
+        printf 'Verification selection: Lean=%s Rocq=%s Agda=%s\n' "$lean" "$rocq" "$agda"
 
   lean-verification:
     name: Lean Verification
@@ -121,7 +127,14 @@ jobs:
           echo "✓ Lean build completed successfully!"
           echo ""
           bash experiments/issue571/check.sh
-          lake test || echo "No tests defined"
+          if lake_test_output=$(lake test 2>&1); then
+            printf '%s\n' "$lake_test_output"
+          elif [[ "$lake_test_output" =~ ^error:\ .+:\ no\ test\ driver\ configured$ ]]; then
+            echo "No Lake test driver configured"
+          else
+            printf '%s\n' "$lake_test_output" >&2
+            exit 1
+          fi
           python3 experiments/issue570/check_contradiction.py --lean
         else
           echo "✓ No Lean files - skipping"
@@ -220,9 +233,12 @@ jobs:
         echo "| Tool | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
 
+        DETECT_RESULT="${{ needs.detect-changes.result }}"
         LEAN_RESULT="${{ needs.lean-verification.result }}"
         ROCQ_RESULT="${{ needs.rocq-verification.result }}"
         AGDA_RESULT="${{ needs.agda-verification.result }}"
+
+        echo "| Change detection | $DETECT_RESULT |" >> $GITHUB_STEP_SUMMARY
 
         # Show skipped status if no files changed
         if [ "$LEAN_RESULT" = "skipped" ]; then
@@ -244,20 +260,26 @@ jobs:
         fi
 
         echo "" >> $GITHUB_STEP_SUMMARY
-        if [ "${{ github.event_name }}" = "push" ]; then
-          echo "_Push to main: ran every configured verification job_" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "_Pull request: ran verification jobs for languages with modified files_" >> $GITHUB_STEP_SUMMARY
-        fi
+        case "$GITHUB_EVENT_NAME" in
+          push) echo "_Push to main: ran every configured verification job_" >> $GITHUB_STEP_SUMMARY ;;
+          workflow_dispatch) echo "_Manual run: ran every configured verification job_" >> $GITHUB_STEP_SUMMARY ;;
+          pull_request) echo "_Pull request: ran verification jobs for languages with modified files_" >> $GITHUB_STEP_SUMMARY ;;
+        esac
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "_Note: Isabelle proofs archived to ./archive/isabelle/_" >> $GITHUB_STEP_SUMMARY
         echo "_Agda checks cover the shared complexity formalizations._" >> $GITHUB_STEP_SUMMARY
 
     - name: Check results
       run: |
+        DETECT_RESULT="${{ needs.detect-changes.result }}"
         LEAN_RESULT="${{ needs.lean-verification.result }}"
         ROCQ_RESULT="${{ needs.rocq-verification.result }}"
         AGDA_RESULT="${{ needs.agda-verification.result }}"
+
+        if [ "$DETECT_RESULT" != "success" ]; then
+          echo "::error::Change detection failed ($DETECT_RESULT)"
+          exit 1
+        fi
 
         # Consider 'success' and 'skipped' as passing
         if [[ "$LEAN_RESULT" != "success" && "$LEAN_RESULT" != "skipped" ]]; then
