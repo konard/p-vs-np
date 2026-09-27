@@ -5,7 +5,9 @@
 Letting the solver receive advice (a hint that depends on the input length,
 or on the input itself) is refuted as a route to a uniform polynomial SAT
 algorithm. A single trivial machine with one advice bit per length decides
-every unary language, including undecidable ones. Advice that depends on the
+every unary language, including undecidable ones. The formal statement is that
+the class escapes every `Nat`-indexed family; the step to undecidability uses
+an enumeration of Turing machines, which is not formalized. Advice that depends on the
 whole input decides every language. So the existence of an advice algorithm
 carries no uniform algorithmic information. The opposite direction, a lower
 bound against advice (NP ⊄ P/poly), would separate P from NP. It is recorded
@@ -67,7 +69,10 @@ Differences between the two files:
   `advice_escapes_every_enumeration`, `adviceOf_injective` and
   `no_enumeration_of_advice_class` are stated pointwise in Rocq, for example
   `∃ n, U n ≠ e i n` instead of `U ≠ e i`. The pointwise form is at least as
-  strong.
+  strong for these two escape statements. For `adviceOf_injective` both the
+  hypothesis and the conclusion are pointwise
+  (`∀ n, adviceOf U n = adviceOf V n → ∀ n, U n = V n`), which is the natural
+  form without function extensionality.
 * Lean uses `funext`, which is a theorem in Lean 4 core, not an axiom
   declaration.
 
@@ -97,10 +102,13 @@ precise sense in which "the answer as a hint" is circular.
 their binary value `toNat x < 2^n`, which is invertible by `fromNat`. Define
 `L x := ¬ M x (A[toNat x])`. For `w = A[i]`, the input `x = fromNat n i`
 satisfies `M x w ≠ L x`. Taking `A` to be all strings of length `s ≤ n`
-(`2^s ≤ 2^n` of them) gives `fixed_machine_advice_limited`. This is the
-formal core of Shannon's counting argument: most Boolean functions on `n`
-inputs need exponentially many advice bits, or exponential circuit size,
-for any fixed evaluator.
+(`2^s ≤ 2^n` of them) gives `fixed_machine_advice_limited`. This is a
+diagonal analogue of Shannon's counting argument, and much weaker. It shows
+only that `n` advice bits do not let a fixed evaluator decide every language
+on length `n`. Counting (not formalized) shows more: there are `2^(2^n)`
+functions but at most `2^s` advice strings, so most Boolean functions on `n`
+inputs need about `2^n` advice bits for a fixed evaluator, and circuits of
+size about `2^n / n`.
 
 *Worked example.* Take `n = 1`, `s = 1`, and `M x w := w.head`. Then
 `A = allVecs 1 = [[false],[true]]` and `L [false] = ¬ M [false] [false] =
@@ -144,13 +152,16 @@ What is **not** formalized:
   problem again. If that procedure exists the advice is unnecessary.
 * **As a lower-bound route (P ≠ NP): developed to an open obligation.**
   `NPNotInPPoly` together with `P ⊆ P/poly` gives P ≠ NP
-  (`nonuniform_lower_bound_separates`). The obligation is strictly stronger
-  than P ≠ NP as far as is known. It is implied by, but not known to be
-  equivalent to, superpolynomial circuit lower bounds for SAT.
+  (`nonuniform_lower_bound_separates`). The obligation implies P ≠ NP (with
+  the standard classes, where P ⊆ P/poly), and the converse implication is
+  not known. By the NP-completeness of SAT (Cook–Levin, cited, not
+  formalized) and closure of P/poly under polynomial-time reductions, it is
+  equivalent to SAT having no polynomial-size circuit family.
 * **Barriers.** Circuit lower bounds for NP face the natural proofs barrier
   (Razborov–Rudich, *JCSS* 1997, assuming pseudorandom functions) and
-  relativization (Baker–Gill–Solovay 1975) where applicable. See Ideas
-  33–40 for barrier formalizations.
+  relativization (Baker–Gill–Solovay 1975) where applicable. Ideas 16 and
+  38 formalize parts of the relativization barrier. The natural proofs
+  barrier is only cited, here and in Idea 30.
 
 ## 7. Failure modes this idea catches
 
@@ -164,7 +175,7 @@ What is **not** formalized:
   is uniformly generated.
 * **Counting fallacies** (family 7). An argument that "there are too few short programs
   to solve SAT" proves nothing without a fixed evaluator. With the evaluator
-  fixed, `fixed_machine_advice_limited` shows exactly what counting gives:
+  fixed, `fixed_machine_advice_limited` shows what the diagonal form gives:
   hardness of *some* language, not of SAT specifically.
 
 See [COMMON_ERRORS.md](../../../attempts/COMMON_ERRORS.md).

@@ -4,14 +4,20 @@
 
 Special-case algorithms for restricted CNF classes are correct, and the files
 prove this in general for three classes: 1-valid, 0-valid and unit CNF. For
-unit CNF they also give a verified quadratic decision procedure. The route
+unit CNF they also give a decision procedure that is proved correct. It is
+quadratic by inspection, but its running time is not formalized. The route
 "solve an easy subclass, therefore solve SAT" is refuted by a general theorem.
 No satisfiability-preserving map of any kind, even an uncomputable one, sends
 every CNF into a trivially satisfiable class. The only valid continuation
-needs a size-bounded reduction from SAT *into* the restricted class
-(`PolySizeReductionInto`). The composition theorem is proved conditionally. By
-Schaefer's dichotomy, this obligation can hold only for classes that are
-themselves NP-complete, or else it implies P = NP.
+needs a polynomial-time reduction from SAT *into* the restricted class. The
+files record only its size bound (`PolySizeReductionInto`), and the
+composition theorem is proved conditionally on it. The size bound alone
+carries no P vs NP content: in Lean only, `unit_size_reduction_exists` proves
+it for unit CNF with a non-constructive map. The open part is polynomial-time
+computability of the map, which is stated in prose only. With that
+requirement, the obligation makes the class NP-hard, so it can hold for a
+class in P only if P = NP. Schaefer's dichotomy (cited) tells which Boolean
+constraint classes are NP-complete.
 
 ## 1. The idea at full strength
 
@@ -61,9 +67,21 @@ affine). The second half is the whole problem.
 | `no_reduction_of_nontrivial` | A predicate with a no-instance has no reduction (by any function) to an identically true predicate. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `empty_clause_unsat` | `[[]]` is unsatisfiable. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `no_sat_reduction_into_positive` / `no_sat_reduction_into_negative` | No function `CNF → CNF` both preserves satisfiability and lands in the 1-valid (resp. 0-valid) class. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
-| `PolySizeReductionInto` (def) | Open obligation: a satisfiability-preserving map into `R` with polynomial size blow-up. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `PolySizeReductionInto` (def) | Size part of the open obligation: a satisfiability-preserving map into `R` with polynomial size blow-up. Computability is not part of the definition. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `poly_comp_bound` | `c'*(c*(n+1)^k+1)^k' ≤ (c'*(c+1)^k')*(n+1)^(k*k')` for all naturals. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
-| `restriction_transfer` | Given the obligation for `R`, a decider correct on `R` and polynomially cost-bounded in input size, the composite decides SAT correctly with polynomially bounded decider cost in the original size. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `restriction_transfer` | Given the obligation for `R`, a decider correct on `R` and a cost function `dcost` polynomially bounded in input size, the composite decides SAT correctly and `dcost` of the reduced instance is polynomially bounded in the original size. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+
+`dcost` is an arbitrary function supplied as a hypothesis. It is not tied to
+`d` or to any machine model, so the cost half of `restriction_transfer` is
+bookkeeping about polynomial composition only.
+
+The Lean file also proves `unit_size_reduction_exists`:
+`PolySizeReductionInto IsUnitCNF` holds, by sending satisfiable formulas to
+`[]` and all others to `[[]]`. The map is defined by classical case analysis
+and is not claimed to be efficient. This theorem is not in the Rocq file. Without
+classical logic, a Rocq proof would need a verified satisfiability decision
+procedure. It shows that the
+formal definition does not capture the open obligation by itself.
 
 The Rocq `unitDecide` tests for the empty clause with `existsb isEmptyClause`,
 while the Lean version uses `decide ([] ∈ φ)`. The two are extensionally the
@@ -85,7 +103,8 @@ in some order, and they cannot both be true. (⇐) Define
 `a l.var = true`. If `l` is negative and `a l.var = true`, then
 `[⟨l.var,true⟩] ∈ φ` together with `[l] ∈ φ` is a clash, which contradicts
 the hypothesis. Hence `a l.var = false` and `¬x` holds. `unitDecide` checks
-exactly these two conditions, with `O(|φ|)` and `O(|φ|²)` clause comparisons.
+exactly these two conditions, with `O(|φ|)` and `O(|φ|²)` clause comparisons
+(by inspection; the cost is not formalized).
 
 *Worked example.* `φ = [[x₁], [¬x₂], [x₃], [¬x₁]]` has the clash
 `[x₁], [¬x₁]` and is unsatisfiable. Removing `[¬x₁]` gives the model
@@ -108,11 +127,13 @@ Satisfiable φ`. For the cost,
 combined with monotonicity of `x ↦ c'*(x+1)^k'`.
 
 **Why the route is refuted.** A restricted class helps only when the
-obligation holds. For trivial classes it provably fails (by the previous
+obligation holds, and here the obligation includes polynomial-time
+computability of the map (prose only). For trivial classes it provably fails (by the previous
 theorem). For nontrivial classes in P, such as Horn, 2-CNF, unit CNF or
 affine, it combines with `restriction_transfer` to give a polynomial SAT
-algorithm (after adding the cost of computing `f`). So proving it is at least
-as hard as proving P = NP. For classes where it is known to hold, such as
+algorithm (after adding the cost of computing `f`). With Cook–Levin (cited,
+not formalized) this gives P = NP, so proving it is at least as hard as
+proving P = NP. For classes where it is known to hold, such as
 3-CNF, 1-in-3-SAT or NAE-3-SAT, the class is NP-complete, and the
 restriction is not "easy". The special-case algorithm therefore never
 transfers unless P = NP is proved by other means.
@@ -149,11 +170,14 @@ transfer theorems.
   polynomial cost.
 * **Remaining obligation.** `PolySizeReductionInto R` for a class `R` with a
   polynomial-time decider, plus polynomial-time computability of the
-  reduction. For any such `R` this obligation implies P = NP. Conversely, if
+  reduction. For any such `R` this obligation implies P = NP (using
+  Cook–Levin, cited, not formalized). Conversely, if
   P = NP then SAT reduces to any nontrivial class. Given an instance, decide
   it in polynomial time and output a fixed satisfiable or unsatisfiable
   member of `R`. So the obligation is *equivalent* to P = NP for every
-  nontrivial `R ∈ P`, and false for trivial `R`.
+  nontrivial `R ∈ P`, and false for trivial `R`. The computability part is
+  essential. Without it the size-only statement already holds for unit CNF
+  (`unit_size_reduction_exists`, Lean only).
 * **Barriers.** Schaefer's theorem already classifies which Boolean
   restrictions stay hard. Unless P = NP, no Boolean constraint language
   outside the six tractable cases is in P, and none inside them admits the

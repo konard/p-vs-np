@@ -5,7 +5,8 @@
 For every CNF formula, a certificate verifier is proved sound and complete, with
 certificates of length `numVars φ` (never longer than the input). Its cost is
 exactly `size φ` literal evaluations (at most half the input length), for every
-certificate. This is the verifier half of "CNF-SAT ∈ NP", proved in general.
+certificate. This is the verifier half of "CNF-SAT ∈ NP", proved in general,
+with cost counted in literal evaluations rather than Turing-machine steps.
 It shows that nothing about P vs NP is hidden in *checking*. The whole
 difficulty is the quantifier `∃ cert` (and, for unsatisfiability, `∀ cert` over
 `2^n` certificates, which costs exactly `2^n · size φ` to check exhaustively).
@@ -117,8 +118,9 @@ verifier's input `φ` as text, which is the open problem.
 ## 5. Known results and literature
 
 * S. A. Cook, "The complexity of theorem-proving procedures", *Proc. 3rd ACM
-  STOC*, 1971. Defines NP-completeness via polynomial-time verification and
-  proves SAT NP-complete. (Not formalized here.)
+  STOC*, 1971. Introduces polynomial-time reducibility and proves that every
+  language accepted by a nondeterministic polynomial-time machine reduces to
+  SAT, i.e. SAT is NP-complete. (Not formalized here.)
 * L. A. Levin, "Universal sequential search problems", *Problemy Peredachi
   Informatsii* 9(3), 1973. Search problems defined by polynomially checkable
   relations. (Not formalized.)

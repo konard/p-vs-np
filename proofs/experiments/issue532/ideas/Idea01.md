@@ -159,8 +159,8 @@ and none is known (see Section 6).
   formulas within a constant factor (plus verification overhead) of any other
   algorithm's time. (Not formalized.)
 * B. Monien and E. Speckenmeyer, "Solving satisfiability in less than 2^n
-  steps", *Discrete Applied Mathematics* 10, 1985. The first algorithms for
-  k-SAT that beat `2^n`. (Not formalized.)
+  steps", *Discrete Applied Mathematics* 10, 1985. Among the first algorithms
+  for k-SAT that beat `2^n`. (Not formalized.)
 * R. Paturi, P. Pudlák, M. Saks, F. Zane, "An improved exponential-time
   algorithm for k-SAT", FOCS 1998; *J. ACM* 52(3), 2005 (PPSZ). (Not formalized.)
 * U. Schöning, "A probabilistic algorithm for k-SAT and constraint
@@ -169,8 +169,9 @@ and none is known (see Section 6).
 * R. Impagliazzo and R. Paturi, "On the complexity of k-SAT", *J. Computer and
   System Sciences* 62(2), 2001. This paper introduced the Exponential Time
   Hypothesis (3-SAT needs time `2^{δn}` for some `δ > 0`), and it is also the
-  source of the strong version (SETH: the k-SAT exponent tends to 1). Both are
-  conjectures and stronger than P ≠ NP. (Not formalized.)
+  source of the strong version (SETH: the k-SAT exponent tends to 1; the name
+  SETH was fixed in later work of Calabro, Impagliazzo and Paturi). Both are
+  conjectures, and each implies P ≠ NP. (Not formalized.)
 
 All of these improve the base of the exponent. None gives a polynomial
 algorithm, and none proves that no polynomial algorithm exists.
@@ -203,9 +204,11 @@ intermediate step.
   proofs (Razborov–Rudich 1997), and algebrization (Aaronson–Wigderson 2009)
   barriers apply to that direction. The cost theorems in this file do not help
   there, because they concern one specific algorithm.
-* Levin's universal search shows that if any polynomial SAT search algorithm
-  exists, an explicit one is already known. What is missing is the *proof* of
-  its polynomial bound, not the algorithm text.
+* Levin's universal search shows that if any polynomial-time algorithm finds
+  satisfying assignments, then an explicit algorithm is already known that finds
+  them in polynomial time on every *satisfiable* input. Universal search alone
+  does not certify unsatisfiable inputs within a known bound. What is missing
+  is the *proof* of a polynomial bound, not the search procedure itself.
 
 ## 7. Failure modes this idea catches
 

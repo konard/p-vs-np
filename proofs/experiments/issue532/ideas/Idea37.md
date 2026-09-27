@@ -6,7 +6,8 @@ A fixed-parameter tractable (FPT) algorithm runs in time `f(k) · n^c` for a
 structural parameter `k`. The files prove that such a bound is polynomial
 whenever `f(k)` is polynomially bounded in `n`, in particular when `2^k ≤ n`.
 When the parameter is as large as the input, the same bound `2^n · n^c` exceeds
-every polynomial. The route to P = NP is therefore reduced to one precise open
+every polynomial at some (in fact all large) `n`, so it no longer certifies
+polynomial time. The route to P = NP is therefore reduced to one precise open
 obligation: an FPT algorithm for an NP-complete problem whose parameter is
 logarithmic on **all** instances.
 
@@ -43,7 +44,7 @@ every instantiation.
 
 | Theorem | Informal statement | Lean | Rocq |
 | --- | --- | --- | --- |
-| `tested` | a monotone cost is bounded when the parameter is bounded | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
+| `tested` | small illustration kept from an earlier round (a one-line monotonicity step, not a main result): a monotone cost is bounded when the parameter is bounded | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
 | `fpt_param_bound_poly` | `f k ≤ n^a` implies `f k · n^c ≤ n^(a+c)` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
 | `fpt_log_param_poly` | `2^k ≤ n` implies `2^k · n^c ≤ n^(c+1)` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
 | `linear_lt_exp` | `a · (q+1) < 2^q` for `q ≥ 2a+1` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
@@ -77,15 +78,17 @@ bracket `2^L ≤ n < 2^(L+1)` (`dyadic_bracket`). Then `L ≥ 2(c+d)+1`, so
     c · (n+1)^d ≤ c · 2^((L+1)d) < 2^c · 2^((L+1)d) = 2^(c + (L+1)d) ≤ 2^n
 
 (`exp_beats_poly`). For every polynomial `a (n+1)^d` there is therefore an `n`
-where `2^n · n^c ≥ 2^n > a (n+1)^d` (`fpt_full_param_not_poly`). An FPT
-algorithm whose parameter can be as large as the input is not a polynomial
-algorithm, whatever `c` is.
+where `2^n · n^c ≥ 2^n > a (n+1)^d` (`fpt_full_param_not_poly`). So for an FPT
+algorithm whose parameter can be as large as the input, the FPT bound gives no
+polynomial guarantee, whatever `c` is. (This is a statement about the bound,
+not a lower bound on the running time of any particular algorithm.)
 
 **(c) The gap between (a) and (b).** Either the parameter is logarithmic on
 every instance, and then the problem is in P, or it is not, and then the FPT
 bound gives nothing better than exponential time on the bad instances. For an
 NP-complete problem the first alternative is exactly
-`LogParamFPTObligation`, and it implies P = NP. There is no intermediate
+`LogParamFPTObligation`, and (with honest time and Cook–Levin, neither
+formalized) it implies P = NP. There is no intermediate
 conclusion. Restricting to instances with small parameter defines a
 **different** problem, which is typically in P and not NP-complete unless
 P = NP.
@@ -98,8 +101,10 @@ P = NP.
   by solution size, are W[1]-hard and believed not to be FPT. Not formalized.
 - B. Courcelle, "The monadic second-order logic of graphs I", *Information and
   Computation* 85, 1990. MSO-definable graph properties are decidable in linear
-  time on graphs of bounded treewidth, which covers SAT of bounded
-  (primal) treewidth. Not formalized.
+  time on graphs of bounded treewidth (given a tree decomposition, which
+  Bodlaender's algorithm supplies in linear time for fixed width). Encoding a
+  CNF as a relational structure, this covers SAT of bounded primal or
+  incidence treewidth. Not formalized.
 - R. Impagliazzo and R. Paturi, "On the complexity of k-SAT", *JCSS* 62(2),
   2001, formulates the Exponential Time Hypothesis (ETH). R. Impagliazzo,
   R. Paturi and F. Zane, "Which problems have strongly exponential
@@ -117,14 +122,15 @@ P = NP.
 
 **At full potential**, the idea proves `LogParamFPTObligation` for an
 NP-complete problem. By `obligation_gives_poly_time`, this is a polynomial-time
-algorithm for that problem, so the obligation is equivalent to P = NP (the
+algorithm for that problem, so, with `time` an honest step count and by
+Cook–Levin (cited, not formalized), the obligation is equivalent to P = NP (the
 converse is trivial: with a polynomial algorithm take `param = 0`). The
 formalization makes the needed hypothesis explicit and checks that nothing
 weaker suffices from the FPT bound alone (`fpt_full_param_not_poly`).
 
-**Why the obligation is hard.** Under ETH (Impagliazzo–Paturi–Zane), no
+**Why the obligation is hard.** Under ETH (Impagliazzo–Paturi), no
 NP-complete problem admits a parameter with both properties, since that would
-give a subexponential algorithm for 3-SAT. So the obligation is at least as
+give a polynomial-time, hence subexponential, algorithm for 3-SAT. So the obligation is at least as
 hard as refuting ETH. Parameters that are small on "typical" or "structured"
 instances (treewidth, backdoor size) are not small on all instances. A padding
 trick, which pads an instance with `k` variables to length `2^k`, makes any

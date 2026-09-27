@@ -70,7 +70,10 @@ as the key resource.
 | `decider_gives_compilation` | a SAT decider is a 1-bit compact compilation | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
 | `compilation_decides` | a compact tractable compilation computes `sat` as `query ∘ compile` | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
 
-Both files are constructive, with no classical axioms. In Rocq the pigeonhole
+The Rocq file is constructive, with no classical axioms. The Lean proof of
+`no_injective_into_shorter` (and hence of
+`exact_representation_needs_long_codes`) uses `Classical.byContradiction`;
+the other Lean theorems do not. In Rocq the pigeonhole
 step uses the standard library lemma `NoDup_incl_length`. In Lean it is proved
 from scratch by erasing elements.
 
@@ -148,7 +151,8 @@ maps `compile`, `query` with
     CompactTractableCompilation size repSize sat q compile query
 
 where `compile` and `query` both run in polynomial time. That is
-`sat ∈ P`, which is P = NP. Nothing is gained over the original problem.
+`sat ∈ P`, which is equivalent to P = NP by Cook–Levin (cited, not
+formalized). Nothing is gained over the original problem.
 
 **What the counting shows.** No exact scheme compresses everything
 (`exact_representation_needs_long_codes`). Any compression must exploit the
@@ -157,10 +161,11 @@ explicit functions. For OBDDs this is Bryant's multiplication bound, and
 exponential separations between compilation languages are catalogued by
 Darwiche and Marquis.
 
-**Barriers.** Proving that no compilation language works is a circuit or
-proof-complexity lower bound for the target language. It inherits the natural
-proofs and relativization barriers when phrased for general circuits (see
-Ideas 38 and 39).
+**Barriers.** Lower bounds for specific compilation languages (OBDDs, d-DNNF)
+are known. Proving that *no* polynomial-time compilation with polynomial-time
+queries exists means proving SAT ∉ P, i.e. P ≠ NP, so it faces all the
+barriers of that problem, including relativization and, for circuit-based
+approaches, natural proofs (see Ideas 38 and 39).
 
 **Honest conclusion.** The route is refuted in its general form. In the
 restricted form it is equivalent to the open problem. No proof of P = NP or

@@ -6,9 +6,10 @@ The plan is to relax an NP-hard integer program to a linear program, which is
 solvable in polynomial time, and then round the fractional optimum to an
 integer optimum. For vertex cover, the files prove that threshold rounding of
 any half-unit fractional cover is a cover of cost at most twice the LP value,
-which is a correct factor-2 tool. They also prove that the complete graph has
-an integrality gap (LP `n/2`, integral `n - 1`), so no rounding of this
-relaxation can be exact. In general, an exact polynomial-time rounding for an
+which is a correct factor-2 tool. They also prove that the complete graph `K_n` has
+an integrality gap: it has a fractional cover of value `n/2`, while every
+integral cover has at least `n - 1` vertices, so for `n ≥ 3` no rounding of
+this relaxation can be exact. In general, an exact polynomial-time rounding for an
 NP-hard problem would decide it, and that is the open obligation.
 
 ## 1. The idea at full strength
@@ -55,12 +56,12 @@ list `vs` and an edge list `edges : List (Nat × Nat)`.
 
 | Theorem | Informal statement | Lean | Rocq |
 | --- | --- | --- | --- |
-| `tested` | a sound rounding map turns a relaxed witness into a discrete witness | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
+| `tested` | small illustration kept from an earlier round (a one-line logical step, not a main result): a sound rounding map turns a relaxed witness into a discrete witness | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
 | `round_is_cover` | threshold rounding of any fractional cover is a vertex cover | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
 | `round_cost_le` | `|round x| ≤ halfSum vs x`, i.e. cost at most twice the LP value | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
 | `toFrac_cover` | an integral cover, weighted `2` on chosen vertices, is a fractional cover | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
 | `halfSum_toFrac` | its LP value in halves is `2 · cost` | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
-| `round_two_approx` | rounding an optimal fractional cover gives a cover of size `≤ 2 ·` any cover | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
+| `round_two_approx` | rounding a fractional cover that is optimal among half-unit assignments gives a cover of size `≤ 2 ·` any cover | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
 | `cost_all_true` | if every vertex is chosen, the cost is the number of vertices | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
 | `complete_cover_cost` | every vertex cover of the complete graph on `n` vertices has `≥ n - 1` vertices | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
 | `halfSum_one` | the all-halves assignment has LP value `n/2` (`n` halves) | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
@@ -99,7 +100,9 @@ all other vertices. By induction along the list, `n ≤ cost + 1`
 (`complete_cover_cost`). For `n ≥ 3` this gives `2 · cost ≥ 2n - 2 > n`. So the
 fractional optimum is strictly below the integral optimum (`no_exact_rounding`).
 This is the same `K_n` gap as in Idea 11: LP value `n/2`, integral value
-`n - 1`. The ratio `2(n - 1)/n` tends to `2`. The factor-2 analysis above is
+`n - 1`. (Only the inequalities above are formalized; that these values are
+exactly the LP and integral optima of `K_n` is standard but not formalized.)
+The ratio `2(n - 1)/n` tends to `2`. The factor-2 analysis above is
 therefore tight **for this relaxation**, and no rounding scheme can be exact on
 it.
 
@@ -112,8 +115,9 @@ polynomial time and the problem NP-hard, `ExactRoundingObligation` implies
 P = NP. The formal files prove only the logical part. The running-time claims
 stay informal.
 
-**Witness transfer.** `tested` isolates what a rounding needs to transfer
-**feasibility**: soundness on every relaxed solution. It says nothing about
+**Witness transfer.** `tested` is a small illustration kept from an earlier
+round, a one-line logical step rather than a main result. It isolates what a
+rounding needs to transfer **feasibility**: soundness on every relaxed solution. It says nothing about
 cost, and so nothing about optimality.
 
 ## 5. Known results and literature

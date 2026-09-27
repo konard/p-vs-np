@@ -124,7 +124,8 @@ independent of `φ`. Pruning only cuts subtrees, so
 
 *Worked example.* For `n = 30` variables the unpruned tree has
 `2^30 = 1 073 741 824` leaves on every input, including the satisfiable
-single-clause formula `x₀`. Pruning handles that formula in 2 leaves.
+single-clause formula `x₀`. With `x₀` first in the branching list,
+pruning handles that formula in 2 leaves.
 
 **Why pruning is not enough.** Upper bounds on tree size are easy. The real
 question is a lower bound on the pruned tree for a clever branching order.

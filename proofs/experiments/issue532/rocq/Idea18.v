@@ -220,7 +220,9 @@ Qed.
 Definition polyEval (c k n : nat) : nat := c * (n + 1) ^ k.
 
 (* Open obligation: SAT reduces into R with polynomial size blow-up.  Only
-   defined; for classes in P it is as strong as P = NP. *)
+   defined.  It records the size bound only; without a requirement that the
+   map be computable in polynomial time it carries no P vs NP content (the
+   Lean file proves the size-only version for unit CNF). *)
 Definition PolySizeReductionInto (R : CNF -> Prop) : Prop :=
   exists (f : CNF -> CNF) (c k : nat),
     (forall phi, R (f phi)) /\ (forall phi, Satisfiable phi <-> Satisfiable (f phi)) /\

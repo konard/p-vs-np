@@ -7,7 +7,9 @@ certificates* (evaluating the formula on chosen assignments) needs `2^n` trials
 in the worst case on `n` variables. This holds even when each trial is chosen
 adaptively from the earlier answers, and it holds for CNF formulas and not only
 for arbitrary predicates. Both statements are machine-checked for every `n`, and
-the bound is tight. "Search smarter among certificates" is therefore refuted as a
+the bound is tight for arbitrary predicates (a `2^n`-query tree is proved to
+decide search; its CNF version is brute force, Idea 01, and is not re-proved
+here). "Search smarter among certificates" is therefore refuted as a
 route to P = NP. Any polynomial algorithm must read and exploit the *text* of the
 formula (white-box access). That is the remaining obligation, and it is the full
 P vs NP problem.
@@ -25,8 +27,9 @@ Source in issue #532: Part I item 2 ("Local optimization can't guarantee global
 optimality … Failure of known heuristics ≠ impossibility of all methods"), Part I
 item 7 ("NP-hardness tells us **where structure fails**"), and Part II Phase 2
 ("Formalize barriers — Relativization (Baker–Gill–Solovay) … Each becomes a
-**machine-checked no-go zone**"). The black-box bound proved here is exactly the
-combinatorial core of the relativization barrier. Part II Phase 4 ("Attempt
+**machine-checked no-go zone**"). The black-box bound proved here is the
+combinatorial adversary argument behind the Baker–Gill–Solovay oracle
+separation (the oracle theorem itself is not formalized). Part II Phase 4 ("Attempt
 formal proofs → record exact failure points") asks for the precise failure
 point, which is `no_shallow_decision_tree`.
 
@@ -56,7 +59,9 @@ point, which is `no_shallow_decision_tree`.
   `[⟨0,b₀⟩] :: shiftCNF (pointCNF rest)`.
 * **Claims needed by the route.** A black-box route to P = NP would need trees
   of depth `poly(n)` satisfying the CNF black-box specification for every `n`.
-  The theorems below show that the minimum depth is exactly `2^n`.
+  The theorems below show that the minimum depth is at least `2^n` (for CNF
+  black boxes and for arbitrary predicates), and exactly `2^n` for arbitrary
+  predicates.
 
 ## 3. What is machine-checked
 
@@ -160,8 +165,8 @@ At full potential the idea gives:
 
 1. an exact answer for black-box certificate search: the deterministic query
    complexity is exactly `2^n` (`no_shallow_decision_tree` and
-   `linearTree_depth`), even when restricted to CNF black boxes
-   (`no_shallow_cnf_blackbox`);
+   `linearTree_depth`), and the `2^n` lower bound survives the restriction to
+   CNF black boxes (`no_shallow_cnf_blackbox`);
 2. a proof that no number of failed trials below `2^n` certifies
    unsatisfiability (`failed_trials_do_not_certify`), which is the formal core
    of "absence of evidence found by search is not a proof of absence".
@@ -169,8 +174,9 @@ At full potential the idea gives:
 **Remaining obligation.** The route itself is closed. What remains is
 "exploit formula structure": a polynomial algorithm must use the syntax of `φ`
 and not just its values. No Lean `def` is introduced for it in this file,
-because it is literally Idea 01's `PolySATDecider`, which is equivalent to
-P = NP by Cook–Levin.
+because the corresponding formal obligation is Idea 01's `PolySATDecider`,
+which is equivalent to P = NP by the Cook–Levin theorem (cited, not
+formalized).
 
 **Barriers.** The theorem is a *relativizing* statement: it holds relative to
 every oracle, since the predicate is an oracle. Baker–Gill–Solovay show that any

@@ -152,7 +152,8 @@ the obligation is proved, it yields the worst-case solver.
   bear on NP-complete problems.
 - The permanent is random-self-reducible (Lipton, 1991), which gives
   worst-case-to-average-case reductions for #P-complete problems. This shows
-  that such reductions exist above NP, but not for NP-complete problems.
+  that such reductions exist for problems believed to lie above NP. No such
+  reduction is known for NP-complete problems.
 
 None of these results is formalized here. The files formalize only the
 counting counterexample and the abstract obligation.
@@ -176,8 +177,8 @@ become a weighted count.
 **Barriers.**
 - *Non-adaptive reductions*: Feigenbaum–Fortnow and Bogdanov–Trevisan show that
   such a reduction for an NP-complete problem implies coNP ⊆ NP/poly. That
-  collapse is believed false, so any successful reduction must be adaptive or
-  use a non-black-box argument.
+  collapse is believed false, so, unless coNP ⊆ NP/poly, any successful
+  reduction must be adaptive or use a non-black-box argument.
 - *Counting*: `obligation_not_automatic` shows that no argument using only
   error counts can work. The proof must exploit the algebraic or combinatorial
   structure of the problem (as random self-reducibility does for the permanent).

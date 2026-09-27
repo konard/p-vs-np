@@ -59,21 +59,21 @@ Neither file uses axioms or unfinished proofs. The Rocq file decides membership 
 
 **Connectedness of the chain (`chain_not_splittable`).** A split of the clause list into two parts is described by a Boolean selection `p` on clause indices. If the split is non-trivial, `p i = true` and `p j = false` for some `i, j < n`. Assume `i < j`; the other case is symmetric. The discrete intermediate value theorem (`adjacent_change`, by induction on `d = j − i`) gives an index `k` with `i ≤ k < k+1 ≤ j < n` and `p k ≠ p (k+1)`. The clauses `xₖ ∨ xₖ₊₁` and `xₖ₊₁ ∨ xₖ₊₂` both contain `xₖ₊₁`, so the two parts share a variable and `Disjoint` fails. Every non-trivial split is caught, not only prefix/suffix splits.
 
-**Worked example.** Take `n = 4`, so the clauses are `C₀ = x₀∨x₁`, `C₁ = x₁∨x₂`, `C₂ = x₂∨x₃` and `C₃ = x₃∨x₄`. Select `{C₀, C₂}` and leave out `{C₁, C₃}`. The theorem returns `k = 0`, since `p 0 = true`, `p 1 = false` and `x₁` is shared. Every one of the `2⁴ − 2 = 14` non-trivial selections is caught the same way.
+**Worked example.** Take `n = 4`, so the clauses are `C₀ = x₀∨x₁`, `C₁ = x₁∨x₂`, `C₂ = x₂∨x₃` and `C₃ = x₃∨x₄`. Select `{C₀, C₂}` and leave out `{C₁, C₃}`. A witness for the theorem is `k = 0`, since `p 0 = true`, `p 1 = false` and `x₁` is shared. Every one of the `2⁴ − 2 = 14` non-trivial selections is caught the same way.
 
 **Cost accounting (`split_cost`).** Brute force on components of sizes `a` and `b` costs about `2^a + 2^b` instead of `2^{a+b}`. That is a large saving, but it is still at least `2^{max(a,b)}`. Splitting therefore helps only if the *largest* component is small. When a component has linear size, the cost stays exponential.
 
 **Why this is not a route to SAT ∈ P.** The splitting lemma is exact, so the obstruction is structural, not logical:
 
 1. The chain family shows that even trivially satisfiable formulas are connected for every `n`. Connectedness alone says nothing about hardness.
-2. Hard instances are connected in a strong sense. Random 3-CNF with a linear number of clauses and Tseitin formulas on constant-degree expanders have primal graphs with linear treewidth (Section 5). Their largest component is the whole formula.
+2. Hard instances are connected in a strong sense. Random 3-CNF with a linear number of clauses and Tseitin formulas on constant-degree expanders have primal graphs with linear treewidth. This is a standard consequence of their expansion, not one of the formalized results. Their largest component is the whole formula.
 3. The natural generalization is dynamic programming over a tree decomposition. It runs in time `2^{O(tw)} · poly(n)`, which is polynomial only for `tw = O(log n)`. A polynomial-time map from every CNF to an equisatisfiable CNF of logarithmic treewidth would put SAT in P. That is a restatement of the problem, not progress on it.
 
 ## 5. Known results and literature
 
-* M. Chvátal and E. Szemerédi, "Many hard examples for resolution", *Journal of the ACM* 35(4), 1988. Random `k`-CNF with a suitable linear number of clauses needs exponential-size resolution refutations.
+* V. Chvátal and E. Szemerédi, "Many hard examples for resolution", *Journal of the ACM* 35(4), 1988. Random `k`-CNF with a suitable linear number of clauses needs exponential-size resolution refutations.
 * A. Urquhart, "Hard examples for resolution", *Journal of the ACM* 34(1), 1987. Tseitin formulas on expander graphs need exponential-size resolution refutations.
-* B. Courcelle, "The monadic second-order logic of graphs I: Recognizable sets of finite graphs", *Information and Computation* 85(1), 1990. MSO-definable properties are decidable in linear time on graphs of bounded treewidth. This is the source of fixed-parameter tractability in treewidth.
+* B. Courcelle, "The monadic second-order logic of graphs I: Recognizable sets of finite graphs", *Information and Computation* 85(1), 1990. MSO-definable properties are decidable in linear time on graphs of bounded treewidth. It is a central general source of fixed-parameter tractability in treewidth; the linear-time bound also uses Bodlaender's algorithm for computing tree decompositions.
 * M. Alekhnovich and A. Razborov, "Satisfiability, branch-width and Tseitin tautologies", FOCS 2002 (journal version in *Computational Complexity*, 2011). SAT algorithms parameterized by branch-width, and lower bounds for Tseitin tautologies.
 * M. Samer and S. Szeider, "Algorithms for propositional model counting", *Journal of Discrete Algorithms* 8(1), 2010. `#SAT` in time `2^{O(tw)}·poly` for primal treewidth `tw`.
 * R. Impagliazzo and R. Paturi, "On the complexity of k-SAT", *Journal of Computer and System Sciences* 62(2), 2001. This paper introduces the Exponential Time Hypothesis (ETH).
@@ -93,7 +93,7 @@ def ComponentObligation (PolyTime : (CNF → List CNF) → Prop) (w : Nat → Na
     (Satisfiable φ ↔ Satisfiable (joinAll (f φ)))
 ```
 
-`component_obligation_splits` proves the conditional step: under the obligation, `Satisfiable φ` holds iff every component of `f φ` is satisfiable, so brute force costs at most `|f φ| · 2^{w(|φ|)}` evaluations. With `w = O(log n)` and `f` polynomial, that is polynomial. In words, every CNF can be mapped in polynomial time to an equisatisfiable CNF with small components, or, more generally, with small interfaces. This obligation is **at least as strong as SAT ∈ P**. Given such a map, one runs the componentwise brute force. Conversely, if SAT ∈ P, one can output a constant-size equivalent formula. So the obligation is equivalent to P = NP.
+`component_obligation_splits` proves the conditional step: under the obligation, `Satisfiable φ` holds iff every component of `f φ` is satisfiable, so brute force costs at most `|f φ| · 2^{w(|φ|)}` evaluations. That cost count is informal; it is not part of the formal statement. With `w = O(log n)` and `f` polynomial, that is polynomial. In words, every CNF can be mapped in polynomial time to an equisatisfiable CNF with small components, or, more generally, with small interfaces. This obligation is **at least as strong as SAT ∈ P**. Given such a map, one runs the componentwise brute force. Conversely, if SAT ∈ P, one can output a constant-size equivalent formula. So, for an honest `PolyTime` and `w = O(log n)`, the obligation is equivalent to SAT ∈ P, hence to P = NP by Cook–Levin. Neither the machine model nor this equivalence is formalized.
 
 Barriers:
 

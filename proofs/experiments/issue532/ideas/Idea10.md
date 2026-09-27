@@ -1,6 +1,6 @@
 # Idea 10 — Restricted (monotone) circuit lower bounds and transfer to general circuits
 
-**Verdict:** Refuted in full strength (published theorem) + formal core — superpolynomial and even exponential lower bounds for *monotone* circuits are known (Razborov 1985; Alon–Boppana 1987), but they do not transfer to general circuits: Tardos (1988) gives a monotone function computable in polynomial time whose monotone circuit complexity is exponential, so a monotone lower bound for an NP function cannot by itself give P ≠ NP. The formal core proves, for all formulas and all `n`, that monotone formulas compute exactly the monotone functions (`monotone_eval`, `monotone_complete`), that NOT and parity have no monotone formulas of any size, and that a general superpolynomial lower bound is *equivalent* to a monotone lower bound for the double-rail partial function (`general_iff_double_rail`), not to a monotone lower bound for `f` itself. The remaining obligation `GeneralSuperpolyLowerBound` is open.
+**Verdict:** Refuted in full strength (published theorem) + formal core — superpolynomial and even exponential lower bounds for *monotone* circuits are known (Razborov 1985; Alon–Boppana 1987), but they do not transfer to general circuits: Tardos (1988) gives a monotone function computable in polynomial time whose monotone circuit complexity is exponential, so a monotone lower bound for an NP function cannot by itself give P ≠ NP. The formal core proves, for all formulas and all `n`, that monotone formulas compute exactly the monotone functions (`monotone_eval`, `monotone_complete`), that NOT and parity have no monotone formulas of any size, and that a general superpolynomial lower bound is *equivalent* to a monotone lower bound for the double-rail partial function (`general_iff_double_rail`), not to a monotone lower bound for `f` itself. The remaining obligation `GeneralSuperpolyLowerBound` is open; as formalized it is a *formula* lower bound (which for an NP family would separate NP from non-uniform NC¹), and only its circuit analogue, which is not formalized, would give P ≠ NP.
 
 ## 1. The idea at full strength
 
@@ -23,8 +23,9 @@ transfer holds and names the missing statement.
 **Formulas.** `Circ ::= var i | lit b | conj a b | disj a b | neg a`,
 evaluated on assignments `x : ℕ → Bool`. `size` counts nodes. A formula is
 *monotone* when `notFree c = true` (it has no `neg`). The formal files use
-formulas (fan-out one); circuits (DAGs) behave the same way for every
-statement below, with the same constructions applied gate by gate.
+formulas (fan-out one). For circuits (DAGs) the same constructions can be
+applied gate by gate (the double-rail translation then at most doubles the
+size); this circuit version is an informal remark and is not formalized.
 
 **Order.** `leB a b = ¬a ∨ b` is the order `false ≤ true`; `LeAssign x y`
 is the pointwise order; `MonotoneFn f` means `x ≤ y → f x ≤ f y`.
@@ -46,7 +47,9 @@ for `c` and `¬c` over the double-rail variables. `undual` substitutes
   correct on the consistent inputs `dual x`.
 
 **Claim to be refuted.** "`MonotoneSuperpolyLowerBound f` for an NP family
-`f` implies `GeneralSuperpolyLowerBound f`."
+`f` implies `GeneralSuperpolyLowerBound f`." The published refutations cited
+below are for the circuit analogues of these definitions (monotone versus
+general circuit size); the formal files do not prove this refutation.
 
 ## 3. What is machine-checked
 
@@ -137,8 +140,9 @@ literals. For monotone `f` the latter class is contained in the former (a
 monotone formula for `f`, renamed `i ↦ 2i`, is correct on all `dual x`), so
 `DoubleRailLowerBound f` implies the monotone bound for `f`; the converse
 is exactly what fails in general. Tardos (1988) exhibits a monotone
-function in P (so its double-rail complexity is polynomial by
-`doubleRail_correct`) whose monotone circuit complexity is exponential;
+function in P (so its double-rail *circuit* complexity is polynomial, by the
+circuit analogue of `doubleRail_correct`, which is not formalized) whose
+monotone circuit complexity is exponential;
 Razborov's perfect-matching bound (1985) already gives a superpolynomial
 gap for a function in P. So "monotone lower bound ⇒ general lower bound" is
 false as a general principle; any successful transfer must use a property
@@ -184,15 +188,19 @@ of the specific function that these counterexamples lack.
 
 * **Proved:** the monotone model is complete for monotone functions and
   exactly as strong as the general model *on the double-rail partial
-  function*. Consequently, the unique missing statement is
-  `GeneralSuperpolyLowerBound f` for an NP family `f`, and
+  function* (for formulas). Consequently, the missing statement is a
+  general lower bound for an NP family `f`; in the formal (formula) setting
+  this is `GeneralSuperpolyLowerBound f`, and
   `general_iff_double_rail` restates it without negations, as a monotone
   bound for a partial function.
-* **Refuted (published):** that a monotone lower bound for `f` implies a
-  general one (Tardos 1988; also Razborov's matching bound).
+* **Refuted (published):** that a monotone circuit lower bound for `f`
+  implies a general circuit lower bound (Tardos 1988; also Razborov's
+  matching bound). Not formalized.
 * **Open:** `GeneralSuperpolyLowerBound f` for an NP family `f`. For
   circuits (rather than formulas) this would give NP ⊄ P/poly and hence
-  P ≠ NP. The known general bounds are linear (§5).
+  P ≠ NP; the formula version formalized here would only give that NP
+  has no polynomial-size formulas, which is not known to imply P ≠ NP.
+  The known general circuit bounds for explicit functions are linear (§5).
 * **Barrier:** Razborov–Rudich (1997) natural proofs apply to general
   circuit lower bound strategies, and Razborov (1989) showed that the
   method of approximations behind the monotone bounds has strong limits for
@@ -202,7 +210,8 @@ of the specific function that these counterexamples lack.
 
 Precise obligation for a follow-up: prove `GeneralSuperpolyLowerBound f`
 (or `DoubleRailLowerBound f`, which is equivalent) for a family `f` in NP,
-and explain which of the barriers the argument avoids.
+in its circuit form if the goal is P ≠ NP, and explain which of the barriers
+the argument avoids.
 
 ## 7. Failure modes this idea catches
 
@@ -222,7 +231,8 @@ and explain which of the barriers the argument avoids.
 * **Barriers** (family 14): any argument that reaches
   `GeneralSuperpolyLowerBound` must say how it avoids natural proofs.
 * **Uniform vs non-uniform** (family 16): circuit lower bounds are
-  non-uniform; P ≠ NP follows from them, but not conversely.
+  non-uniform; P ≠ NP follows from a superpolynomial circuit lower bound for
+  an NP family, but the converse is not known.
 
 Audit rule: any attempt that uses a restricted-model lower bound must state
 the transfer theorem it relies on and check it against

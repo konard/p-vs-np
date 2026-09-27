@@ -91,7 +91,7 @@ Hence `b` satisfies `r.cls`, `s.cls` and the gate clause, and `b s.next = eval a
 * G. S. Tseitin, "On the complexity of derivation in propositional calculus", in *Studies in Constructive Mathematics and Mathematical Logic*, Part II, 1968 (English translation 1970). Introduces the extension rule and the definitional CNF encoding, and proves lower bounds for regular resolution.
 * S. A. Cook, "The complexity of theorem-proving procedures", STOC 1971; R. M. Karp, "Reducibility among combinatorial problems", 1972. SAT and 3-SAT are NP-complete. The Tseitin encoding is the usual circuit-SAT ≤ 3-SAT step.
 * S. A. Cook, "A short proof of the pigeon hole principle using extended resolution", *SIGACT News* 8(4), 1976.
-* S. A. Cook and R. A. Reckhow, "The relative efficiency of propositional proof systems", *Journal of Symbolic Logic* 44(1), 1979. NP = coNP iff some propositional proof system is polynomially bounded. They also show that extended resolution and Extended Frege are polynomially equivalent.
+* S. A. Cook and R. A. Reckhow, "The relative efficiency of propositional proof systems", *Journal of Symbolic Logic* 44(1), 1979. NP = coNP iff some propositional proof system is polynomially bounded. This paper also introduces Extended Frege. Extended resolution and Extended Frege are polynomially equivalent (see Krajíček 1995 below).
 * A. Haken, "The intractability of resolution", *Theoretical Computer Science* 39, 1985. Contrast with Cook 1976.
 * J. Krajíček and P. Pudlák, "Some consequences of cryptographical conjectures for S¹₂ and EF", *Information and Computation* 140, 1998. Under cryptographic assumptions, Extended Frege lacks feasible interpolation, so the standard route to lower bounds for weaker systems does not apply.
 * J. Krajíček, *Bounded Arithmetic, Propositional Logic, and Complexity Theory*, Cambridge University Press, 1995. Superpolynomial lower bounds for Frege and Extended Frege are open.
@@ -118,7 +118,7 @@ def ERSuperpolyLowerBound (family : Nat → CNF) : Prop :=
 Barriers:
 
 * The known lower-bound techniques for weaker systems (feasible interpolation, width, restrictions) either do not apply to EF or are blocked by cryptographic assumptions (Krajíček–Pudlák).
-* EF corresponds to reasoning in the bounded arithmetic `S¹₂`/`PV`, so a lower bound requires independence results for weak arithmetic. Those are themselves open.
+* EF corresponds to reasoning in the bounded arithmetic `PV` (equivalently, for the relevant statements, `S¹₂`): statements provable there have polynomial-size EF proofs of their propositional translations. So an EF lower bound for such translations would yield independence results for these weak theories, and those are themselves open.
 
 ## 7. Failure modes this idea catches
 

@@ -111,8 +111,8 @@ Whether such runs exist is a question about physics, not mathematics.
 * C. H. Bennett, E. Bernstein, G. Brassard and U. Vazirani, "Strengths and
   weaknesses of quantum computing", *SIAM Journal on Computing* 26(5)
   (1997). Black-box search over `N` items needs `Ω(√N)` quantum queries, so
-  quantum search over `2^n` assignments takes time `2^(n/2)` without further
-  structure.
+  quantum black-box search over `2^n` assignments needs `Ω(2^(n/2))` queries.
+  This does not rule out a quantum algorithm that uses the structure of SAT.
 * L. K. Grover, "A fast quantum mechanical algorithm for database search",
   *STOC* 1996. Shows the `O(√N)` upper bound, which is optimal by BBBV.
 
@@ -137,8 +137,9 @@ What is **not** formalized:
 * **Remaining obligation.** `PhysicalResourceHonesty` for the real world.
   This is an extended Church–Turing style postulate about physics, not a
   statement of complexity theory, and it is neither equivalent to nor
-  implied by P ≠ NP. Quantum mechanics fits the framework only with the
-  quantum query lower bound. Quantum computers do not obviously satisfy
+  implied by P ≠ NP. Quantum mechanics fits the framework only through the
+  quantum query lower bound, which is cited and covers black-box search
+  only. Quantum computers do not obviously satisfy
   `work ≤ time * resource` with classical work, and BQP versus NP is open.
 * **Barriers.** None of the standard barriers applies, because the result
   is a bound on brute force, not on SAT. A cleverer sequential algorithm

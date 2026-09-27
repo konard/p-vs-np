@@ -9,7 +9,7 @@ A *promise algorithm* for a language `L` on a promise `P` only has to answer cor
 
 For CNF, the Unique-SAT promise excludes the satisfiable formula `x0 ∨ x1`. So some algorithm that is correct on the promise calls it unsatisfiable (`usat_solver_wrong`). A different promise makes SAT trivial (`trivial_promise_solver`), which shows that promise problems can be genuinely easier.
 
-The open obligation is a **deterministic** polynomial-time map from all CNFs into the Unique-SAT promise that preserves satisfiability (`IsolationObligation`). Given that map, any Unique-SAT promise solver decides SAT (`isolation_solves_sat`). Only a *randomized* such map is known (Valiant–Vazirani 1986). Nothing here decides P vs NP.
+The open obligation is a **deterministic** polynomial-time map from all CNFs into the Unique-SAT promise that preserves satisfiability (`IsolationObligation`). Given that map, any Unique-SAT promise solver decides SAT (`isolation_solves_sat`). Only a *randomized* map with a weaker guarantee is known (Valiant–Vazirani 1986): it keeps unsatisfiable formulas unsatisfiable and gives a satisfiable formula a unique solution only with probability `Ω(1/n)`. Nothing here decides P vs NP.
 
 ## 1. The idea at full strength
 
@@ -92,12 +92,12 @@ def IsolationObligation (PolyTime : (CNF → CNF) → Prop) : Prop :=
 
 `isolation_solves_sat` turns it plus a Unique-SAT promise solver into a SAT solver. Proving P = NP along this route therefore needs **two** things, neither of which is known:
 
-1. a *deterministic* polynomial-time isolation map; only a randomized one is known (Valiant–Vazirani), and whether isolation can be derandomized is open;
-2. a polynomial-time algorithm for SAT on the Unique-SAT promise. This is at least as hard as NP ⊆ RP by Valiant–Vazirani, and no such algorithm is known.
+1. a *deterministic* polynomial-time isolation map; only a randomized one that succeeds with probability `Ω(1/n)` is known (Valiant–Vazirani), and whether isolation can be derandomized is open;
+2. a polynomial-time algorithm for SAT on the Unique-SAT promise. By Valiant–Vazirani such an algorithm would already give NP = RP, and no such algorithm is known.
 
 `composition_works_iff` shows that nothing weaker than "`f` maps *every* input into the promise" can work for arbitrary promise solvers. A reduction that is only "usually" into the promise gives only a heuristic or randomized solver. `decider_meets_isolation` shows that the correctness part of the obligation is trivial. All the difficulty is in the time bound.
 
-Barriers. Valiant–Vazirani relativizes, so the randomized reduction works relative to every oracle. Any argument that derandomizes it *and* solves Unique-SAT would, if relativizing, contradict Baker–Gill–Solovay (1975). On the lower-bound side, proving that promise-Unique-SAT is hard is at least as hard as proving NP ⊄ RP.
+Barriers. Valiant–Vazirani relativizes, so the randomized reduction works relative to every oracle. Any argument that derandomizes it *and* solves Unique-SAT would, if relativizing, contradict Baker–Gill–Solovay (1975). On the lower-bound side, proving that promise-Unique-SAT has no polynomial-time algorithm would in particular prove P ≠ NP (if P = NP, the SAT decider itself is a promise solver), so it is at least as hard as P ≠ NP.
 
 Relation to other ideas: restricted SAT variants (Phase 6), and Idea 29 (reductions compose and preserve membership in P, but only when they are total and answer-preserving).
 

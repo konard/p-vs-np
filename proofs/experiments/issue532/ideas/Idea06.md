@@ -9,8 +9,10 @@ satisfiable formula with a positive-cost local minimum (`bounded_flip_not_exact`
 Every CNF *does* have an exact neighbourhood of size one
 (`exists_size_one_exact_neighbourhood`), and with any exact neighbourhood local
 search decides SAT after at most `m + 1` rounds (`exact_local_search_decides`).
-So the entire difficulty is *computing* an exact neighbourhood, and doing that
-efficiently is as hard as solving SAT. All of this is machine-checked.
+So the entire difficulty is *computing* an exact neighbourhood. All theorems
+named here are machine-checked. The further statement that computing an exact
+neighbourhood efficiently is as hard as solving SAT is an informal argument
+(Section 6), not a formal theorem.
 
 ## 1. The idea at full strength
 
@@ -153,10 +155,10 @@ hidden in generating the neighbourhood list.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
-**At full potential.** For problems with bounded integer costs (like
-`unsatCount`), improving walks are automatically short, so local search is
-polynomial exactly when the neighbourhood is exact and searchable in
-polynomial time. `exact_local_search_decides` and `localSearch_evals_le` are
+**At full potential.** For problems with polynomially bounded integer costs
+(like `unsatCount`), improving walks are automatically short, so local search
+is a polynomial-time exact algorithm whenever the neighbourhood is exact and
+searchable in polynomial time. `exact_local_search_decides` and `localSearch_evals_le` are
 the conditional theorem.
 
 **Remaining obligation.** The spec's naive obligation, "a polynomial-size exact
@@ -165,9 +167,12 @@ so it is not an obligation at all, and no `def` for it is introduced. The real
 obligation is a neighbourhood that is exact and whose improving neighbour (or
 certificate that none exists) can be computed in time polynomial in `|φ|`.
 With `exact_local_search_decides` this gives a polynomial SAT decider. Conversely,
-a polynomial SAT decider (with self-reduction) computes `bestAssign`-like
-optimal assignments in polynomial time for the satisfiability question. So the
-obligation is equivalent to Idea 01's `PolySATDecider`, i.e. to P = NP.
+if P = NP, then a minimum-`unsatCount` assignment can be computed in
+polynomial time (binary search on the optimum plus self-reduction), which
+gives an exact, efficiently searchable neighbourhood. So, by this informal
+argument together with the cited Cook–Levin theorem (neither is formalized
+here), the obligation is equivalent to Idea 01's `PolySATDecider`, i.e. to
+P = NP.
 `bounded_flip_not_exact` rules out every fixed-radius flip neighbourhood,
 the most natural efficiently searchable family.
 

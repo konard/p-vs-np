@@ -67,10 +67,13 @@ function from the class of all functions).
 Not machine-checked: the PAC bounds, the NP-hardness results and the other
 literature in Section 5. The spec's counting form "exactly `2^(N−m)`
 consistent functions on an `N`-point domain with `m` distinct sample points" is
-covered by `realised_patterns` with `U` equal to the `N − m` unsampled points.
-It gives at least `2^(N−m)` pairwise distinct consistent restrictions to the
-domain. The matching upper bound (a consistent restriction is determined by its
-values on `U`) is immediate and is not stated as a separate theorem.
+covered only in part by `realised_patterns` with `U` equal to the `N − m`
+unsampled points. It shows that each of the `2^(N−m)` entries of
+`allStrings (N−m)` (all bit strings of that length, by `mem_allStrings_iff`) is
+the restriction to `U` of some function consistent with `S`. That these entries
+are pairwise distinct, and the matching upper bound (a consistent restriction
+is determined by its values on `U`), are immediate but are not stated as
+theorems. So the exact count is not itself machine-checked.
 
 ## 4. Complete argument
 
@@ -146,8 +149,10 @@ chain "Compression is hypothesis search. Hypothesis search is NP-hard."
 finite sample determines the function (`two_consistent_extensions`), so no
 `def` obligation is introduced for it. For the restricted route, the obligation
 is a polynomial-time consistent-hypothesis finder for a class rich enough to
-contain a SAT decider. That is at least as strong as Idea 01's
-`PolySATDecider`. The P ≠ NP direction is not available here either: "shortest
+contain a SAT decider. For classes whose consistency problem is NP-hard (minimum
+DFAs, Gold 1978; 3-term DNF, Pitt–Valiant 1988), such a finder would decide an
+NP-hard problem in polynomial time and hence, by those cited reductions and
+Cook–Levin (none formalized), give Idea 01's `PolySATDecider`. The P ≠ NP direction is not available here either: "shortest
 consistent program is NP-hard to find" says nothing about whether *other*
 algorithms can decide SAT, because a decider need not be learned from examples.
 
@@ -168,8 +173,9 @@ separates P from NP.
   and `all_patterns_consistent` shows the untested instances are unconstrained.
 * **Verification versus search**
   ([family 15](../../../attempts/COMMON_ERRORS.md#15-confusing-verification-search-construction-and-certificates)):
-  checking that a hypothesis fits the data is easy (`lookup_consistent`).
-  Finding a small one is the hard search problem.
+  some hypothesis always fits the data (`lookup_consistent`), and checking a
+  given hypothesis against a finite sample is a direct evaluation. Finding a
+  *small* one is the hard search problem (informal; see Section 5).
 * **Different problem**
   ([family 5](../../../attempts/COMMON_ERRORS.md#5-solving-an-easier-special-approximate-or-different-problem)):
   success in PAC learning (approximately correct, with high probability, on a

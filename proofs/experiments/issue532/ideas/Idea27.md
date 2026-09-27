@@ -2,7 +2,7 @@
 
 **Verdict:** Refuted as a route (general theorem)
 
-The idea is to remove variables one at a time and replace the clauses that mention a variable `v` by all their resolvents on `v`. The files prove the Davis–Putnam theorem for every CNF and every variable: `φ` is satisfiable iff `eliminate v φ` is, and `eliminate v φ` no longer mentions `v`. They also prove the exact size law `|eliminate v φ| = |rest| + |pos| · |neg|`, and give a family for every `p, q` in which `p + q` clauses become exactly `p · q` clauses. Because the procedure is a form of resolution, Haken's exponential lower bound for the pigeonhole principle shows that no elimination order is polynomial on all inputs. Elimination is exact but not a polynomial-time route.
+The idea is to remove variables one at a time and replace the clauses that mention a variable `v` by all their resolvents on `v`. The files prove the Davis–Putnam theorem for every CNF and every variable: `φ` is satisfiable iff `eliminate v φ` is, and `eliminate v φ` no longer mentions `v`. They also prove the exact size law `|eliminate v φ| = |rest| + |pos| · |neg|`, and give a family for every `p, q` in which `p + q` clauses become exactly `p · q` clauses. Because the procedure is a form of resolution, Haken's exponential lower bound for the pigeonhole principle shows that no elimination order is polynomial on all inputs. That final step uses Haken's theorem and the simulation of elimination runs by resolution, both cited and not formalized; the formal part is the exactness of each step and the multiplicative blow-up. Elimination is exact but not a polynomial-time route.
 
 ## 1. The idea at full strength
 
@@ -24,7 +24,7 @@ Clauses containing both `v` and `¬v` are tautologies. They are dropped, which i
 
 > (Order) For every CNF `φ` on `n` variables there is an elimination order `v₁, …, vₙ`, computable in polynomial time, such that every intermediate formula has `poly(|φ|)` clauses.
 
-The files prove that each step is exact and measure its size exactly. Haken's theorem refutes (Order).
+The files prove that each step is exact and measure its size exactly. Haken's theorem (cited) refutes (Order).
 
 ## 3. What is machine-checked
 
@@ -91,13 +91,13 @@ All side variables are distinct. `posClauses x₀` is the first block, `negClaus
 * A. Haken, "The intractability of resolution", *Theoretical Computer Science* 39, 1985. Resolution refutations of the pigeonhole principle need exponential size.
 * A. Urquhart, "Hard examples for resolution", *Journal of the ACM* 34(1), 1987; V. Chvátal and E. Szemerédi, "Many hard examples for resolution", *Journal of the ACM* 35(4), 1988. Exponential lower bounds for Tseitin formulas on expanders and for random 3-CNF.
 * R. Dechter and I. Rish, "Directional resolution: the Davis–Putnam procedure, revisited", KR 1994. Elimination along an order costs time and space exponential only in the induced width of that order.
-* N. Eén and A. Biere, "Effective preprocessing in SAT through variable and clause elimination", SAT 2005. Modern solvers eliminate a variable only when `|pos| · |neg|` resolvents do not increase the formula size, which is the "bounded variable elimination" heuristic.
+* N. Eén and A. Biere, "Effective preprocessing in SAT through variable and clause elimination", SAT 2005. Modern solvers eliminate a variable only when the non-tautological resolvents are no more numerous than the clauses they replace, which is the "bounded variable elimination" heuristic.
 
 None of these theorems are formalized here. The files formalize the single elimination step, its exactness, its size, and the multiplicative family.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
-At full potential, variable elimination is directional resolution. It is polynomial when the input has an elimination order of logarithmic induced width, which covers bounded-treewidth formulas (Idea 25 and Idea 26 give the same `2^{O(width)}` picture). In general, its best case is `2^{O(n)}`.
+At full potential, variable elimination is directional resolution. It is polynomial when the input has an elimination order of logarithmic induced width, which covers bounded-treewidth formulas (Idea 25 and Idea 26 give the same `2^{O(width)}` picture). In general, with duplicate clauses removed, it is bounded only by `2^{O(n)}`, since there are at most `3^n` distinct clauses on `n` variables. The `eliminate` of the files does not remove duplicates.
 
 The would-be obligation (Order) is not open. It is false, since resolution has exponential lower bounds (Haken, Urquhart, Chvátal–Szemerédi). A stronger variant would add clause learning, subsumption, or extension variables to the elimination:
 
@@ -121,7 +121,7 @@ As an algorithmic route to P = NP, the idea is therefore closed. It gives no inf
 
 * **Hidden exponential work** (error family 2 in [COMMON_ERRORS.md](../../../attempts/COMMON_ERRORS.md)). Each step looks like "one variable fewer", but `eliminate_length` shows the clause count multiplies by `|neg|` for each positive clause. A claimed `n`-step polynomial algorithm must bound the *size*, not the number of steps.
 * **Counting mistakes** (error family 7). "Each step removes a variable, so the formula shrinks" is false. `blowup_length` gives `p · q ≫ p + q`.
-* **Ignoring known barriers** (error family 14). Any SAT algorithm whose trace on unsatisfiable inputs is a resolution refutation inherits Haken's `2^{Ω(n)}` lower bound. This covers elimination, DPLL, and CDCL without restarts or extension.
+* **Ignoring known barriers** (error family 14). Any SAT algorithm whose trace on unsatisfiable inputs is a resolution refutation inherits Haken's `2^{Ω(n)}` lower bound. This covers elimination, DPLL, and CDCL with or without restarts, but not procedures that add extension variables.
 * **Invalid transformations** (error family 4). Naive elimination variants that drop resolvents, or keep only "useful" ones, lose completeness. `eliminate_complete` shows exactly which clauses are needed: all `|pos| · |neg|` of them, apart from tautologies.
 
 ## 8. Reproduction

@@ -1,6 +1,6 @@
 # Idea 11 — LP relaxation exactness (vertex cover integrality gap)
 
-**Verdict:** Refuted in full strength (published theorem) + formal core. The shortcut "relax the integer program to an LP, solve it in polynomial time, and read off the exact answer" is refuted by a general theorem: for every `n ≥ 3` the vertex cover LP is not exact on the complete graph `Kₙ` (`not_LPExact_complete`), and on `K_{2q}` the integrality gap is exactly `2 − 1/q`, which tends to 2 (`gap_family`). The strongest version, an exact polynomial-size LP for an NP-hard polytope (via extra variables), is refuted by Fiorini–Massar–Pokutta–Tiwary–de Wolf (2012/2015), and Rothvoss (2014) shows that such LP-size lower bounds hold even for problems in P, so they are statements about LPs, not about P vs NP. What LPs do give is proved here too: threshold rounding is a 2-approximation on every graph (`rounding_two_approx`).
+**Verdict:** Refuted in full strength (published theorem) + formal core. The shortcut "relax the integer program to an LP, solve it in polynomial time, and read off the exact answer" is refuted by a general theorem: for every `n ≥ 3` the vertex cover LP is not exact on the complete graph `Kₙ` (`not_LPExact_complete`), and on `K_{2q}` the integrality gap is at least `2 − 1/q`, which tends to 2 (`gap_family`); together with `frac_lower_complete` and `complete_cover_exact` it is exactly `2 − 1/q` over half-integral fractional covers (which lose nothing by the cited, unformalized Nemhauser–Trotter theorem). The strongest version, an exact polynomial-size LP (via extra variables) for the TSP, cut or stable set polytope, is refuted by Fiorini–Massar–Pokutta–Tiwary–de Wolf (2012/2015), and Rothvoss (2014) shows that such LP-size lower bounds hold even for problems in P, so they are statements about LPs, not about P vs NP. What LPs do give is proved here too: threshold rounding is a 2-approximation on every graph (`rounding_two_approx`).
 
 ## 1. The idea at full strength
 
@@ -55,7 +55,7 @@ integral cover `s` with `2 · card s n ≤ sumTo x n`, i.e. integer optimum
 | `complete_cover_large` | For every `n`, every integral cover of `Kₙ` has `≥ n − 1` vertices. | [Lean](../lean/Idea11.lean) | [Rocq](../rocq/Idea11.v) |
 | `card_nonzero` | The set `{1, …, n}` has `n` elements below `n + 1`. | [Lean](../lean/Idea11.lean) | [Rocq](../rocq/Idea11.v) |
 | `complete_cover_exact` | For `n ≥ 1`, `{1, …, n−1}` covers `Kₙ` with `n − 1` vertices. | [Lean](../lean/Idea11.lean) | [Rocq](../rocq/Idea11.v) |
-| `gap_family` | For every `q ≥ 1`: on `K_{2q}` the LP value is `q` and every integral cover has `≥ 2q − 1` vertices (gap `2 − 1/q`). | [Lean](../lean/Idea11.lean) | [Rocq](../rocq/Idea11.v) |
+| `gap_family` | For every `q ≥ 1`: on `K_{2q}` all-`1/2` is a fractional cover of value `q`, and every integral cover has `≥ 2q − 1` vertices (so the gap is at least `2 − 1/q`). | [Lean](../lean/Idea11.lean) | [Rocq](../rocq/Idea11.v) |
 | `LPExact` | Definition: the relaxation is exact on a graph. | [Lean](../lean/Idea11.lean) | [Rocq](../rocq/Idea11.v) |
 | `not_LPExact_complete` | For every `n ≥ 3`, the vertex cover LP is not exact on `Kₙ`. | [Lean](../lean/Idea11.lean) | [Rocq](../rocq/Idea11.v) |
 | `round` | Definition: threshold rounding at `1/2`. | [Lean](../lean/Idea11.lean) | [Rocq](../rocq/Idea11.v) |

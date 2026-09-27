@@ -4,7 +4,7 @@
 
 Two facts are proved in general.
 
-*Transfer.* Suppose three things hold: a circuit lower bound, a simulation of fast algorithms by small circuits, and a size bound. Together they exclude a fast algorithm. Specialized to a concrete NAND circuit model, an explicit function in NP with a superpolynomial circuit lower bound would separate P from NP (`explicit_lower_bound_separates`). This uses the standard simulation P ⊆ P/poly, which is taken here as a hypothesis.
+*Transfer.* Suppose three things hold: a circuit lower bound, a simulation of fast algorithms by small circuits, and a size bound. Together they exclude a fast algorithm. Specialized to a concrete NAND circuit model, `explicit_lower_bound_separates` shows that a function in a class `InNP` with a superpolynomial circuit lower bound is computed by no fast algorithm. `InNP` and `fast` are parameters, so read with NP and polynomial time (not formalized here), an explicit NP function with such a lower bound would separate P from NP. This uses the standard simulation P ⊆ P/poly, which is taken here as a hypothesis.
 
 *Shannon counting.* For the concrete model, the following is machine-checked for all `n, g`: if `(g+1)·((n+g)²)^g < 2^(2^n)`, then some Boolean function on `n` bits has no circuit with at most `g` NAND gates. The argument uses words, truth tables and a pigeonhole principle, all proved from scratch.
 

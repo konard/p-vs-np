@@ -1,6 +1,6 @@
 # Idea 13 — Approximation to exactness
 
-**Verdict:** Developed to an open obligation (conditional theorem proved). For integer-valued objectives, an approximation becomes exact only once its error drops below one unit: a `(1 + 1/q)`-approximation is exact whenever `OPT < q` (`approx_exact_nat`, `approx_exact_max`). The bound is sharp (`threshold_sharp`), and any constant ratio such as 2 leaves room for non-optimal answers (`ratio_two_not_exact`). An approximation scheme is therefore exact in polynomial time exactly when the optimum is polynomially bounded (`fptas_poly_bounded_exact`), and a good enough ratio decides gap problems (`polyApprox_decides_gap`). The open obligation `PolyApprox` beyond a published NP-hardness threshold is equivalent in strength to P = NP, and this dossier does not discharge it.
+**Verdict:** Developed to an open obligation (conditional theorem proved). For integer-valued objectives, an approximation becomes exact only once its error drops below one unit: a `(1 + 1/q)`-approximation is exact whenever `OPT < q` (`approx_exact_nat`, `approx_exact_max`). The bound is sharp (`threshold_sharp`), and any constant ratio such as 2 leaves room for non-optimal answers (`ratio_two_not_exact`). A fully polynomial approximation scheme is therefore exact in polynomial time whenever the optimum is polynomially bounded (`fptas_poly_bounded_exact`), and a good enough ratio decides gap problems (`polyApprox_decides_gap`). The open obligation is `PolyApprox` beyond a published NP-hardness threshold, read in a real machine model: by the cited PCP gap reductions (not formalized) it would imply P = NP, and this dossier does not discharge it. Caveat: the formal `PolyApprox` uses an abstract cost model whose running time is a given function not tied to execution, so as written it is satisfiable by taking the output to be `opt` and the time to be 0; the formal content is the conditional bookkeeping, not the hardness of the obligation.
 
 ## 1. The idea at full strength
 
@@ -34,7 +34,12 @@ in `ℕ`.
 * **Open obligation:**
   `PolyApprox sz opt num den :≡` there is an algorithm `(run, time)` with
   `opt x ≤ run x`, `run x · den ≤ opt x · num` and
-  `time x ≤ c · (sz x + 1)^d` for all `x`.
+  `time x ≤ c · (sz x + 1)^d` for all `x`. Here `time` is an arbitrary
+  field, not derived from running `run` on a machine, so in the formal files
+  this `Prop` holds trivially whenever `den ≤ num` (take `run = opt`,
+  `time = 0`; not stated as a theorem). It expresses the intended obligation
+  only when `(run, time)` ranges over programs of a real machine model with
+  their true running times, which is not formalized here.
 
 ## 3. What is machine-checked
 
@@ -107,8 +112,8 @@ is symmetric and is not formalized here.
   unless P = NP. This is the argument behind `fptas_poly_bounded_exact`.
 * O. H. Ibarra and C. E. Kim, "Fast approximation algorithms for the
   knapsack and sum of subset problems", JACM 22(4), 1975. An FPTAS for
-  knapsack, a weakly NP-hard problem, which shows that an FPTAS alone does
-  not yield exactness in polynomial time.
+  knapsack, a weakly NP-hard problem. So an FPTAS alone does not yield a
+  polynomial-time exact algorithm unless P = NP.
 * S. Arora and S. Safra, "Probabilistic checking of proofs: a new
   characterization of NP", JACM 45(1), 1998; S. Arora, C. Lund, R. Motwani,
   M. Sudan and M. Szegedy, "Proof verification and the hardness of
@@ -137,7 +142,7 @@ is symmetric and is not formalized here.
   corresponding published gap reduction and `polyApprox_decides_gap`, it
   would give a polynomial decider for SAT. Alternatively: an FPTAS for a
   strongly NP-hard problem. Nothing proved here brings either statement
-  closer: each is as strong as P = NP.
+  closer: by the cited results (not formalized) each would imply P = NP.
 * **For P ≠ NP** the route gives nothing directly. Inapproximability
   theorems are themselves conditional on P ≠ NP.
 
@@ -157,8 +162,8 @@ is symmetric and is not formalized here.
 * **LP/SDP relaxation** (family 3): relaxations give ratio guarantees, not
   exactness. See also [Idea 11](Idea11.md).
 * **False statements** (family 18): claims of approximation ratios below
-  Håstad's or Dinur–Safra's thresholds are claims of P = NP and must be
-  checked against those theorems first.
+  Håstad's or Dinur–Safra's thresholds would, by those theorems, imply
+  P = NP, and must be checked against them first.
 
 Audit rule: any claim that approximation yields exactness must exhibit the
 bound `OPT < q` (or the gap) and show that the resulting `q` is polynomial

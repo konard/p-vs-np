@@ -1,6 +1,6 @@
 # Idea 14 — Randomized search
 
-**Verdict:** Developed to an open obligation (conditional theorem proved). Randomness is a legitimate resource with correct general laws. One-sided error amplifies exponentially with repetition (`rp_amplification`, proved by exact counting of seed tuples), and a one-sided algorithm with polynomially many seeds is derandomized in polynomial time by enumeration (`polySeedRP_implies_poly`). Random search does not reach P = NP by itself. Observing success on test seeds gives no error bound (`observed_success_no_guarantee`), and the route needs two open statements, recorded as definitions and never assumed: SAT has a polynomial randomized decider (`NPinRP`), and its seeds can be compressed to logarithmic length (`SeedCompression`). Their conjunction yields a deterministic polynomial decider (`rp_sat_with_seed_compression`).
+**Verdict:** Developed to an open obligation (conditional theorem proved). Randomness is a legitimate resource with correct general laws. One-sided error amplifies exponentially with repetition (`rp_amplification`, proved by exact counting of seed tuples), and a one-sided algorithm with polynomially many seeds is derandomized in polynomial time by enumeration (`polySeedRP_implies_poly`). Random search does not reach P = NP by itself. Observing success on test seeds gives no error bound (`observed_success_no_guarantee`), and the route needs two open statements, recorded as definitions and never assumed: SAT has a polynomial randomized decider (`NPinRP`), and its seeds can be compressed to logarithmic length (`SeedCompression`). Their conjunction yields a deterministic polynomial decider (`rp_sat_with_seed_compression`). Caveat: the cost classes use an abstract model in which the declared time `T` is not tied to executing the algorithm (Section 2), so as formalized `PolyDec`, `NPinRP` and `SeedCompression` are satisfiable for every language (for example `T = 0` and a single seed); the formal content is the counting and the conditional bookkeeping, and the open statements are open only when read in a real machine model, which is not formalized here.
 
 ## 1. The idea at full strength
 
@@ -42,6 +42,11 @@ counts divided by `s x`, so all statements are about counts in `ℕ`.
     `sz x`.
   * `PolySeedRP sz L` has `s x` seeds with `s x`, `T x` polynomial.
   * `PolyDec sz L` is a deterministic decider with polynomial time.
+  * Caveat: `T` (and the time of `PolyDec`) is a declared number, not the
+    running time of an execution, and nothing links it to `A`. In this
+    abstract model all three classes contain every language (take one seed,
+    `A x i = L x`, `T = 0`; not stated as a theorem). They express the
+    intended classes only when instantiated with a real machine model.
 * **Open obligations:**
   * `NPinRP sz SAT :≡ RPDecider sz SAT`.
   * `SeedCompression sz SAT :≡ RPDecider sz SAT → PolySeedRP sz SAT`.
@@ -126,8 +131,8 @@ SAT is open and widely believed false.
   (hence BPP = P) follows from circuit lower bounds.
 * V. Kabanets and R. Impagliazzo, "Derandomizing polynomial identity tests
   means proving circuit lower bounds", Computational Complexity 13, 2004.
-  Derandomization in turn implies circuit lower bounds, so the obligation
-  cannot be sidestepped.
+  Derandomizing polynomial identity testing would itself imply circuit lower
+  bounds, so derandomization and lower bounds are tied in both directions.
 * M. Agrawal, N. Kayal and N. Saxena, "PRIMES is in P", Annals of
   Mathematics 160(2), 2004. A problem long known to have efficient
   randomized algorithms was derandomized unconditionally, by a
@@ -152,8 +157,9 @@ SAT is open and widely believed false.
      general and known to be tied to circuit lower bounds.
 
   Both are needed. `rp_sat_with_seed_compression` shows they suffice. Note
-  that (1) alone already implies NP = RP, a statement about as strong as
-  P = NP.
+  that (1) alone is the statement NP = RP (since RP ⊆ NP, and SAT is
+  NP-complete by the cited Cook–Levin theorem). It is open and widely
+  believed false, but it is not known to imply P = NP.
 * **For P ≠ NP** randomized search gives no route: a failing heuristic
   says nothing about all algorithms (see [Idea 12](Idea12.md) on why
   hardness has to be proved, not observed).

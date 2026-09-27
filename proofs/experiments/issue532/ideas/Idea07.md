@@ -133,10 +133,12 @@ from compression alone.
 ## 6. How far the idea can be pushed toward P vs NP
 
 **At full potential.** Compression can shrink a *family* of size `N` to
-`⌈log₂ N⌉` bits. So a search space collapses exactly when the problem forces
-its solutions into a small, efficiently describable family. Examples are
-Horn-SAT and 2-SAT, where polynomial algorithms exist, and the run family
-proved here.
+`⌈log₂ N⌉` bits. So compression can only help when the problem forces the
+relevant objects into a small, efficiently describable family. The run family
+proved here is the formal example. (Informally, Horn-SAT is decided through
+its unique minimal model; this is an illustration, not a theorem of this
+file, and polynomial-time classes such as 2-SAT can have exponentially many
+solutions, so small solution families are not necessary for tractability.)
 
 **Remaining obligation.** The universal version is refuted outright, so there
 is nothing left to prove for it, and no `def` obligation is introduced. The
@@ -146,8 +148,8 @@ the witness family is all `2^n` assignments, and counting shows it cannot be
 shrunk losslessly. (b) Decide membership and decode efficiently. That is an
 algorithmic question of the same kind as Idea 01's `PolySATDecider`. Deciding
 how compressible a given string is (MCSP-type problems, or time-bounded
-Kolmogorov complexity) is itself a problem whose NP-hardness status is open
-(Kabanets–Cai).
+Kolmogorov complexity) is itself a problem whose NP-hardness is open for MCSP
+itself (Kabanets–Cai explain why proving it would be difficult).
 
 **Barriers.** Counting is unconditional and cannot be circumvented. Kolmogorov
 complexity is uncomputable, so an "optimal compressor" cannot be an algorithm

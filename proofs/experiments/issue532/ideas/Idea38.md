@@ -58,7 +58,7 @@ proof relativizes and cannot be correct, because of the two BGS oracles.
 
 | Theorem | Informal statement | Lean | Rocq |
 | --- | --- | --- | --- |
-| `tested` | some property holds in one oracle world and fails in another | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
+| `tested` | small illustration kept from an earlier round (not a main result): some predicate on `Bool` holds at `false` and fails at `true` | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
 | `falsePath_length` | the all-false path queries at most `depth T` positions | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
 | `eval_single_of_not_mem` | if `j` is not queried on the all-false path, `T` answers the same on `single j` and `allFalse` | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
 | `exists_not_mem` | a list of length `< N` misses some `j < N` | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
@@ -156,9 +156,11 @@ ingredient.
 
 **At full strength the route is refuted.** A proof that uses only relativizing
 steps would prove the same statement for the oracles `A` and `B`. One of those
-instances is false, so no such proof exists. The formal `bgs_core` shows exactly
-why query-based ("black-box") reasoning cannot beat nondeterminism relative to
-`B`: polynomially many queries miss almost all of the `2^n` positions.
+instances is false, so no such proof exists. The formal `bgs_core` shows the
+combinatorial reason why query-based ("black-box") reasoning cannot beat
+nondeterminism relative to `B`: at a suitable length `n`, polynomially many
+queries miss almost all of the `2^n` positions. The oracle `B` itself is cited
+from BGS, not formalized.
 
 **What remains is a precise obligation.** `NonrelativizingIngredient Proves` asks
 for a method that proves a statement false relative to some oracle. By
@@ -166,7 +168,8 @@ for a method that proves a statement false relative to some oracle. By
 Known nonrelativizing techniques include:
 
 - arithmetization (IP = PSPACE, MIP = NEXP);
-- the PCP theorem's local checkability;
+- the local checkability behind the PCP theorem (whether the PCP theorem
+  itself relativizes depends on how oracle access to the proof is modelled);
 - circuit lower bounds that inspect the structure of computation (for example
   Williams' 2011 ACC lower bound combines a nontrivial ACC-SAT algorithm with
   diagonalization, and uses the circuit structure, not only oracle access).
@@ -178,7 +181,7 @@ escapes algebrization and natural proofs. No such technique is known.
 
 **Why it is at least as hard as the original problem.** Any proof of `P ≠ NP` or
 `P = NP` is itself a method meeting the obligation for `S O = (P^O = NP^O)`,
-by Step 7. The obligation is therefore a necessary condition that every
+by Step 7 together with the BGS oracles (cited, not formalized). The obligation is therefore a necessary condition that every
 resolution satisfies, not a shortcut.
 
 ## 7. Failure modes this idea catches

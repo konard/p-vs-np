@@ -6,9 +6,13 @@ A proof of P != NP must have the quantifier shape "there is an NP language such
 that **for every** polynomial-time machine **there exists** an input on which
 the machine is wrong". The swapped shape, "there is one input (or one finite
 set of inputs) on which **every** algorithm is wrong", is false for any class of
-algorithms closed under finite patching. The files prove this against the
-repository's own machine model (`proofs/complexity`). They also prove that
-hard inputs for such a class must occur at arbitrarily large sizes. No lower
+algorithms closed under finite patching. The files prove the correct shape
+against the repository's own machine model (`proofs/complexity`). The
+refutation of the swapped shape is proved at the level of Boolean functions,
+for an abstract class assumed to be closed under patching. That the machine
+class `ClassP` is closed under patching is standard but not formalized here.
+The files also prove that hard inputs for such a class must occur at
+arbitrarily large sizes. No lower
 bound is proved. The idea is an auditing tool that removes a common logical
 error.
 
@@ -153,9 +157,11 @@ the repository's model must establish
     ∃ L, InNP L ∧ ∀ p : ClassP, ∃ x, p.language x ≠ L x
 
 and, by `hard_inputs_unbounded` applied to any patch-closed class (such as
-polynomial time), the witnesses `x` must be available at arbitrarily large
+polynomial time, whose patch-closure is standard but not formalized for
+`ClassP` here), the witnesses `x` must be available at arbitrarily large
 lengths. The remaining obligation is `PNotEqualsNP` itself. This idea does not
-reduce it. It only rules out proof shapes that cannot work:
+reduce it. It only rules out proof shapes that cannot work (for `ClassP` this uses
+the unformalized patch-closure fact from section 2):
 
 - `∃ x, ∀ p, ...` is refuted by `no_universal_hard_input`.
 - `∃ finite xs, ∀ p, ∃ x ∈ xs, ...` is refuted by `no_universal_hard_input_set`.

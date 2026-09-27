@@ -1,6 +1,6 @@
 # Idea 09 — Description length versus running time (and Levin universal search)
 
-**Verdict:** Refuted as a route (general theorem) — the inference "the shortest program for a task is also the fastest" is false for every target `v ↦ v + k` with `k ≥ 6` in an explicit loop language with honest size and cost semantics (`shortest_is_never_fastest`). The meta-algorithmic half of the idea is developed to full strength as Levin universal search: it is sound, complete, and within a fixed factor `8 · 2^i` of any witness-producing program `i` (`levin_search_bound`). Whether that search is polynomial for SAT is exactly the open obligation `PolyTimeWitnessProgramExists`, which is equivalent to P = NP; nothing here decides it.
+**Verdict:** Refuted as a route (general theorem) — the inference "the shortest program for a task is also the fastest" is false for every target `v ↦ v + k` with `k ≥ 6` in an explicit loop language with honest size and cost semantics (`shortest_is_never_fastest`). The meta-algorithmic half of the idea is developed to full strength as Levin universal search: it is sound, complete, and within a fixed factor `8 · 2^i` of any witness-producing program `i` (`levin_search_bound`). Whether that search is polynomial for SAT is exactly the open obligation `PolyTimeWitnessProgramExists`, which, instantiated with SAT, is equivalent to P = NP by search-to-decision self-reducibility and the Cook–Levin theorem (both cited, not formalized); nothing here decides it.
 
 ## 1. The idea at full strength
 
@@ -170,8 +170,8 @@ work is below `2^22 ≈ 4.2·10^6 < 8·1024·1000 ≈ 8.2·10^6`.
 
 *Conditional theorem* (`levin_poly_of_obligation`): if one fixed program
 `i` is polynomial on all satisfiable instances, then Levin search is
-polynomial with factor `K = 8·2^i`, and it does not need to know `i`, `c`,
-or `d`.
+polynomial on satisfiable instances, measured in simulated steps, with factor
+`K = 8·2^i`, and it does not need to know `i`, `c`, or `d`.
 
 ## 5. Known results and literature
 
@@ -207,8 +207,8 @@ search algorithm `A` with index `i_A` and running time `T_A`, `U` runs in
 time `O(2^{i_A} · T_A(n))` plus verification and simulation overhead
 (polynomial per call). Consequently:
 
-* If P = NP, then `U` (a program we can write down today) solves SAT search
-  in polynomial time — we would not need to find the algorithm, only the
+* If P = NP, then `U` (a program we can write down today) finds satisfying
+  assignments in polynomial time on every satisfiable input — we would not need to find the algorithm, only the
   proof of its running time.
 * "The fastest SAT search algorithm is known up to a fixed factor" is a
   true statement, but the factor `2^{i_A}` may be astronomically large, and
@@ -217,7 +217,8 @@ time `O(2^{i_A} · T_A(n))` plus verification and simulation overhead
 **Exact remaining obligation.** `PolyTimeWitnessProgramExists` (Lean and
 Rocq `def`/`Definition`). Instantiated with SAT, a polynomial-time verifier,
 and a universal machine, it states that some fixed program finds satisfying
-assignments in polynomial time; by search-to-decision self-reducibility this
+assignments in polynomial time; by search-to-decision self-reducibility and
+the NP-completeness of SAT (Cook–Levin), both cited and not formalized, this
 is **equivalent to P = NP**. It is therefore not weaker than the original
 problem; the conditional theorem shows that Levin search loses nothing
 beyond a fixed factor, not that the obligation is easier.

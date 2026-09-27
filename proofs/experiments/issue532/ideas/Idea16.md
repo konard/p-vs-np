@@ -105,7 +105,9 @@ shows that it cannot be avoided.
 
 **Why the B side holds (the formalized core).** A deterministic machine
 running in time `p(n) < 2^n` is, on input `1^n`, a decision tree over the
-oracle with fewer than `2^n` queries. `oracle_adversary` runs it against
+oracle with fewer than `2^n` queries. (This translation from machines to
+decision trees is informal, since machines are not formalized; the formal
+statement is about decision trees.) `oracle_adversary` runs it against
 the empty oracle `O₀`:
 
 * If it accepts, `O₀` is a counterexample, because `testLang O₀ n` is false.

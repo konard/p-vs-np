@@ -6,10 +6,12 @@ SAT is self-reducible. From any exact decision procedure, fixing the
 variables one at a time gives a satisfying assignment of every satisfiable
 CNF, with exactly one decider call per variable. The files prove this for
 every CNF and every decider. They also prove the polynomial cost transfer:
-a polynomially bounded decider gives polynomially bounded search. So finding
-a witness is no harder than deciding, and P = NP is equivalent to
+a polynomially bounded decider gives polynomially bounded search, in an
+abstract cost model. So finding a witness is no harder than deciding, and,
+with Cook–Levin (cited, not formalized), P = NP is equivalent to
 polynomial-time SAT search. The tool does not produce a fast decider. The
-remaining obligation `ExactPolyDecider` is exactly the P = NP direction.
+remaining obligation `ExactPolyDecider`, for an honest cost model, is
+exactly the P = NP direction.
 
 ## 1. The idea at full strength
 
@@ -142,9 +144,10 @@ reduce it.
   S. Arora and B. Barak, *Computational Complexity: A Modern Approach*,
   Cambridge University Press (2009).
 * M. Bellare and S. Goldwasser, "The complexity of decision versus
-  search", *SIAM Journal on Computing* 23(1) (1994). This paper shows that
-  search does not reduce to decision for all NP languages under
-  cryptographic assumptions. The reduction proved here is specific to
+  search", *SIAM Journal on Computing* 23(1) (1994). This paper shows that,
+  if deterministic and nondeterministic doubly exponential time differ,
+  some NP language has a search problem that does not reduce to its
+  decision problem. The reduction proved here is specific to
   self-reducible problems such as SAT.
 
 What is **not** formalized:
@@ -156,14 +159,17 @@ What is **not** formalized:
 
 ## 6. How far the idea can be pushed toward P vs NP
 
-* **Full potential.** `decision_to_search` and `search_gives_decider` show
-  that P = NP iff SAT search is in polynomial time. The reduction costs one
+* **Full potential.** `decision_to_search` and `search_gives_decider`,
+  combined with Cook–Levin and an honest machine model (both cited, not
+  formalized), show that P = NP iff SAT search is in polynomial time. The reduction costs one
   decider call per variable, with polynomial overhead. This is as strong as
   it gets. Any polynomial SAT decider, even one found non-constructively,
   can be turned into a polynomial witness finder once it is written down.
-  With Levin's universal search even the "written down" step disappears.
+  Levin's universal search even gives an explicit witness finder that runs
+  in polynomial time on satisfiable inputs if P = NP, although it need not
+  halt quickly on unsatisfiable inputs.
 * **Remaining obligation.** `ExactPolyDecider Cost` for an honest cost
-  model. This is SAT ∈ P, which is equivalent to P = NP. It is neither
+  model. This is SAT ∈ P, which is equivalent to P = NP by Cook–Levin. It is neither
   weaker nor stronger, and the self-reduction adds nothing toward proving
   it.
 * **Toward P ≠ NP.** By the converse, a superpolynomial lower bound for

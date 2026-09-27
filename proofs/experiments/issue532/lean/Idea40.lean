@@ -270,6 +270,22 @@ theorem obligation_gives_poly_solver (size : Inst → Nat) (answer : Inst → Bo
         (size I) I rfl)
       (additive_poly_closed c a k (size I))
 
+/-- **Explicit solver bound.** For any data meeting the conditions of
+`AdditiveSelfReduction`, the specific solver `run base step (size I)` is correct and its
+cost `runCost` is at most `(c + a) * (size I + 1) ^ (k + 1)`. -/
+theorem self_reduction_solver_bound (size : Inst → Nat) (answer base : Inst → Bool)
+    (step : Inst → Inst) (baseCost stepCost : Inst → Nat) (c a k : Nat)
+    (hbase : ∀ I, size I = 0 → base I = answer I) (hbc : ∀ I, baseCost I ≤ c)
+    (hstep : ∀ I n, size I = n + 1 → size (step I) = n ∧ answer (step I) = answer I)
+    (hcost : ∀ I, stepCost I ≤ a * (size I + 1) ^ k) (I : Inst) :
+    run base step (size I) I = answer I ∧
+      runCost baseCost stepCost step (size I) I ≤ (c + a) * (size I + 1) ^ (k + 1) :=
+  ⟨run_correct size answer base step hbase hstep (size I) I rfl,
+   Nat.le_trans
+     (runCost_bound size step baseCost stepCost c a k (fun I n h => (hstep I n h).1) hbc hcost
+       (size I) I rfl)
+     (additive_poly_closed c a k (size I))⟩
+
 /-- Check: the two-branch cost with zero overhead is exactly `2^n` at `n = 5`. -/
 example : branchCost (fun _ => 0) 5 = 32 := by decide
 

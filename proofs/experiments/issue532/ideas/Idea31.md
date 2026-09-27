@@ -40,7 +40,7 @@ def UniformPolyAdvice (Uniform : (Nat → List Bool) → Prop) (L : List Bool �
     ∀ x, decode (gen x.length) x = L x
 ```
 
-This is the standard class P/poly (advice of polynomial length, one string per input length), with the additional requirement that the advice itself is generated uniformly.
+This is meant as P/poly (advice of polynomial length, one string per input length) with the additional requirement that the advice itself is generated uniformly. Note that the formal definition places no complexity restriction on `decode`: it is an arbitrary function. So, as stated, the definition is satisfied by any `L` for which `Uniform` accepts some short generator (take `decode a x = L x`). It matches P/poly, or its uniform version, only once `decode` is also required to run in polynomial time, and that restriction is not formalized here.
 
 ## 3. What is machine-checked
 
@@ -98,9 +98,9 @@ def UniformPolyAdvice (Uniform : (Nat → List Bool) → Prop) (L : List Bool �
     ∀ x, decode (gen x.length) x = L x
 ```
 
-For `L = SAT`, with `Uniform` the polynomial-time generators and `decode` polynomial time, this is exactly P = NP. Without the `Uniform` clause, it is NP ⊆ P/poly. That is believed false, since it would collapse PH (Karp–Lipton), but it is open. The theorems here show that the route gives no leverage.
+For `L = SAT`, with `Uniform` the polynomial-time generators and `decode` additionally restricted to polynomial time (a restriction not present in the formal definition, see section 2), this is equivalent to P = NP by Cook–Levin (cited, not formalized). With the `decode` restriction but without the `Uniform` clause, it is SAT ∈ P/poly, i.e. NP ⊆ P/poly. That is believed false, since it would collapse PH (Karp–Lipton), but it is open. The theorems here show that the route gives no leverage.
 
-* The naive advice (the truth table) is `2^n` bits, and `no_shorter_advice` shows that no uniform compression works for *all* functions. Any polynomial advice for SAT must exploit SAT's structure. That structure is exactly what a direct algorithm would exploit.
+* The naive advice (the truth table) is `2^n` bits, and `no_shorter_advice` shows that no advice of any fixed length `m < 2^n`, with any decoder, works for *all* functions. Any polynomial advice for SAT must exploit SAT's structure. That structure is exactly what a direct algorithm would exploit.
 * `advice_beyond_uniform` shows that "small at every length" does not imply "computable". A per-length construction must come with a single uniform generator, otherwise it proves nothing about P.
 
 Barriers. A proof of NP ⊄ P/poly would be a superpolynomial circuit lower bound. It faces the natural-proofs barrier (Razborov–Rudich 1997) and is not provable by relativizing techniques alone (Baker–Gill–Solovay 1975). See Idea 30.

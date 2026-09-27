@@ -19,9 +19,11 @@ Proved here, in general (for every CNF / every reduction):
 * `restriction_transfer` and `poly_comp_bound`: if a restricted class `R`
   admits a correct decider and SAT reduces into `R` with polynomial size
   blow-up, then composing gives a correct SAT decider whose cost is bounded
-  by a composed polynomial.  The hypothesis `PolySizeReductionInto R` is the
-  open obligation (it is not proved for any class in P; doing so for a class
-  with a polynomial-time decider would prove P = NP).
+  by a composed polynomial.  The hypothesis `PolySizeReductionInto R` records
+  only the size bound.  Without a computability requirement it is satisfiable
+  for unit CNF (`unit_size_reduction_exists`, via a non-constructive map), so
+  the open part of the obligation is polynomial-time computability of the
+  map, which needs a machine model and is stated in prose only.
 
 Verdict: special-case algorithms are correct, but refuted as a general route
 unless the restriction is shown NP-hard (Schaefer 1978 classifies exactly
@@ -238,12 +240,36 @@ def polyEval (c k n : Nat) : Nat := c * (n + 1) ^ k
 satisfiability-preserving map with polynomial size blow-up.  (Time to compute
 the map must also be polynomial; this file has no machine model, so only the
 size bound is recorded.)  For the classes of (a) this is false by
-`no_sat_reduction_into_positive`; for Horn, 2-CNF or unit CNF it is
-equivalent in strength to P = NP, because those classes are in P. -/
+`no_sat_reduction_into_positive`.  For unit CNF the size-only statement is
+provable (`unit_size_reduction_exists`); only a version with a
+polynomial-time computable map would carry P vs NP content. -/
 def PolySizeReductionInto (R : CNF → Prop) : Prop :=
   ∃ (f : CNF → CNF) (c k : Nat),
     (∀ φ, R (f φ)) ∧ (∀ φ, Satisfiable φ ↔ Satisfiable (f φ)) ∧
     (∀ φ, size (f φ) ≤ polyEval c k (size φ))
+
+/-- Without a computability requirement the size-only obligation holds for unit
+CNF: send satisfiable formulas to `[]` and the rest to `[[]]`.  The map is
+defined by classical case analysis and is not claimed to be efficient. -/
+theorem unit_size_reduction_exists : PolySizeReductionInto IsUnitCNF := by
+  classical
+  refine ⟨fun φ => if Satisfiable φ then [] else [[]], 1, 0, ?_, ?_, ?_⟩
+  · intro φ C hC
+    by_cases h : Satisfiable φ
+    · simp [h] at hC
+    · simp [h] at hC
+      subst hC
+      simp
+  · intro φ
+    by_cases h : Satisfiable φ
+    · simp only [h, ite_true, true_iff]
+      exact ⟨fun _ => true, rfl⟩
+    · simp only [h, ite_false, false_iff]
+      exact empty_clause_unsat
+  · intro φ
+    by_cases h : Satisfiable φ
+    · simp [h, size, polyEval]
+    · simp [h, size, polyEval]
 
 /-- Polynomials of the repository's form are closed under composition. -/
 theorem poly_comp_bound (c k c' k' n : Nat) :

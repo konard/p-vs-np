@@ -11,7 +11,8 @@ formalized). The general version, Cook's program of proving
 superpolynomial lower bounds for every propositional proof system, is
 developed to the open obligation `NoPolyBoundedProofSystem`. With a
 polynomial-time verifier requirement this obligation is equivalent to
-NP ≠ coNP, and the files prove the abstract conditional that it excludes
+NP ≠ coNP by the Cook–Reckhow theorem (cited, not formalized), and the files
+prove the abstract conditional that it excludes
 efficient exact SAT deciders.
 
 ## 1. The idea at full strength
@@ -119,7 +120,9 @@ tree size can be as large as `2^|vs|`.
 * resolving `¬x∨y` with `¬x∨¬y` gives `¬x`;
 * resolving `x` with `¬x` gives the empty clause.
 
-That is three resolution steps.
+That is three resolution steps. In the formal system, where the pivot
+literal must come first, each step is preceded by weakening steps that
+reorder the literals.
 
 **Proof systems.** If `P` is polynomially bounded, then UNSAT is exactly
 the set of formulas having an accepted proof of length at most
@@ -184,13 +187,16 @@ What is **not** formalized:
   resolution, cutting planes, bounded-depth Frege and several algebraic
   systems. No superpolynomial lower bound is known for Frege or extended
   Frege systems.
-* **Barriers.** Lower bounds for strong proof systems face barriers
+* **Barriers.** Lower bounds for strong proof systems face obstacles
   analogous to those for circuits. Known lower-bound methods for a proof
-  system typically come from circuit lower bounds for the corresponding
-  circuit class (feasible interpolation, restriction methods). For Frege
-  and extended Frege these would need circuit lower bounds for classes
-  such as `NC¹` and `P/poly`, which are blocked by natural proofs
-  arguments. Relativization is not the relevant barrier here.
+  system often rest on circuit lower bounds for a corresponding circuit
+  class (feasible interpolation, restriction methods). Feasible
+  interpolation is known to fail for extended Frege and for Frege under
+  cryptographic assumptions (Krajíček–Pudlák 1998; Bonet–Pitassi–Raz
+  2000). Lower bounds for Frege and extended Frege are widely expected to
+  be at least as hard as circuit lower bounds for classes such as `NC¹`
+  and `P/poly`, but this is a heuristic analogy, not a proved barrier
+  theorem. Relativization is not the relevant barrier here.
 
 ## 7. Failure modes this idea catches
 

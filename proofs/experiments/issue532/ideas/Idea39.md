@@ -3,14 +3,17 @@
 **Verdict:** Correct tool, insufficient alone (general theorem proved)
 
 In the Cook–Reckhow program, `NP ≠ coNP` (and hence `P ≠ NP`) would follow from
-superpolynomial proof-size lower bounds for **every** propositional proof system.
+superpolynomial proof-size lower bounds for **every** propositional proof system
+(by the Cook–Reckhow theorem, cited, not formalized).
 The files prove the tools of that program in general form. Lower bounds transfer
 downward along p-simulation with an explicitly composed polynomial, short proofs
 transfer upward, and p-simulation is a preorder. They also prove that a lower
 bound for one system, however strong, says nothing about systems that are not
 p-simulated by it: a general countermodel has a weak system with a
 superpolynomial lower bound and a strong system with linear-size proofs. This
-refutes the inference "resolution lower bounds imply `NP ≠ coNP`".
+refutes the inference "resolution lower bounds imply `NP ≠ coNP`" as a general
+step. The countermodel systems are abstract (polynomial-time checkability is not
+modelled), and Buss's pigeonhole result below is a concrete instance.
 
 ## 1. The idea at full strength
 
@@ -52,7 +55,7 @@ whose steps compose correctly only along p-simulations.
 
 | Theorem | Informal statement | Lean | Rocq |
 | --- | --- | --- | --- |
-| `tested` | a weak system with no proofs sits inside a strong one with a proof | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `tested` | small illustration kept from an earlier round (not a main result): a predicate on `Bool` that is never true is contained in one that is sometimes true | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `poly_mono` | polynomial bounds are monotone | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `poly_comp_bound` | `q(p(n)) ≤ (comp q p)(n)` | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `superpoly_not_bounded` | a superpolynomial lower bound rules out every polynomial bound | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
@@ -144,8 +147,9 @@ a lower bound for the top system gives lower bounds for everything below
 for ever stronger systems, and each new lower bound supersedes the old ones.
 
 **Why it is insufficient alone.** The obligation `SuperpolyAllSystems` quantifies
-over **all** Cook–Reckhow systems. By Cook–Reckhow it is equivalent to
-`NP ≠ coNP`, which implies `P ≠ NP` but is not known to follow from it.
+over **all** systems in a class `C`. For `C` the class of all Cook–Reckhow
+systems (not modelled formally), it is equivalent to `NP ≠ coNP` by the
+Cook–Reckhow theorem (cited, not formalized), which implies `P ≠ NP` but is not known to follow from it.
 `optimal_system_reduces` shows the obligation would collapse to a single lower
 bound if an optimal system existed, but that existence is itself open
 (Krajíček–Pudlák). Without it, each lower bound covers only the systems it
@@ -156,8 +160,9 @@ formally.
 cutting planes and bounded-depth Frege, but not for Frege. Frege lower bounds
 are expected to face obstacles related to circuit lower bounds (Frege proofs
 manipulate formulas, i.e. `NC^1` circuits), so the program meets the same
-barriers as circuit complexity. The obligation is therefore at least as hard as
-`NP ≠ coNP`, and in fact equivalent to it.
+barriers as circuit complexity. For the class of all Cook–Reckhow systems the
+obligation is equivalent to `NP ≠ coNP` (Cook–Reckhow, cited, not formalized), so
+it is exactly as hard as that open problem.
 
 ## 7. Failure modes this idea catches
 

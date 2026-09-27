@@ -10,8 +10,10 @@ refuted, in general and formally, as a polynomial-time method. The files also
 prove that the idea cannot be run in the other direction. An exponential
 enumeration count is not a lower bound for the problem, because another
 algorithm may avoid enumeration entirely. The real lower-bound statement,
-`AllAlgorithmsSuperpolynomial`, is only defined here. It is equivalent to
-P != NP when instantiated with polynomial-time machines for SAT.
+`AllAlgorithmsSuperpolynomial`, is only defined here. Instantiated with
+deterministic machines deciding SAT and their running times, it states
+SAT ∉ P, which is equivalent to P != NP by the Cook–Levin theorem (cited, not
+formalized).
 
 ## 1. The idea at full strength
 
@@ -152,8 +154,8 @@ polynomials.
   algorithm, again strictly better than `2^n`.
 * R. Impagliazzo and R. Paturi, "On the complexity of k-SAT", *Journal of
   Computer and System Sciences* 62(2) (2001). The Exponential Time
-  Hypothesis. It is a conjecture, not a theorem, and it is strictly stronger
-  than P != NP.
+  Hypothesis. It is a conjecture, not a theorem. It implies P != NP; the
+  converse implication is not known.
 * T. Baker, J. Gill, R. Solovay, "Relativizations of the P =? NP question",
   *SIAM Journal on Computing* 4(4) (1975). Oracles relative to which P = NP
   and P != NP.
@@ -165,8 +167,8 @@ counting and growth facts of Section 3 are machine-checked.
 
 * **Full potential.** The idea yields an exact, formal refutation of every
   algorithm whose cost is at least the number of candidates it examines,
-  whenever it examines them all. The same growth theorem is reused in Idea 20
-  to show that polynomially many processors cannot hide `2^n` work.
+  whenever it examines them all. The same growth theorem is proved again in the
+  Idea 20 files to show that polynomially many processors cannot hide `2^n` work.
 * **Remaining obligation.** `AllAlgorithmsSuperpolynomial M`, with `M` the
   class of deterministic polynomial-time machines deciding SAT under a fixed
   encoding (for example `Complexity.ClassP` in

@@ -96,8 +96,9 @@ and `size f + 1 ≤ 2^(depth f + 1)`, then `c(log₂ n + 1) < depth f + 1`, so
 `c(log₂ n + 1) ≤ depth f`. The converse (small size ⇒ small depth) is
 Spira's balancing theorem, which is not formalized here. With it the two
 obligations are equivalent up to constants. Also, a circuit (DAG) of depth
-`d` unfolds into a formula of depth `d`, hence of size `< 2^(d+1)`, so
-depth lower bounds for circuits and for formulas coincide.
+`d` (fan-in 2) unfolds into a formula of depth `d`, hence of size
+`< 2^(d+1)`, so depth lower bounds for circuits and for formulas coincide
+(circuits are not formalized here; this remark is informal).
 
 **Why this is insufficient alone.** Polynomial-size formulas correspond to
 non-uniform NC¹ (depth `O(log n)`, fan-in 2). A superlogarithmic depth
@@ -145,11 +146,12 @@ is far beyond current techniques.
 * **Refuted (general):** "a deep formula for `g` shows that `g` needs depth"
   and "equal size implies equal depth" (`same_function_different_depth`).
 * **Exact remaining obligation:** `DepthLB fam` (equivalently, via Spira,
-  `FormulaSizeLB fam`) for an explicit family `fam` in NP. This is open. The
+  `FormulaSizeLB fam`; only the direction `FormulaSizeLB ⇒ DepthLB` is
+  formalized) for an explicit family `fam` in NP. This is open. The
   best known explicit bound is about `3 log₂ n`. Even if proved, the result
   would be NP ⊄ NC¹, not P ≠ NP. P ≠ NP by circuit methods needs lower
   bounds against polynomial-size circuits of unbounded depth
-  (`NP ⊄ P/poly`), a strictly harder target than formulas.
+  (`NP ⊄ P/poly`), a stronger statement than a formula lower bound.
 * **Barrier:** natural-proofs arguments (Razborov–Rudich; see
   [Idea 10](Idea10.md)) apply to formula lower bounds as well, under
   standard cryptographic assumptions.

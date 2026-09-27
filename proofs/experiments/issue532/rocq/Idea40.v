@@ -261,5 +261,25 @@ Proof.
     + apply additive_poly_closed.
 Qed.
 
+(* Explicit solver bound: for any data meeting the conditions of AdditiveSelfReduction,
+   the specific solver run base step (size I) is correct and its cost runCost is at most
+   (c + a) * (size I + 1) ^ (k + 1). *)
+Theorem self_reduction_solver_bound {Inst : Type} (size : Inst -> nat)
+    (answer base : Inst -> bool) (step : Inst -> Inst) (baseCost stepCost : Inst -> nat)
+    (c a k : nat) :
+  (forall I, size I = 0 -> base I = answer I) -> (forall I, baseCost I <= c) ->
+  (forall I n, size I = n + 1 -> size (step I) = n /\ answer (step I) = answer I) ->
+  (forall I, stepCost I <= a * (size I + 1) ^ k) ->
+  forall I, run base step (size I) I = answer I /\
+    runCost baseCost stepCost step (size I) I <= (c + a) * (size I + 1) ^ (k + 1).
+Proof.
+  intros Hbase Hbc Hstep Hcost I. split.
+  - apply (run_correct size answer base step Hbase Hstep (size I) I). reflexivity.
+  - apply Nat.le_trans with (c + size I * (a * (size I + 1) ^ k)).
+    + apply (runCost_bound size step baseCost stepCost c a k); auto.
+      intros I' n H. apply (Hstep I' n H).
+    + apply additive_poly_closed.
+Qed.
+
 Example branchCost_check : branchCost (fun _ => 0) 5 = 32.
 Proof. reflexivity. Qed.

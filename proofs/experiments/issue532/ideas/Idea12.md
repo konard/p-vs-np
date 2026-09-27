@@ -1,6 +1,6 @@
 # Idea 12 — Reduction verification
 
-**Verdict:** Correct tool, insufficient alone (general theorem proved). Many-one reductions are exactly the right instrument for moving algorithms and hardness between problems, and this is proved in general: correctness transfers (`decider_transfer`), polynomial deciders pull back along polynomial reductions and polynomial reductions compose, both with explicit constants (`poly_decider_transfer`, `poly_reduction_comp`), and hardness pushes forward (`hardness_transfer`). The same general theorems show why reductions cannot settle P vs NP by themselves and catch the recurring "invalid reduction" error: constant or one-directional maps are never reductions from a nontrivial language (`const_not_reduction`, `yes_preserving_not_sufficient`), and without cost bounds every language reduces to every nontrivial one (`reduces_to_any_nontrivial`).
+**Verdict:** Correct tool, insufficient alone (general theorem proved). Many-one reductions are exactly the right instrument for moving algorithms and hardness between problems, and this is proved in general: correctness transfers (`decider_transfer`), polynomial deciders pull back along polynomial reductions and polynomial reductions compose, both with explicit constants (`poly_decider_transfer`, `poly_reduction_comp`), and hardness pushes forward (`hardness_transfer`). These cost statements are proved in an abstract model where an algorithm's running time is a given function not tied to any machine (see Section 2), so they are bookkeeping lemmas about how bounds compose; connecting them to P and NP requires a concrete machine model, which is not done here. The same general theorems show why reductions cannot settle P vs NP by themselves and catch the recurring "invalid reduction" error: constant maps are never reductions from a nontrivial language, and a yes-to-yes check alone accepts such maps (`const_not_reduction`, `yes_preserving_not_sufficient`), and without cost bounds every language reduces to every nontrivial one (`reduces_to_any_nontrivial`).
 
 ## 1. The idea at full strength
 
@@ -41,6 +41,13 @@ given by `sz : α → ℕ`.
   must be stated, and forgetting it is the classic encoding-size mistake.
 * Composition of algorithms runs the first, then the second on its output,
   and adds the running times.
+* Caveat: `time` is an arbitrary field, not derived from executing `run` on a
+  machine. In this abstract model `PolyDecider sz L` therefore holds for
+  every `L` (take `run = L` and `time = 0`; not stated as a theorem), so the
+  hypothesis `¬ PolyDecider` of `hardness_transfer` can never be met here.
+  The theorems are valid for any cost semantics that adds running times
+  under composition; the P vs NP reading needs them instantiated with a real
+  machine model (for example Idea 01's), which these files do not do.
 
 **Claims under test.** (a) A map that sends yes-instances to yes-instances
 is a reduction. (b) "`M` reduces to SAT, so `M` is hard." (c) A polynomial
@@ -142,8 +149,11 @@ in the other direction (`M` to SAT) proves nothing about `M`.
   and cost-free reductions as evidence of hardness.
 * **Exact remaining obligation:** a proof of P = NP by this route needs a
   single object, a `PolyReduction` from SAT to some `M` together with
-  `PolyDecider M`. By `poly_decider_transfer` this is equivalent to
-  `PolyDecider` for SAT, i.e. P = NP itself; the reduction contributes no
+  `PolyDecider M`. In a real machine model, `poly_decider_transfer` shows
+  this implies a polynomial decider for SAT, and conversely (take `M` = SAT
+  and the identity reduction); by the cited Cook–Levin theorem that is
+  P = NP itself (the machine-model instantiation and Cook–Levin are not
+  formalized here). The reduction contributes no
   progress unless `M` is already known to be in P. Symmetrically, a proof of
   P ≠ NP needs `¬ PolyDecider` for some NP problem, which reductions can
   then spread (`hardness_transfer`) but not create.
@@ -161,7 +171,9 @@ in the other direction (`M` to SAT) proves nothing about `M`.
   output-size bound; an exponential blow-up (for example, expanding a
   formula into its truth table) destroys `poly_decider_transfer`.
 * **Wrong direction** (family 5): reducing a problem *to* SAT, or reducing
-  an easy special case, proves nothing (`reduces_to_any_nontrivial`).
+  an easy special case, proves nothing about its hardness; without cost
+  bounds every language reduces to every nontrivial one
+  (`reduces_to_any_nontrivial`).
 * **Hidden exponential work** (family 2): a reduction that decides the
   source instance internally is correct but not polynomial.
 * **Circularity** (family 12): assuming the target is in P when the target

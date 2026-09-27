@@ -9,7 +9,10 @@ polynomial) gives a polynomial bound, and that multiplicative growth
 (`T(n+1) ≥ 2 T(n)`, i.e. two recursive calls) gives at least `2^n`, which beats
 every polynomial. A self-reduction for SAT with one recursive call of the same
 answer and polynomial step cost would be a polynomial-time SAT algorithm. That
-obligation is stated precisely and is equivalent to the original problem.
+obligation is stated precisely. With honest machine costs and Cook–Levin (both
+cited, not formalized) it is equivalent to P = NP. The formal definition uses
+abstract costs and does not require `step` to be computable, so formally it is
+only the cost-accounting skeleton of that obligation.
 
 ## 1. The idea at full strength
 
@@ -21,7 +24,7 @@ A frequent pattern in claimed polynomial SAT algorithms:
 3. conclude correctness for all `n`, and claim that the running time is
    polynomial "because each step is polynomial".
 
-Steps 1–2 are sound (`tested` is the induction principle). Step 3 is the
+Steps 1–2 are sound (`tested` is a restatement of natural-number induction). Step 3 is the
 problem: it is valid only if the step from `n+1` to `n` makes **one** recursive
 call. The obvious elimination, trying `x = 0` and `x = 1`, makes two calls. At
 full strength, the idea asks for a size-reducing step that keeps the answer and
@@ -46,11 +49,18 @@ makes one call. That is exactly an additive-cost self-reduction.
   - `step` maps size `n+1` to size `n` and preserves `answer`;
   - `stepCost I ≤ a · (size I + 1)^k`.
 
+  The costs are abstract numbers. Nothing ties `stepCost` to the work needed to
+  compute `step`, and `step` need not be computable. Without that link the
+  formal definition can be met for SAT by a non-computable `step` (map `I` to a
+  fixed size-`n` instance with the same answer, at cost `0`). The link to
+  polynomial time is the unformalized requirement that `base` and `step` run
+  within the stated costs on a real machine.
+
 ## 3. What is machine-checked
 
 | Theorem | Informal statement | Lean | Rocq |
 | --- | --- | --- | --- |
-| `tested` | induction principle for correctness invariants | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `tested` | small illustration kept from an earlier round (not a main result): the natural-number induction principle, restated | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
 | `additive_bound` | `T 0 ≤ c`, `T(n+1) ≤ T n + q n`, `q` monotone give `T n ≤ c + n · q n` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
 | `additive_poly_closed` | `c + n · a(n+1)^k ≤ (c+a)(n+1)^(k+1)` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
 | `additive_poly` | additive polynomial steps give `T n ≤ (c+a)(n+1)^(k+1)` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
@@ -63,7 +73,8 @@ makes one call. That is exactly an additive-cost self-reduction.
 | `branchCost_exponential` | two recursive calls cost at least `2^n`, whatever the overhead | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
 | `run_correct` | a same-answer size-reducing step plus a correct base give a correct solver | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
 | `runCost_bound` | with `baseCost ≤ c` and polynomial step cost, `runCost ≤ c + n · a(n+1)^k` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
-| `obligation_gives_poly_solver` | `AdditiveSelfReduction` gives a correct solver of cost `≤ c'(size+1)^k'` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `obligation_gives_poly_solver` | `AdditiveSelfReduction` gives a correct solver of cost `≤ c'(size+1)^k'` (the statement quantifies existentially over `solve` and `cost`, so on its own it is weak; the proof uses `run` and `runCost`, and the next row states this explicitly) |
+| `self_reduction_solver_bound` | for any `base`, `step`, `baseCost`, `stepCost` meeting the obligation's conditions, `run base step (size I) I = answer I` and `runCost … ≤ (c+a)(size I + 1)^(k+1)` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
 
 Helper lemmas `succ_le_two_pow`, `lt_two_pow_self`, `linear_lt_exp` and
 `dyadic_bracket` are proved in both files. The definitions `branchCost`, `run`,
@@ -103,7 +114,8 @@ answer, induction on `n` shows `run base step n I = answer I` whenever
 instance-wise: `runCost (n+1) I = stepCost I + runCost n (step I)`, with
 `stepCost I ≤ a(n+2)^k`. The additive argument therefore gives
 `runCost ≤ c + n·a(n+1)^k` (`runCost_bound`), and `additive_poly_closed` turns this
-into `(c+a)(size+1)^(k+1)` (`obligation_gives_poly_solver`).
+into `(c+a)(size+1)^(k+1)` (`self_reduction_solver_bound`,
+`obligation_gives_poly_solver`).
 
 **Where SAT stands.** The standard self-reduction of SAT, `φ ↦ φ[x:=0], φ[x:=1]`,
 reduces the number of variables by one and preserves the answer as a
@@ -124,7 +136,9 @@ problem on one fewer variable.
 - SAT is self-reducible, and search reduces to decision. With a polynomial-time
   decision procedure for SAT, `step` can pick a branch preserving
   satisfiability. So `AdditiveSelfReduction` for SAT (with polynomial-time
-  computable `base` and `step`) holds if and only if P = NP. This is standard;
+  computable `base` and `step`, and for 3-SAT with duplicate-free clauses so that
+  formula length is polynomial in the number of variables) holds if and only if
+  P = NP, using Cook–Levin for the forward direction. This is standard;
   see S. Arora and B. Barak, *Computational Complexity: A Modern Approach*,
   Cambridge University Press, 2009. The equivalence is not formalized, since the
   files use abstract costs, not machines.
@@ -144,9 +158,11 @@ proving the additive recurrence.
 
 **The obligation.** `AdditiveSelfReduction` for SAT, with `base` and `step`
 computable in the stated polynomial time, gives a polynomial-time SAT algorithm
-(`obligation_gives_poly_solver`), hence P = NP. Conversely, if P = NP then SAT
-has such a step, by search-to-decision. So the obligation is **equivalent** to
-P = NP. It is a reformulation, not a relaxation.
+(`obligation_gives_poly_solver`), hence P = NP by Cook–Levin. Conversely, if
+P = NP then SAT has such a step, by search-to-decision. So the obligation, read
+with honest polynomial-time costs, is **equivalent** to P = NP. That reading and
+both directions of the equivalence are cited, not formalized. The formal
+`AdditiveSelfReduction` has abstract costs (Section 2). It is a reformulation, not a relaxation.
 
 **Why it is hard.** A same-answer step on SAT must decide, in polynomial time,
 which value of a variable preserves satisfiability. That is the decision problem

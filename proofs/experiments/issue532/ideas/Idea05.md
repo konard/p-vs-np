@@ -8,8 +8,9 @@ optimum. This is machine-checked (`greedy_ratio_unbounded`), so no bound on
 greedy's error holds over all instances. The positive side is also
 machine-checked: greedy is exact when every option forces the same
 continuation cost, and when the decisions are independent (one element per
-group, a partition matroid). These are exactly the situations with no
-interaction between choices, and NP-hard problems are not like that.
+group, a partition matroid). In both proved cases the choices do not interact;
+in NP-hard problems they generally do. The formal refutation concerns the rule
+"take the visibly cheapest option", not every conceivable greedy-style rule.
 
 ## 1. The idea at full strength
 
@@ -141,9 +142,11 @@ NP-complete optimization problem" is refuted in its universal form by
 `greedy_ratio_unbounded`, and in its approximate form for general TSP by
 Sahni–Gonzalez (conditional on P ≠ NP). A new, more powerful "greedy"
 would have to choose each step using information about the whole future (the
-`rest` component). Computing that information *is* the optimization problem.
-The obligation then collapses to Idea 01's `PolySATDecider` (a polynomial SAT
-decider, equivalent to P = NP), so no separate `def` is introduced here.
+`rest` component). Computing that information is, in general, as hard as the
+optimization problem itself. For an NP-complete problem the obligation then
+becomes Idea 01's `PolySATDecider` (a polynomial SAT decider, equivalent to
+P = NP by the cited Cook–Levin theorem), so no separate `def` is introduced
+here.
 
 **Barriers.** Inapproximability results (Sahni–Gonzalez, and later
 PCP-based bounds) mean that for many NP-hard problems even approximate greedy
