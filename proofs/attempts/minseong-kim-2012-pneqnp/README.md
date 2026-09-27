@@ -65,7 +65,7 @@ The refutation is straightforward:
 
 Our formalization approach demonstrates the error by:
 
-1. **Explicitly showing the claim of ZFC inconsistency as an axiom (not a proven theorem)**
+1. **Keeping the claimed ZFC inconsistency as an explicit premise, not a global axiom**
 2. **Demonstrating that from an inconsistent system, both P=NP and P≠NP can be "proven"**
 3. **Highlighting that such "proofs" are vacuous and meaningless**
 

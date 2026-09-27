@@ -1,143 +1,30 @@
-# Refutation: Plotnikov 2007
+# Audit of Plotnikov's 2007 P = NP Attempt
 
-This directory contains formal refutations demonstrating why Plotnikov's 2007 P=NP attempt fails.
+The [Lean](lean/PlotnikovRefutation.lean) and [Rocq](rocq/PlotnikovRefutation.v) files audit the logical claims made by the earlier refutation. They do not prove that Plotnikov's algorithm fails.
 
-## Contents
+## What the paper claims
 
-- `lean/PlotnikovRefutation.lean` - Lean 4 refutation
-- `rocq/PlotnikovRefutation.v` - Rocq refutation
+Conjecture 1 says that, for a vertex-saturated digraph whose initial independent set is smaller than another independent set, a fictitious arc can be found whose removal has the specified size property. Theorem 5 on page 9 states that **if Conjecture 1 is true**, the proposed algorithm finds a maximum independent set. The paper reports tests on random graphs but gives no proof of Conjecture 1.
 
-## The Fatal Flaw
+The formalizations represent a VS-digraph and its initial set by an abstract `VSInstance`. The `validInstance` predicate restricts the conjecture to instances actually produced by the paper's construction; its definition remains open. `Conjecture1` says that when such an instance has a larger independent set, some fictitious arc leaves an induced set of size at least `|V⁰| − 1`. `AlgorithmCorrect` says the proposed algorithm finds a maximum independent set for every input in the paper's graph class. `correctness_if_conjecture` takes both Conjecture 1 and the Theorem 5 implication as premises. Neither premise is asserted as a fact.
 
-Plotnikov's algorithm for the Maximum Independent Set Problem (MISP) **depends on an unproven Conjecture 1**, making the P = NP claim invalid.
+These predicates are still abstract. A full formal verification would need graph definitions, an implementation of the algorithm, a proof that the predicates express its behavior, and proofs of the premises. Compilation of these files establishes only the stated conditional logic.
 
-## Key Refutation Points
+## Corrections to the earlier refutation
 
-### 1. Conditional Correctness (The Main Error)
+- `P → P` is a valid identity implication. It cannot yield `P` without another premise; `identity_does_not_establish_claim` gives the precise logical statement. The former `circular_reasoning_error` axiom instead negated a theorem and entailed `False`.
+- From `Conjecture1 → AlgorithmCorrect`, failure to prove Conjecture 1 does **not** imply `¬AlgorithmCorrect`. The former universal `algorithm_requires_conjecture` axiom also implied `False` for unrelated propositions.
+- The old Dilworth axiom asserted that a cubic function was not polynomial. Both files now prove `cubic_is_polynomial`. A minimum chain partition of a finite poset can be computed using polynomial-time matching; the graph-to-poset correspondence and full algorithm still require justification.
+- The former complexity axiom inferred failure of an O(n⁸) bound from `¬Conjecture1`. Correctness and running time are distinct. `polynomial_time_if_bound` requires an actual bound on the running-time function.
+- The former NP-completeness axiom implied any proposition from arbitrary propositions. The standard consequence of a polynomial exact maximum-independent-set algorithm needs a correctly specified algorithm and reduction; those are outside this abstraction.
 
-**From the paper (Theorem 5, page 9):**
+## Remaining obligations
 
-> "**If the conjecture 1 is true** then the stated algorithm finds a MMIS of the graph G ∈ Lₙ."
+1. Define the paper's VS-digraph, fictitious-arc removal, and maximum-independent-set algorithm precisely.
+2. Prove Conjecture 1 or find a counterexample.
+3. Prove Theorem 5 for the implemented algorithm, using precisely stated assumptions.
+4. Prove the claimed O(n⁸) running-time bound, including all iterations and arc tests.
 
-**What this means:**
-- The algorithm's correctness is CONDITIONAL on Conjecture 1
-- Conjecture 1 is stated but NEVER PROVEN in the paper
-- Without proving Conjecture 1, correctness is NOT established
-- Therefore, the P = NP claim is INVALID
+The observed gap means the paper does not establish P = NP. It does not prove P ≠ NP, a counterexample to Conjecture 1, or an impossibility result for the proposed algorithm.
 
-**Formalized as:**
-```
-algorithm_requires_conjecture :
-  ∀ (AlgorithmCorrect Conjecture1 : Prop),
-    (Conjecture1 → AlgorithmCorrect) ∧
-    (¬ Conjecture1 → ¬ AlgorithmCorrect)
-```
-
-### 2. Empirical Testing Is Not Proof
-
-**The author's defense (page 9):**
-
-> "The pascal-programs were written for the proposed algorithm. Long testing the program for random graphs has shown that the algorithm runs stably and correctly."
-
-**Why this fails:**
-- Testing on random instances ≠ mathematical proof
-- Counterexamples may exist outside the tested cases
-- Mathematical claims require rigorous proof
-- No amount of empirical validation replaces formal proof
-
-**Formalized as:**
-```
-empirical_testing_insufficient :
-  ¬ (∀ Conjecture, (∃ test_cases, ...) → Conjecture)
-```
-
-### 3. Circular Reasoning
-
-The paper assumes the algorithm works correctly to derive properties that would make it work correctly. This is circular:
-
-1. Algorithm works correctly → finds MMIS
-2. Finds MMIS → Conjecture 1 must be true
-3. Conjecture 1 true → Algorithm works correctly
-
-This circular dependency invalidates the proof.
-
-### 4. Unproven Conjecture 1
-
-**The Conjecture (page 9):**
-
-> "Let a saturated digraph G⃗(V⁰) has an independent set U ⊂ V such that Card(U) > Card(V⁰). Then it will be found a fictitious arc vᵢ ≫ vⱼ such that in the digraph G⃗(Z⁰), induced by removing this arc, the relation Card(Z⁰) ≥ Card(V⁰) - 1 is satisfied."
-
-**Issues:**
-- No proof provided
-- No attempt to prove it
-- No discussion of whether it's provable
-- Essential to the algorithm's correctness
-
-## Additional Refutation Points
-
-### Issue 1: Dilworth's Theorem Application
-
-**Problem**: Finding minimum chain partitions (MCP) is computationally hard
-
-While Dilworth's Theorem guarantees existence of MCP, **computing it efficiently is non-trivial**:
-- The Ford-Fulkerson correspondence requires careful justification
-- Poset structure from graphs needs rigorous proof
-- Efficiency claims are unverified
-
-### Issue 2: Complexity Analysis Flaws
-
-The O(n⁸) bound (Theorem 6) assumes:
-- Exactly O(n) iterations needed (depends on Conjecture 1)
-- Each iteration improves by 1 (unproven)
-- No exponential blowup in special cases (assumed)
-
-Without Conjecture 1, these assumptions collapse.
-
-### Issue 3: MISP Remains NP-Complete
-
-**Why polynomial-time MISP is hard:**
-- Karp's 21 NP-complete problems (1972)
-- Inapproximable within n^(1-ε) unless P=NP
-- Decades of failed attempts
-- Best known: exponential-time exact algorithms O(1.2^n)
-
-## Why This Matters
-
-If Plotnikov's algorithm were correct:
-1. MISP would be solvable in polynomial time
-2. Since MISP is NP-complete, P = NP would follow
-3. This would win the $1 million Clay Millennium Prize
-4. It would revolutionize computer science
-
-**Reality:**
-- The algorithm's correctness is not proven
-- The proof depends on an unproven conjecture
-- The claim remains unverified by the scientific community
-- No rigorous proof exists
-
-## The Formalizations
-
-Both Lean and Rocq formalizations demonstrate:
-
-1. **Conjecture Dependency**: Algorithm correctness requires Conjecture 1
-2. **Unproven Status**: Conjecture 1 is never proven
-3. **Empirical Insufficiency**: Testing ≠ proof
-4. **Invalid Conclusion**: P = NP claim is not established
-
-## Conclusion
-
-Plotnikov's 2007 attempt fails because:
-
-1. ✗ **Algorithm correctness depends on unproven Conjecture 1**
-2. ✗ **Conjecture 1 is stated but never proven**
-3. ✗ **Empirical testing cannot replace mathematical proof**
-4. ✗ **Circular reasoning in the argument structure**
-5. ✗ **Complexity analysis assumes unverified properties**
-
-**Result**: The claim that P = NP is **NOT established**.
-
-## See Also
-
-- [`../README.md`](../README.md) - Overview of the attempt
-- [`../ORIGINAL.md`](../ORIGINAL.md) - Original paper content
-- [`../proof/README.md`](../proof/README.md) - Forward formalization attempt
+See the [attempt overview](../README.md), [source reconstruction](../ORIGINAL.md), and [forward proof sketch](../proof/README.md).

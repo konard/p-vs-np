@@ -4,11 +4,25 @@ This document groups the proof attempts cataloged in this directory by recurring
 errors. It is meant to be read next to [ATTEMPTS.md](ATTEMPTS.md): that file is
 the chronological/catalog view, while this file is the "what not to repeat" view.
 
-The groupings below are based on the local attempt READMEs, refutation notes,
-and error analyses. An attempt may appear in more than one group when its notes
-identify more than one failure mode. The coverage index at the end assigns each
-attempt folder to one primary error family so every documented local attempt can
-be found from this file.
+The groupings below are based on local attempt READMEs, refutation notes,
+and error analyses. They are hypotheses about failure modes, not themselves
+proofs that a historical argument is false. An attempt may appear in more than
+one group. The coverage index assigns each folder a primary family and an
+evidence level. A theorem about a simplified model, an admitted claim, or an
+arithmetic illustration does not automatically refute the paper.
+
+Evidence levels in the index are:
+
+- **Concrete refutation:** a verified witness falsifies a stated proposition
+  under the original input conditions.
+- **Conditional result:** a verified result depends on an explicitly stated
+  interpretation or additional premise; the paper's full claim remains open.
+- **Identified gap:** a specific missing implication or proof obligation has
+  been isolated, without a full counterexample to the algorithm.
+- **Informal/unverified analysis:** the local notes suggest an error, but this
+  index has not audited a source-level proposition and matching witness.
+
+The levels describe the evidence linked here, not the truth of P versus NP.
 
 ## Error Families
 
@@ -378,124 +392,126 @@ Similar works:
 
 ## Attempt Coverage Index
 
-Each row gives the primary error family for the local attempt folder. Use the
-individual attempt README or refutation notes for the detailed argument.
+Each row gives the primary suspected error family and the evidence level
+established by this repository. Entries without a source-to-statement audit
+are conservatively marked informal/unverified; consult the individual attempt
+README and original paper before treating a proposed error as established.
 
-| Attempt | Primary common error |
-| --- | --- |
-| [alan-feinstein-2005-pneqnp](alan-feinstein-2005-pneqnp/) | Lower bound assumed from a restricted algorithm family |
-| [alan-feinstein-2011-pneqnp](alan-feinstein-2011-pneqnp/) | Lower bound assumed from an exponential upper bound |
-| [amar-mukherjee-2011-peqnp](amar-mukherjee-2011-peqnp/) | Withdrawn/incomplete claimed 3-SAT algorithm; likely hidden exponential or correctness gap |
-| [anatoly-panyukov-2014-peqnp](anatoly-panyukov-2014-peqnp/) | LP relaxation assumed to have integer optimum |
-| [anatoly-plotnikov-2007-peqnp](anatoly-plotnikov-2007-peqnp/) | Conditional theorem and nonconstructive graph/poset conversion used as algorithm |
-| [anatoly-plotnikov-2011-pneqnp](anatoly-plotnikov-2011-pneqnp/) | Invalid diagonalization and circular construction |
-| [andrea-bianchini-2005-peqnp](andrea-bianchini-2005-peqnp/) | Encoding and reduction do not preserve the hard problem correctly |
-| [angela-weiss-2011-peqnp](angela-weiss-2011-peqnp/) | Hidden exponential tableau/macro enumeration |
-| [antano-maknickas-2011-peqnp](antano-maknickas-2011-peqnp/) | LP relaxation and rounding do not preserve SAT |
-| [ari-blinder-2009-pneqnp](ari-blinder-2009-pneqnp/) | Unproven NP vs co-NP style claim equivalent to the hard part |
-| [arto-annila-2009-pneqnp](arto-annila-2009-pneqnp/) | Informal physical/thermodynamic reasoning without formal lower bound |
-| [author104-2015-peqnp](author104-2015-peqnp/) | Type mismatch and incorrect completeness argument |
-| [author11-2004-peqnp](author11-2004-peqnp/) | Exponential physical hardware hidden behind polynomial time |
-| [author12-2004-pneqnp](author12-2004-pneqnp/) | Provability and decidability confused with complexity |
-| [author13-2004-pneqnp](author13-2004-pneqnp/) | Unproven hardness assumption and missing NP-completeness proof |
-| [author15-2004-pneqnp](author15-2004-pneqnp/) | Undefined invariance principle and circular separation claim |
-| [author2-1996-peqnp](author2-1996-peqnp/) | Graph-to-poset conversion loses information; hidden exponential gap |
-| [author4-2000-peqnp](author4-2000-peqnp/) | Insufficient rigor and unsupported P=NP claim |
-| [author7-2003-peqnp](author7-2003-peqnp/) | Facet/linear-ordering approach lacks valid polynomial exact algorithm |
-| [author8-2003-pneqnp](author8-2003-pneqnp/) | Empirical/temporal fallacy and problem-class confusion |
-| [author93-2013-peqnp](author93-2013-peqnp/) | LP/ILP conflation |
-| [bangyan-wen-yi-lin-2010-pneqnp](bangyan-wen-yi-lin-2010-pneqnp/) | Logical asymmetry does not imply a complexity lower bound |
-| [bhupinder-singh-anand-2008-pneqnp](bhupinder-singh-anand-2008-pneqnp/) | Category confusion between computability/provability and P vs NP |
-| [carlos-barron-romero-2010-euclidean-tsp-gap-pneqnp](carlos-barron-romero-2010-euclidean-tsp-gap-pneqnp/) | GAP/E2DTSP variant does not yield the claimed P != NP separation |
-| [carlos-barron-romero-2010-pneqnp](carlos-barron-romero-2010-pneqnp/) | Verification complexity misunderstood as NP hardness separation |
-| [changlin-wan-2010-peqnp](changlin-wan-2010-peqnp/) | Computability confused with polynomial-time complexity |
-| [charles-sauerbier-2002-peqnp](charles-sauerbier-2002-peqnp/) | Local/path consistency does not imply satisfiability |
-| [chingizovich-valeyev-2013-pneqnp](chingizovich-valeyev-2013-pneqnp/) | Best-known algorithm treated as a lower bound |
-| [craig-feinstein-2003-pneqnp](craig-feinstein-2003-pneqnp/) | Invalid transfer from one machine/model to all algorithms |
-| [craig-feinstein-2006-pneqnp](craig-feinstein-2006-pneqnp/) | Sparse documented evidence; likely unsupported lower-bound claim |
-| [daegene-song-2014-pneqnp](daegene-song-2014-pneqnp/) | Observer choice and self-reference confused with computational nondeterminism |
-| [daniel-uribe-2016-pneqnp](daniel-uribe-2016-pneqnp/) | Decision-tree/model limitation treated as a general lower bound |
-| [delacorte-czerwinski-2007-peqnppspace](delacorte-czerwinski-2007-peqnppspace/) | Graph-isomorphism algorithm/cospectral reasoning does not prove P=NP/PSPACE |
-| [deolalikar-2010-pneqnp](deolalikar-2010-pneqnp/) | Random-instance/model-theory transfer fails for worst-case P vs NP |
-| [dhami-2014-peqnp](dhami-2014-peqnp/) | Invalid reduction involving clique/network interdiction |
-| [dmitriy-nuriyev-2013-peqnp](dmitriy-nuriyev-2013-peqnp/) | Hamiltonian-path algorithm lacks proof for all instances |
-| [douglas-youvan-2012-peqnp](douglas-youvan-2012-peqnp/) | Heuristic or unsupported algorithmic claim without rigorous proof |
-| [dr-joachim-mertz-2005-peqnp](dr-joachim-mertz-2005-peqnp/) | LP relaxation confused with integer programming |
-| [eli-halylaurin-2016-peqnp](eli-halylaurin-2016-peqnp/) | Gap between claimed verifier/algorithm and NP-complete solving |
-| [figueroa-2016-pneqnp](figueroa-2016-pneqnp/) | Probability argument and one-way-function claim do not prove P != NP |
-| [francesco-capasso-2005-peqnp](francesco-capasso-2005-peqnp/) | Heuristic algorithm not proven correct on all inputs |
-| [frank-vega-delgado-2010-pneqnp](frank-vega-delgado-2010-pneqnp/) | Missing reduction to an undecidable NP language |
-| [frederic-gillet-2013-peqnp](frederic-gillet-2013-peqnp/) | Cost-interference and gate construction flaws |
-| [guohun-zhu-2007-peqnp](guohun-zhu-2007-peqnp/) | Incorrect counting and exponential enumeration |
-| [hamelin-2011-peqnp](hamelin-2011-peqnp/) | Exponential dependence hidden in a claimed polynomial method |
-| [han-xiao-wen-2010-peqnp](han-xiao-wen-2010-peqnp/) | Undefined terminology and oracle/nondeterminism confusion |
-| [hanlin-liu-2014-peqnp](hanlin-liu-2014-peqnp/) | Hamiltonian-circuit algorithm contains an unproven correctness gap |
-| [has-also-2001-pneqnp](has-also-2001-pneqnp/) | EXP subset NP contradicts standard hierarchy consequences |
-| [howard-kleiman-2006-peqnp](howard-kleiman-2006-peqnp/) | Floyd-Warshall shortest-path method solves the wrong problem |
-| [infotechnology-center-2012-pneqnp](infotechnology-center-2012-pneqnp/) | Unsupported complexity inference from informal definitions |
-| [jason-w-steinmetz-2011-peqnp](jason-w-steinmetz-2011-peqnp/) | P=NP algorithm has an unproven critical correctness step |
-| [javaid-aslam-2008-peqnp](javaid-aslam-2008-peqnp/) | Incorrect counting of Hamiltonian circuits |
-| [jeffrey-w-holcomb-2011-pneqnp](jeffrey-w-holcomb-2011-pneqnp/) | Nondeterminism/randomness and witness multiplicity confused |
-| [jerrald-meek-2008-karp-postulates-pneqnp](jerrald-meek-2008-karp-postulates-pneqnp/) | Karp-postulate special cases treated as a general separation |
-| [jerrald-meek-2008-pneqnp](jerrald-meek-2008-pneqnp/) | Invalid asymptotic/lower-bound inferences |
-| [joonmo-kim-2014-pneqnp](joonmo-kim-2014-pneqnp/) | Sparse documented evidence; likely unsupported lower-bound proof |
-| [jorma-jormakka-2008-pneqnp](jorma-jormakka-2008-pneqnp/) | Circular adversarial/non-uniform lower-bound construction |
-| [ki-bong-nam-sh-wang-and-yang-gon-kim-published-2004-pneqnp](ki-bong-nam-sh-wang-and-yang-gon-kim-published-2004-pneqnp/) | Insufficient lower bound |
-| [koji-kobayashi-2011-pneqnp](koji-kobayashi-2011-pneqnp/) | Dependency-relation framework lacks a general lower-bound transfer |
-| [koji-kobayashi-2012-pneqnp](koji-kobayashi-2012-pneqnp/) | Representation complexity confused with decision complexity |
-| [krieger-jones-2008-peqnp](krieger-jones-2008-peqnp/) | Hamiltonian-circuit detector solves an underspecified/different problem |
-| [lev-gordeev-2005-pneqnp](lev-gordeev-2005-pneqnp/) | Circuit-complexity gap does not yield the claimed separation |
-| [lizhi-du-2010-peqnp](lizhi-du-2010-peqnp/) | Incorrect intersection/pruning step in 3-SAT algorithm |
-| [lokman-kolukisa-2005-peqnp](lokman-kolukisa-2005-peqnp/) | Tautology algorithm correctness and formal gap |
-| [louis-coder-2012-peqnp](louis-coder-2012-peqnp/) | Local/global consistency and insufficient encoding |
-| [luigi-salemi-2009-peqnp](luigi-salemi-2009-peqnp/) | Saturation complexity and constructive proof are circular/unproved |
-| [luiz-barbosa-2009-pneqnp](luiz-barbosa-2009-pneqnp/) | Non-uniform circuit argument does not imply P != NP |
-| [mathias-hauptmann-2016-pneqnp](mathias-hauptmann-2016-pneqnp/) | Claimed contradiction is not a contradiction |
-| [matt-groff-2011-peqnp](matt-groff-2011-peqnp/) | Exponential polynomial size and probabilistic confusion |
-| [michael-laplante-2015-peqnp](michael-laplante-2015-peqnp/) | Clique algorithm fails on counterexamples/special structure |
-| [michel-feldmann-2012-peqnp](michel-feldmann-2012-peqnp/) | Missing construction algorithm |
-| [mikhail-katkov-2010-peqnp](mikhail-katkov-2010-peqnp/) | SDP/local optimum does not yield reliable global certificate |
-| [mikhail-kupchik-2004-pneqnp](mikhail-kupchik-2004-pneqnp/) | Sparse documented refutation; unsupported lower-bound claim |
-| [minseong-kim-2012-pneqnp](minseong-kim-2012-pneqnp/) | False premise/logical fallacy |
-| [miron-teplitz-2005-peqnp](miron-teplitz-2005-peqnp/) | Sparse documented evidence; likely unsupported P=NP claim |
-| [mohamed-mimouni-2006-peqnp](mohamed-mimouni-2006-peqnp/) | Clique algorithm works only on special cases or hides exponential work |
-| [moustapha-diaby-2004-peqnp](moustapha-diaby-2004-peqnp/) | LP formulation lacks one-to-one correspondence with TSP tours |
-| [narendra-chaudhari-2009-peqnp](narendra-chaudhari-2009-peqnp/) | Representation change does not reduce 3-SAT complexity |
-| [natalia-malinina-2012-unprovable](natalia-malinina-2012-unprovable/) | Undecidability/independence and self-reference misapplied |
-| [ncada-costa-fa-doria-2003-unprovable](ncada-costa-fa-doria-2003-unprovable/) | Critical independence-proof gap and exotic definitions |
-| [nicholas-argall-2003-undecidable](nicholas-argall-2003-undecidable/) | Formal undecidability error |
-| [peng-cui-2014-peqnp](peng-cui-2014-peqnp/) | Approximation confused with exact solution |
-| [qi-duan-2012-peqnp](qi-duan-2012-peqnp/) | Greedy insertion fallacy |
-| [radoslaw-hofman-2006-pneqnp](radoslaw-hofman-2006-pneqnp/) | Provability/computability confusion and invalid restriction to FOPC transformations |
-| [rafael-valls-hidalgo-gato-2009-peqnp](rafael-valls-hidalgo-gato-2009-peqnp/) | Encoding-complexity barrier and parameter confusion |
-| [rafee-ebrahim-kamouna-2008-peqnp](rafee-ebrahim-kamouna-2008-peqnp/) | Cook theorem/paradox category confusion |
-| [renjit-2006-conpeqnp](renjit-2006-conpeqnp/) | Invalid generalization from one problem to NP vs co-NP |
-| [renjit-grover-2005-pneqnp](renjit-grover-2005-pneqnp/) | Algorithm classification approach lacks universal lower bound |
-| [riaz-khiyal-2006-peqnp](riaz-khiyal-2006-peqnp/) | Greedy/backtracking avoidance uses circular valid-selection conditions |
-| [rodrigo-diduch-2012-pneqnp](rodrigo-diduch-2012-pneqnp/) | Definitions used without lower-bound proof |
-| [roman-yampolskiy-2011-pneqnp](roman-yampolskiy-2011-pneqnp/) | Cryptographic intuition and no-pruning claim do not prove exponential time |
-| [ron-cohen-2005-pneqnp](ron-cohen-2005-pneqnp/) | Nonstandard machine/oracle feature changes the problem |
-| [rubens-ramos-viana-2006-pneqnp](rubens-ramos-viana-2006-pneqnp/) | Quantum/uncomputability category mistake |
-| [ruijia-liao-2011-pneqnp](ruijia-liao-2011-pneqnp/) | Cantor diagonalization does not apply as stated |
-| [sanchez-guinea-2015-peqnp](sanchez-guinea-2015-peqnp/) | Exponential recursion and hidden dependency graph |
-| [satoshi-tazawa-2012-pneqnp](satoshi-tazawa-2012-pneqnp/) | Automorphism-to-lower-bound connection is missing |
-| [sergey-gubin-2006-peqnp](sergey-gubin-2006-peqnp/) | Flawed LP formulation and SAT-to-2SAT reduction |
-| [sergey-gubin-2010-peqnp](sergey-gubin-2010-peqnp/) | Missing integrality proof for ATSP polytope formulation |
-| [sergey-kardash-2011-peqnp](sergey-kardash-2011-peqnp/) | Local consistency and relationship-structure size errors |
-| [sergey_v_yakhontov_2012_peqnp](sergey_v_yakhontov_2012_peqnp/) | TCPE/encoding size problem |
-| [singh-anand-2005-pneqnp](singh-anand-2005-pneqnp/) | Provability/computability confusion |
-| [singh-anand-2006-pneqnp](singh-anand-2006-pneqnp/) | Nonstandard models and provability do not eliminate computation |
-| [stefan-jaeger-2011-both](stefan-jaeger-2011-both/) | Redefined complexity classes yield contradictory/nonstandard claims |
-| [stefan-rass-2016-pneqnp](stefan-rass-2016-pneqnp/) | Encoding mismatch, circular density bounds, and finite/asymptotic gap |
-| [sten-ake-tarnlund-2008-pneqnp](sten-ake-tarnlund-2008-pneqnp/) | Provability/truth confused with complexity |
-| [steven-meyer-2016-peqnp](steven-meyer-2016-peqnp/) | Simulation/model-independence confused with algorithmic content |
-| [tang-pushan-1997-peqnp](tang-pushan-1997-peqnp/) | Reduction preserves an easier problem, not NP-completeness |
-| [ted-swart-1986-87-peqnp](ted-swart-1986-87-peqnp/) | Gap in treating matrix decomposition as a polynomial exact algorithm |
-| [vega-delgado-2012-pneqnp](vega-delgado-2012-pneqnp/) | Invalid implication between P, UP, EXP, and NP |
-| [viktor-ivanov-2005-pneqnp](viktor-ivanov-2005-pneqnp/) | Sparse documented evidence; likely common P != NP proof errors |
-| [vladimir-romanov-2010-peqnp](vladimir-romanov-2010-peqnp/) | Compact-triplets representation hides size/consistency complexity |
-| [xinwen-jiang-2009-peqnp](xinwen-jiang-2009-peqnp/) | Vague MSP definition, wrong problem class, and experimental evidence |
-| [yann-dujardin-2009-peqnp](yann-dujardin-2009-peqnp/) | Rounding step does not preserve exact SAT solution |
-| [yubin-huang-2015-peqnp](yubin-huang-2015-peqnp/) | Invalid reduction and nondeterministic-move elimination gap |
-| [zeilberger-2009-peqnp](zeilberger-2009-peqnp/) | Joke claim; technically uses nonsensical/wrong-way reduction |
-| [zohreh-akbari-2008-peqnp](zohreh-akbari-2008-peqnp/) | Clique algorithm handles special cases or hides exponential gap |
+| Attempt | Primary suspected error or obligation | Evidence level |
+| --- | --- | --- |
+| [alan-feinstein-2005-pneqnp](alan-feinstein-2005-pneqnp/) | Lower bound assumed from a restricted algorithm family | Informal/unverified analysis |
+| [alan-feinstein-2011-pneqnp](alan-feinstein-2011-pneqnp/) | Lower bound assumed from an exponential upper bound | Informal/unverified analysis |
+| [amar-mukherjee-2011-peqnp](amar-mukherjee-2011-peqnp/) | Withdrawn/incomplete claimed 3-SAT algorithm; likely hidden exponential or correctness gap | Informal/unverified analysis |
+| [anatoly-panyukov-2014-peqnp](anatoly-panyukov-2014-peqnp/) | LP relaxation assumed to have integer optimum | Informal/unverified analysis |
+| [anatoly-plotnikov-2007-peqnp](anatoly-plotnikov-2007-peqnp/) | Unproved Conjecture 1 leaves the correctness claim conditional; iteration bound also needs justification | Conditional result |
+| [anatoly-plotnikov-2011-pneqnp](anatoly-plotnikov-2011-pneqnp/) | Invalid diagonalization and circular construction | Informal/unverified analysis |
+| [andrea-bianchini-2005-peqnp](andrea-bianchini-2005-peqnp/) | Encoding and reduction do not preserve the hard problem correctly | Informal/unverified analysis |
+| [angela-weiss-2011-peqnp](angela-weiss-2011-peqnp/) | Hidden exponential tableau/macro enumeration | Informal/unverified analysis |
+| [antano-maknickas-2011-peqnp](antano-maknickas-2011-peqnp/) | LP relaxation and rounding do not preserve SAT | Informal/unverified analysis |
+| [ari-blinder-2009-pneqnp](ari-blinder-2009-pneqnp/) | Unproven NP vs co-NP style claim equivalent to the hard part | Informal/unverified analysis |
+| [arto-annila-2009-pneqnp](arto-annila-2009-pneqnp/) | Informal physical/thermodynamic reasoning without formal lower bound | Informal/unverified analysis |
+| [author104-2015-peqnp](author104-2015-peqnp/) | Class equality lacks reverse inclusion and an explicit pair/string encoding; finite logical countermodel only | Identified gap |
+| [author11-2004-peqnp](author11-2004-peqnp/) | Exponential physical hardware hidden behind polynomial time | Informal/unverified analysis |
+| [author12-2004-pneqnp](author12-2004-pneqnp/) | Provability and decidability confused with complexity | Informal/unverified analysis |
+| [author13-2004-pneqnp](author13-2004-pneqnp/) | Unproven hardness assumption and missing NP-completeness proof | Informal/unverified analysis |
+| [author15-2004-pneqnp](author15-2004-pneqnp/) | Undefined invariance principle and circular separation claim | Informal/unverified analysis |
+| [author2-1996-peqnp](author2-1996-peqnp/) | Graph-to-poset conversion loses information; hidden exponential gap | Informal/unverified analysis |
+| [author4-2000-peqnp](author4-2000-peqnp/) | Insufficient rigor and unsupported P=NP claim | Informal/unverified analysis |
+| [author7-2003-peqnp](author7-2003-peqnp/) | Facet/linear-ordering approach lacks valid polynomial exact algorithm | Informal/unverified analysis |
+| [author8-2003-pneqnp](author8-2003-pneqnp/) | Empirical/temporal fallacy and problem-class confusion | Informal/unverified analysis |
+| [author93-2013-peqnp](author93-2013-peqnp/) | LP/ILP conflation | Informal/unverified analysis |
+| [bangyan-wen-yi-lin-2010-pneqnp](bangyan-wen-yi-lin-2010-pneqnp/) | Logical asymmetry does not imply a complexity lower bound | Informal/unverified analysis |
+| [bhupinder-singh-anand-2008-pneqnp](bhupinder-singh-anand-2008-pneqnp/) | Category confusion between computability/provability and P vs NP | Informal/unverified analysis |
+| [carlos-barron-romero-2010-euclidean-tsp-gap-pneqnp](carlos-barron-romero-2010-euclidean-tsp-gap-pneqnp/) | GAP/E2DTSP variant does not yield the claimed P != NP separation | Informal/unverified analysis |
+| [carlos-barron-romero-2010-pneqnp](carlos-barron-romero-2010-pneqnp/) | Verification complexity misunderstood as NP hardness separation | Informal/unverified analysis |
+| [changlin-wan-2010-peqnp](changlin-wan-2010-peqnp/) | Computability confused with polynomial-time complexity | Informal/unverified analysis |
+| [charles-sauerbier-2002-peqnp](charles-sauerbier-2002-peqnp/) | Local/path consistency does not imply satisfiability | Informal/unverified analysis |
+| [chingizovich-valeyev-2013-pneqnp](chingizovich-valeyev-2013-pneqnp/) | Best-known algorithm treated as a lower bound | Informal/unverified analysis |
+| [craig-feinstein-2003-pneqnp](craig-feinstein-2003-pneqnp/) | Invalid transfer from one machine/model to all algorithms | Informal/unverified analysis |
+| [craig-feinstein-2006-pneqnp](craig-feinstein-2006-pneqnp/) | Sparse documented evidence; likely unsupported lower-bound claim | Informal/unverified analysis |
+| [daegene-song-2014-pneqnp](daegene-song-2014-pneqnp/) | Observer choice and self-reference confused with computational nondeterminism | Informal/unverified analysis |
+| [daniel-uribe-2016-pneqnp](daniel-uribe-2016-pneqnp/) | Decision-tree/model limitation treated as a general lower bound | Informal/unverified analysis |
+| [delacorte-czerwinski-2007-peqnppspace](delacorte-czerwinski-2007-peqnppspace/) | Graph-isomorphism algorithm/cospectral reasoning does not prove P=NP/PSPACE | Informal/unverified analysis |
+| [deolalikar-2010-pneqnp](deolalikar-2010-pneqnp/) | Random-instance/model-theory transfer fails for worst-case P vs NP | Informal/unverified analysis |
+| [dhami-2014-peqnp](dhami-2014-peqnp/) | Invalid reduction involving clique/network interdiction | Informal/unverified analysis |
+| [dmitriy-nuriyev-2013-peqnp](dmitriy-nuriyev-2013-peqnp/) | Hamiltonian-path algorithm lacks proof for all instances | Informal/unverified analysis |
+| [douglas-youvan-2012-peqnp](douglas-youvan-2012-peqnp/) | Heuristic or unsupported algorithmic claim without rigorous proof | Informal/unverified analysis |
+| [dr-joachim-mertz-2005-peqnp](dr-joachim-mertz-2005-peqnp/) | LP relaxation confused with integer programming | Informal/unverified analysis |
+| [eli-halylaurin-2016-peqnp](eli-halylaurin-2016-peqnp/) | Gap between claimed verifier/algorithm and NP-complete solving | Informal/unverified analysis |
+| [figueroa-2016-pneqnp](figueroa-2016-pneqnp/) | Probability argument and one-way-function claim do not prove P != NP | Informal/unverified analysis |
+| [francesco-capasso-2005-peqnp](francesco-capasso-2005-peqnp/) | Heuristic algorithm not proven correct on all inputs | Informal/unverified analysis |
+| [frank-vega-delgado-2010-pneqnp](frank-vega-delgado-2010-pneqnp/) | Missing reduction to an undecidable NP language | Informal/unverified analysis |
+| [frederic-gillet-2013-peqnp](frederic-gillet-2013-peqnp/) | Cost-interference and gate construction flaws | Informal/unverified analysis |
+| [guohun-zhu-2007-peqnp](guohun-zhu-2007-peqnp/) | Six-vertex projector witness contradicts Theorem 1(c3)'s C4 bound; Lemma 4 code-class challenge remains conditional | Concrete refutation |
+| [hamelin-2011-peqnp](hamelin-2011-peqnp/) | Exponential dependence hidden in a claimed polynomial method | Informal/unverified analysis |
+| [han-xiao-wen-2010-peqnp](han-xiao-wen-2010-peqnp/) | Undefined terminology and oracle/nondeterminism confusion | Informal/unverified analysis |
+| [hanlin-liu-2014-peqnp](hanlin-liu-2014-peqnp/) | Hamiltonian-circuit algorithm contains an unproven correctness gap | Informal/unverified analysis |
+| [has-also-2001-pneqnp](has-also-2001-pneqnp/) | EXP subset NP contradicts standard hierarchy consequences | Informal/unverified analysis |
+| [howard-kleiman-2006-peqnp](howard-kleiman-2006-peqnp/) | Floyd-Warshall shortest-path method solves the wrong problem | Informal/unverified analysis |
+| [infotechnology-center-2012-pneqnp](infotechnology-center-2012-pneqnp/) | Unsupported complexity inference from informal definitions | Informal/unverified analysis |
+| [jason-w-steinmetz-2011-peqnp](jason-w-steinmetz-2011-peqnp/) | P=NP algorithm has an unproven critical correctness step | Informal/unverified analysis |
+| [javaid-aslam-2008-peqnp](javaid-aslam-2008-peqnp/) | Incorrect counting of Hamiltonian circuits | Informal/unverified analysis |
+| [jeffrey-w-holcomb-2011-pneqnp](jeffrey-w-holcomb-2011-pneqnp/) | Nondeterminism/randomness and witness multiplicity confused | Informal/unverified analysis |
+| [jerrald-meek-2008-karp-postulates-pneqnp](jerrald-meek-2008-karp-postulates-pneqnp/) | Karp-postulate special cases treated as a general separation | Informal/unverified analysis |
+| [jerrald-meek-2008-pneqnp](jerrald-meek-2008-pneqnp/) | Invalid asymptotic/lower-bound inferences | Informal/unverified analysis |
+| [joonmo-kim-2014-pneqnp](joonmo-kim-2014-pneqnp/) | Sparse documented evidence; likely unsupported lower-bound proof | Informal/unverified analysis |
+| [jorma-jormakka-2008-pneqnp](jorma-jormakka-2008-pneqnp/) | Circular adversarial/non-uniform lower-bound construction | Informal/unverified analysis |
+| [ki-bong-nam-sh-wang-and-yang-gon-kim-published-2004-pneqnp](ki-bong-nam-sh-wang-and-yang-gon-kim-published-2004-pneqnp/) | Insufficient lower bound | Informal/unverified analysis |
+| [koji-kobayashi-2011-pneqnp](koji-kobayashi-2011-pneqnp/) | Dependency-relation framework lacks a general lower-bound transfer | Informal/unverified analysis |
+| [koji-kobayashi-2012-pneqnp](koji-kobayashi-2012-pneqnp/) | Representation complexity confused with decision complexity | Informal/unverified analysis |
+| [krieger-jones-2008-peqnp](krieger-jones-2008-peqnp/) | Hamiltonian-circuit detector solves an underspecified/different problem | Informal/unverified analysis |
+| [lev-gordeev-2005-pneqnp](lev-gordeev-2005-pneqnp/) | Circuit-complexity gap does not yield the claimed separation | Informal/unverified analysis |
+| [lizhi-du-2010-peqnp](lizhi-du-2010-peqnp/) | Incorrect intersection/pruning step in 3-SAT algorithm | Informal/unverified analysis |
+| [lokman-kolukisa-2005-peqnp](lokman-kolukisa-2005-peqnp/) | Tautology algorithm correctness and formal gap | Informal/unverified analysis |
+| [louis-coder-2012-peqnp](louis-coder-2012-peqnp/) | Local/global consistency and insufficient encoding | Informal/unverified analysis |
+| [luigi-salemi-2009-peqnp](luigi-salemi-2009-peqnp/) | Saturation complexity and constructive proof are circular/unproved | Informal/unverified analysis |
+| [luiz-barbosa-2009-pneqnp](luiz-barbosa-2009-pneqnp/) | Non-uniform circuit argument does not imply P != NP | Informal/unverified analysis |
+| [mathias-hauptmann-2016-pneqnp](mathias-hauptmann-2016-pneqnp/) | Claimed contradiction is not a contradiction | Informal/unverified analysis |
+| [matt-groff-2011-peqnp](matt-groff-2011-peqnp/) | Actual 3-CNF inputs collide at one raw finite-field evaluation; full reconstruction algorithm unresolved | Conditional result |
+| [michael-laplante-2015-peqnp](michael-laplante-2015-peqnp/) | Clique algorithm fails on counterexamples/special structure | Informal/unverified analysis |
+| [michel-feldmann-2012-peqnp](michel-feldmann-2012-peqnp/) | Missing construction algorithm | Informal/unverified analysis |
+| [mikhail-katkov-2010-peqnp](mikhail-katkov-2010-peqnp/) | SDP/local optimum does not yield reliable global certificate | Informal/unverified analysis |
+| [mikhail-kupchik-2004-pneqnp](mikhail-kupchik-2004-pneqnp/) | Sparse documented refutation; unsupported lower-bound claim | Informal/unverified analysis |
+| [minseong-kim-2012-pneqnp](minseong-kim-2012-pneqnp/) | False premise/logical fallacy | Informal/unverified analysis |
+| [miron-teplitz-2005-peqnp](miron-teplitz-2005-peqnp/) | Sparse documented evidence; likely unsupported P=NP claim | Informal/unverified analysis |
+| [mohamed-mimouni-2006-peqnp](mohamed-mimouni-2006-peqnp/) | Clique algorithm works only on special cases or hides exponential work | Informal/unverified analysis |
+| [moustapha-diaby-2004-peqnp](moustapha-diaby-2004-peqnp/) | LP formulation lacks one-to-one correspondence with TSP tours | Informal/unverified analysis |
+| [narendra-chaudhari-2009-peqnp](narendra-chaudhari-2009-peqnp/) | Representation change does not reduce 3-SAT complexity | Informal/unverified analysis |
+| [natalia-malinina-2012-unprovable](natalia-malinina-2012-unprovable/) | Undecidability/independence and self-reference misapplied | Informal/unverified analysis |
+| [ncada-costa-fa-doria-2003-unprovable](ncada-costa-fa-doria-2003-unprovable/) | Critical independence-proof gap and exotic definitions | Informal/unverified analysis |
+| [nicholas-argall-2003-undecidable](nicholas-argall-2003-undecidable/) | Formal undecidability error | Informal/unverified analysis |
+| [peng-cui-2014-peqnp](peng-cui-2014-peqnp/) | Approximation confused with exact solution | Informal/unverified analysis |
+| [qi-duan-2012-peqnp](qi-duan-2012-peqnp/) | Greedy insertion fallacy | Informal/unverified analysis |
+| [radoslaw-hofman-2006-pneqnp](radoslaw-hofman-2006-pneqnp/) | Provability/computability confusion and invalid restriction to FOPC transformations | Informal/unverified analysis |
+| [rafael-valls-hidalgo-gato-2009-peqnp](rafael-valls-hidalgo-gato-2009-peqnp/) | Encoding-complexity barrier and parameter confusion | Informal/unverified analysis |
+| [rafee-ebrahim-kamouna-2008-peqnp](rafee-ebrahim-kamouna-2008-peqnp/) | Cook theorem/paradox category confusion | Informal/unverified analysis |
+| [renjit-2006-conpeqnp](renjit-2006-conpeqnp/) | Invalid generalization from one problem to NP vs co-NP | Informal/unverified analysis |
+| [renjit-grover-2005-pneqnp](renjit-grover-2005-pneqnp/) | Algorithm classification approach lacks universal lower bound | Informal/unverified analysis |
+| [riaz-khiyal-2006-peqnp](riaz-khiyal-2006-peqnp/) | Greedy/backtracking avoidance uses circular valid-selection conditions | Informal/unverified analysis |
+| [rodrigo-diduch-2012-pneqnp](rodrigo-diduch-2012-pneqnp/) | Definitions used without lower-bound proof | Informal/unverified analysis |
+| [roman-yampolskiy-2011-pneqnp](roman-yampolskiy-2011-pneqnp/) | Cryptographic intuition and no-pruning claim do not prove exponential time | Informal/unverified analysis |
+| [ron-cohen-2005-pneqnp](ron-cohen-2005-pneqnp/) | Nonstandard machine/oracle feature changes the problem | Informal/unverified analysis |
+| [rubens-ramos-viana-2006-pneqnp](rubens-ramos-viana-2006-pneqnp/) | Quantum/uncomputability category mistake | Informal/unverified analysis |
+| [ruijia-liao-2011-pneqnp](ruijia-liao-2011-pneqnp/) | Cantor diagonalization does not apply as stated | Informal/unverified analysis |
+| [sanchez-guinea-2015-peqnp](sanchez-guinea-2015-peqnp/) | Exponential recursion and hidden dependency graph | Informal/unverified analysis |
+| [satoshi-tazawa-2012-pneqnp](satoshi-tazawa-2012-pneqnp/) | Automorphism-to-lower-bound connection is missing | Informal/unverified analysis |
+| [sergey-gubin-2006-peqnp](sergey-gubin-2006-peqnp/) | Flawed LP formulation and SAT-to-2SAT reduction | Informal/unverified analysis |
+| [sergey-gubin-2010-peqnp](sergey-gubin-2010-peqnp/) | Paper-specific LP has a feasible point for a graph without a Hamiltonian tour | Concrete refutation |
+| [sergey-kardash-2011-peqnp](sergey-kardash-2011-peqnp/) | Local consistency and relationship-structure size errors | Informal/unverified analysis |
+| [sergey_v_yakhontov_2012_peqnp](sergey_v_yakhontov_2012_peqnp/) | TCPE/encoding size problem | Informal/unverified analysis |
+| [singh-anand-2005-pneqnp](singh-anand-2005-pneqnp/) | Provability/computability confusion | Informal/unverified analysis |
+| [singh-anand-2006-pneqnp](singh-anand-2006-pneqnp/) | Nonstandard models and provability do not eliminate computation | Informal/unverified analysis |
+| [stefan-jaeger-2011-both](stefan-jaeger-2011-both/) | Redefined complexity classes yield contradictory/nonstandard claims | Informal/unverified analysis |
+| [stefan-rass-2016-pneqnp](stefan-rass-2016-pneqnp/) | Encoding mismatch, circular density bounds, and finite/asymptotic gap | Informal/unverified analysis |
+| [sten-ake-tarnlund-2008-pneqnp](sten-ake-tarnlund-2008-pneqnp/) | Provability/truth confused with complexity | Informal/unverified analysis |
+| [steven-meyer-2016-peqnp](steven-meyer-2016-peqnp/) | Simulation/model-independence confused with algorithmic content | Informal/unverified analysis |
+| [tang-pushan-1997-peqnp](tang-pushan-1997-peqnp/) | Reduction preserves an easier problem, not NP-completeness | Informal/unverified analysis |
+| [ted-swart-1986-87-peqnp](ted-swart-1986-87-peqnp/) | Gap in treating matrix decomposition as a polynomial exact algorithm | Informal/unverified analysis |
+| [vega-delgado-2012-pneqnp](vega-delgado-2012-pneqnp/) | Invalid implication between P, UP, EXP, and NP | Informal/unverified analysis |
+| [viktor-ivanov-2005-pneqnp](viktor-ivanov-2005-pneqnp/) | Sparse documented evidence; likely common P != NP proof errors | Informal/unverified analysis |
+| [vladimir-romanov-2010-peqnp](vladimir-romanov-2010-peqnp/) | Compact-triplets representation hides size/consistency complexity | Informal/unverified analysis |
+| [xinwen-jiang-2009-peqnp](xinwen-jiang-2009-peqnp/) | Vague MSP definition, wrong problem class, and experimental evidence | Informal/unverified analysis |
+| [yann-dujardin-2009-peqnp](yann-dujardin-2009-peqnp/) | Rounding step does not preserve exact SAT solution | Informal/unverified analysis |
+| [yubin-huang-2015-peqnp](yubin-huang-2015-peqnp/) | Invalid reduction and nondeterministic-move elimination gap | Informal/unverified analysis |
+| [zeilberger-2009-peqnp](zeilberger-2009-peqnp/) | Joke claim; technically uses nonsensical/wrong-way reduction | Informal/unverified analysis |
+| [zohreh-akbari-2008-peqnp](zohreh-akbari-2008-peqnp/) | Clique algorithm handles special cases or hides exponential gap | Informal/unverified analysis |

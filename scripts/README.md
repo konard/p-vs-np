@@ -2,6 +2,25 @@
 
 This directory contains utility scripts for managing the P vs NP attempts repository.
 
+## check_proof_status.py
+
+`proof_status.json` is the explicit list of certified Lean and Rocq conclusions.
+The rest of the attempt catalog is historical material. The checker scans each
+certified source and its repository imports for admissions or unproved
+declarations. After the listed modules are compiled, it queries each prover
+with `#print axioms` or `Print Assumptions` and fails if a theorem has any
+assumption outside its manifest allowance.
+
+```bash
+python3 -m unittest scripts.test_check_proof_status -v
+python3 scripts/check_proof_status.py
+python3 scripts/check_proof_status.py --lean
+python3 scripts/check_proof_status.py --rocq
+```
+
+The workflow runs historical compilation and certified audits as separate
+jobs. Passing historical compilation does not change an attempt's status.
+
 ## check_attempt_structure.py
 
 `check_attempt_structure.py` verifies that each attempt in `proofs/attempts/`
@@ -69,6 +88,14 @@ python3 scripts/check_attempt_structure.py --path proofs/attempts/craig-feinstei
 # Generate the repository attempt index
 python3 scripts/check_attempt_structure.py --offline --generate-list --output proofs/attempts/ATTEMPTS.md
 ```
+
+`--fail-on-missing-woeginger` requires a successfully fetched and parsed
+milestone list, including when `--quiet` is set. It can also use a local HTML
+file through `--woeginger-url file:///absolute/path/to/snapshot.html`.
+`--offline` and `--path` cannot be combined with strict Woeginger flags because
+those modes skip the list comparison. Exit status 1 means that repository
+coverage is incomplete (or an attempt is structurally invalid); exit status 2
+means that the source could not be validated or the flags are incompatible.
 
 ### Output
 

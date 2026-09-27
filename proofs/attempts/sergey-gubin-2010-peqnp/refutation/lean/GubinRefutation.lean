@@ -1,237 +1,159 @@
-/-
-  GubinRefutation.lean - Refutation of Gubin's 2010 P=NP Proof Attempt
+/-!
+  A sound audit of the abstract LP claims previously attributed to Gubin.
 
-  This file formalizes the critical errors in Sergey Gubin's 2010 attempted
-  proof of P = NP via ATSP polytope formulation.
-
-  The proof fails because:
-  1. The integrality claim is not proven
-  2. The LP/ILP gap is a fundamental barrier
-  3. Asymmetry does not imply integrality
-  4. Rizzi (2011) refuted the correspondence claim
-
-  References:
-  - Gubin (2010): "Complementary to Yannakakis' Theorem"
-  - Rizzi (2011): Refutation
-  - Yannakakis (1991): Symmetric formulation limits
-  - Woeginger's List, Entry #66
+  The paper's actual variables, inequalities, projection and vertex action have
+  not been encoded here. The examples below are small LPs, not Gubin's
+  formulation, and no theorem here claims to refute that formulation.
 -/
 
--- Basic complexity theory definitions (shared with proof formalization)
+namespace GubinAudit
 
-def DecisionProblem := String → Prop
-def TimeComplexity := Nat → Nat
+abbrev Coordinates (n : Nat) := Fin n → Rat
 
-def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ (n : Nat), f n ≤ c * n ^ k
-
-def P_equals_NP : Prop :=
-  ∀ (problem : DecisionProblem), True → True  -- Simplified
-
--- Linear Programming Framework
-
+/-- An LP feasible region. Concrete examples below supply linear equalities. -/
 structure LPProblem where
   numVars : Nat
-  numConstraints : Nat
+  feasible : Coordinates numVars → Prop
 
-structure LPSolution (lp : LPProblem) where
-  x : Nat → Rat
+/-- A feasible point that is not a strict convex combination of distinct
+    feasible points. -/
+def IsVertex (lp : LPProblem) (x : Coordinates lp.numVars) : Prop :=
+  lp.feasible x ∧
+    ∀ y z : Coordinates lp.numVars, ∀ t : Rat,
+      0 < t → t < 1 → lp.feasible y → lp.feasible z →
+      x = (fun i => t * y i + (1 - t) * z i) → y = x ∧ z = x
 
 structure ExtremePoint (lp : LPProblem) where
-  solution : LPSolution lp
-  isVertex : True
+  x : Coordinates lp.numVars
+  isVertex : IsVertex lp x
 
-def IsIntegral (lp : LPProblem) (ep : ExtremePoint lp) : Prop :=
-  ∀ i : Nat, i < lp.numVars → ∃ n : Int, ep.solution.x i = n
+def IsIntegral (lp : LPProblem) (x : Coordinates lp.numVars) : Prop :=
+  ∀ i : Fin lp.numVars, ∃ z : Int, x i = (z : Rat)
 
-axiom LP_in_polynomial_time :
-  ∀ lp : LPProblem, ∃ (T : TimeComplexity), IsPolynomialTime T
-
--- ATSP and Gubin's Construction
-
+/-- A directed graph includes its edge relation, rather than only weights. -/
 structure DirectedGraph where
   numNodes : Nat
-  weight : Nat → Nat → Nat
+  edge : Fin numNodes → Fin numNodes → Prop
 
+/-- A tour is a permutation whose consecutive vertices, including the last
+    and first, are joined by directed edges. -/
 structure ATSPTour (g : DirectedGraph) where
-  order : Nat → Nat
-  isValid : True
+  order : Fin g.numNodes → Fin g.numNodes
+  injective : ∀ i j, order i = order j → i = j
+  surjective : ∀ j, ∃ i, order i = j
+  cycleEdges : ∀ i j : Fin g.numNodes,
+    j.val = (i.val + 1) % g.numNodes → g.edge (order i) (order j)
 
-def GubinLPFormulation (g : DirectedGraph) : LPProblem :=
-  { numVars := g.numNodes ^ 9
-    numConstraints := g.numNodes ^ 7 }
+/-- The claimed correspondence needs an actual encoding of each tour as an LP
+    point. Merely producing some integral vertex loses that information. -/
+def HasIntegralCorrespondence (g : DirectedGraph) (lp : LPProblem)
+    (encode : ATSPTour g → Coordinates lp.numVars) : Prop :=
+  (∀ tour, ∃ ep : ExtremePoint lp,
+    ep.x = encode tour ∧ IsIntegral lp ep.x) ∧
+  (∀ ep : ExtremePoint lp, IsIntegral lp ep.x →
+    ∃ tour, encode tour = ep.x)
 
-def HasIntegralCorrespondence (g : DirectedGraph) : Prop :=
-  (∀ tour : ATSPTour g,
-    ∃ ep : ExtremePoint (GubinLPFormulation g),
-      IsIntegral (GubinLPFormulation g) ep) ∧
-  (∀ ep : ExtremePoint (GubinLPFormulation g),
-    IsIntegral (GubinLPFormulation g) ep →
-    ∃ tour : ATSPTour g, True)
+/-- Coordinate symmetry is invariance of feasibility under every variable
+    permutation. The paper's vertex-relabeling symmetry would additionally
+    require an action on its particular extended variables. -/
+def IsCoordinateSymmetric (lp : LPProblem) : Prop :=
+  ∀ σ : Fin lp.numVars → Fin lp.numVars,
+    (∀ i j, σ i = σ j → i = j) → (∀ j, ∃ i, σ i = j) →
+    ∀ x, lp.feasible x ↔ lp.feasible (x ∘ σ)
 
-structure SymmetricFormulation where
-  baseProblem : LPProblem
-  isSymmetric : True
+private def halfPoint : Coordinates 2 :=
+  fun i => if i = 0 then (1 / 2 : Rat) else 0
 
-axiom gubin_formulation_is_asymmetric :
-  ∀ g : DirectedGraph,
-    ¬∃ sym : SymmetricFormulation, sym.baseProblem = GubinLPFormulation g
+/-- The two linear equations x₀ = 1/2 and x₁ = 0 define a singleton LP. -/
+private def halfLP : LPProblem :=
+  ⟨2, fun x => x 0 = (1 / 2 : Rat) ∧ x 1 = 0⟩
 
-/-
-  ERROR 1: INTEGRALITY NOT PROVEN
+private theorem half_feasible : halfLP.feasible halfPoint := by
+  constructor <;> rfl
 
-  Gubin claims a correspondence between integral extreme points and tours,
-  but this is never proven. It is merely assumed.
--/
+private theorem half_unique (x : Coordinates 2)
+    (hx : halfLP.feasible x) : x = halfPoint := by
+  apply funext
+  intro i
+  have h : ∀ i : Fin 2, x i = halfPoint i :=
+    (Fin.forall_fin_two).2 ⟨hx.1, hx.2⟩
+  exact h i
 
-/-- The fundamental issue: LP polytopes CAN have fractional extreme points -/
-axiom fractional_extreme_points_exist :
-  ∃ lp : LPProblem, ∃ ep : ExtremePoint lp, ¬IsIntegral lp ep
-
-/-- Gubin does not prove that his LP has only integral extreme points -/
-theorem gubin_lacks_integrality_proof :
-    ¬(∀ g : DirectedGraph,
-      ∀ ep : ExtremePoint (GubinLPFormulation g),
-      IsIntegral (GubinLPFormulation g) ep) := by
-  -- Without proof of integrality, we cannot assume all extreme points are integral
-  -- The existence of fractional extreme points in general LP means this must be proven
-  sorry
-
-/-
-  ERROR 2: THE LP/ILP GAP
-
-  The gap between Linear Programming and Integer Linear Programming
-  is a fundamental barrier in complexity theory.
--/
-
-/-- Integer Linear Programming is NP-complete -/
-axiom ILP_is_NP_complete : True  -- Simplified, represents the well-known result
-
-/-- The fundamental gap: LP is easy, ILP is hard -/
-theorem LP_ILP_gap :
-    (∀ lp : LPProblem, ∃ T : TimeComplexity, IsPolynomialTime T) ∧
-    True := by  -- Second part represents ILP is NP-complete
+private theorem half_vertex : IsVertex halfLP halfPoint := by
   constructor
-  · exact LP_in_polynomial_time
-  · trivial
+  · exact half_feasible
+  · intro y z t _ _ hy hz _
+    exact ⟨half_unique y hy, half_unique z hz⟩
 
-/-- Bridging the gap requires proving integrality -/
-theorem integrality_required_to_bridge_gap (g : DirectedGraph) :
-    ¬HasIntegralCorrespondence g →
-    ¬(∃ T : TimeComplexity, IsPolynomialTime T ∧
-      True) := by  -- Would need to connect LP solution to ATSP solution
-  sorry
+private theorem half_not_integral : ¬IsIntegral halfLP halfPoint := by
+  intro h
+  change (∀ i : Fin 2, ∃ z : Int, halfPoint i = (z : Rat)) at h
+  obtain ⟨z, hz⟩ := h 0
+  have hden := congrArg Rat.den hz
+  have htwo : (halfPoint 0).den = 2 := by decide +kernel
+  have hone : ((z : Rat)).den = 1 := Rat.den_intCast z
+  rw [htwo, hone] at hden
+  contradiction
 
-/-
-  ERROR 3: ASYMMETRY DOES NOT IMPLY INTEGRALITY
+/-- A concrete fractional extreme point, derived from linear equations. -/
+theorem fractional_vertex_exists :
+    ∃ lp : LPProblem, ∃ ep : ExtremePoint lp, ¬IsIntegral lp ep.x := by
+  exact ⟨halfLP, ⟨halfPoint, half_vertex⟩, half_not_integral⟩
 
-  Gubin claims his formulation is "complementary to Yannakakis' theorem"
-  because it is asymmetric. But avoiding Yannakakis does not prove integrality.
--/
+private def swap : Fin 2 → Fin 2 := fun i => if i = 0 then 1 else 0
 
-/-- Being asymmetric avoids Yannakakis' barrier -/
-theorem gubin_avoids_yannakakis :
-    ∀ g : DirectedGraph,
-      ¬∃ sym : SymmetricFormulation, sym.baseProblem = GubinLPFormulation g := by
-  intro g
-  exact gubin_formulation_is_asymmetric g
+private theorem half_asymmetric : ¬IsCoordinateSymmetric halfLP := by
+  intro hs
+  have hinj : ∀ i j : Fin 2, swap i = swap j → i = j := by decide
+  have hsurj : ∀ j : Fin 2, ∃ i, swap i = j := by decide
+  have h := (hs swap hinj hsurj halfPoint).1 half_feasible
+  have hzero : (halfPoint ∘ swap) 0 = (1 / 2 : Rat) := h.1
+  have hne : (0 : Rat) ≠ 1 / 2 := by decide +kernel
+  exact hne hzero
 
-/-- But asymmetry alone does NOT imply integrality -/
-theorem asymmetry_insufficient :
-    (∀ g : DirectedGraph,
-      ¬∃ sym : SymmetricFormulation, sym.baseProblem = GubinLPFormulation g) →
-    ¬(∀ g : DirectedGraph, HasIntegralCorrespondence g) := by
-  -- This is the logical gap: asymmetry ≠ integrality
-  intro _
-  -- Cannot derive integrality from asymmetry alone
-  sorry
+/-- A nonsymmetric LP can have a fractional vertex. This refutes the general
+    implication from coordinate asymmetry to integrality. -/
+theorem asymmetry_does_not_imply_integrality :
+    ∃ lp : LPProblem, ¬IsCoordinateSymmetric lp ∧
+      ∃ ep : ExtremePoint lp, ¬IsIntegral lp ep.x := by
+  exact ⟨halfLP, half_asymmetric, ⟨halfPoint, half_vertex⟩, half_not_integral⟩
 
-/-- Avoiding Yannakakis is necessary but not sufficient -/
-theorem yannakakis_not_only_barrier :
-    (∀ g : DirectedGraph,
-      ¬∃ sym : SymmetricFormulation, sym.baseProblem = GubinLPFormulation g) →
-    -- Still need to prove integrality
-    ¬(∀ g : DirectedGraph,
-        ∀ ep : ExtremePoint (GubinLPFormulation g),
-        IsIntegral (GubinLPFormulation g) ep) := by
-  intro _
-  exact gubin_lacks_integrality_proof
+/-- A one-vertex graph with no self-loop has no tour. -/
+private def noEdgeGraph : DirectedGraph := ⟨1, fun _ _ => False⟩
 
-/-
-  ERROR 4: RIZZI'S REFUTATION (2011)
+private theorem no_tour : ATSPTour noEdgeGraph → False := by
+  intro tour
+  exact tour.cycleEdges ⟨0, by decide⟩ ⟨0, by decide⟩ (by decide)
 
-  Romeo Rizzi published a refutation in January 2011, demonstrating
-  that the correspondence claim is false.
--/
+/-- The equation x₀ = 0 gives an integral extreme point. -/
+private def zeroLP : LPProblem := ⟨1, fun x => x 0 = 0⟩
+private def zeroPoint : Coordinates 1 := fun _ => 0
 
-/-- Rizzi's refutation: The correspondence claim is FALSE -/
-axiom rizzi_refutation_2011 :
-  ¬(∀ g : DirectedGraph, HasIntegralCorrespondence g)
+private theorem zero_unique (x : Coordinates 1)
+    (hx : zeroLP.feasible x) : x = zeroPoint := by
+  apply funext
+  intro i
+  have h : ∀ i : Fin 1, x i = zeroPoint i :=
+    (Fin.forall_fin_one).2 hx
+  exact h i
 
-/-- Therefore Gubin's correspondence claim is false -/
-theorem gubin_correspondence_is_false :
-    ¬(∀ g : DirectedGraph, HasIntegralCorrespondence g) := by
-  exact rizzi_refutation_2011
-
-/-
-  KEY LESSONS FORMALIZED
--/
-
-/-- Lesson 1: Polynomial size alone is insufficient -/
-theorem size_not_enough :
-    IsPolynomialTime (fun n => n ^ 9) ∧
-    ¬(∀ g : DirectedGraph, HasIntegralCorrespondence g) := by
+private theorem zero_vertex : IsVertex zeroLP zeroPoint := by
   constructor
-  · exists 1, 9
-    intro n
-    simp [Nat.pow_le_pow_right]
-  · exact gubin_correspondence_is_false
+  · rfl
+  · intro y z t _ _ hy hz _
+    exact ⟨zero_unique y hy, zero_unique z hz⟩
 
-/-- Lesson 2: Avoiding Yannakakis doesn't solve the problem -/
-theorem avoiding_yannakakis_insufficient :
-    (∀ g : DirectedGraph,
-      ¬∃ sym : SymmetricFormulation, sym.baseProblem = GubinLPFormulation g) ∧
-    ¬(∀ g : DirectedGraph, HasIntegralCorrespondence g) := by
-  constructor
-  · intro g; exact gubin_formulation_is_asymmetric g
-  · exact gubin_correspondence_is_false
+private theorem zero_integral : IsIntegral zeroLP zeroPoint := by
+  intro i
+  exact ⟨0, rfl⟩
 
-/-- Lesson 3: The LP/ILP gap is fundamental -/
-theorem fundamental_gap_lesson :
-    ((∀ lp : LPProblem, ∃ T : TimeComplexity, IsPolynomialTime T) ∧
-     True) ∧
-    ¬(∀ g : DirectedGraph, HasIntegralCorrespondence g) := by
-  constructor
-  · exact LP_ILP_gap
-  · exact gubin_correspondence_is_false
+/-- Size and integrality alone do not establish a tour correspondence.
+    This is an illustrative LP, not the LP from Gubin's paper. -/
+theorem abstract_correspondence_can_fail
+    (encode : ATSPTour noEdgeGraph → Coordinates zeroLP.numVars) :
+    ¬HasIntegralCorrespondence noEdgeGraph zeroLP encode := by
+  intro h
+  obtain ⟨tour, _⟩ := h.2 ⟨zeroPoint, zero_vertex⟩ zero_integral
+  exact no_tour tour
 
-/-
-  SUMMARY: WHY THE PROOF FAILS
-
-  Gubin's proof structure:
-  1. Polynomial-sized LP formulation ✓ (valid)
-  2. Asymmetric formulation ✓ (valid, avoids Yannakakis)
-  3. LP solvable in polynomial time ✓ (well-known)
-  4. Integrality correspondence ✗ (UNPROVEN AND FALSE)
-  5. Therefore P = NP ✗ (does not follow)
-
-  The proof fails at step 4. The integrality correspondence is:
-  - Not proven by Gubin
-  - Refuted by Rizzi (2011)
-  - Not implied by asymmetry alone
-  - Blocked by the fundamental LP/ILP gap
-
-  This is the same failure mode as many other LP-based P=NP attempts.
--/
-
--- Verification that the formalization is well-typed
-#check gubin_lacks_integrality_proof
-#check LP_ILP_gap
-#check asymmetry_insufficient
-#check rizzi_refutation_2011
-#check gubin_correspondence_is_false
-#check size_not_enough
-#check avoiding_yannakakis_insufficient
-#check fundamental_gap_lesson
-
--- ✓ Gubin refutation formalization complete
+end GubinAudit

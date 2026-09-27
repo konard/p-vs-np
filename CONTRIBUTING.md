@@ -64,7 +64,7 @@ Simply add your `.lean` file in the appropriate directory and it will be automat
 
 **Common issues to avoid:**
 - Do not use `ℕ` - use `Nat` instead (Mathlib is not configured)
-- Do not use Mathlib tactics like `omega`, `norm_num`, `simp`, `decide` - use `sorry` for incomplete proofs
+- Mathlib is not configured; avoid Mathlib-only tactics such as `norm_num`. Core Lean tactics such as `omega`, `simp`, and `decide` are available.
 - Do not use `#print "string"` - this is not valid Lean 4 syntax
 - Avoid reserved keywords as field names (e.g., `from`, `to`)
 
@@ -78,12 +78,20 @@ Add your `.v` file to the appropriate directory. Update the local `_CoqProject` 
 - Using `sorry` (Lean) or `Admitted` (Rocq) is acceptable to mark where proofs cannot be completed
 - Add clear comments explaining why the proof fails at that point
 - The goal is to demonstrate the error in the original proof attempt, not to complete an impossible proof
+- State the exact proposition from the source that a named refutation disputes, including its input conditions. A counterexample must satisfy those conditions and compute the failed result.
+- Label calculations on simplified models as illustrations or conditional results. A theorem ending in True, or a proof about arbitrary objects unrelated to the paper's construction, does not establish a refutation.
+- In the attempt README and the common-errors index, distinguish a concrete refutation from a conditional result, an identified gap, and informal/unverified analysis.
+- Keep false or unproved historical premises as explicit theorem parameters, not global axioms that allow unrelated imports to prove anything
+- Do not describe a compiling attempt or refutation as certified. Only conclusions listed in `scripts/proof_status.json` receive the assumption audit
 
 ### CI Checks
 
-All proof files are verified by GitHub Actions:
-- Lean: `lake build`
-- Rocq: Standard rocq compile compilation
+The workflow compiles Lean and Rocq proof files, and checks the listed shared-model Agda files. Compilation permits admissions and axioms. The separate certified-result audit runs `scripts/check_proof_status.py` against the conclusions in `scripts/proof_status.json` and fails on admissions or unapproved assumptions.
+
+- Lean compilation: `lake build`
+- Rocq compilation: `rocq compile`
+- Certified source check: `python3 scripts/check_proof_status.py`
+- Certified assumption check after building: `python3 scripts/check_proof_status.py --lean` or `--rocq`
 
 Ensure your code compiles locally before submitting.
 

@@ -14,47 +14,93 @@ jobs:
     outputs:
       lean_changed: ${{ steps.changes.outputs.lean }}
       rocq_changed: ${{ steps.changes.outputs.rocq }}
-      is_push: ${{ github.event_name == 'push' }}
+      agda_changed: ${{ steps.changes.outputs.agda }}
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
+    - name: Check Gubin audit for unproved assumptions
+      run: python3 scripts/check_gubin_audit.py
+
+    - name: Test attempt structure checker
+      run: python3 -m unittest scripts.test_check_attempt_structure -v
+
+    - name: Test proof status checker
+      run: python3 -m unittest scripts.test_check_proof_status -v
+
+    - name: Check certified source boundary
+      run: python3 scripts/check_proof_status.py
+
+    - name: Check exact Gubin paper LP witness
+      run: python3 experiments/issue578/check_paper_lp.py
+
+    - name: Check Plotnikov refutation assumptions
+      run: python3 -m unittest discover -s experiments/issue577 -p 'test_*.py' -v
+
+    - name: Check semantic coverage of named refutations
+      run: python3 -m unittest discover -s experiments/issue580 -p 'test_*.py' -v
+
+    - name: Check issue 7 independence claims
+      run: python3 experiments/issue579/check_claims.py
+
+    - name: Check verification workflow regressions
+      run: python3 -m unittest discover -s experiments/issue584 -p 'test_*.py' -v
+
     - name: Detect changed files
       id: changes
       run: |
-        if [ "${{ github.event_name }}" = "push" ]; then
-          # For push to main, always verify all files
-          echo "lean=true" >> $GITHUB_OUTPUT
-          echo "rocq=true" >> $GITHUB_OUTPUT
-          echo "Push to main - will verify ALL files"
-        else
-          # For PRs, only verify modified files
-          LEAN_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.lean$|lakefile\.lean|lean-toolchain' || true)
-          ROCQ_CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.v$|_CoqProject' || true)
+        case "$GITHUB_EVENT_NAME" in
+          push|workflow_dispatch)
+            # Pushes and manual runs verify every configured prover.
+            lean=true
+            rocq=true
+            agda=true
+            ;;
+          pull_request)
+            if [ -z "${GITHUB_BASE_REF:-}" ]; then
+              echo "::error::Pull request base ref is missing"
+              exit 1
+            fi
+            if ! changed_files=$(git diff --name-only "origin/$GITHUB_BASE_REF...HEAD" --); then
+              echo "::error::Could not detect changed files"
+              exit 1
+            fi
 
-          if [ -n "$LEAN_CHANGED" ]; then
-            echo "lean=true" >> $GITHUB_OUTPUT
-            echo "Lean files changed:"
-            echo "$LEAN_CHANGED"
-          else
-            echo "lean=false" >> $GITHUB_OUTPUT
-            echo "No Lean files changed"
-          fi
+            lean=false
+            rocq=false
+            agda=false
+            if grep -Eq '\.lean$|(^|/)(lakefile\.lean|lean-toolchain|lake-manifest\.json)$|^experiments/issue575/check\.sh$' <<< "$changed_files"; then
+              lean=true
+            fi
+            if grep -Eq '\.v$|(^|/)_CoqProject$' <<< "$changed_files"; then
+              rocq=true
+            fi
+            if grep -Eq '\.agda$' <<< "$changed_files"; then
+              agda=true
+            fi
+            if grep -Eq '^\.github/workflows/verification\.yml$' <<< "$changed_files"; then
+              lean=true
+              rocq=true
+              agda=true
+            fi
+            if grep -Eq '^scripts/(check_proof_status\.py|proof_status\.json)$' <<< "$changed_files"; then
+              lean=true
+              rocq=true
+            fi
+            ;;
+          *)
+            echo "::error::Unsupported event: $GITHUB_EVENT_NAME"
+            exit 1
+            ;;
+        esac
 
-          if [ -n "$ROCQ_CHANGED" ]; then
-            echo "rocq=true" >> $GITHUB_OUTPUT
-            echo "Rocq files changed:"
-            echo "$ROCQ_CHANGED"
-          else
-            echo "rocq=false" >> $GITHUB_OUTPUT
-            echo "No Rocq files changed"
-          fi
-        fi
+        printf 'lean=%s\nrocq=%s\nagda=%s\n' "$lean" "$rocq" "$agda" >> "$GITHUB_OUTPUT"
+        printf 'Verification selection: Lean=%s Rocq=%s Agda=%s\n' "$lean" "$rocq" "$agda"
 
   lean-verification:
-    name: Lean Verification
+    name: Lean Historical Compilation
     runs-on: ubuntu-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.lean_changed == 'true'
@@ -68,19 +114,19 @@ jobs:
         curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
         echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
-    - name: Verify Lean installation
-      run: |
-        lean --version
-        lake --version
-
     - name: Cache Lean toolchain
       uses: actions/cache@v4
       with:
         path: |
           ~/.elan
-        key: ${{ runner.os }}-lean-elan-v2-${{ hashFiles('lakefile.lean') }}
+        key: ${{ runner.os }}-lean-elan-v3-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lakefile.lean') }}
         restore-keys: |
-          ${{ runner.os }}-lean-elan-v2-
+          ${{ runner.os }}-lean-elan-v3-${{ hashFiles('lean-toolchain') }}-
+
+    - name: Verify Lean installation
+      run: |
+        lean --version
+        lake --version
 
     - name: Clean stale build artifacts
       run: |
@@ -95,17 +141,30 @@ jobs:
           echo "=== Lean Verification ==="
           lean --version
           echo ""
+          bash experiments/issue575/check.sh
           echo "Building Lean project..."
           lake build
-          echo "✓ Lean build completed successfully!"
+          echo "✓ Lean historical sources compile successfully!"
           echo ""
-          lake test || echo "No tests defined"
+          lean experiments/issue7_shoenfield_absoluteness.lean
+          lean experiments/issue7_undecidability_formalization.lean
+          lake env lean experiments/issue572/Independent.lean
+          bash experiments/issue571/check.sh
+          if lake_test_output=$(lake test 2>&1); then
+            printf '%s\n' "$lake_test_output"
+          elif [[ "$lake_test_output" =~ ^error:\ .+:\ no\ test\ driver\ configured$ ]]; then
+            echo "No Lake test driver configured"
+          else
+            printf '%s\n' "$lake_test_output" >&2
+            exit 1
+          fi
+          python3 experiments/issue570/check_contradiction.py --lean
         else
           echo "✓ No Lean files - skipping"
         fi
 
   rocq-verification:
-    name: Rocq Verification
+    name: Rocq Historical Compilation
     runs-on: ubuntu-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.rocq_changed == 'true'
@@ -144,89 +203,98 @@ jobs:
               make -f Makefile.coq
             else
               echo "Verifying Rocq files..."
-              find . -name "*.v" -type f | while read -r file; do
+              # Shared semantics must be compiled before its consumers.
+              rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+              rocq compile -Q . '' proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v
+              find . -name "*.v" -type f \
+                ! -path './proofs/complexity/rocq/Complexity.v' \
+                ! -path './proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v' \
+                ! -path './experiments/issue572/Independent.v' | while read -r file; do
                 echo "Checking: $file"
-                rocq compile "$file" && echo "✓ $file verified successfully" || exit 1
+                rocq compile -Q . '' "$file" && echo "✓ $file verified successfully" || exit 1
               done
+              rocq compile -Q . '' experiments/issue572/Independent.v
             fi
-            echo "✓ All Rocq files verified successfully!"
+            python3 experiments/issue570/check_contradiction.py --rocq
+            echo "✓ Rocq historical sources compile successfully!"
           endGroup
 
     - name: Revert permissions
       if: ${{ always() && steps.check-rocq.outputs.has_files == 'true' }}
       run: sudo chown -R 1001:116 .
 
+  certified-lean:
+    name: Certified Lean Results
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.lean_changed == 'true'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Lean
+      run: |
+        curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+        echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+    - name: Build and audit certified Lean results
+      run: |
+        lake build proofs.complexity.lean.Complexity \
+          proofs.p_vs_np_decidable.lean.PSubsetNP \
+          proofs.p_vs_np_decidable.lean.PvsNPDecidable \
+          proofs.p_not_equal_np.lean.PNotEqualNP
+        python3 scripts/check_proof_status.py --lean
+
+  certified-rocq:
+    name: Certified Rocq Results
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.rocq_changed == 'true'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Fix permissions for docker
+      run: sudo chown -R 1000:1000 .
+    - name: Build and audit certified Rocq results
+      uses: coq-community/docker-coq-action@v1
+      with:
+        custom_image: 'rocq/rocq-prover:9.0'
+        custom_script: |
+          set -e
+          rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+          rocq compile -Q . '' proofs/p_vs_np_decidable/rocq/PSubsetNP.v
+          rocq compile -Q . '' proofs/p_vs_np_decidable/rocq/PvsNPDecidable.v
+          rocq compile -Q . '' proofs/p_not_equal_np/rocq/PNotEqualNP.v
+          python3 scripts/check_proof_status.py --rocq
+    - name: Revert permissions
+      if: always()
+      run: sudo chown -R 1001:116 .
+
 # Isabelle verification removed - proofs archived to ./archive/isabelle/
 # See https://github.com/konard/p-vs-np/issues/530
 
-# Temporarily disabled - Agda installation takes ~20 minutes
-  # TODO: Re-enable once we have better caching or use pre-built Agda
-  # agda-verification:
-  #   name: Agda Verification
-  #   runs-on: ubuntu-latest
-  #
-  #   steps:
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v4
-  #
-  #   - name: Check for Agda files
-  #     id: check-agda
-  #     run: |
-  #       if find . -name "*.agda" -print -quit | grep -q .; then
-  #         echo "has_files=true" >> $GITHUB_OUTPUT
-  #       else
-  #         echo "has_files=false" >> $GITHUB_OUTPUT
-  #         echo "✓ No Agda files - skipping"
-  #       fi
-  #
-  #   - name: Set up Haskell
-  #     if: steps.check-agda.outputs.has_files == 'true'
-  #     uses: haskell/actions/setup@v2
-  #     with:
-  #       ghc-version: '9.4'
-  #       cabal-version: '3.10'
-  #
-  #   - name: Cache Agda
-  #     if: steps.check-agda.outputs.has_files == 'true'
-  #     uses: actions/cache@v4
-  #     with:
-  #       path: |
-  #         ~/.cabal/store
-  #         ~/.cabal/bin
-  #         dist-newstyle
-  #       key: ${{ runner.os }}-agda-${{ hashFiles('**/*.agda') }}
-  #       restore-keys: |
-  #         ${{ runner.os }}-agda-
-  #
-  #   - name: Install Agda
-  #     if: steps.check-agda.outputs.has_files == 'true'
-  #     run: |
-  #       if ! command -v agda &> /dev/null; then
-  #         cabal update
-  #         cabal install Agda
-  #       else
-  #         echo "✓ Agda already installed (from cache)"
-  #       fi
-  #       echo "$HOME/.cabal/bin" >> $GITHUB_PATH
-  #
-  #   - name: Build and test Agda
-  #     if: steps.check-agda.outputs.has_files == 'true'
-  #     run: |
-  #       echo "=== Agda Verification ==="
-  #       agda --version
-  #       echo ""
-  #       echo "Verifying Agda files..."
-  #       find . -name "*.agda" -type f -print0 | while IFS= read -r -d '' file; do
-  #         echo "Checking: $file"
-  #         agda --safe "$file" && echo "✓ $file verified successfully" || exit 1
-  #       done
-  #       echo ""
-  #       echo "✓ All Agda files verified successfully!"
+  agda-verification:
+    name: Agda Verification
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.agda_changed == 'true'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Check shared complexity formalizations
+      run: |
+        docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work \
+          ghcr.io/codewars/agda@sha256:d56bf738f23befbd02352bd207483bbefe513de612683747ebc35675549e9d0e \
+          sh -c '
+            set -e
+            agda -i . proofs/complexity/agda/Complexity.agda
+            agda -i . proofs/p_vs_np_decidable/agda/PSubsetNP.agda
+            agda -i . proofs/p_vs_np_decidable/agda/PvsNPDecidable.agda
+            agda -i . proofs/p_not_equal_np/agda/PNotEqualNP.agda
+            agda -i . proofs/p_vs_np_undecidable/agda/PvsNPUndecidable.agda
+            agda -i . experiments/issue572/Independent.agda
+          '
 
   summary:
     name: Verification Summary
     runs-on: ubuntu-latest
-    needs: [detect-changes, lean-verification, rocq-verification]
+    needs: [detect-changes, lean-verification, rocq-verification, certified-lean, certified-rocq, agda-verification]
     if: always()
 
     steps:
@@ -234,39 +302,64 @@ jobs:
       run: |
         echo "## Formal Verification Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Tool | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
 
+        DETECT_RESULT="${{ needs.detect-changes.result }}"
         LEAN_RESULT="${{ needs.lean-verification.result }}"
         ROCQ_RESULT="${{ needs.rocq-verification.result }}"
+        CERT_LEAN_RESULT="${{ needs.certified-lean.result }}"
+        CERT_ROCQ_RESULT="${{ needs.certified-rocq.result }}"
+        AGDA_RESULT="${{ needs.agda-verification.result }}"
+
+        echo "| Change detection | $DETECT_RESULT |" >> $GITHUB_STEP_SUMMARY
 
         # Show skipped status if no files changed
         if [ "$LEAN_RESULT" = "skipped" ]; then
-          echo "| Lean | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lean historical compilation | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
         else
-          echo "| Lean | $LEAN_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lean historical compilation | $LEAN_RESULT |" >> $GITHUB_STEP_SUMMARY
         fi
 
         if [ "$ROCQ_RESULT" = "skipped" ]; then
-          echo "| Rocq | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rocq historical compilation | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
         else
-          echo "| Rocq | $ROCQ_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rocq historical compilation | $ROCQ_RESULT |" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "| Certified Lean result audit | $CERT_LEAN_RESULT |" >> $GITHUB_STEP_SUMMARY
+        echo "| Certified Rocq result audit | $CERT_ROCQ_RESULT |" >> $GITHUB_STEP_SUMMARY
+
+        if [ "$AGDA_RESULT" = "skipped" ]; then
+          echo "| Agda | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| Agda | $AGDA_RESULT |" >> $GITHUB_STEP_SUMMARY
         fi
 
         echo "" >> $GITHUB_STEP_SUMMARY
-        if [ "${{ github.event_name }}" = "push" ]; then
-          echo "_Push to main: verified ALL files_" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "_Pull request: verified only MODIFIED files_" >> $GITHUB_STEP_SUMMARY
-        fi
+        case "$GITHUB_EVENT_NAME" in
+          push) echo "_Push to main: ran every configured verification job_" >> $GITHUB_STEP_SUMMARY ;;
+          workflow_dispatch) echo "_Manual run: ran every configured verification job_" >> $GITHUB_STEP_SUMMARY ;;
+          pull_request) echo "_Pull request: ran verification jobs for languages with modified files_" >> $GITHUB_STEP_SUMMARY ;;
+        esac
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "_Note: Isabelle proofs archived to ./archive/isabelle/_" >> $GITHUB_STEP_SUMMARY
-        echo "_Note: Agda verification temporarily disabled due to long build times (~20 minutes)_" >> $GITHUB_STEP_SUMMARY
+        echo "_Agda checks cover the shared complexity formalizations._" >> $GITHUB_STEP_SUMMARY
+        echo "_Historical attempts are compiled only. Certified Lean and Rocq conclusions are listed in scripts/proof_status.json and checked for unapproved assumptions._" >> $GITHUB_STEP_SUMMARY
 
     - name: Check results
       run: |
+        DETECT_RESULT="${{ needs.detect-changes.result }}"
         LEAN_RESULT="${{ needs.lean-verification.result }}"
         ROCQ_RESULT="${{ needs.rocq-verification.result }}"
+        CERT_LEAN_RESULT="${{ needs.certified-lean.result }}"
+        CERT_ROCQ_RESULT="${{ needs.certified-rocq.result }}"
+        AGDA_RESULT="${{ needs.agda-verification.result }}"
+
+        if [ "$DETECT_RESULT" != "success" ]; then
+          echo "::error::Change detection failed ($DETECT_RESULT)"
+          exit 1
+        fi
 
         # Consider 'success' and 'skipped' as passing
         if [[ "$LEAN_RESULT" != "success" && "$LEAN_RESULT" != "skipped" ]]; then
@@ -276,6 +369,21 @@ jobs:
 
         if [[ "$ROCQ_RESULT" != "success" && "$ROCQ_RESULT" != "skipped" ]]; then
           echo "::error::Rocq verification failed"
+          exit 1
+        fi
+
+        if [[ "$CERT_LEAN_RESULT" != "success" && "$CERT_LEAN_RESULT" != "skipped" ]]; then
+          echo "::error::Certified Lean audit failed"
+          exit 1
+        fi
+
+        if [[ "$CERT_ROCQ_RESULT" != "success" && "$CERT_ROCQ_RESULT" != "skipped" ]]; then
+          echo "::error::Certified Rocq audit failed"
+          exit 1
+        fi
+
+        if [[ "$AGDA_RESULT" != "success" && "$AGDA_RESULT" != "skipped" ]]; then
+          echo "::error::Agda verification failed"
           exit 1
         fi
 

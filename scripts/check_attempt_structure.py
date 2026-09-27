@@ -865,6 +865,7 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
     lines.append("# P vs NP Proof Attempts")
     lines.append("")
     lines.append("This document provides a comparison of all documented P vs NP proof attempts in this repository.")
+    lines.append("Every entry here has **historical sketch** status. A Lean or Rocq file may compile while containing admissions or unproved axioms; neither compilation nor a refutation folder certifies the author's claim or its refutation. See [certified results](../../scripts/proof_status.json) for the separately audited theorem list.")
     lines.append("")
     lines.append("**Legend:**")
     lines.append("- ✓ = Claims P = NP")
@@ -884,8 +885,8 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
         key=lambda v: v.path.name.lower()
     )
 
-    lines.append("| Claim | Author | Year | Title | Docs | Formal |")
-    lines.append("|:-----:|--------|------|-------|:----:|:------:|")
+    lines.append("| Claim | Author | Year | Title | Docs | Formal | Assurance |")
+    lines.append("|:-----:|--------|------|-------|:----:|:------:|-----------|")
 
     for v in sorted_validations:
         claim_emoji = v.get_claim_emoji()
@@ -912,7 +913,7 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
         # Create link to attempt folder
         folder_link = f"[{title}]({v.path.name}/)"
 
-        lines.append(f"| {claim_emoji} | {author} | {year} | {folder_link} | {docs_str} | {formal_str} |")
+        lines.append(f"| {claim_emoji} | {author} | {year} | {folder_link} | {docs_str} | {formal_str} | Historical sketch |")
 
     lines.append("")
 
@@ -1025,6 +1026,11 @@ def main():
 
     args = parser.parse_args()
 
+    if args.offline and (args.require_woeginger or args.fail_on_missing_woeginger):
+        parser.error("--offline is incompatible with strict Woeginger validation")
+    if args.path and (args.require_woeginger or args.fail_on_missing_woeginger):
+        parser.error("--path is incompatible with strict Woeginger validation")
+
     if args.path:
         # Validate a single attempt
         if not args.path.exists():
@@ -1050,12 +1056,13 @@ def main():
                 minimum_score=args.minimum_match_score,
             )
         except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
-            message = f"Warning: could not compare against Woeginger live list: {exc}"
-            if args.require_woeginger:
-                print(message, file=sys.stderr)
-                sys.exit(1)
+            strict_woeginger = args.require_woeginger or args.fail_on_missing_woeginger
+            message = f"could not compare against Woeginger live list: {exc}"
+            if strict_woeginger:
+                print(f"Error: {message}", file=sys.stderr)
+                sys.exit(2)
             if not args.quiet:
-                print(message, file=sys.stderr)
+                print(f"Warning: {message}", file=sys.stderr)
 
     if args.generate_list:
         content = generate_markdown_list(validations, args.output)

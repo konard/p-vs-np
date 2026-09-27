@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Tests for the P vs NP attempt structure checker."""
 
+import contextlib
+import io
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+from urllib.error import URLError
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -16,12 +20,106 @@ from check_attempt_structure import (  # noqa: E402
     WoegingerAttempt,
     compare_with_woeginger,
     extract_author,
+    generate_markdown_list,
+    main,
     parse_metadata_from_readme,
     parse_woeginger_html,
 )
 
 
 class CheckAttemptStructureTests(unittest.TestCase):
+    def test_attempt_catalog_marks_formalization_as_historical_sketch(self):
+        validation = StructureValidation(path=Path('proofs/attempts/example-2001-peqnp'), has_proof_lean=True)
+        catalog = generate_markdown_list([validation])
+        self.assertIn('| Assurance |', catalog)
+        self.assertIn('| 🔷 | Historical sketch |', catalog)
+        self.assertIn('compilation nor a refutation folder certifies', catalog)
+
+    def run_checker(self, *args):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        argv = ["check_attempt_structure.py", "--base-dir", str(self.base_dir), *args]
+        with patch.object(sys, "argv", argv), contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                main()
+                status = 0
+            except SystemExit as exc:
+                status = exc.code
+        return status, stdout.getvalue(), stderr.getvalue()
+
+    def setUp(self):
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        self.base_dir = Path(temp_dir.name)
+        attempt_dir = self.base_dir / "proofs" / "attempts" / "alice-smith-2001-peqnp"
+        attempt_dir.mkdir(parents=True)
+        (attempt_dir / "README.md").write_text(
+            "# Alice Smith (2001) - P=NP Attempt\n\n"
+            "- **Authors**: Alice Smith\n- **Year**: 2001\n- **Claim**: P = NP\n",
+            encoding="utf-8",
+        )
+
+    def write_source(self, html):
+        source = self.base_dir / "woeginger.html"
+        source.write_text(html, encoding="utf-8")
+        return source.as_uri()
+
+    def test_strict_coverage_fails_when_source_file_is_missing_even_when_quiet(self):
+        missing_url = (self.base_dir / "missing.html").as_uri()
+        status, output, errors = self.run_checker(
+            "--fail-on-missing-woeginger", "--woeginger-url", missing_url, "--quiet"
+        )
+        self.assertEqual(status, 2)
+        self.assertEqual(output, "")
+        self.assertIn("could not compare against Woeginger", errors)
+
+    def test_strict_coverage_fails_on_network_error(self):
+        with patch("check_attempt_structure.urlopen", side_effect=URLError("network unavailable")):
+            status, _, errors = self.run_checker("--fail-on-missing-woeginger", "--quiet")
+        self.assertEqual(status, 2)
+        self.assertIn("network unavailable", errors)
+
+    def test_strict_coverage_fails_on_malformed_source(self):
+        source_url = self.write_source("<html><body>Not a milestone list</body></html>")
+        status, _, errors = self.run_checker(
+            "--fail-on-missing-woeginger", "--woeginger-url", source_url, "--quiet"
+        )
+        self.assertEqual(status, 2)
+        self.assertIn("No Woeginger milestone entries parsed", errors)
+
+    def test_strict_coverage_rejects_modes_that_skip_the_source(self):
+        for args in (
+            ("--offline", "--fail-on-missing-woeginger"),
+            ("--path", str(self.base_dir / "proofs" / "attempts" / "alice-smith-2001-peqnp"),
+             "--fail-on-missing-woeginger"),
+            ("--offline", "--require-woeginger"),
+        ):
+            with self.subTest(args=args):
+                status, _, errors = self.run_checker(*args)
+                self.assertEqual(status, 2)
+                self.assertIn("incompatible", errors)
+
+    def test_strict_coverage_distinguishes_missing_entries_from_unavailable_source(self):
+        source_url = self.write_source(
+            "<h2>Milestones</h2><ol><li>[Equal]: In 2002 Bob Jones proved P=NP.</ol>"
+        )
+        status, output, errors = self.run_checker(
+            "--fail-on-missing-woeginger", "--woeginger-url", source_url, "--quiet"
+        )
+        self.assertEqual(status, 1)
+        self.assertIn("1 Woeginger entries are missing", output)
+        self.assertEqual(errors, "")
+
+    def test_strict_coverage_succeeds_when_all_source_entries_match(self):
+        source_url = self.write_source(
+            "<h2>Milestones</h2><ol>"
+            "<li>[Equal]: In 2001 Alice Smith proved P=NP with a SAT algorithm.</ol>"
+        )
+        status, _, errors = self.run_checker(
+            "--fail-on-missing-woeginger", "--woeginger-url", source_url, "--quiet"
+        )
+        self.assertEqual(status, 0)
+        self.assertEqual(errors, "")
+
     def test_parse_woeginger_html_handles_implicit_li_end_tags(self):
         html = """
         <html><body>

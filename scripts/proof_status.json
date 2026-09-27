@@ -1,0 +1,14 @@
+{
+  "lean": [
+    {"source": "proofs/complexity/lean/Complexity.lean", "theorem": "Complexity.pSubsetNP", "allowed_axioms": ["propext"]},
+    {"source": "proofs/p_vs_np_decidable/lean/PSubsetNP.lean", "theorem": "PSubsetNP.pSubsetNP", "allowed_axioms": ["propext"]},
+    {"source": "proofs/p_vs_np_decidable/lean/PvsNPDecidable.lean", "theorem": "PvsNPDecidable.P_vs_NP_is_decidable", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/p_not_equal_np/lean/PNotEqualNP.lean", "theorem": "PNotEqualNP.test_existence_of_hard_problem", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]}
+  ],
+  "rocq": [
+    {"source": "proofs/complexity/rocq/Complexity.v", "theorem": "Complexity.pSubsetNP", "allowed_axioms": []},
+    {"source": "proofs/p_vs_np_decidable/rocq/PSubsetNP.v", "theorem": "pSubsetNP", "allowed_axioms": []},
+    {"source": "proofs/p_vs_np_decidable/rocq/PvsNPDecidable.v", "theorem": "P_vs_NP_is_decidable", "allowed_axioms": ["Classical_Prop.classic"]},
+    {"source": "proofs/p_not_equal_np/rocq/PNotEqualNP.v", "theorem": "test_existence_of_hard_problem", "allowed_axioms": ["Classical_Prop.classic"]}
+  ]
+}
