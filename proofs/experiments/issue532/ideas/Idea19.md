@@ -99,6 +99,22 @@ Differences between the two files:
   form without function extensionality.
 * Lean uses `funext`, which is a theorem in Lean 4 core, not an axiom
   declaration.
+* `unaryDiag` is a different, computable language in Rocq. Lean defines it
+  noncomputably as "no machine with code `n` accepts `1^n` in any number of
+  steps", which is undecidable, so no computable definition can be
+  equivalent to it. Rocq decodes `n` to a word with `bijWord n n` (the
+  Rocq-only inverse of `bijNat`, see `bijWord_bijNat`), decodes that word to
+  a (machine, polynomial) pair with `decMachinePoly`, and flips the output
+  of the step-bounded `clockedLanguage` on `1^n`. `unaryDiag_not_inP` and
+  `ppoly_not_subset_p` have the Lean statements. `bijNat_injective` is
+  proved through `bijWord_bijNat` and `length_le_bijNat`.
+* `satNotInPPoly_iff_superpoly` takes an extra premise
+  `(forall P : Prop, P \/ ~ P)`, because the shared
+  `superpoly_iff_not_inPPoly` in `Circuits.v` needs it for the direction
+  `¬ InPPoly L → SuperpolyLowerBound L`. It is a premise, not an axiom.
+* `pNotEqualsNP_of_satNotInPPoly` has the Lean statement and is proved
+  directly from `not_inP_of_not_inPPoly` and `inP_sat_of_pEqualsNP`, without
+  excluded middle.
 
 ## 4. Complete argument
 
@@ -219,10 +235,14 @@ From the repository root:
 
 ```sh
 lake env lean proofs/experiments/issue532/lean/Idea19.lean
+rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea19.v
-rm -f proofs/experiments/issue532/rocq/Idea19.vo proofs/experiments/issue532/rocq/Idea19.vok \
-      proofs/experiments/issue532/rocq/Idea19.vos proofs/experiments/issue532/rocq/Idea19.glob \
-      proofs/experiments/issue532/rocq/.Idea19.aux
+for f in proofs/complexity/rocq/Complexity proofs/experiments/issue532/rocq/Machines \
+         proofs/experiments/issue532/rocq/Circuits proofs/experiments/issue532/rocq/Idea19; do
+  rm -f "$f.vo" "$f.vok" "$f.vos" "$f.glob" "$(dirname "$f")/.$(basename "$f").aux"
+done
 ```
 
-Both commands print nothing on success.
+The compile commands print nothing on success.

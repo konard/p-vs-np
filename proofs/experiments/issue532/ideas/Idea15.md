@@ -89,9 +89,17 @@ and appears only as an explicit hypothesis.
 | `var0_not_depthLB` | Non-vacuity (false side): the depth schema fails for the family `ρ ↦ ρ 0`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `var0_not_sizeLB` | Non-vacuity (false side): the size schema fails for the same family. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 
-The schemas and obligations are `def ... : Prop` in Lean and (intended)
+The schemas and obligations are `def ... : Prop` in Lean and
 `Definition ... : Prop` in Rocq. They are never assumed. No theorem in
 either file proves or refutes P = NP.
+
+Rocq differences: every statement matches the Lean file. The formula
+constructors are capitalised (`Var`, `Neg`, `Conj`, `Disj` for Lean's
+`var`, `neg`, `conj`, `disj`). `andPow_leaves` compares `vars f` with
+`seq 0 (2 ^ n)` (Lean: `List.range (2 ^ n)`) using `NoDup_incl_length`,
+and decides membership in `vars f` with `in_dec` where Lean splits cases
+classically. `slice`, `SAT`, `SATInNP`, `InNP` and `PNotEqualsNP` come
+from the shared `Machines.v` and `Circuits.v`.
 
 ## 4. Complete argument
 
@@ -223,8 +231,11 @@ From the repository root:
 
 ```sh
 lake env lean proofs/experiments/issue532/lean/Idea15.lean
+rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea15.v
 ```
 
-Both commands print nothing on success. Remove the generated
-`Idea15.vo`, `.vok`, `.vos`, `.glob` and `.aux` files afterwards.
+All commands print nothing on success. Remove the generated `.vo`, `.vok`,
+`.vos`, `.glob` and `.aux` files of every compiled file afterwards.

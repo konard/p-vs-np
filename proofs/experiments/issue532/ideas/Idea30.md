@@ -43,17 +43,17 @@ def ExplicitNPLowerBound : Prop := ∃ L : Language, InNP L ∧ SuperpolyLowerBo
 | Theorem | Informal statement | Lean | Rocq |
 | --- | --- | --- | --- |
 | `lower_bound_transfer` | Lower bound + simulation + size bound ⇒ no fast algorithm | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `words_length` | `#words of length s over m letters = m^s` | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `mem_words` | `words alph s` is exactly the words of length `s` over `alph` | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `words_nodup` | Words over a duplicate-free alphabet are duplicate-free | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `allBool_length`, `allBool_nodup`, `mem_allBool` | `2^n` distinct inputs, exactly those of length `n` | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `tables_length` | `2^(2^n)` truth tables | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `table_of_fnOfTable` | Every table of length `2^n` is the table of a function | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `cover_length` | Pigeonhole: a duplicate-free covered list is no longer than the codes | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `uncovered_table` | `#codes < 2^(2^n)` ⇒ some table is decoded by no code | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `codesUpTo_length` | `#codes of length ≤ s ≤ (s+1)·m^s` | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `shannon_codes` | Counting for any decoder from words of length `≤ s` | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `shannon_circuits` | `(g+1)((n+g)²)^g < 2^(2^n)` ⇒ some `f` has no circuit of size `≤ g` | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
+| `words_length` | `#words of length s over m letters = m^s` | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `mem_words` | `words alph s` is exactly the words of length `s` over `alph` | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `words_nodup` | Words over a duplicate-free alphabet are duplicate-free | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `allBool_length`, `allBool_nodup`, `mem_allBool` | `2^n` distinct inputs, exactly those of length `n` | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `tables_length` | `2^(2^n)` truth tables | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `table_of_fnOfTable` | Every table of length `2^n` is the table of a function | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `cover_length` | Pigeonhole: a duplicate-free covered list is no longer than the codes | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `uncovered_table` | `#codes < 2^(2^n)` ⇒ some table is decoded by no code | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `codesUpTo_length` | `#codes of length ≤ s ≤ (s+1)·m^s` | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `shannon_codes` | Counting for any decoder from words of length `≤ s` | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `shannon_circuits` | `(g+1)((n+g)²)^g < 2^(2^n)` ⇒ some `f` has no circuit of size `≤ g` | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
 | `four_bit_function_needs_three_gates` | Instance `n = 4`, `g = 2` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `superpoly_excludes_poly_circuits` | Superpolynomial lower bound ⇒ no polynomial-size circuits | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `no_fast_algorithm` | Simulation hypothesis + lower bound ⇒ no fast algorithm computes `f` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
@@ -71,11 +71,13 @@ def ExplicitNPLowerBound : Prop := ∃ L : Language, InNP L ∧ SuperpolyLowerBo
 | `lower_bound_half_satisfiable` | Non-vacuity: counting gives a language with a superpolynomial lower bound | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `const_no_lower_bound` | Non-vacuity: constant languages have no superpolynomial lower bound | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `counting_gives_schema_for_all_languages` | Counting proves the schema for the trivial class; the gap to the obligation is NP membership | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `inPPoly_const` | Constant languages have constant-size circuits for every `n > 0` | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `exists_superpolyLowerBound`, `exists_not_inPPoly` | Counting yields a language with a superpolynomial lower bound, hence outside P/poly | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `superpoly_iff_not_inPPoly` | `SuperpolyLowerBound L ↔ ¬ InPPoly L` | [Circuits.lean](../lean/Circuits.lean) | [Idea30.v](../rocq/Idea30.v) |
+| `inPPoly_const` | Constant languages have constant-size circuits for every `n > 0` | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `exists_superpolyLowerBound`, `exists_not_inPPoly` | Counting yields a language with a superpolynomial lower bound, hence outside P/poly | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
+| `superpoly_iff_not_inPPoly` | `SuperpolyLowerBound L ↔ ¬ InPPoly L` (Rocq: with an explicit excluded-middle premise; the forward direction is the constructive `not_inPPoly_of_superpoly`) | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
 
-The counting rows above are proved in the shared `Circuits.lean`. Helper lemmas with identical names in `Circuits.lean` and `Idea30.v`: `consAll_length`, `mem_consAll`, `nodup_map_cons`, `consAll_nodup`, `allBool_succ`, `mem_codesUpTo`, `pairsOf_length`, `mem_pairsOf`, `wf_bound`, `gateAlphabet_length`, `wf_in_alphabet`. The Rocq file additionally proves `nodup_app_intro`, `uncovered_or_cover` and `differ_or_agree`. These are constructive decidability steps that Lean handles with `Classical.byContradiction` (core Lean, no added declarations).
+The counting rows above are proved in the shared `Circuits.lean` and `Circuits.v`; `Idea30.v` imports `Circuits.v` and no longer carries its own copy of the circuit model or the counting. Helper lemmas with identical names in both shared files: `consAll_length`, `mem_consAll`, `nodup_map_cons`, `consAll_nodup`, `allBool_succ`, `mem_codesUpTo`, `pairsOf_length`, `mem_pairsOf`, `wf_bound`, `gateAlphabet_length`, `wf_in_alphabet`. `Circuits.v` finds the uncovered truth table constructively (`firstUncovered`, `hardTable`) where Lean uses `Classical.byContradiction` and `Classical.choose`.
+
+Rocq differences in `Idea30.v`: the statements match the Lean file. `superpoly_excludes_poly_circuits`, `const_no_lower_bound` and the transfer theorems use the constructive `not_inPPoly_of_superpoly` instead of the classical `superpoly_iff_not_inPPoly`, so no excluded-middle premise appears. `four_bit_function_needs_three_gates` is also declared in `Circuits.v`; the `Idea30.v` copy is proved from `shannon_circuits` by computation. `inP_const_false` uses the empty machine, which halts with `false` in one step on every input.
 
 ## 4. Complete argument
 
@@ -157,7 +159,10 @@ From the repository root:
 
 ```sh
 lake env lean proofs/experiments/issue532/lean/Idea30.lean
+rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea30.v
 ```
 
-Both commands print nothing on success. Remove the generated Rocq artifacts (`.vo`, `.vok`, `.vos`, `.glob`, `.aux`) afterwards.
+All commands print nothing on success. Remove the generated Rocq artifacts (`.vo`, `.vok`, `.vos`, `.glob`, `.aux`) of every compiled file afterwards.

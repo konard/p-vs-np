@@ -16,12 +16,32 @@
      bound for the double-rail partial function (correct only on consistent
      inputs (x, ~x)), not implied by a monotone bound for f itself.
 
+   Tie to the shared machine model.  The lower-bound shapes are schemas over
+   a formula family (GeneralSuperpolyLowerBoundFor,
+   MonotoneSuperpolyLowerBoundFor, DoubleRailLowerBoundFor).  They are
+   instantiated on the language SAT of Machines.v through [slice SAT n] of
+   Circuits.v, the Boolean function SAT computes on inputs of length n:
+   - SATFormulaLowerBound (open obligation): SAT has no polynomial-size
+     formulas; NPNotInPolyFormulas (open obligation): some InNP language has
+     none;
+   - npNotInPolyFormulas_of_sat: with SATInNP the first gives the second.
+     This does not give P <> NP: that would also need PSubsetPolyFormulas
+     (a P in NC1-type statement, open and widely believed false), as
+     pNotEqualsNP_of_satFormulaLowerBound makes explicit;
+   - sat_slice_not_monotone, sat_monotone_lower_bound_trivial: SAT on words
+     is not monotone at length 2, so the monotone lower bound for SAT holds
+     for a trivial reason;
+   - const_no_general_lower_bound: the lower-bound shape fails for a
+     constant family, so it is not vacuously true.
+
    Verdict: "monotone lower bound for an NP function => P <> NP" is refuted
    in full strength by Tardos (1988) (not formalized).  The remaining
-   obligation GeneralSuperpolyLowerBound is open.  Nothing here proves or
-   refutes P = NP. *)
+   obligation SATFormulaLowerBound is open.  Nothing here proves or refutes
+   P = NP. *)
 
-From Stdlib Require Import Arith PeanoNat Lia Bool.
+From Stdlib Require Import Arith PeanoNat Lia Bool List.
+Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines Circuits.
 
 Inductive Circ : Type :=
   | Var : nat -> Circ
@@ -321,25 +341,27 @@ Qed.
 
 (** * Lower-bound statements *)
 
-(** Open obligation (not assumed): the family f n has no general formulas of
-    polynomial size. *)
-Definition GeneralSuperpolyLowerBound (f : nat -> (nat -> bool) -> bool) : Prop :=
+(** Schema: the family f n has no general formulas of polynomial size.  The
+    family is a parameter, so this is a schema; its instance for SAT is
+    [SATFormulaLowerBound]. *)
+Definition GeneralSuperpolyLowerBoundFor (f : nat -> (nat -> bool) -> bool) : Prop :=
   forall c d : nat, exists n, forall C : Circ,
     size C <= c * n ^ d + c -> exists x, eval C x <> f n x.
 
-(** A superpolynomial lower bound against monotone formulas only. *)
-Definition MonotoneSuperpolyLowerBound (f : nat -> (nat -> bool) -> bool) : Prop :=
+(** Schema: a superpolynomial lower bound against monotone formulas only. *)
+Definition MonotoneSuperpolyLowerBoundFor (f : nat -> (nat -> bool) -> bool) : Prop :=
   forall c d : nat, exists n, forall C : Circ, notFree C = true ->
     size C <= c * n ^ d + c -> exists x, eval C x <> f n x.
 
-(** A monotone lower bound for the double-rail partial function. *)
-Definition DoubleRailLowerBound (f : nat -> (nat -> bool) -> bool) : Prop :=
+(** Schema: a monotone lower bound for the double-rail partial function
+    (correct only on inputs [dual x]). *)
+Definition DoubleRailLowerBoundFor (f : nat -> (nat -> bool) -> bool) : Prop :=
   forall c d : nat, exists n, forall C : Circ, notFree C = true ->
     size C <= c * n ^ d + c -> exists x, eval C (dual x) <> f n x.
 
 (** The easy direction: a general lower bound restricts to monotone formulas. *)
 Theorem general_lb_implies_monotone_lb : forall f,
-  GeneralSuperpolyLowerBound f -> MonotoneSuperpolyLowerBound f.
+  GeneralSuperpolyLowerBoundFor f -> MonotoneSuperpolyLowerBoundFor f.
 Proof.
   intros f h c d. destruct (h c d) as [n hn].
   exists n. intros C _ hs. exact (hn C hs).
@@ -349,7 +371,7 @@ Qed.
     monotone superpolynomial lower bound holds for the double-rail partial
     function. *)
 Theorem general_iff_double_rail : forall f,
-  GeneralSuperpolyLowerBound f <-> DoubleRailLowerBound f.
+  GeneralSuperpolyLowerBoundFor f <-> DoubleRailLowerBoundFor f.
 Proof.
   intro f. split.
   - intros h c d. destruct (h (2 * c) d) as [n hn].
@@ -363,4 +385,99 @@ Proof.
     destruct (doubleRail_correct C) as [d1 [_ [d3 [_ d5]]]].
     destruct (hn (fst (doubleRail C)) d1 (Nat.le_trans _ _ _ d3 hs)) as [x hx].
     exists x. rewrite <- (proj1 (d5 x)). exact hx.
+Qed.
+
+(** * The obligation on the shared machine model *)
+
+(** Open obligation.  SAT (the language [SAT] of Machines.v) has no
+    polynomial-size formulas: for every c d there is a length n at which no
+    formula of size at most c * n ^ d + c computes SAT on the words of
+    length n (read from variables 0, ..., n - 1). *)
+Definition SATFormulaLowerBound : Prop :=
+  forall c d : nat, exists n, forall C : Circ,
+    size C <= c * n ^ d + c -> exists x, eval C x <> slice SAT n x.
+
+Theorem satFormulaLowerBound_iff_for :
+  SATFormulaLowerBound <-> GeneralSuperpolyLowerBoundFor (slice SAT).
+Proof. reflexivity. Qed.
+
+(** Open obligation (the honest target).  Some language with [InNP] has no
+    polynomial-size formulas. *)
+Definition NPNotInPolyFormulas : Prop :=
+  exists L : Language, InNP L /\
+    forall c d : nat, exists n, forall C : Circ,
+      size C <= c * n ^ d + c -> exists x, eval C x <> slice L n x.
+
+(** Conditional theorem (honest conclusion).  With [SATInNP], a formula
+    lower bound for SAT puts NP outside polynomial-size formulas. *)
+Theorem npNotInPolyFormulas_of_sat :
+  SATInNP -> SATFormulaLowerBound -> NPNotInPolyFormulas.
+Proof. intros mem h. exists SAT. split; [exact mem | exact h]. Qed.
+
+(** Not known, and not assumed anywhere: every language in P has
+    polynomial-size formulas.  This is a P in NC1-type statement, an open
+    problem that is widely believed false.  It is stated only to show what a
+    formula lower bound would additionally need in order to give P <> NP. *)
+Definition PSubsetPolyFormulas : Prop :=
+  forall L : Language, InP L -> exists c d : nat, forall n, exists C : Circ,
+    size C <= c * n ^ d + c /\ forall x, eval C x = slice L n x.
+
+(** The gap, made explicit: a formula lower bound for SAT gives P <> NP only
+    together with the unproved [PSubsetPolyFormulas]. *)
+Theorem pNotEqualsNP_of_satFormulaLowerBound :
+  SATInNP -> PSubsetPolyFormulas -> SATFormulaLowerBound -> PNotEqualsNP.
+Proof.
+  intros mem hPF h hPNP.
+  destruct (hPF SAT (hPNP SAT mem)) as [c [d hc]].
+  destruct (h c d) as [n hn].
+  destruct (hc n) as [C [hs hC]].
+  destruct (hn C hs) as [x hx].
+  exact (hx (hC x)).
+Qed.
+
+(** The double-rail reformulation applies to SAT. *)
+Theorem satFormulaLowerBound_iff_doubleRail :
+  SATFormulaLowerBound <-> DoubleRailLowerBoundFor (slice SAT).
+Proof. exact (general_iff_double_rail (slice SAT)). Qed.
+
+(** SAT on words is not monotone at length 2: 00 encodes the empty formula
+    (satisfiable) and 10 encodes the empty clause (unsatisfiable). *)
+Theorem sat_slice_not_monotone : ~ MonotoneFn (slice SAT 2).
+Proof.
+  intro h.
+  assert (hle : LeAssign (fun _ => false) (fun i => Nat.eqb i 0)).
+  { intro i. reflexivity. }
+  specialize (h _ _ hle).
+  assert (h1 : slice SAT 2 (fun _ => false) = true) by (vm_compute; reflexivity).
+  assert (h2 : slice SAT 2 (fun i => Nat.eqb i 0) = false) by (vm_compute; reflexivity).
+  rewrite h1, h2 in h. discriminate h.
+Qed.
+
+(** The monotone lower bound for SAT holds for a trivial reason (no
+    monotone formula computes SAT at length 2), so it says nothing about the
+    size of formulas for SAT.  The Rocq proof is constructive: it tests the
+    two assignments used in [sat_slice_not_monotone]. *)
+Theorem sat_monotone_lower_bound_trivial : MonotoneSuperpolyLowerBoundFor (slice SAT).
+Proof.
+  intros c d. exists 2. intros C hC _.
+  assert (hle : LeAssign (fun _ => false) (fun i => Nat.eqb i 0)).
+  { intro i. reflexivity. }
+  assert (h1 : slice SAT 2 (fun _ => false) = true) by (vm_compute; reflexivity).
+  assert (h2 : slice SAT 2 (fun i => Nat.eqb i 0) = false) by (vm_compute; reflexivity).
+  destruct (eval C (fun _ => false)) eqn:e0.
+  - exists (fun i => Nat.eqb i 0).
+    pose proof (monotone_eval C hC _ _ hle) as hm.
+    rewrite e0 in hm. unfold leB in hm. simpl in hm. rewrite hm, h2. discriminate.
+  - exists (fun _ => false). rewrite e0, h1. discriminate.
+Qed.
+
+(** Non-vacuity (false side): the lower-bound shape fails for a constant
+    family, which the one-node formula [Lit b] computes at every length. *)
+Theorem const_no_general_lower_bound : forall b : bool,
+  ~ GeneralSuperpolyLowerBoundFor (fun _ _ => b).
+Proof.
+  intros b h. destruct (h 1 0) as [n hn].
+  destruct (hn (Lit b)) as [x hx].
+  - simpl. lia.
+  - exact (hx eq_refl).
 Qed.

@@ -105,6 +105,16 @@ general circuit size); the formal files do not prove this refutation.
 No theorem in either file proves or refutes P = NP, and no circuit lower
 bound for an explicit NP function is claimed.
 
+Rocq differences: every statement matches the Lean file. The formula
+constructors are capitalised (`Var`, `Lit`, `Conj`, `Disj`, `Neg` for
+Lean's lowercase ones). The assignment `i ↦ (i == 0)` is written with
+`Nat.eqb`. `satFormulaLowerBound_iff_for` is proved by `reflexivity`
+(Lean: `Iff.rfl`). `sat_monotone_lower_bound_trivial` is proved
+constructively by a case split on the value of the formula at the
+all-false assignment, where Lean uses `Classical.byContradiction`.
+`slice`, `SAT`, `SATInNP` and `InNP` come from the shared `Machines.v`
+and `Circuits.v`.
+
 ## 4. Complete argument
 
 **Monotonicity (`monotone_eval`).** Induction on the formula. Variables are
@@ -280,8 +290,11 @@ From the repository root:
 
 ```sh
 lake env lean proofs/experiments/issue532/lean/Idea10.lean
+rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea10.v
 ```
 
-Both commands print nothing on success. Remove the generated
-`Idea10.vo`, `.vok`, `.vos`, `.glob` and `.aux` files afterwards.
+All commands print nothing on success. Remove the generated `.vo`, `.vok`,
+`.vos`, `.glob` and `.aux` files of every compiled file afterwards.
