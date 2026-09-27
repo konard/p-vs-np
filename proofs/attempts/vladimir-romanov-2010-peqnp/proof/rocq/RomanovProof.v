@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   RomanovProof.v - Formalization of Romanov's 2010 P=NP proof attempt
 
@@ -42,7 +43,7 @@ Definition Satisfiable (formula : Formula3CNF) : Prop :=
 Definition TimeComplexity := nat -> nat.
 
 Definition IsPolynomialTime (time : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, time n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded time.
 
 Record CompactTripletsStructure := {
   variableOrder : list Var;

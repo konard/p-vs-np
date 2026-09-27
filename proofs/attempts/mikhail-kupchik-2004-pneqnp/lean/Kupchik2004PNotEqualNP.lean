@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   Kupchik2004PNotEqualNP.lean - Formalization of Mikhail N. Kupchik's 2004 P ≠ NP proof attempt
 
@@ -22,7 +23,7 @@ def TimeComplexity := Nat → Nat
 
 /-- A problem is polynomial-time if there exists a polynomial time bound -/
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 /-- A Turing machine model (abstract representation) -/
 structure TuringMachine where

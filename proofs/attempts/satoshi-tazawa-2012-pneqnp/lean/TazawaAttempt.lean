@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   TazawaAttempt.lean - Formalization of Satoshi Tazawa's 2012 P≠NP proof attempt
 
@@ -14,7 +15,7 @@ def DecisionProblem := String → Prop
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 structure TuringMachine where
   compute : String → Bool
@@ -78,7 +79,7 @@ def CircuitFamily := Nat → Gate
 
 /-- Polynomial-size circuit family -/
 def PolynomialSizeCircuits (cf : CircuitFamily) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), circuitSize (cf n) ≤ n ^ k
+  Complexity.PolynomiallyBounded (fun n => circuitSize (cf n))
 
 -- Graph representation of circuits
 

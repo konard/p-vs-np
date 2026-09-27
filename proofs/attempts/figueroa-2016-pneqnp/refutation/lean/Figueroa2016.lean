@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   Figueroa2016.lean - Formalization of Figueroa's (2016) P≠NP Attempt
 
@@ -28,7 +29,7 @@ def TimeComplexity := Nat → Nat
 
 /-- A function is polynomial-time if there exists a polynomial bound -/
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 /-- A BitFunction is computable in polynomial time -/
 def IsPolytimeComputable (f : BitFunction) : Prop :=

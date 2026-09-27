@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   AslamRefutation.v - Refutation of Javaid Aslam's 2008 P=NP attempt
 
@@ -51,7 +52,7 @@ Axiom countPerfectMatchings : BipartiteGraph -> nat.
 
 (* Polynomial time complexity *)
 Definition isPolynomial (T : nat -> nat) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* Perfect matching counting is #P-complete (Valiant, 1979).
    This means a polynomial-time algorithm for this problem would

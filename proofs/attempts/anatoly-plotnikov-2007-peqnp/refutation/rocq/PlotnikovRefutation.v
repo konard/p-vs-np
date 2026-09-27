@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (** Audit of Plotnikov's 2007 P=NP argument. The predicates below name the
     mathematical obligations in the paper; they do not implement its algorithm.
     No missing obligation is introduced as an axiom. *)
@@ -10,7 +11,7 @@ Module PlotnikovRefutation.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (** An instance represents a VS-digraph and its initiating set V⁰. The graph,
     fictitious-arc type, and induced set size remain abstract; a full audit
@@ -74,7 +75,9 @@ Qed.
 Theorem polynomial_time_if_bound (T : TimeComplexity)
     (bound : forall n : nat, T n <= n ^ 8) : isPolynomial T.
 Proof.
-  exists 1, 8. intro n. rewrite Nat.mul_1_l. exact (bound n).
+  exists 1, 8. intro n. rewrite Nat.mul_1_l.
+  eapply Nat.le_trans; [exact (bound n) |].
+  apply Nat.pow_le_mono_l. lia.
 Qed.
 
 (** The old refutation negated polynomiality of this cubic function. *)

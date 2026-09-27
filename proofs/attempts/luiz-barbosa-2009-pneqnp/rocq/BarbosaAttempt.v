@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (* Formalization of Barbosa's 2009 P≠NP Attempt and Its Refutation *)
 (* This file formalizes the key definitions and identifies the uniformity error *)
 
@@ -19,9 +20,9 @@ Definition str_length (s : string) : nat := length s.
 Definition Polynomial := nat -> nat.
 
 (* A polynomial time bound means there exist constants c and k such that
-   for all n, P(n) <= c * n^k *)
+   for all n, P(n) <= c * (n+1)^k *)
 Definition is_polynomial (P : Polynomial) : Prop :=
-  exists c k, forall n, P n <= c * (n ^ k).
+  Complexity.Complexity.PolynomiallyBounded P.
 
 (* ================================================================= *)
 (** * Barbosa's Restricted Type X Programs *)

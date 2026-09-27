@@ -80,6 +80,80 @@ Record Polynomial := {
 Definition evalPoly (p : Polynomial) (n : nat) : nat :=
   coefficient p * (n + 1) ^ degree p.
 
+(** A time function bounded at every input length by a polynomial, including zero. *)
+Definition PolynomiallyBounded (T : nat -> nat) : Prop :=
+  exists c k : nat, forall n : nat, T n <= c * (n + 1) ^ k.
+
+Theorem polynomiallyBounded_iff_polynomial : forall T : nat -> nat,
+  PolynomiallyBounded T <->
+  exists p : Polynomial, forall n, T n <= evalPoly p n.
+Proof.
+  intro T. split.
+  - intros [c [k h]]. exists {| coefficient := c; degree := k |}.
+    exact h.
+  - intros [p h]. exists (coefficient p), (degree p). exact h.
+Qed.
+
+Theorem polynomiallyBounded_zero : PolynomiallyBounded (fun _ => 0).
+Proof. exists 0, 0. intros. simpl. lia. Qed.
+
+Theorem polynomiallyBounded_const : forall c : nat,
+  PolynomiallyBounded (fun _ => c).
+Proof. intro c. exists c, 0. intros. simpl. lia. Qed.
+
+Theorem polynomiallyBounded_succ :
+  PolynomiallyBounded (fun n => n + 1).
+Proof. exists 1, 1. intros. simpl. lia. Qed.
+
+Theorem polynomiallyBounded_of_le : forall (T U : nat -> nat),
+  PolynomiallyBounded T -> (forall n, U n <= T n) -> PolynomiallyBounded U.
+Proof.
+  intros T U [c [k hT]] hUT. exists c, k. intro n.
+  specialize (hT n). specialize (hUT n). lia.
+Qed.
+
+Theorem polynomiallyBounded_add : forall (T U : nat -> nat),
+  PolynomiallyBounded T -> PolynomiallyBounded U ->
+  PolynomiallyBounded (fun n => T n + U n).
+Proof.
+  intros T U [c [k hT]] [d [l hU]]. exists (c + d), (k + l).
+  intro n. specialize (hT n). specialize (hU n).
+  assert (Hk : (n + 1) ^ k <= (n + 1) ^ (k + l))
+    by (apply Nat.pow_le_mono_r; lia).
+  assert (Hl : (n + 1) ^ l <= (n + 1) ^ (k + l))
+    by (apply Nat.pow_le_mono_r; lia).
+  nia.
+Qed.
+
+Theorem polynomiallyBounded_mul : forall (T U : nat -> nat),
+  PolynomiallyBounded T -> PolynomiallyBounded U ->
+  PolynomiallyBounded (fun n => T n * U n).
+Proof.
+  intros T U [c [k hT]] [d [l hU]]. exists (c * d), (k + l).
+  intro n. specialize (hT n). specialize (hU n).
+  rewrite Nat.pow_add_r.
+  nia.
+Qed.
+
+(** Composing polynomial runtime and polynomial output-size bounds. *)
+Theorem polynomiallyBounded_comp : forall (T U : nat -> nat),
+  PolynomiallyBounded T -> PolynomiallyBounded U ->
+  PolynomiallyBounded (fun n => T (U n)).
+Proof.
+  intros T U [c [k hT]] [d [l hU]].
+  exists (c * (d + 1) ^ k), (l * k). intro n.
+  specialize (hT (U n)). specialize (hU n).
+  assert (Hone : 1 <= (n + 1) ^ l).
+  { destruct ((n + 1) ^ l) eqn:Hp; [| lia].
+    pose proof (Nat.pow_nonzero (n + 1) l ltac:(lia)).
+    congruence. }
+  assert (Hbase : U n + 1 <= (d + 1) * (n + 1) ^ l) by nia.
+  pose proof (Nat.pow_le_mono_l _ _ k Hbase) as Hpow.
+  rewrite Nat.pow_mul_r.
+  rewrite Nat.pow_mul_l in Hpow.
+  nia.
+Qed.
+
 Record ClassP := {
   p_language : Language;
   p_machine : Machine;

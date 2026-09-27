@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   MalininaRefutation.lean - Refutation of Natalia L. Malinina's 2012 unprovability claim
 
@@ -21,7 +22,7 @@ def Language := Nat → Prop
 
 -- Polynomial-time computability
 def isPolynomialBound (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 -- Computability: an algorithm exists that computes a language in poly time
 structure PolyAlgorithm (L : Language) where

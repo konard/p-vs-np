@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   MukherjeeProof.lean - Forward formalization of Amar Mukherjee's 2011 P=NP attempt
 
@@ -19,7 +20,7 @@ namespace MukherjeeProofAttempt
 
 -- Polynomial time complexity
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 -- A Boolean literal: either a variable index or its negation
 inductive Literal where

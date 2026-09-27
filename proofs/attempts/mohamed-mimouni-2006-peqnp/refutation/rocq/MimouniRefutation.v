@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   MimouniRefutation.v - Refutation of Mohamed Mimouni's 2006 P=NP attempt
 
@@ -27,7 +28,7 @@ Definition DecisionProblem := string -> Prop.
 Definition TimeComplexity := nat -> nat.
 
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 Record TuringMachine := {
   compute : string -> bool;

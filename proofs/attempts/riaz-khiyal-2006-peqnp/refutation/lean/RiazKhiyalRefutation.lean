@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   RiazKhiyalRefutation.lean - Refutation of Riaz & Khiyal's 2006 P=NP attempt
 
@@ -26,7 +27,7 @@ def Language := String → Bool
 def TimeComplexity := Nat → Nat
 
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 structure Graph where
   numNodes : Nat

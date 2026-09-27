@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   MaknickasProof.v - Forward formalization of Maknickas (2011) P=NP attempt
 
@@ -128,7 +129,7 @@ Definition transformToLP (f : CNF) : CNF := f.
     This part is correct: LP is indeed solvable in polynomial time. *)
 Definition TimeComplexity := nat -> nat.
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (** LP is solvable in polynomial time (this part is TRUE) *)
 Theorem lp_solvable_in_polynomial_time :

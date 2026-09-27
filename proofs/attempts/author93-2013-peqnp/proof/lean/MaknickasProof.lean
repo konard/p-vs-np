@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   MaknickasProof.lean - Forward formalization of Maknickas's 2013 P=NP attempt
 
@@ -37,7 +38,7 @@ namespace MaknickasProofAttempt
 def TimeComplexity := Nat → Nat
 
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 -- LP algorithms (interior point / simplex) run in polynomial time
 axiom lp_solvable_in_polynomial_time : isPolynomial (fun n => n ^ 3)

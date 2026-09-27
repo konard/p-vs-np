@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   FeinsteinsProof.v - Formalization of Craig Alan Feinstein's 2011 P≠NP Proof Attempt
 
@@ -30,9 +31,9 @@ Definition Language := String.string -> bool.
 (* Time complexity function *)
 Definition TimeComplexity := nat -> nat.
 
-(* Polynomial time: ∃ c k, T(n) ≤ c * n^k *)
+(* Polynomial time: ∃ c k, T(n) ≤ c * (n+1)^k *)
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* Exponential time: ∃ c ε, T(n) ≥ c * 2^(ε*n) *)
 Definition isExponential (T : TimeComplexity) : Prop :=

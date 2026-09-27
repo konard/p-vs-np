@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   BarronRomeroEuclideanTspGapRefutation.v
 
@@ -15,7 +16,7 @@ Definition DecisionProblem := string -> Prop.
 Definition TimeComplexity := nat -> nat.
 
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 Record PolyTimeFunction := {
   ptf_compute : string -> string;
@@ -45,7 +46,7 @@ Qed.
 Definition constantTruePolyTime : PolyTimeFunction :=
   {| ptf_compute := fun _ => "true";
      ptf_time := fun _ => 1;
-     ptf_isPolyTime := ex_intro _ 0 one_le_n_pow_zero |}.
+     ptf_isPolyTime := Complexity.Complexity.polynomiallyBounded_const 1 |}.
 
 Theorem always_true_in_p : InP alwaysTrueProblem.
 Proof.

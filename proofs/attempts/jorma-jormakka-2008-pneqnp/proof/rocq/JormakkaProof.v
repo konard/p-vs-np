@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   JormakkaProof.v - Forward Formalization of Jormakka's 2008 P≠NP Proof Attempt
 
@@ -25,8 +26,7 @@ Definition TimeComplexity := Algorithm -> Instance -> Time.
 
 (* Polynomial time predicate *)
 Definition IsPolynomialTime (tc : TimeComplexity) (alg : Algorithm) : Prop :=
-  exists (k : nat),
-    forall (n : nat), tc alg n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded (tc alg).
 
 (* Super-polynomial time predicate *)
 Definition IsSuperPolynomialTime (tc : TimeComplexity) (alg : Algorithm) : Prop :=

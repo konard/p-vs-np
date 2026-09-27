@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   HuangAttempt.v - Formalization of Yubin Huang's 2015 P=NP attempt
 
@@ -22,9 +23,9 @@ Definition Language := string -> bool.
 (** Time complexity: maps input size to maximum number of steps *)
 Definition TimeComplexity := nat -> nat.
 
-(** Polynomial time: there exist constants c and k such that T(n) <= c * n^k *)
+(** Polynomial time: there exist constants c and k such that T(n) <= c * (n+1)^k *)
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (** * 2. Nondeterministic Turing Machine Model *)
 

@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   KleimanRefutation.lean - Refutation of Howard Kleiman's 2006 P=NP attempt
   
@@ -48,7 +49,7 @@ axiom tsp_exponentially_more_subproblems :
 
 -- Polynomial vs Exponential
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 axiom floydWarshall_polynomial :
   isPolynomial (fun n => n ^ 3)

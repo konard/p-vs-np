@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   SalemiRefutation.lean - Refutation of Luigi Salemi's 2009 P=NP attempt
 
@@ -16,9 +17,9 @@ namespace SalemiRefutation
 
 /-! ## Key Definitions -/
 
-/-- A function T(n) is polynomial if bounded by c * n^k for some constants c, k -/
+/-- A function T(n) is polynomial if bounded by c * (n+1)^k for some constants c, k -/
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-! ## Error 1: Saturation Complexity Claim is Unproven
 
@@ -50,11 +51,11 @@ axiom saturation_iteration_count_unproven :
 
 /-- O(n^3) is a polynomial -/
 theorem n_cubed_is_polynomial : isPolynomial (fun n => n ^ 3) :=
-  ⟨1, 3, fun n => by simp⟩
+  ⟨1, 3, fun n => by simpa using Nat.pow_le_pow_left (Nat.le_succ n) 3⟩
 
 /-- O(n^12) is a polynomial -/
 theorem n_twelfth_is_polynomial : isPolynomial (fun n => n ^ 12) :=
-  ⟨1, 12, fun n => by simp⟩
+  ⟨1, 12, fun n => by simpa using Nat.pow_le_pow_left (Nat.le_succ n) 12⟩
 
 /-! ## Error 2: Circular Reasoning in Theorem 11
 

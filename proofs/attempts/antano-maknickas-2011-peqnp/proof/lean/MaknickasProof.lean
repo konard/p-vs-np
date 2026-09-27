@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   MaknickasProof.lean - Forward formalization of Maknickas (2011) P=NP attempt
 
@@ -113,7 +114,7 @@ def transformToLP (f : CNF) : CNF := f -- identity: LP uses same clause structur
 -- This part is correct: LP is indeed solvable in polynomial time.
 def TimeComplexity := Nat → Nat
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 -- LP is solvable in polynomial time (this part is TRUE)
 axiom lp_solvable_in_polynomial_time :

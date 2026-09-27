@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   GubinRefutation.v - Refutation of Sergey Gubin's 2006 P=NP proof attempt
 
@@ -25,7 +26,7 @@ Module GubinRefutation.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 Definition isExponential (T : TimeComplexity) : Prop :=
   exists (c k : nat), forall n : nat, c * 2 ^ (n / k) <= T n.

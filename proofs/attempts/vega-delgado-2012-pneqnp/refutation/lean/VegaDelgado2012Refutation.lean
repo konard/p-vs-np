@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   VegaDelgado2012Refutation.lean - Refutation of Vega Delgado's 2012 P≠NP proof attempt
 
@@ -13,7 +14,7 @@ def DecisionProblem := String → Prop
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 def IsExponentialTime (f : TimeComplexity) : Prop :=
   ∃ (k : Nat), ∀ (n : Nat), f n ≤ 2 ^ (n ^ k)

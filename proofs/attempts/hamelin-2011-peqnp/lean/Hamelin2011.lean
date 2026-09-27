@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   Hamelin2011.lean - Formalization of the error in Hamelin's 2011 P=NP attempt
 
@@ -28,9 +29,9 @@ theorem pow2_pos (n : Nat) : 0 < pow2 n := by
 
 -- Time Complexity Classes
 
-/-- A function is polynomial if it's bounded by n^k for some constant k -/
+/-- A function is polynomial if it's bounded by (n+1)^k for some constant k -/
 def IsPolynomial (f : Nat → Nat) : Prop :=
-  ∃ k : Nat, ∀ n : Nat, f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 /-- A function is exponential if it grows as 2^n -/
 def IsExponential (f : Nat → Nat) : Prop :=

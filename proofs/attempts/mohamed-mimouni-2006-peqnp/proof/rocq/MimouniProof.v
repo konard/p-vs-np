@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   MimouniProof.v - Formalization of Mohamed Mimouni's 2006 P=NP proof attempt
 
@@ -39,7 +40,7 @@ Definition TimeComplexity := nat -> nat.
 
 (* A problem is polynomial-time if there exists a polynomial time bound *)
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (* A Turing machine model (abstract representation) *)
 Record TuringMachine := {

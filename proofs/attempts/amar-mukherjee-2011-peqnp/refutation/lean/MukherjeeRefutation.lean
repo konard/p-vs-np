@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   MukherjeeRefutation.lean - Refutation of Amar Mukherjee's 2011 P=NP attempt
 
@@ -16,7 +17,7 @@ namespace MukherjeeRefutation
 
 -- Polynomial and exponential time complexity
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 def isExponential (T : Nat → Nat) : Prop :=
   ∃ (b : Nat), b > 1 ∧ ∀ (c k : Nat), ∃ n : Nat, c * n ^ k < T n

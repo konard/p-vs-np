@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   RenjitGrover2005.lean - Formalization of Renjit Grover's 2005 P≠NP attempt
 
@@ -20,7 +21,7 @@ def DecisionProblem := String → Prop
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 structure TuringMachine where
   compute : String → Bool

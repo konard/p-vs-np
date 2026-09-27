@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   Kupchik2004PNotEqualNP.v - Formalization of Mikhail N. Kupchik's 2004 P ≠ NP proof attempt
 
@@ -27,7 +28,7 @@ Definition TimeComplexity := nat -> nat.
 
 (** A problem is polynomial-time if there exists a polynomial time bound *)
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (** A Turing machine model (abstract representation) *)
 Record TuringMachine := {

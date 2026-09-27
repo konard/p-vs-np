@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   BringsjordTaylorPeqNP.lean - Formalization of Bringsjord & Taylor (2004) P=NP Attempt
 
@@ -17,9 +18,9 @@ def Language := String → Bool
 def TimeComplexity := Nat → Nat
 def ResourceComplexity := Nat → Nat
 
-/-- Polynomial time complexity: ∃ c k, T(n) ≤ c * n^k -/
+/-- Polynomial time complexity: ∃ c k, T(n) ≤ c * (n+1)^k -/
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- Exponential complexity: ∃ c k, T(n) ≥ c * 2^(n/k) -/
 def isExponential (T : TimeComplexity) : Prop :=

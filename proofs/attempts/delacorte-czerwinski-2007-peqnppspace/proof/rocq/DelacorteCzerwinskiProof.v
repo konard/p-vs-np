@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   Delacorte/Czerwinski Forward Proof Attempt - Following the original arguments
 
@@ -34,7 +35,7 @@ Definition Language := string -> bool.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomialTime (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (** Graph structure *)
 Record Graph := {

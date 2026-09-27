@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   PvsNPProofAttempt.v - Experimental framework for attempting to prove P = NP or P ≠ NP
 
@@ -24,9 +25,9 @@ Definition Language := String.string -> bool.
 
 Definition TimeComplexity := nat -> nat.
 
-(* Polynomial time complexity: ∃ c k, T(n) ≤ c * n^k *)
+(* Polynomial time complexity: ∃ c k, T(n) ≤ c * (n+1)^k *)
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* Exponential time complexity *)
 Definition isExponential (T : TimeComplexity) : Prop :=

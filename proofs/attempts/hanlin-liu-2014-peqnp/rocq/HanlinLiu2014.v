@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   HanlinLiu2014.v - Formalization of Hanlin Liu (2014) P=NP Attempt
 
@@ -83,7 +84,7 @@ Definition TimeComplexity := nat -> nat.
 
 (** Polynomial-time predicate *)
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (** An algorithm is represented abstractly *)
 Record Algorithm (Input Output : Type) := {

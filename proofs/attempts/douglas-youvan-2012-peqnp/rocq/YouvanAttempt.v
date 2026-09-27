@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   Formalization of Douglas Youvan (2012) P=NP Attempt
 
@@ -42,7 +43,7 @@ Record Computation := {
 
 (* Computational complexity: defined in terms of steps, not physical time *)
 Definition isPolynomialTime (f : nat -> nat) : Prop :=
-  exists c k, forall n, f n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 Definition isExponentialTime (f : nat -> nat) : Prop :=
   exists c, forall n, f n >= c ^ n.

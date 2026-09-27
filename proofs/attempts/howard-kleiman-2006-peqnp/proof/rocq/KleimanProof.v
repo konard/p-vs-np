@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   KleimanProof.v - Forward formalization of Howard Kleiman's 2006 P=NP attempt
   
@@ -21,7 +22,7 @@ Module KleimanProofAttempt.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* Graph definition *)
 Record Graph := {

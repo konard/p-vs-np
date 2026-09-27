@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   PlotnikovPNEQNP.v - Forward formalization of Anatoly Plotnikov's 2011 P≠NP attempt
 
@@ -54,7 +55,7 @@ Definition is3Colorable (G : Graph) : Prop :=
 
 (* Polynomial-time complexity bound *)
 Definition isPolynomial (T : nat -> nat) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* A decision algorithm for 3-Colorability *)
 Definition DecisionAlgorithm := Graph -> bool.

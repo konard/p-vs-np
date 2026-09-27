@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   JiangRefutation.lean - Refutation of Xinwen Jiang's 2009 P=NP attempt
 
@@ -21,7 +22,7 @@ def Language := String → Bool
 def TimeComplexity := Nat → Nat
 
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 structure ClassP where
   language : Language

@@ -1,3 +1,5 @@
+From proofs.complexity.rocq Require Import Complexity.
+From Stdlib Require Import Lia.
 (*
   ChaudhariAttempt.v - Formalization of Narendra S. Chaudhari's 2009 P=NP attempt
 
@@ -78,7 +80,7 @@ Definition TimeComplexity : Type := nat -> nat.
 
 (* Polynomial time bound *)
 Definition IsPolynomialTime (t : TimeComplexity) : Prop :=
-  exists (k : nat), forall (n : nat), n > 0 -> t n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded t.
 
 (* Algorithm model (abstract) *)
 Record Algorithm : Type := mkAlgorithm {
@@ -130,10 +132,9 @@ Theorem chaudhari_complexity_is_polynomial :
   IsPolynomialTime ChaudhariComplexity.
 Proof.
   unfold IsPolynomialTime, ChaudhariComplexity.
-  exists 13.
-  intros n Hn.
-  (* n^13 <= n^13 *)
-  apply le_n.
+  exists 1, 13. intro n.
+  rewrite Nat.mul_1_l.
+  apply Nat.pow_le_mono_l. lia.
 Qed.
 
 (* If 3-SAT is in P, then all NP problems are in P *)
@@ -165,11 +166,12 @@ Proof.
     split.
     - exact H_correct.
     - unfold IsPolynomialTime.
-      exists 13.
-      intros n Hn.
+      exists 1, 13. intro n.
       specialize (H_bound n).
       unfold ChaudhariComplexity in H_bound.
-      exact H_bound.
+      rewrite Nat.mul_1_l.
+      eapply Nat.le_trans; [exact H_bound |].
+      apply Nat.pow_le_mono_l. lia.
   }
   (* Apply the NP-completeness of 3-SAT *)
   apply (threeSAT_in_P_implies_NP_subset_P H_sat_in_P prob H_np).
