@@ -1,218 +1,114 @@
-(*
-  ZhuRefutation.v - Refutation of Guohun Zhu's 2007 P=NP attempt
-
-  This file formalizes the error in Zhu's paper "The Complexity of HCP in
-  Digraphs with Degree Bound Two" (arXiv:0704.0309v3).
-
-  The main error is in the counting argument (Lemma 4), where the paper
-  claims there are O(n) perfect matchings to enumerate, when in fact there
-  are exponentially many (2^(n/4)).
-*)
-
-Require Import Coq.Init.Nat.
-Require Import Coq.Arith.Arith.
-Require Import Coq.Lists.List.
-Require Import Coq.Logic.FunctionalExtensionality.
-Require Import Coq.micromega.Lia.
+(* Finite projector witness for Zhu (2007), Lemma 4.
+   See the adjacent README for the scope of the code-permutation quotient. *)
+From Stdlib Require Import List Bool Arith Lia.
+Import ListNotations.
 
 Module ZhuRefutation.
 
-(** * Definitions *)
+Definition vertices := seq 0 6.
+Definition arc (u v : nat) : bool :=
+  Nat.eqb (v / 2) ((u / 2 + 1) mod 3).
 
-(** A directed graph (digraph) *)
-Record Digraph (V : Type) := {
-  edges : V -> V -> Prop
-}.
+(* A projector edge u+--v- corresponds exactly to an arc u -> v. *)
+Definition projector_edge := arc.
 
-Arguments edges {V}.
+Definition left_component (u : nat) := u / 2.
+Definition right_component (v : nat) := (v / 2 + 2) mod 3.
 
-(** A Gamma-digraph: strongly connected with degree bounds 1-2 *)
-Record GammaDigraph (V : Type) := {
-  base_digraph :> Digraph V;
-  strongly_connected : True;  (* Simplified *)
-  in_degree_bound : forall v : V, True;  (* Simplified: 1 <= d-(v) <= 2 *)
-  out_degree_bound : forall v : V, True  (* Simplified: 1 <= d+(v) <= 2 *)
-}.
+(* Three complete bipartite 2-by-2 components, hence three C4 cycles. *)
+Definition component_edges_hold : bool :=
+  forallb (fun u => forallb (fun v =>
+    Bool.eqb (projector_edge u v)
+      (Nat.eqb (left_component u) (right_component v))) vertices)
+    vertices.
 
-Arguments base_digraph {V}.
+Theorem projector_component_edges : component_edges_hold = true.
+Proof. vm_compute; reflexivity. Qed.
 
-(** Balanced bipartite graph *)
-Record BipartiteGraph (X Y : Type) := {
-  bi_edges : X -> Y -> Prop
-}.
+Definition component_sizes_hold : bool :=
+  forallb (fun c =>
+    Nat.eqb (length (filter (fun u =>
+      Nat.eqb (left_component u) c) vertices)) 2 &&
+    Nat.eqb (length (filter (fun v =>
+      Nat.eqb (right_component v) c) vertices)) 2) (seq 0 3).
 
-Arguments bi_edges {X Y}.
+Theorem projector_component_sizes : component_sizes_hold = true.
+Proof. vm_compute; reflexivity. Qed.
 
-(** A C4 cycle component *)
-Record C4Component := {
-  c4_id : nat  (* Component identifier *)
-}.
+Definition matching (a b c : bool) (u : nat) : nat :=
+  match u with
+  | 0 => if a then 3 else 2
+  | 1 => if a then 2 else 3
+  | 2 => if b then 5 else 4
+  | 3 => if b then 4 else 5
+  | 4 => if c then 1 else 0
+  | _ => if c then 0 else 1
+  end.
 
-(** Each C4 has 2 perfect matchings *)
-Axiom c4_has_two_matchings : forall (c : C4Component),
-  exists m1 m2 : nat, m1 <> m2.
+Definition perfect (m : nat -> nat) : bool :=
+  forallb (fun u => projector_edge u (m u)) vertices &&
+  Nat.eqb (length (nodup Nat.eq_dec (map m vertices))) 6.
 
-(** * The Critical Error: Lemma 4 *)
-
-(**
-  The paper's INCORRECT claim (Lemma 4):
-  "The maximal number of unlabeled perfect matching in a projector graph G is n/2."
-
-  This is FALSE. With k independent C4 components, each having 2 choices,
-  the total number of distinct matchings is 2^k, not 2k.
-*)
-
-(** * The CORRECT Counting: Exponential Growth *)
-
-(** Helper: 2^k grows faster than 2*k for k >= 3.
-    We prove this as an axiom for the general case; the key refutation
-    is demonstrated by concrete counterexamples below.
-    (The inductive proof in Rocq requires careful handling of 2^k which
-    lia cannot process directly without additional lemmas about powers.) *)
-Axiom pow2_gt_double : forall k : nat,
-  k >= 3 -> 2 ^ k > 2 * k.
-
-(** The paper's Lemma 4 is wrong: it claims 2k matchings when there are 2^k *)
-Theorem lemma4_is_wrong : forall k : nat,
-  k >= 3 -> 2 ^ k <> 2 * k.
+Theorem all_codes_perfect :
+  forall a b c, perfect (matching a b c) = true.
 Proof.
-  intros k Hk.
-  pose proof (pow2_gt_double k Hk).
-  lia.
+  intros [] [] []; vm_compute; reflexivity.
 Qed.
 
-(** Key counterexample: For n = 12, paper claims n/2 = 6, but 2^(n/4) = 8 *)
-Theorem counterexample_n12 : 2 ^ 3 > 12 / 2.
+Definition degree_two_out : bool :=
+  forallb (fun u =>
+    Nat.eqb (length (filter (arc u) vertices)) 2) vertices.
+Definition degree_two_in : bool :=
+  forallb (fun v =>
+    Nat.eqb (length (filter (fun u => arc u v) vertices)) 2) vertices.
+
+Definition reach3 (u v : nat) : bool :=
+  Nat.eqb u v || arc u v ||
+  existsb (fun w => arc u w && arc w v) vertices ||
+  existsb (fun w =>
+    existsb (fun z => arc u w && arc w z && arc z v) vertices) vertices.
+
+Theorem valid_gamma_input :
+  degree_two_out = true /\ degree_two_in = true /\
+  forallb (fun u => forallb (reach3 u) vertices) vertices = true.
+Proof. vm_compute; auto. Qed.
+
+(* Theorem 1(c3) says at most n/4 C4 components, where n=|V(D)|.
+   This single proposition includes the Γ conditions, the three complete
+   2-by-2 projector components, and the failed inequality 3 > 6/4. *)
+Theorem theorem1_c3_counterexample :
+  degree_two_out = true /\ degree_two_in = true /\
+  forallb (fun u => forallb (reach3 u) vertices) vertices = true /\
+  component_edges_hold = true /\ component_sizes_hold = true /\
+  3 > 6 / 4.
 Proof.
-  simpl. lia.
+  pose proof valid_gamma_input as [Hout [Hin Hreach]].
+  repeat split; try assumption; try apply projector_component_edges;
+    try apply projector_component_sizes; vm_compute; lia.
 Qed.
 
-(** For n = 16: paper claims 8, but 2^4 = 16 *)
-Theorem counterexample_n16 : 2 ^ 4 > 16 / 2.
-Proof.
-  simpl. lia.
-Qed.
+Definition weight (a b c : bool) : nat :=
+  (if a then 1 else 0) + (if b then 1 else 0) +
+  (if c then 1 else 0).
 
-(** For n = 20: paper claims 10, but 2^5 = 32 *)
-Theorem counterexample_n20 : 2 ^ 5 > 20 / 2.
-Proof.
-  simpl. lia.
-Qed.
+Theorem four_code_classes :
+  weight false false false = 0 /\
+  weight true false false = 1 /\
+  weight true true false = 2 /\
+  weight true true true = 3 /\
+  6 / 2 < 4.
+Proof. vm_compute; auto. Qed.
 
-(** General: for n >= 12 with n divisible by 4, 2^(n/4) > n/2 *)
-(** Note: This general statement requires careful handling of Nat division.
-    We prove specific cases above and state the general case as an axiom
-    since Coq's lia cannot always handle 2^(n/4) for symbolic n. *)
-Axiom exponential_exceeds_linear_general : forall n : nat,
-  n >= 12 -> n mod 4 = 0 -> 2 ^ (n / 4) > n / 2.
+Fixpoint orbit (m : nat -> nat) (k : nat) : nat :=
+  match k with 0 => 0 | S j => m (orbit m j) end.
 
-(** * The Enumeration Gap *)
+Definition one_cycle (m : nat -> nat) : bool :=
+  forallb (fun v =>
+    existsb (fun k => Nat.eqb (orbit m k) v) vertices) vertices.
 
-(**
-  The paper provides recursive equations (10-11) but:
-  - The cross-product operation is not formally defined
-  - No proof of termination is provided
-  - No proof that all matchings are enumerated
-  - No complexity analysis is given
-
-  Even if there were only n/2 matchings (which is false), the paper
-  provides no algorithm to enumerate them efficiently.
-*)
-
-Theorem enumeration_gap :
-  (* The paper claims an O(n^4) algorithm but provides no enumeration method *)
-  True.
-Proof. exact I. Qed.
-
-(** * Why the P=NP Conclusion Fails *)
-
-(**
-  The proof chain is:
-    Theorem 1 (projector graph construction) - VALID
-    Theorem 2 (HC <-> matching with rank condition) - VALID
-    Lemma 4 (counting: at most n/2 matchings) - INVALID
-    Theorem 3 (O(n^4) algorithm) - INVALID (depends on Lemma 4)
-    Theorem 6 (extension to degree-2 digraphs) - INVALID (depends on Theorem 3)
-    Theorem 7 (P=NP) - INVALID (depends on Theorem 6)
-
-  The error at Lemma 4 propagates and invalidates the final conclusion.
-*)
-
-(** The fundamental counting error invalidates the polynomial time claim *)
-Theorem polynomial_claim_invalid_n12 :
-  (* For n = 12: paper claims 6 matchings, but there are 8 *)
-  2 ^ 3 > 12 / 2.
-Proof.
-  exact counterexample_n12.
-Qed.
-
-(** * Summary of Errors *)
-
-(**
-  Error 1: Arithmetic Counting Mistake
-
-  The paper claims that k components with 2 choices each gives:
-    - Paper's claim: 2k matchings (linear, additive)
-    - Reality: 2^k matchings (exponential, multiplicative)
-
-  This is a fundamental misunderstanding of combinatorics.
-*)
-
-Theorem counting_error : forall k : nat,
-  k >= 3 ->
-  2 ^ k <> 2 * k.
-Proof.
-  exact lemma4_is_wrong.
-Qed.
-
-(**
-  Error 2: No Enumeration Algorithm
-
-  Even if there were only n/2 matchings (which is false), the paper
-  provides no algorithm to enumerate them in polynomial time. The
-  recursive equations (10-11) lack:
-    - Formal definition of the cross-product operation
-    - Completeness proof
-    - Complexity analysis
-*)
-
-(**
-  Error 3: The "isomorphism" argument is invalid
-
-  Different matchings, even if "isomorphic" as abstract bipartite patterns,
-  correspond to different arc selections in the original digraph D and
-  may yield different rank values for r(F^(-1)(M)). Each must be checked
-  independently.
-*)
-
-Theorem isomorphism_argument_invalid :
-  (* Even isomorphic matchings need separate rank checks *)
-  True.
-Proof. exact I. Qed.
-
-(**
-  Error 4: Invalid Conclusion
-
-  Because the counting is exponential and no polynomial enumeration
-  exists, the P=NP conclusion does not follow.
-*)
-
-(** * Educational Value *)
-
-(**
-  This attempt illustrates a common error in P vs NP proofs:
-
-  MISTAKE: Confusing linear growth (k, 2k) with exponential growth (2^k)
-
-  KEY INSIGHT: Independent binary choices multiply, not add!
-
-  Example:
-    - 1 coin flip: 2 outcomes
-    - 2 coin flips: 2 x 2 = 4 outcomes (not 2 + 2 = 4, coincidence)
-    - 3 coin flips: 2 x 2 x 2 = 8 outcomes (not 2 + 2 + 2 = 6)
-    - k coin flips: 2^k outcomes (not 2k)
-
-  This exponential explosion is why NP-complete problems are hard!
-*)
+Theorem different_cycle_outcomes :
+  one_cycle (matching false false false) = false /\
+  one_cycle (matching true false false) = true.
+Proof. vm_compute; auto. Qed.
 
 End ZhuRefutation.
