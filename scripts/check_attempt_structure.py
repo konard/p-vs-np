@@ -119,7 +119,11 @@ class StructureValidation:
             self.has_original_md and
             self.has_original_file and
             self.has_proof and
-            self.has_refutation
+            self.has_proof_readme and
+            (self.has_proof_lean or self.has_proof_rocq) and
+            self.has_refutation and
+            self.has_refutation_readme and
+            (self.has_refutation_lean or self.has_refutation_rocq)
         )
 
     def has_lean(self) -> bool:
@@ -141,12 +145,18 @@ class StructureValidation:
             missing.append("ORIGINAL.pdf or ORIGINAL.html (recommended, root or original/)")
         if not self.has_proof:
             missing.append("proof/ directory (recommended)")
-        elif not self.has_proof_readme:
-            missing.append("proof/README.md (recommended)")
+        else:
+            if not self.has_proof_readme:
+                missing.append("proof/README.md (recommended)")
+            if not (self.has_proof_lean or self.has_proof_rocq):
+                missing.append("proof/lean/*.lean or proof/rocq/*.v (recommended)")
         if not self.has_refutation:
             missing.append("refutation/ directory (recommended)")
-        elif not self.has_refutation_readme:
-            missing.append("refutation/README.md (recommended)")
+        else:
+            if not self.has_refutation_readme:
+                missing.append("refutation/README.md (recommended)")
+            if not (self.has_refutation_lean or self.has_refutation_rocq):
+                missing.append("refutation/lean/*.lean or refutation/rocq/*.v (recommended)")
         return missing
 
     def get_claim_emoji(self) -> str:
@@ -783,7 +793,7 @@ def print_report(validations: List[StructureValidation]):
     print()
 
     if complete:
-        print("COMPLETE ATTEMPTS (has README.md, original materials, proof/, refutation/)")
+        print("COMPLETE ATTEMPTS (README, originals, documented proof/refutation files)")
         print("-" * 80)
         for v in complete:
             status = []

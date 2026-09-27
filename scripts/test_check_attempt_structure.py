@@ -3,6 +3,7 @@
 
 import contextlib
 import io
+import json
 import sys
 import tempfile
 import unittest
@@ -24,10 +25,72 @@ from check_attempt_structure import (  # noqa: E402
     main,
     parse_metadata_from_readme,
     parse_woeginger_html,
+    validate_attempt_structure,
 )
 
 
 class CheckAttemptStructureTests(unittest.TestCase):
+    def test_empty_formalization_directories_are_valid_but_incomplete(self):
+        attempt = self.base_dir / "proofs" / "attempts" / "alice-smith-2001-peqnp"
+        (attempt / "ORIGINAL.md").write_text("Original argument", encoding="utf-8")
+        (attempt / "ORIGINAL.txt").write_text("Original paper", encoding="utf-8")
+        (attempt / "proof").mkdir()
+        (attempt / "refutation").mkdir()
+
+        validation = validate_attempt_structure(attempt)
+
+        self.assertTrue(validation.is_valid())
+        self.assertFalse(validation.is_complete())
+        self.assertEqual(validation.get_missing(), [
+            "proof/README.md (recommended)",
+            "proof/lean/*.lean or proof/rocq/*.v (recommended)",
+            "refutation/README.md (recommended)",
+            "refutation/lean/*.lean or refutation/rocq/*.v (recommended)",
+        ])
+        report_path = self.base_dir / "structure-report.json"
+        status, output, errors = self.run_checker("--offline", "--json", str(report_path))
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        self.assertEqual(status, 0)
+        self.assertEqual(errors, "")
+        self.assertIn("Complete (all recommended): 0", output)
+        self.assertIn("PARTIAL ATTEMPTS", output)
+        self.assertEqual(report["summary"]["complete"], 0)
+        self.assertTrue(report["attempts"][0]["is_valid"])
+        self.assertFalse(report["attempts"][0]["is_complete"])
+        self.assertEqual(report["attempts"][0]["missing"], validation.get_missing())
+
+    def test_each_section_needs_readme_and_lean_or_rocq_file(self):
+        attempt = self.base_dir / "proofs" / "attempts" / "alice-smith-2001-peqnp"
+        (attempt / "ORIGINAL.md").write_text("Original argument", encoding="utf-8")
+        (attempt / "ORIGINAL.txt").write_text("Original paper", encoding="utf-8")
+        files = {
+            "proof/README.md": ("Proof explanation", "proof/README.md (recommended)"),
+            "proof/lean/Proof.lean": (
+                "-- proof", "proof/lean/*.lean or proof/rocq/*.v (recommended)"
+            ),
+            "refutation/README.md": (
+                "Refutation explanation", "refutation/README.md (recommended)"
+            ),
+            "refutation/rocq/Refutation.v": (
+                "(* refutation *)", "refutation/lean/*.lean or refutation/rocq/*.v (recommended)"
+            ),
+        }
+        for name, (contents, _) in files.items():
+            path = attempt / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(contents, encoding="utf-8")
+
+        self.assertTrue(validate_attempt_structure(attempt).is_complete())
+        for name, (contents, missing) in files.items():
+            with self.subTest(missing=name):
+                path = attempt / name
+                path.unlink()
+                validation = validate_attempt_structure(attempt)
+                self.assertTrue(validation.is_valid())
+                self.assertFalse(validation.is_complete())
+                self.assertEqual(validation.get_missing(), [missing])
+                path.write_text(contents, encoding="utf-8")
+
     def test_attempt_catalog_marks_formalization_as_historical_sketch(self):
         validation = StructureValidation(path=Path('proofs/attempts/example-2001-peqnp'), has_proof_lean=True)
         catalog = generate_markdown_list([validation])
