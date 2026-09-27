@@ -8,6 +8,10 @@ For every idea NN the checker requires:
   are declared in both the Lean and the Rocq file;
 * ``lean/IdeaNN.lean`` in namespace ``Issue532.IdeaNN`` and ``rocq/IdeaNN.v``,
   both free of admissions, axioms, and trivial ``True`` conclusions;
+* every definition whose doc comment calls it an "open obligation" lives in a
+  file that imports the shared machine model, mentions that model (directly or
+  through other definitions of the same file), and quantifies over no free cost
+  function such as ``∃ (time : α → Nat)``: its cost must be a ``Run`` step count;
 * a link to the dossier from ``RESEARCH_LOG.md``.
 
 Compilation itself is done by ``lake build`` and ``rocq compile`` in CI.
@@ -24,6 +28,8 @@ from check_proof_status import strip_comments_and_strings  # noqa: E402
 
 BASE = ROOT / "proofs" / "experiments" / "issue532"
 IDEAS = range(1, 41)
+# Shared machine layer; a section-3 row may name a theorem declared there.
+SHARED = {"lean": BASE / "lean" / "Machines.lean", "rocq": BASE / "rocq" / "Machines.v"}
 
 SECTIONS = [
     "## 1. The idea at full strength",
@@ -59,6 +65,108 @@ DECLARATION = {
     "lean": r"\b(?:theorem|lemma|def|abbrev|structure|inductive)\s+(?:[\w']+\.)*{name}(?![\w'])",
     "rocq": r"\b(?:Theorem|Lemma|Corollary|Proposition|Definition|Fixpoint|Inductive|Record)\s+{name}(?![\w'])",
 }
+
+
+# Names of the shared machine model (``proofs/complexity`` and the issue #532
+# ``Machines`` layer) whose meaning is tied to ``Complexity.Run`` step counts.
+MACHINE_NAMES = {
+    "Run", "Reaches", "DecidesWithin", "DecidesOn", "PolyDec", "Computes",
+    "PolyReduces", "InP", "InNP", "InCoNP", "PEqualsNP", "PNotEqualsNP",
+    "NPEqualsCoNP", "NPHard", "NPComplete", "ClassP", "ClassNP", "InRP",
+}
+
+SHARED_IMPORT = {
+    "lean": re.compile(
+        r"^import\s+proofs\.(?:complexity\.lean\.Complexity|experiments\.issue532\.lean\.Machines)\s*$",
+        re.MULTILINE,
+    ),
+    "rocq": re.compile(r"^From\s+proofs\.\S+\s+Require\s+Import\s+.*\b(?:Complexity|Machines)\b", re.MULTILINE),
+}
+
+DOCUMENTED = {
+    "lean": re.compile(
+        r"/--(?P<doc>(?:(?!-/).)*)-/\s*(?:@\[[^\]]*\]\s*)?(?:(?:noncomputable|private|protected)\s+)*"
+        r"(?:def|abbrev|structure|inductive)\s+(?P<name>[\w'.]+)",
+        re.DOTALL,
+    ),
+    "rocq": re.compile(
+        r"\(\*\*(?P<doc>(?:(?!\*\)).)*)\*\)\s*(?:Definition|Fixpoint|Inductive|Record)\s+(?P<name>[\w']+)",
+        re.DOTALL,
+    ),
+}
+
+DEFINITION = {
+    "lean": re.compile(
+        r"^(?:(?:noncomputable|private|protected)\s+)*(?:def|abbrev|structure|inductive)\s+(?P<name>[\w'.]+)",
+        re.MULTILINE,
+    ),
+    "rocq": re.compile(r"^(?:Definition|Fixpoint|Inductive|Record)\s+(?P<name>[\w']+)", re.MULTILINE),
+}
+
+FREE_COST = {
+    "lean": re.compile(r"(?:∃|\()\s*(?P<names>[\w' ]+?)\s*:\s*[^,()]*?→\s*Nat\b"),
+    "rocq": re.compile(r"(?:\bexists|\()\s*(?P<names>[\w' ]+?)\s*:\s*[^,()]*?->\s*nat\b"),
+}
+
+COST_NAME = re.compile(r"^(?:t|T|time\w*|cost\w*|steps?|runtime\w*)$")
+
+OBLIGATION = re.compile(r"open\s+obligation", re.IGNORECASE)
+
+
+def definition_body(language: str, stripped: str, start: int) -> str:
+    """Text of the declaration starting at ``start`` in the stripped source."""
+    if language == "lean":
+        # A Lean declaration ends before the next line that starts in column 0.
+        match = re.compile(r"\n(?=\S)").search(stripped, start + 1)
+    else:
+        match = re.compile(r"\.(?=\s)").search(stripped, start)
+    return stripped[start:match.start() if match else len(stripped)]
+
+
+def machine_tied_definitions(language: str, stripped: str) -> set[str]:
+    """Definitions of the file that mention the machine model, transitively."""
+    bodies = {
+        match.group("name").split(".")[-1]: definition_body(language, stripped, match.start())
+        for match in DEFINITION[language].finditer(stripped)
+    }
+    tied = set(MACHINE_NAMES)
+    changed = True
+    while changed:
+        changed = False
+        for name, body in bodies.items():
+            if name in tied:
+                continue
+            words = set(re.findall(r"[A-Za-z_][\w']*", body)) - {name}
+            if words & tied:
+                tied.add(name)
+                changed = True
+    return tied
+
+
+def check_obligations(language: str, source: str, stripped: str, name: str) -> list[str]:
+    """Open obligations must be statements about the shared machine model."""
+    errors = []
+    tied = None
+    for match in DOCUMENTED[language].finditer(source):
+        if not OBLIGATION.search(match.group("doc")):
+            continue
+        definition = match.group("name").split(".")[-1]
+        if not SHARED_IMPORT[language].search(stripped):
+            errors.append(f"{name}: open obligation `{definition}` without importing the shared machine model")
+        if tied is None:
+            tied = machine_tied_definitions(language, stripped)
+        body = definition_body(language, stripped, match.start("name"))
+        words = set(re.findall(r"[A-Za-z_][\w']*", body)) - {definition}
+        if not words & tied:
+            errors.append(f"{name}: open obligation `{definition}` does not mention the machine model")
+        for cost in FREE_COST[language].finditer(body):
+            names = cost.group("names").split()
+            if any(COST_NAME.match(candidate) for candidate in names):
+                errors.append(
+                    f"{name}: open obligation `{definition}` quantifies over a free cost function; "
+                    "use a `Run` step count"
+                )
+    return errors
 
 
 def paths(number: int) -> dict[str, Path]:
@@ -108,6 +216,7 @@ def check_prover_file(language: str, path: Path, number: int) -> list[str]:
         errors.append(f"{path.name}: fewer than two theorems")
     if language == "lean" and f"namespace Issue532.Idea{number:02d}" not in stripped:
         errors.append(f"{path.name}: missing namespace Issue532.Idea{number:02d}")
+    errors.extend(check_obligations(language, source, stripped, path.name))
     return errors
 
 
@@ -144,6 +253,10 @@ def check_idea(number: int) -> list[str]:
         errors.append(f"Idea{number:02d}.md: section 3 table lists no theorem names")
     sources = {
         language: strip_comments_and_strings(files[language].read_text(), language)
+        + "\n"
+        + strip_comments_and_strings(SHARED[language].read_text(), language)
+        if SHARED[language].is_file()
+        else strip_comments_and_strings(files[language].read_text(), language)
         for language in ("lean", "rocq")
     }
     for row in rows:

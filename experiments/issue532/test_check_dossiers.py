@@ -32,6 +32,46 @@ class CheckerUnitTests(unittest.TestCase):
         self.assertTrue(any("Axiom" in error for error in errors))
         self.assertTrue(any("fewer than two" in error for error in errors))
 
+    def test_open_obligation_must_use_the_machine_model(self):
+        head = "namespace Issue532.Idea01\ntheorem a : 1 = 1 := rfl\ntheorem b : 2 = 2 := rfl\n"
+        # The reviewer's pattern: a free time function with no link to `Run`.
+        free = head + (
+            "/-- **Open obligation.** -/\n"
+            "def PolyDec (L : Nat → Bool) : Prop :=\n"
+            "  ∃ (D : Nat → Bool) (t : Nat → Nat) (c : Nat), (∀ x, D x = L x) ∧ ∀ x, t x ≤ c\n"
+        )
+        errors = self.check_source("lean", free)
+        self.assertTrue(any("without importing" in e for e in errors))
+        self.assertTrue(any("does not mention the machine model" in e for e in errors))
+        self.assertTrue(any("free cost function" in e for e in errors))
+        tied = "import proofs.experiments.issue532.lean.Machines\n" + head + (
+            "/-- A helper tied to the model. -/\n"
+            "def Fast (L : Complexity.Language) : Prop :=\n"
+            "  ∃ m p, Issue532.Machines.DecidesWithin m p L\n"
+            "/-- **Open obligation.** -/\n"
+            "def Goal : Prop := Fast Issue532.Machines.SAT\n"
+        )
+        self.assertEqual(self.check_source("lean", tied), [])
+        # A plain schema that is not called an open obligation is not checked.
+        schema = head + "/-- An abstract schema. -/\ndef Schema (P : Prop) : Prop := P\n"
+        self.assertEqual(self.check_source("lean", schema), [])
+
+    def test_rocq_open_obligation_must_use_the_machine_model(self):
+        body = "Theorem a : 1 = 1.\nProof. reflexivity. Qed.\nTheorem b : 2 = 2.\nProof. reflexivity. Qed.\n"
+        free = body + (
+            "(** Open obligation. *)\n"
+            "Definition PolyDec (L : nat -> bool) : Prop :=\n"
+            "  exists (t : nat -> nat) (c : nat), forall x, t x <= c.\n"
+        )
+        errors = self.check_source("rocq", free)
+        self.assertTrue(any("without importing" in e for e in errors))
+        self.assertTrue(any("free cost function" in e for e in errors))
+        tied = "From proofs.experiments.issue532.rocq Require Import Machines.\n" + body + (
+            "(** Open obligation. *)\n"
+            "Definition Goal : Prop := InP SAT.\n"
+        )
+        self.assertEqual(self.check_source("rocq", tied), [])
+
     def test_table_names_reads_first_column_only(self):
         markdown = "\n".join([
             check_dossiers.SECTIONS[2],
