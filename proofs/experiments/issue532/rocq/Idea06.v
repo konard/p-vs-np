@@ -14,10 +14,28 @@
      fuel * B neighbour evaluations (exact_local_search_decides,
      localSearch_evals_le).
 
+   - machine model (Machines.v): the open obligation ExactLocalSearch asks
+     for a polynomial-time Machine that maps every instance to a SAT instance
+     together with a local minimum of an exact neighbourhood for it.  With
+     the named known theorem CNFEvalInP it gives InP SAT
+     (inP_sat_of_exactLocalSearch) and, with SATHard, P = NP
+     (pEqualsNP_of_exactLocalSearch).  Not every language is solved this way
+     (not_forall_localSearchSolves).
+
+   Difference from Lean: the Lean viaMachine M m is noncomputable (it decides,
+   classically, a statement about all functions m computes).  Here
+   viaMachine M (m, p) is computable: it runs m for p(|x|) steps with the
+   interpreter runOut and reads the output word off the tape (viaMachine_eq
+   shows it is M (f x) at every x, for every machine computing f within p).
+   exists_not_reducible diagonalises pointwise against (machine, polynomial)
+   pairs, without function extensionality or excluded middle.  No axioms are
+   used.
+
    Verdict: refuted as a route (general theorem). *)
 
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
 
 (** ** CNF syntax and semantics *)
 
@@ -190,7 +208,9 @@ Qed.
 Definition IsLocalMin {A : Type} (cost : A -> nat) (nbr : A -> list A) (s : A) : Prop :=
   forall t, In t (nbr s) -> cost s <= cost t.
 
-Definition ExactAll {A : Type} (cost : A -> nat) (nbr : A -> list A) : Prop :=
+(** Schema: a neighbourhood is exact (over the whole state space) if every
+    local minimum is a global minimum. *)
+Definition ExactAllFor {A : Type} (cost : A -> nat) (nbr : A -> list A) : Prop :=
   forall s, IsLocalMin cost nbr s -> forall t, cost s <= cost t.
 
 Inductive ImpPath {A : Type} (cost : A -> nat) (nbr : A -> list A) : A -> A -> Prop :=
@@ -256,11 +276,11 @@ Proof. intros M n i Hi Hp. pose proof (line_basin M n i n Hi Hp). lia. Qed.
 (** ** Exact neighbourhoods *)
 
 Theorem full_neighbourhood_exact : forall (A : Type) (cost : A -> nat) (U : list A),
-  (forall t, In t U) -> ExactAll cost (fun _ => U).
+  (forall t, In t U) -> ExactAllFor cost (fun _ => U).
 Proof. intros A cost U HU s Hs t. apply Hs, HU. Qed.
 
 Theorem singleton_exact_neighbourhood : forall (A : Type) (cost : A -> nat) (best : A),
-  (forall t, cost best <= cost t) -> ExactAll cost (fun _ => [best]).
+  (forall t, cost best <= cost t) -> ExactAllFor cost (fun _ => [best]).
 Proof.
   intros A cost best Hb s Hs t. specialize (Hs best (or_introl eq_refl)).
   specialize (Hb t). lia.
@@ -373,7 +393,7 @@ Proof.
 Qed.
 
 Theorem exact_local_search_decides : forall phi (nbr : Assignment -> list Assignment),
-  ExactAll (fun a => unsatCount a phi) nbr -> forall a,
+  ExactAllFor (fun a => unsatCount a phi) nbr -> forall a,
   evalCNF (localSearch (fun b => unsatCount b phi) nbr (S (unsatCount a phi)) a) phi = true
     <-> Satisfiable phi.
 Proof.
@@ -429,7 +449,7 @@ Qed.
 Theorem exists_size_one_exact_neighbourhood :
   exists N : CNF -> Assignment -> list Assignment,
     (forall phi a, length (N phi a) = 1) /\
-    forall phi, ExactAll (fun a => unsatCount a phi) (N phi).
+    forall phi, ExactAllFor (fun a => unsatCount a phi) (N phi).
 Proof.
   exists (fun phi _ => [bestAssign phi]). split; [reflexivity|].
   intro phi. apply singleton_exact_neighbourhood. apply bestAssign_min.
@@ -558,4 +578,251 @@ Proof.
   pose proof (trapCNF_near_allFalse k b Hb) as H.
   destruct (unsatCount b (trapCNF k)) eqn:E; [|lia].
   apply unsatCount_eq_zero_iff in E. rewrite E in H. discriminate.
+Qed.
+
+(** ** The machine model: exact local search as a polynomial-time machine *)
+
+(** The CNFs of the shared machine model, in this file's syntax. *)
+Definition ofM (phi : Machines.CNF) : CNF :=
+  map (map (fun l => mkLit (Machines.var l) (Machines.pos l))) phi.
+
+Theorem evalClause_ofM : forall (a : Assignment) (C : Machines.Clause),
+  evalClause a (map (fun l => mkLit (Machines.var l) (Machines.pos l)) C) =
+  Machines.evalClause a C.
+Proof.
+  intros a C. induction C as [| l C IH]; simpl; [reflexivity |].
+  rewrite IH. reflexivity.
+Qed.
+
+Theorem evalCNF_ofM : forall (a : Assignment) (phi : Machines.CNF),
+  evalCNF a (ofM phi) = Machines.evalCNF a phi.
+Proof.
+  intros a phi. unfold ofM. induction phi as [| C phi IH]; simpl; [reflexivity |].
+  rewrite evalClause_ofM, IH. reflexivity.
+Qed.
+
+(** The machine-model language SAT is satisfiability in this file's syntax. *)
+Theorem sat_ofM : forall w : Word, SAT w = true <-> Satisfiable (ofM (decode w)).
+Proof.
+  intro w. rewrite sat_iff. split; intros [a ha]; exists a.
+  - rewrite evalCNF_ofM. exact ha.
+  - rewrite <- evalCNF_ofM. exact ha.
+Qed.
+
+(** Self-delimiting encoding of an assignment prefix: each bit b becomes
+    1 b, and a final 0 ends the list. *)
+Fixpoint pack (bits : Word) : Word :=
+  match bits with
+  | [] => [false]
+  | b :: bits' => true :: b :: pack bits'
+  end.
+
+(** Split a word into a packed bit list and the rest. *)
+Fixpoint splitPacked (w : Word) : Word * Word :=
+  match w with
+  | true :: b :: w' => (b :: fst (splitPacked w'), snd (splitPacked w'))
+  | false :: w' => ([], w')
+  | _ => ([], [])
+  end.
+
+Theorem splitPacked_pack : forall bits x, splitPacked (pack bits ++ x) = (bits, x).
+Proof.
+  intros bits x. induction bits as [| b bits IH]; simpl; [reflexivity |].
+  rewrite IH. reflexivity.
+Qed.
+
+(** The assignment given by a bit list (variables beyond the list are false). *)
+Definition assignOf (bits : Word) : Assignment := fun i => nth i bits false.
+
+(** CNF evaluation as a language: the input is a packed assignment followed by
+    an encoded CNF, and the answer is the value of the CNF under the
+    assignment. *)
+Definition EvalLang : Language := fun w =>
+  Machines.evalCNF (assignOf (fst (splitPacked w))) (decode (snd (splitPacked w))).
+
+Theorem evalLang_pack : forall bits x,
+  EvalLang (pack bits ++ x) = evalCNF (assignOf bits) (ofM (decode x)).
+Proof.
+  intros bits x. unfold EvalLang. rewrite splitPacked_pack, evalCNF_ofM. reflexivity.
+Qed.
+
+(** Known theorem, not mechanised here.  Evaluating a CNF under a given
+    assignment is in P: split off the packed assignment, decode the formula in
+    one left-to-right scan and evaluate each literal by a table lookup, in
+    time quadratic in the input length (S. A. Cook, "The complexity of
+    theorem-proving procedures", STOC 1971; Arora-Barak, Computational
+    Complexity, 2009, Ch. 2, where this is the verifier showing SAT in NP).
+    Used only as an explicit premise. *)
+Definition CNFEvalInP : Prop := InP EvalLang.
+
+(** Exact local search as a polynomial-time machine: a neighbourhood N phi
+    that is exact for unsatCount on every CNF, and a Machine that maps each
+    input x within p steps to a CNF instance f x with L x = SAT (f x),
+    prefixed by an assignment that is a local minimum of N on that instance. *)
+Definition LocalSearchSolves (L : Language) : Prop :=
+  exists (N : CNF -> Assignment -> list Assignment) (m : Machine) (f g : Word -> Word)
+    (p : Polynomial),
+    (forall phi, ExactAllFor (fun a => unsatCount a phi) (N phi)) /\ Computes m g p /\
+    forall x, L x = SAT (f x) /\ exists bits, g x = pack bits ++ f x /\
+      IsLocalMin (fun a => unsatCount a (ofM (decode (f x))))
+        (N (ofM (decode (f x)))) (assignOf bits).
+
+(** Open obligation.  SAT is solved by exact local search in the machine
+    model: a polynomial-time Machine outputs, for every instance, a SAT
+    instance together with a local minimum of an exact neighbourhood. *)
+Definition ExactLocalSearch : Prop := LocalSearchSolves SAT.
+
+(** With an exact neighbourhood a local minimum decides satisfiability. *)
+Theorem localMin_decides : forall (phi : CNF) (N : Assignment -> list Assignment),
+  ExactAllFor (fun a => unsatCount a phi) N -> forall s : Assignment,
+  IsLocalMin (fun a => unsatCount a phi) N s ->
+  (evalCNF s phi = true <-> Satisfiable phi).
+Proof.
+  intros phi N hN s hs. split.
+  - intro h. exists s. exact h.
+  - intros [u hu].
+    pose proof (hN s hs u) as hle. cbv beta in hle.
+    apply unsatCount_eq_zero_iff in hu.
+    apply unsatCount_eq_zero_iff. lia.
+Qed.
+
+(** The search machine is a polynomial-time reduction to CNF evaluation. *)
+Theorem localSearchSolves_reduces : forall L : Language, LocalSearchSolves L ->
+  exists (m : Machine) (g : Word -> Word) (p : Polynomial),
+    Computes m g p /\ forall x, L x = EvalLang (g x).
+Proof.
+  intros L [N [m [f [g [p [hN [hm hx]]]]]]].
+  exists m, g, p. split; [exact hm |]. intro x.
+  destruct (hx x) as [hL [bits [hg hmin]]].
+  rewrite hL, hg, evalLang_pack.
+  apply Bool.eq_true_iff_eq. rewrite sat_ofM.
+  symmetry. exact (localMin_decides _ _ (hN _) _ hmin).
+Qed.
+
+(** Exact local search in the machine model puts the language in P, given the
+    known theorem CNFEvalInP. *)
+Theorem inP_of_localSearchSolves : forall L : Language,
+  CNFEvalInP -> LocalSearchSolves L -> InP L.
+Proof.
+  intros L hE h.
+  destruct (localSearchSolves_reduces L h) as [m [g [p [hm hg]]]].
+  apply (inP_of_reduces L EvalLang); [| exact hE].
+  exists m, g, p. split; assumption.
+Qed.
+
+(** Conditional theorem.  The open obligation puts SAT in P (given the known
+    theorem CNFEvalInP). *)
+Theorem inP_sat_of_exactLocalSearch : CNFEvalInP -> ExactLocalSearch -> InP SAT.
+Proof. intros hE h. exact (inP_of_localSearchSolves SAT hE h). Qed.
+
+(** Conditional theorem.  With the hardness half of Cook-Levin, the open
+    obligation gives P = NP. *)
+Theorem pEqualsNP_of_exactLocalSearch :
+  SATHard -> CNFEvalInP -> ExactLocalSearch -> PEqualsNP.
+Proof.
+  intros hard hE h. exact (pEqualsNP_of_inP_sat hard (inP_sat_of_exactLocalSearch hE h)).
+Qed.
+
+(** The neighbourhood is free.  Using the size-one exact neighbourhood of
+    exists_size_one_exact_neighbourhood, the open obligation follows from a
+    polynomial-time machine that attaches a globally minimal assignment to
+    every input.  So the whole content of ExactLocalSearch is computing a
+    minimum. *)
+Theorem exactLocalSearch_of_globalMin : forall (m : Machine) (g : Word -> Word)
+  (p : Polynomial), Computes m g p ->
+  (forall x, exists bits, g x = pack bits ++ x /\
+    forall u, unsatCount (assignOf bits) (ofM (decode x)) <=
+              unsatCount u (ofM (decode x))) ->
+  ExactLocalSearch.
+Proof.
+  intros m g p hm hg.
+  destruct exists_size_one_exact_neighbourhood as [N [_ hN]].
+  exists N, m, (fun x => x), g, p. split; [exact hN |]. split; [exact hm |].
+  intro x. split; [reflexivity |].
+  destruct (hg x) as [bits [hb hmin]].
+  exists bits. split; [exact hb |]. intros u _. apply hmin.
+Qed.
+
+(** ** Reading a machine's output (computable) *)
+
+(** Run [m] from [c] for at most [fuel] steps until it reaches the exit state
+    [length (program m)]; return that configuration. *)
+Fixpoint runOut (m : Machine) (c : Config) (fuel : nat) : option Config :=
+  if Nat.eqb (state c) (length (program m)) then Some c else
+  match fuel with
+  | 0 => None
+  | S f => match step m c with
+           | inl _ => None
+           | inr c' => runOut m c' f
+           end
+  end.
+
+Lemma runOut_of_reaches : forall m c t d, Reaches m c t d ->
+  state d = length (program m) -> forall fuel, t <= fuel -> runOut m c fuel = Some d.
+Proof.
+  intros m c t d h. induction h as [c | c c' d t hs hr IH]; intros hd fuel hf.
+  - destruct fuel; simpl; rewrite hd, Nat.eqb_refl; reflexivity.
+  - pose proof (state_lt_of_step _ _ _ hs) as hlt.
+    destruct fuel as [| fuel]; [lia |]. simpl.
+    destruct (Nat.eqb_spec (state c) (length (program m))) as [e | _]; [lia |].
+    rewrite hs. apply IH; [exact hd | lia].
+Qed.
+
+(** The bits at the head and to its right, up to the first non-bit symbol. *)
+Fixpoint readBits (l : list Symbol) : Word :=
+  match l with
+  | one :: r => true :: readBits r
+  | zero :: r => false :: readBits r
+  | _ => []
+  end.
+
+Lemma readBits_output : forall w k, readBits (map ofBool w ++ blanks k) = w.
+Proof.
+  intros w k. induction w as [| b w IH]; simpl.
+  - destruct k; reflexivity.
+  - destruct b; simpl; rewrite IH; reflexivity.
+Qed.
+
+(** The language decided by [M] after the map computed by the machine [m]
+    within [p] steps (computable: run [m] for [p(|x|)] steps and read the
+    output). *)
+Definition viaMachine (M : Language) (x : Machine * Polynomial) : Language := fun w =>
+  match runOut (fst x) (initial w) (evalPoly (snd x) (length w)) with
+  | Some c => M (readBits (tapeHead c :: tapeRight c))
+  | None => false
+  end.
+
+Theorem viaMachine_eq : forall (M : Language) m f p, Computes m f p ->
+  forall x, viaMachine M (m, p) x = M (f x).
+Proof.
+  intros M m f p hm x. destruct (hm x) as [t [c [ht [hr [hs [_ [k hk]]]]]]].
+  unfold viaMachine. cbn [fst snd].
+  rewrite (runOut_of_reaches _ _ _ _ hr hs _ ht), hk, readBits_output.
+  reflexivity.
+Qed.
+
+(** For every language [M] some language is not polynomial-time reducible to
+    it (Cantor's argument over machine-polynomial pairs, pointwise). *)
+Theorem exists_not_reducible : forall M : Language,
+  exists L : Language, forall m f p, Computes m f p -> exists x, L x <> M (f x).
+Proof.
+  intro M.
+  exists (fun w => match decMachinePoly w with
+                   | Some a => negb (viaMachine M a w)
+                   | None => true
+                   end).
+  intros m f p hm. exists (encMachinePoly (m, p)).
+  rewrite decMachinePoly_encMachinePoly, (viaMachine_eq M m f p hm).
+  destruct (M (f (encMachinePoly (m, p)))); discriminate.
+Qed.
+
+(** Non-vacuity.  Not every language is solved by exact local search in the
+    machine model (unconditionally, without CNFEvalInP). *)
+Theorem not_forall_localSearchSolves : ~ (forall L : Language, LocalSearchSolves L).
+Proof.
+  intro h.
+  destruct (exists_not_reducible EvalLang) as [L hL].
+  destruct (localSearchSolves_reduces L (h L)) as [m [g [p [hm hg]]]].
+  destruct (hL m g p hm) as [x hx].
+  exact (hx (hg x)).
 Qed.

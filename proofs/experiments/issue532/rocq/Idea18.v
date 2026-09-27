@@ -6,11 +6,31 @@
    (with a correct Boolean decider); no satisfiability-preserving map of any
    kind lands in a trivially satisfiable class; and a polynomial-size
    reduction into a decidable restricted class transfers correctness and a
-   composed polynomial cost bound.  The hypothesis PolySizeReductionInto is
-   the open obligation and is only defined. *)
+   composed polynomial cost bound.  The size-only schema
+   PolySizeReductionIntoFor is only defined.
+
+   Machine model (Machines.v): ReducesInto L R asks for a Machine that
+   computes the map within a polynomial (Computes), with every output decoding
+   into R; SATInPOn R is a polynomial-time machine decider correct on the
+   promise "decodes into R" (DecidesOn).  inP_of_reducesInto composes them into
+   InP; pEqualsNP_of_unitReduction turns the open obligation UnitReduction
+   (SAT reduces into unit CNF) into PEqualsNP, given the named known theorem
+   UnitSATInP and SATHard.  The trivial classes are refuted again
+   (reducesInto_positive_const, not_reducesInto_positive), and
+   not_forall_reducesInto shows that no class makes the reduction statement
+   hold for every language.
+
+   Difference from Lean: the Lean viaMachine M m is noncomputable.  Here
+   viaMachine M (m, p) is computable (it runs m for p(|x|) steps with the
+   interpreter runOut and reads the output off the tape), viaMachine_eq holds
+   pointwise, and exists_not_reducible diagonalises pointwise against
+   (machine, polynomial) pairs, without function extensionality or excluded
+   middle.  unit_size_reduction_exists (classical in Lean) is not in this
+   file.  No axioms are used. *)
 
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
 
 (* ---------- SAT core ---------- *)
 
@@ -219,11 +239,13 @@ Qed.
 
 Definition polyEval (c k n : nat) : nat := c * (n + 1) ^ k.
 
-(* Open obligation: SAT reduces into R with polynomial size blow-up.  Only
-   defined.  It records the size bound only; without a requirement that the
-   map be computable in polynomial time it carries no P vs NP content (the
-   Lean file proves the size-only version for unit CNF). *)
-Definition PolySizeReductionInto (R : CNF -> Prop) : Prop :=
+(** Size-only schema for a restricted class R: SAT reduces into R by a
+    satisfiability-preserving map with polynomial size blow-up.  The map is an
+    arbitrary function, so this schema records no running time: for the
+    1-valid and 0-valid classes it is false (no_sat_reduction_into_positive,
+    no_sat_reduction_into_negative).  The machine version, with the map
+    computed by a Machine, is ReducesInto below. *)
+Definition PolySizeReductionIntoFor (R : CNF -> Prop) : Prop :=
   exists (f : CNF -> CNF) (c k : nat),
     (forall phi, R (f phi)) /\ (forall phi, Satisfiable phi <-> Satisfiable (f phi)) /\
     (forall phi, size (f phi) <= polyEval c k (size phi)).
@@ -241,7 +263,7 @@ Proof.
 Qed.
 
 Theorem restriction_transfer : forall (R : CNF -> Prop),
-  PolySizeReductionInto R ->
+  PolySizeReductionIntoFor R ->
   forall (d : CNF -> bool), (forall psi, R psi -> (d psi = true <-> Satisfiable psi)) ->
   forall (dcost : CNF -> nat) (c' k' : nat),
     (forall psi, dcost psi <= polyEval c' k' (size psi)) ->
@@ -256,4 +278,215 @@ Proof.
     eapply Nat.le_trans; [|apply poly_comp_bound].
     unfold polyEval. apply Nat.mul_le_mono_l. apply Nat.pow_le_mono_l.
     specialize (Hfsize phi). unfold polyEval in Hfsize. lia.
+Qed.
+
+(* ---------- The machine model: a polynomial-time reduction into a restricted class ---------- *)
+
+(** A CNF of the shared machine model, read in this file's syntax. *)
+Definition ofM (phi : Machines.CNF) : CNF :=
+  map (map (fun l => mkLit (Machines.var l) (Machines.pos l))) phi.
+
+Theorem evalClause_ofM : forall (a : Assignment) (C : Machines.Clause),
+  evalClause a (map (fun l => mkLit (Machines.var l) (Machines.pos l)) C) =
+  Machines.evalClause a C.
+Proof.
+  intros a C. induction C as [| l C IH]; simpl; [reflexivity |].
+  rewrite IH. unfold evalLit, Machines.evalLit. simpl.
+  destruct (Machines.pos l), (a (Machines.var l)); reflexivity.
+Qed.
+
+Theorem evalCNF_ofM : forall (a : Assignment) (phi : Machines.CNF),
+  evalCNF a (ofM phi) = Machines.evalCNF a phi.
+Proof.
+  intros a phi. unfold ofM. induction phi as [| C phi IH]; simpl; [reflexivity |].
+  rewrite evalClause_ofM, IH. reflexivity.
+Qed.
+
+(** The machine-model language SAT is satisfiability in this file's syntax. *)
+Theorem sat_ofM : forall w : Word, SAT w = true <-> Satisfiable (ofM (decode w)).
+Proof.
+  intro w. rewrite sat_iff. split; intros [a ha]; exists a.
+  - rewrite evalCNF_ofM. exact ha.
+  - rewrite <- evalCNF_ofM. exact ha.
+Qed.
+
+(** A polynomial-time machine reduction of L into the class R: a Machine
+    computes f within a polynomial, every output decodes to a CNF in R, and
+    L x = SAT (f x). *)
+Definition ReducesInto (L : Language) (R : CNF -> Prop) : Prop :=
+  exists (m : Machine) (f : Word -> Word) (p : Polynomial), Computes m f p /\
+    forall x, R (ofM (decode (f x))) /\ L x = SAT (f x).
+
+(** SAT restricted to R is decided by a polynomial-time machine that is
+    correct on every word decoding to a CNF in R (a promise problem). *)
+Definition SATInPOn (R : CNF -> Prop) : Prop :=
+  exists (d : Machine) (p : Polynomial),
+    DecidesOn d p (fun w => R (ofM (decode w))) SAT.
+
+(** Transfer in the machine model.  A polynomial-time reduction into R
+    followed by a polynomial-time decider correct on R puts L in P. *)
+Theorem inP_of_reducesInto : forall (L : Language) (R : CNF -> Prop),
+  ReducesInto L R -> SATInPOn R -> InP L.
+Proof.
+  intros L R [m [f [p [hm hf]]]] [d [p' hd]].
+  exact (inP_of_promise_reduction L SAT (fun w => R (ofM (decode w))) m d f p p' hm
+    (fun x => proj1 (hf x)) (fun x => proj2 (hf x)) hd).
+Qed.
+
+(** The machine-model version of the size schema's correctness half: a machine
+    reduction into R is a satisfiability-preserving map of CNFs into R. *)
+Theorem reducesInto_preserves : forall R : CNF -> Prop, ReducesInto SAT R ->
+  exists (m : Machine) (f : Word -> Word) (p : Polynomial), Computes m f p /\
+    forall phi : Machines.CNF, R (ofM (decode (f (encodeCNF phi)))) /\
+      (Satisfiable (ofM phi) <-> Satisfiable (ofM (decode (f (encodeCNF phi))))).
+Proof.
+  intros R [m [f [p [hm hf]]]].
+  exists m, f, p. split; [exact hm |]. intro phi.
+  split; [exact (proj1 (hf _)) |].
+  pose proof (proj2 (hf (encodeCNF phi))) as e.
+  rewrite <- sat_ofM, <- e, sat_ofM, decode_encode. reflexivity.
+Qed.
+
+(** Known theorem, not mechanised here.  Satisfiability of unit CNFs (every
+    clause has at most one literal) is decided in polynomial time: check for
+    an empty clause and for a complementary pair of unit clauses (a quadratic
+    scan; its correctness is unitCNF_sat_iff / unitDecide_correct above, and
+    it is a special case of Horn-SAT, Dowling-Gallier 1984, and of 2-SAT,
+    Aspvall-Plass-Tarjan 1979).  What is not mechanised is a Machine
+    implementing the scan on encoded formulas.  Used only as an explicit
+    premise. *)
+Definition UnitSATInP : Prop := SATInPOn IsUnitCNF.
+
+(** Open obligation.  SAT reduces into unit CNF by a polynomial-time machine:
+    a Machine computes, within a polynomial number of Run steps, a map f such
+    that every f x decodes to a unit CNF and SAT x = SAT (f x). *)
+Definition UnitReduction : Prop := ReducesInto SAT IsUnitCNF.
+
+(** Conditional theorem.  The open obligation and the known unit-CNF decider
+    put SAT in P. *)
+Theorem inP_sat_of_unitReduction : UnitSATInP -> UnitReduction -> InP SAT.
+Proof. intros hU h. exact (inP_of_reducesInto SAT IsUnitCNF h hU). Qed.
+
+(** Conditional theorem.  With the hardness half of Cook-Levin, the open
+    obligation gives P = NP. *)
+Theorem pEqualsNP_of_unitReduction : SATHard -> UnitSATInP -> UnitReduction -> PEqualsNP.
+Proof.
+  intros hard hU h. exact (pEqualsNP_of_inP_sat hard (inP_sat_of_unitReduction hU h)).
+Qed.
+
+(** The same route for any class R with a polynomial-time promise decider. *)
+Theorem pEqualsNP_of_reducesInto : SATHard -> forall R : CNF -> Prop,
+  SATInPOn R -> ReducesInto SAT R -> PEqualsNP.
+Proof.
+  intros hard R hR h. exact (pEqualsNP_of_inP_sat hard (inP_of_reducesInto SAT R h hR)).
+Qed.
+
+(** A machine reduction into the 1-valid class forces a constant answer. *)
+Theorem reducesInto_positive_const : forall L : Language,
+  ReducesInto L PositiveClauses -> forall x, L x = true.
+Proof.
+  intros L [m [f [p [_ hf]]]] x.
+  rewrite (proj2 (hf x)).
+  apply sat_ofM. apply positive_satisfiable. exact (proj1 (hf x)).
+Qed.
+
+Theorem machine_empty_clause_unsat : SAT (encodeCNF [[]]) = false.
+Proof.
+  destruct (SAT (encodeCNF [[]])) eqn:h; [| reflexivity].
+  apply sat_encode in h. destruct h as [a ha]. discriminate ha.
+Qed.
+
+(** Refutation in the machine model.  SAT has no polynomial-time (indeed no)
+    machine reduction into the 1-valid class. *)
+Theorem not_reducesInto_positive : ~ ReducesInto SAT PositiveClauses.
+Proof.
+  intro h.
+  pose proof (reducesInto_positive_const SAT h (encodeCNF [[]])) as e.
+  rewrite machine_empty_clause_unsat in e. discriminate e.
+Qed.
+
+(* ---------- Reading a machine's output (computable) ---------- *)
+
+(** Run [m] from [c] for at most [fuel] steps until it reaches the exit state
+    [length (program m)]; return that configuration. *)
+Fixpoint runOut (m : Machine) (c : Config) (fuel : nat) : option Config :=
+  if Nat.eqb (state c) (length (program m)) then Some c else
+  match fuel with
+  | 0 => None
+  | S f => match step m c with
+           | inl _ => None
+           | inr c' => runOut m c' f
+           end
+  end.
+
+Lemma runOut_of_reaches : forall m c t d, Reaches m c t d ->
+  state d = length (program m) -> forall fuel, t <= fuel -> runOut m c fuel = Some d.
+Proof.
+  intros m c t d h. induction h as [c | c c' d t hs hr IH]; intros hd fuel hf.
+  - destruct fuel; simpl; rewrite hd, Nat.eqb_refl; reflexivity.
+  - pose proof (state_lt_of_step _ _ _ hs) as hlt.
+    destruct fuel as [| fuel]; [lia |]. simpl.
+    destruct (Nat.eqb_spec (state c) (length (program m))) as [e | _]; [lia |].
+    rewrite hs. apply IH; [exact hd | lia].
+Qed.
+
+(** The bits at the head and to its right, up to the first non-bit symbol. *)
+Fixpoint readBits (l : list Symbol) : Word :=
+  match l with
+  | one :: r => true :: readBits r
+  | zero :: r => false :: readBits r
+  | _ => []
+  end.
+
+Lemma readBits_output : forall w k, readBits (map ofBool w ++ blanks k) = w.
+Proof.
+  intros w k. induction w as [| b w IH]; simpl.
+  - destruct k; reflexivity.
+  - destruct b; simpl; rewrite IH; reflexivity.
+Qed.
+
+(** The language obtained by running the machine [m] for [p(|x|)] steps as a
+    reduction into [M] (computable). *)
+Definition viaMachine (M : Language) (x : Machine * Polynomial) : Language := fun w =>
+  match runOut (fst x) (initial w) (evalPoly (snd x) (length w)) with
+  | Some c => M (readBits (tapeHead c :: tapeRight c))
+  | None => false
+  end.
+
+Theorem viaMachine_eq : forall (M : Language) m f p, Computes m f p ->
+  forall x, viaMachine M (m, p) x = M (f x).
+Proof.
+  intros M m f p hm x. destruct (hm x) as [t [c [ht [hr [hs [_ [k hk]]]]]]].
+  unfold viaMachine. cbn [fst snd].
+  rewrite (runOut_of_reaches _ _ _ _ hr hs _ ht), hk, readBits_output.
+  reflexivity.
+Qed.
+
+(** Cantor over machines.  For every target language [M] some language has no
+    machine map [f] with [L x = M (f x)] (pointwise diagonal over
+    machine-polynomial pairs). *)
+Theorem exists_not_reducible : forall M : Language,
+  exists L : Language, forall m f p, Computes m f p -> exists x, L x <> M (f x).
+Proof.
+  intro M.
+  exists (fun w => match decMachinePoly w with
+                   | Some a => negb (viaMachine M a w)
+                   | None => true
+                   end).
+  intros m f p hm. exists (encMachinePoly (m, p)).
+  rewrite decMachinePoly_encMachinePoly, (viaMachine_eq M m f p hm).
+  destruct (M (f (encMachinePoly (m, p)))); discriminate.
+Qed.
+
+(** Non-vacuity.  For every class [R], some language has no polynomial-time
+    machine reduction into [R]; so [ReducesInto SAT R] is a statement about
+    SAT and not a consequence of the definitions. *)
+Theorem not_forall_reducesInto : forall R : CNF -> Prop,
+  ~ (forall L : Language, ReducesInto L R).
+Proof.
+  intros R h.
+  destruct (exists_not_reducible SAT) as [L hL].
+  destruct (h L) as [m [f [p [hm hf]]]].
+  destruct (hL m f p hm) as [x hx].
+  exact (hx (proj2 (hf x))).
 Qed.

@@ -87,7 +87,7 @@ The files prove a weaker, exact statement in the one-way summary model: a sound 
 | `exists_not_reducible` | For every `M`, some language has no machine map `f` with `L x = M (f x)` (Cantor over machines) | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
 | `not_forall_separatorReduction` | Non-vacuity: `¬ ∀ L, SeparatorReduction L k` for every `k` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
 
-The rows from `SepTree` on are Lean only for now. The intended Rocq names are the same as the Lean names.
+The rows from `SepTree` on have the same names in Rocq, with two Rocq-specific differences. The constructors of the inductive `SepTree` are `SepTree_leaf` and `SepTree_split` (Lean: `SepTree.leaf`, `SepTree.split`), and `SeparatorObligationFor` destructs the separator triple with `let '(A, B, Sep) := f phi` instead of Lean projections. In Rocq, `exists_not_reducible` is proved by a pointwise constructive diagonal: the helper `viaMachine` runs a (machine, polynomial) pair with the computable step-bounded `runOut` and reads the output with `readBits` (Lean's `viaMachine M m` takes the machine alone and is noncomputable), `viaMachine_eq` shows that it agrees with `M (f x)` pointwise (Lean states a function equality), and no function extensionality or excluded middle is needed. Implicit Lean arguments are explicit `forall`s in Rocq. Neither file uses axioms.
 
 No axioms are used, and there is no `sorry`/`Admitted`.
 

@@ -116,8 +116,7 @@ affine). The second half is the whole problem.
 The cost function `dcost` in `restriction_transfer` is a hypothesis about the
 schema only. The machine-model theorems take their costs from `Run` step
 counts, so `inP_of_reducesInto` needs no separate cost argument. The machine
-section is Lean only for now; the intended Rocq names are the same as the
-Lean names.
+section has the same names in Rocq. In Rocq, `exists_not_reducible` is proved by a pointwise constructive diagonal: the helper `viaMachine` runs a (machine, polynomial) pair with the computable step-bounded `runOut` and reads the output with `readBits` (Lean's `viaMachine M m` takes the machine alone and is noncomputable), `viaMachine_eq` shows that it agrees with `M (f x)` pointwise (Lean states a function equality), and no function extensionality or excluded middle is needed. Implicit Lean arguments are explicit `forall`s in Rocq. Neither file uses axioms.
 
 The Lean file also proves `unit_size_reduction_exists`:
 `PolySizeReductionIntoFor IsUnitCNF` holds, by sending satisfiable formulas to

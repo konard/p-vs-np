@@ -6,12 +6,27 @@
    than 2^n. Hence every exact representation scheme gives some function a
    representation of length at least 2^n
    (exact_representation_needs_long_codes), and at most 2^b - 1 tables get
-   codes shorter than b (few_compressible). The open obligation
-   CompactTractableCompilation is equivalent to having a decider.
-   All proofs are constructive. *)
+   codes shorter than b (few_compressible). The schema
+   CompactTractableCompilationFor (compact and queryable, with free cost) is
+   equivalent to having a decider.
+
+   Machine model (Machines.v): Compiles L asks for a Machine computing a
+   compilation in polynomial time (so the representation is polynomially
+   compact, compiles_compact) and a polynomial-time machine answering the
+   query on every compiled representation.  The open obligation is
+   CompiledSAT := Compiles SAT; inP_sat_of_compiledSAT and
+   pEqualsNP_of_compiledSAT derive InP SAT and PEqualsNP, and
+   compiles_iff_inP shows the obligation is exactly SAT in P (the identity
+   compilation is computed by the empty machine, computes_id).
+   not_forall_compiles is the non-vacuity check, and
+   compactTractableCompilationFor_of_compiles instantiates the schema.
+
+   Difference from Lean: implicit arguments of the Lean theorems are explicit
+   foralls here.  All proofs are constructive and use no axioms. *)
 
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
 
 Theorem lossless_injective {X Code : Type} (encode : X -> Code) (decode : Code -> X) :
   (forall x, decode (encode x) = x) -> forall x y, encode x = encode y -> x = y.
@@ -234,9 +249,14 @@ Proof.
   exists (ofTable n t). exact Hlen.
 Qed.
 
-(* The open obligation: compact and queryable. *)
+(* The compilation schema: compact and queryable. *)
 
-Definition CompactTractableCompilation {Formula Rep : Type} (size : Formula -> nat)
+(** Schema: a compilation of formulas into representations of size at most
+    q (size phi) from which satisfiability is read off by query.  The costs of
+    compile and query are not constrained here (they are free functions); the
+    machine version is Compiles below, and its instance for SAT is
+    CompiledSAT. *)
+Definition CompactTractableCompilationFor {Formula Rep : Type} (size : Formula -> nat)
     (repSize : Rep -> nat) (sat : Formula -> bool) (q : nat -> nat)
     (compile : Formula -> Rep) (query : Rep -> bool) : Prop :=
   (forall phi, repSize (compile phi) <= q (size phi)) /\
@@ -244,21 +264,121 @@ Definition CompactTractableCompilation {Formula Rep : Type} (size : Formula -> n
 
 Theorem compactness_alone_trivial {Formula : Type} (size : Formula -> nat)
     (sat : Formula -> bool) :
-  CompactTractableCompilation size size sat (fun s => s) (fun phi => phi) sat.
+  CompactTractableCompilationFor size size sat (fun s => s) (fun phi => phi) sat.
 Proof. split; intros; reflexivity. Qed.
 
 Theorem decider_gives_compilation {Formula : Type} (size : Formula -> nat)
     (sat : Formula -> bool) :
-  CompactTractableCompilation size (fun _ : bool => 1) sat (fun _ => 1) sat (fun b => b).
+  CompactTractableCompilationFor size (fun _ : bool => 1) sat (fun _ => 1) sat (fun b => b).
 Proof. split; intros; reflexivity. Qed.
 
 Theorem compilation_decides {Formula Rep : Type} (size : Formula -> nat)
     (repSize : Rep -> nat) (sat : Formula -> bool) (q : nat -> nat)
     (compile : Formula -> Rep) (query : Rep -> bool) :
-  CompactTractableCompilation size repSize sat q compile query ->
+  CompactTractableCompilationFor size repSize sat q compile query ->
   forall phi, sat phi = query (compile phi).
 Proof. intros [_ H] phi. symmetry. apply H. Qed.
 
 Example size_check :
   length (allInputs (2 ^ 2)) = 16 /\ length (inputsBelow (2 ^ 2)) = 15.
 Proof. split; reflexivity. Qed.
+
+(** ** The machine model *)
+
+(** L is compiled in polynomial time into representations on which a
+    polynomial-time machine answers the query: a Machine m computes compile
+    within p steps, L x = Query (compile x), and d decides Query within q steps
+    on every compiled representation. *)
+Definition Compiles (L : Language) : Prop :=
+  exists (m : Machine) (compile : Word -> Word) (p : Polynomial) (d : Machine)
+    (q : Polynomial) (Query : Language),
+    Computes m compile p /\ (forall x, L x = Query (compile x)) /\
+    DecidesOn d q (fun w => exists x, compile x = w) Query.
+
+(** Open obligation.  SAT has a compact tractable compilation in the machine
+    model: a polynomial-time Machine compiles every instance, and a
+    polynomial-time machine reads satisfiability off the compiled
+    representation. *)
+Definition CompiledSAT : Prop := Compiles SAT.
+
+(** A polynomial-time compilation is compact: the representation has
+    polynomial length (the output is bounded by the running time). *)
+Theorem compiles_compact : forall L : Language, Compiles L ->
+  exists (compile : Word -> Word) (Query : Language) (r : Polynomial),
+    (forall x, length (compile x) <= evalPoly r (length x)) /\
+    forall x, L x = Query (compile x).
+Proof.
+  intros L [m [compile [p [d [q [Query [hm [hq _]]]]]]]].
+  destruct (computes_output_poly m compile p hm) as [r hr].
+  exists compile, Query, r. split; [exact hr | exact hq].
+Qed.
+
+(** A compact tractable compilation decides L in polynomial time. *)
+Theorem inP_of_compiles : forall L : Language, Compiles L -> InP L.
+Proof.
+  intros L [m [compile [p [d [q [Query [hm [hq hd]]]]]]]].
+  apply (inP_of_promise_reduction L Query (fun w => exists x, compile x = w)
+    m d compile p q hm).
+  - intro x. exists x. reflexivity.
+  - exact hq.
+  - exact hd.
+Qed.
+
+(** Conditional theorem.  The open obligation puts SAT in P. *)
+Theorem inP_sat_of_compiledSAT : CompiledSAT -> InP SAT.
+Proof. intro h. exact (inP_of_compiles SAT h). Qed.
+
+(** Conditional theorem.  With the hardness half of Cook-Levin, the open
+    obligation gives P = NP. *)
+Theorem pEqualsNP_of_compiledSAT : SATHard -> CompiledSAT -> PEqualsNP.
+Proof.
+  intros hard h. exact (pEqualsNP_of_inP_sat hard (inP_sat_of_compiledSAT h)).
+Qed.
+
+(** The empty machine computes the identity in zero steps. *)
+Theorem computes_id :
+  Computes {| program := [] |} (fun x => x) {| coefficient := 0; degree := 0 |}.
+Proof.
+  intro x. exists 0, (initial x). split; [lia |]. split; [apply reaches_refl |].
+  destruct x as [| b x]; simpl.
+  - split; [reflexivity |]. split; [reflexivity |]. exists 1. reflexivity.
+  - split; [reflexivity |]. split; [reflexivity |]. exists 0.
+    unfold blanks. simpl. rewrite app_nil_r. reflexivity.
+Qed.
+
+(** The obligation is exactly membership in P.  A decider is a compilation
+    (identity map, the decider as query), and a compilation is a decider. *)
+Theorem compiles_iff_inP : forall L : Language, Compiles L <-> InP L.
+Proof.
+  intro L. split; [apply inP_of_compiles |].
+  intro h. apply polyDec_iff_inP in h. destruct h as [d [q hd]].
+  exists {| program := [] |}, (fun x => x), {| coefficient := 0; degree := 0 |},
+    d, q, L.
+  split; [exact computes_id |]. split; [intro x; reflexivity |].
+  intros x _. exact (hd x).
+Qed.
+
+(** For SAT: the open obligation is equivalent to InP SAT, hence (with
+    SATHard) to P = NP; compression gains nothing over deciding. *)
+Theorem compiledSAT_iff : CompiledSAT <-> InP SAT.
+Proof. exact (compiles_iff_inP SAT). Qed.
+
+(** Non-vacuity.  Some language has no compact tractable compilation. *)
+Theorem not_forall_compiles : ~ (forall L : Language, Compiles L).
+Proof.
+  intro h. destruct exists_not_inP as [L hL].
+  exact (hL (inP_of_compiles L (h L))).
+Qed.
+
+(** Schema instance.  A machine compilation instantiates the schema with
+    sizes = word lengths, the machine-computed compile, the machine-decided
+    Query, and a polynomial size bound. *)
+Theorem compactTractableCompilationFor_of_compiles : forall L : Language, Compiles L ->
+  exists (compile : Word -> Word) (Query : Language) (r : Polynomial),
+    CompactTractableCompilationFor (@length bool) (@length bool) L
+      (fun n => evalPoly r n) compile Query.
+Proof.
+  intros L h. destruct (compiles_compact L h) as [compile [Query [r [hr hq]]]].
+  exists compile, Query, r. split; [exact hr |].
+  intro x. symmetry. apply hq.
+Qed.

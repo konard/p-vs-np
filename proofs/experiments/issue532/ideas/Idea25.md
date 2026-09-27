@@ -77,7 +77,7 @@ The older abstract form `ComponentObligationFor PolyTime w` is kept as a schema 
 | `exists_not_reducible` | For every `M`, some language has no machine map `f` with `L x = M (f x)` (Cantor over machines) | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
 | `not_forall_componentReduction` | Non-vacuity: `¬ ∀ L, ComponentReduction L k` for every `k` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
 
-The machine-model rows are Lean only for now. The intended Rocq names are the same as the Lean names.
+The machine-model rows have the same names in Rocq. In Rocq, `exists_not_reducible` is proved by a pointwise constructive diagonal: the helper `viaMachine` runs a (machine, polynomial) pair with the computable step-bounded `runOut` and reads the output with `readBits` (Lean's `viaMachine M m` takes the machine alone and is noncomputable), `viaMachine_eq` shows that it agrees with `M (f x)` pointwise (Lean states a function equality), and no function extensionality or excluded middle is needed. Implicit Lean arguments are explicit `forall`s in Rocq. Neither file uses axioms.
 
 Neither file uses axioms or unfinished proofs. The Rocq file decides membership in the merge with `in_dec Nat.eq_dec`, and the Lean file uses the decidable `v ∈ vars φ₁`. Both are constructive.
 

@@ -106,9 +106,10 @@ as the key resource.
 | `not_forall_compiles` | non-vacuity: some language has no compact tractable compilation | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
 | `compactTractableCompilationFor_of_compiles` | a machine compilation instantiates the schema (sizes are word lengths, polynomial bound) | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
 
-The rows from `CompactTractableCompilationFor` on are Lean only for now (the
-Rocq file has the schema under its old name `CompactTractableCompilation`).
-The intended Rocq names are the same as the Lean names.
+The rows from `CompactTractableCompilationFor` on have the same names in Rocq.
+Implicit Lean arguments are explicit `forall`s in Rocq, and
+`compactTractableCompilationFor_of_compiles` uses `@length bool` for the size
+functions and `evalPoly r` for the bound.
 
 The Rocq file is constructive, with no classical axioms. The Lean proof of
 `no_injective_into_shorter` (and hence of

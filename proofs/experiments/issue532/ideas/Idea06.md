@@ -125,7 +125,11 @@ def ExactLocalSearch : Prop := LocalSearchSolves Machines.SAT
 Not machine-checked: the PLS results and the other literature in Section 5,
 the known theorem `CNFEvalInP`, and the converse of the conditional theorem
 (Section 6). The schema `ExactAllFor` was called `ExactAll` before the move to
-the machine model; the Rocq file still uses the old name.
+the machine model; both files now use the new name.
+
+In Rocq, `exists_not_reducible` is proved by a pointwise constructive diagonal: the helper `viaMachine` runs a (machine, polynomial) pair with the computable step-bounded `runOut` and reads the output with `readBits` (Lean's `viaMachine M m` takes the machine alone and is noncomputable), `viaMachine_eq` shows that it agrees with `M (f x)` pointwise (Lean states a function equality), and no function extensionality or excluded middle is needed. Implicit Lean arguments are explicit `forall`s in Rocq. Neither file uses axioms. The CNF bridge `ofM` (with `evalClause_ofM`, `evalCNF_ofM`,
+`sat_ofM`) and the packing helpers `pack`, `splitPacked`, `assignOf` have the
+same names in both files.
 
 ## 4. Complete argument
 

@@ -13,10 +13,32 @@
    - compatible_states_units / equality_gadget: unit formulas force exactly
      one separator state; the union is SAT iff the states are equal;
    - summary_must_be_injective: a sound summary distinguishes all states.
+
+   Machine model (Machines.v): SepTree r phi is a recursive separator
+   decomposition of phi with a total separator budget r along every branch,
+   and SepPromise k w asks for it with r = k * log2 (|w|+1).  The named known
+   theorem LogSeparatorSATInP (separator-state dynamic programming is
+   polynomial on that promise) is used only as an explicit premise.  The open
+   obligation SATSeparatorReduction asks for a Machine mapping every SAT
+   instance, within a polynomial number of steps, to an equisatisfiable
+   instance with such a decomposition; pEqualsNP_of_separatorReduction
+   derives PEqualsNP from it, and not_forall_separatorReduction is the
+   non-vacuity check.
+
+   Differences from Lean: the Lean schema SeparatorObligationFor uses the
+   projections (f phi).1, (f phi).2.1, (f phi).2.2; here the triple is
+   destructured with let '(A, B, Sep) := f phi (same meaning).  The Lean
+   viaMachine M m is noncomputable; here viaMachine M (m, p) is computable
+   (it runs m for p(|x|) steps with the interpreter runOut and reads the
+   output off the tape), viaMachine_eq holds pointwise, and
+   exists_not_reducible diagonalises pointwise against (machine, polynomial)
+   pairs, without function extensionality or excluded middle.  No axioms are
+   used.
    See ../ideas/Idea26.md. *)
 
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
 
 Record Lit := mkLit { var : nat; pos : bool }.
 
@@ -273,10 +295,13 @@ Proof.
   symmetry; exact H1.
 Qed.
 
-(* The open obligation (Sep), one level: a map in the class PolyTime sending
-   every CNF to an equisatisfiable split A ++ B whose shared variables lie in a
-   separator Sep (a list of variables) of length at most w |phi|. *)
-Definition SeparatorObligation (PolyTime : (CNF -> CNF * CNF * list nat) -> Prop)
+(** Schema for (Sep), one level, over a caller-supplied class PolyTime of
+    maps and a bound w: a map in PolyTime sending every CNF to an
+    equisatisfiable split A ++ B whose shared variables lie in a separator Sep
+    (a list of variables) of length at most w |phi|.  PolyTime is a free
+    parameter, so the schema carries no running-time content; the machine
+    version is SATSeparatorReduction below. *)
+Definition SeparatorObligationFor (PolyTime : (CNF -> CNF * CNF * list nat) -> Prop)
   (w : nat -> nat) : Prop :=
   exists f : CNF -> CNF * CNF * list nat, PolyTime f /\ forall phi,
     let '(A, B, Sep) := f phi in
@@ -284,11 +309,11 @@ Definition SeparatorObligation (PolyTime : (CNF -> CNF * CNF * list nat) -> Prop
     length Sep <= w (length phi) /\
     (Satisfiable phi <-> Satisfiable (A ++ B)).
 
-(* Conditional theorem: under the obligation, satisfiability of every CNF is
+(* Conditional theorem: under the schema, satisfiability of every CNF is
    decided by the 2 ^ w(|phi|) separator states. *)
 Theorem separator_obligation_states (PolyTime : (CNF -> CNF * CNF * list nat) -> Prop)
   (w : nat -> nat) :
-  SeparatorObligation PolyTime w ->
+  SeparatorObligationFor PolyTime w ->
   exists f : CNF -> CNF * CNF * list nat, PolyTime f /\ forall phi,
     let '(A, B, Sep) := f phi in
     length Sep <= w (length phi) /\
@@ -300,4 +325,237 @@ Proof.
   specialize (hall phi). destruct (f phi) as [[A B] Sep].
   destruct hall as (hSep & hw & hp). split; [exact hw|].
   rewrite hp. apply separator_sat_iff. exact hSep.
+Qed.
+
+(** ** Recursive separator decompositions *)
+
+(** [SepTree r phi]: [phi] is either a leaf with at most [r] variable
+    occurrences, or a concatenation [A ++ B] whose shared variables lie in a
+    separator [Sep] with [|Sep| <= r], both halves decomposed recursively with
+    the remaining budget [r - |Sep|].  Along every branch the separators add up
+    to at most [r], so the primal graph has treewidth below [2r]. *)
+Inductive SepTree : nat -> CNF -> Prop :=
+  | SepTree_leaf : forall (r : nat) (phi : CNF), length (vars phi) <= r -> SepTree r phi
+  | SepTree_split : forall (r : nat) (A B : CNF) (Sep : list nat),
+      (forall v, In v (vars A) -> In v (vars B) -> In v Sep) -> length Sep <= r ->
+      SepTree (r - length Sep) A -> SepTree (r - length Sep) B -> SepTree r (A ++ B).
+
+(** A separator tree exposes, at its root, either a small leaf or one exact
+    separator step with at most [2^r] states ([separator_sat_iff]). *)
+Theorem sepTree_root : forall r phi, SepTree r phi ->
+  length (vars phi) <= r \/
+    exists (A B : CNF) (Sep : list nat), phi = A ++ B /\ length Sep <= r /\
+      (Satisfiable phi <-> exists sigma, In sigma (allBool (length Sep)) /\
+        (exists a, restrict Sep a = sigma /\ evalCNF a A = true) /\
+        (exists b, restrict Sep b = sigma /\ evalCNF b B = true)).
+Proof.
+  intros r phi h. destruct h as [r phi hl | r A B Sep hSep hlen _ _].
+  - left. exact hl.
+  - right. exists A, B, Sep. split; [reflexivity |]. split; [exact hlen |].
+    apply separator_sat_iff. exact hSep.
+Qed.
+
+(** A separator tree with budget [r] also has every larger budget. *)
+Theorem sepTree_mono : forall r phi, SepTree r phi -> forall r', r <= r' -> SepTree r' phi.
+Proof.
+  intros r phi h. induction h as [r phi hl | r A B Sep hSep hlen hA IHA hB IHB];
+    intros r' hr.
+  - apply SepTree_leaf. lia.
+  - apply (SepTree_split r' A B Sep); [exact hSep | lia | apply IHA; lia | apply IHB; lia].
+Qed.
+
+(** ** The machine model *)
+
+(** A CNF of the shared machine model, read in this file's syntax. *)
+Definition ofM (phi : Machines.CNF) : CNF :=
+  map (map (fun l => mkLit (Machines.var l) (Machines.pos l))) phi.
+
+Theorem evalClause_ofM : forall (a : Assignment) (C : Machines.Clause),
+  evalClause a (map (fun l => mkLit (Machines.var l) (Machines.pos l)) C) =
+  Machines.evalClause a C.
+Proof.
+  intros a C. induction C as [| l C IH]; simpl; [reflexivity |].
+  rewrite IH. unfold evalLit, Machines.evalLit. simpl.
+  destruct (Machines.pos l), (a (Machines.var l)); reflexivity.
+Qed.
+
+Theorem evalCNF_ofM : forall (a : Assignment) (phi : Machines.CNF),
+  evalCNF a (ofM phi) = Machines.evalCNF a phi.
+Proof.
+  intros a phi. unfold ofM. induction phi as [| C phi IH]; simpl; [reflexivity |].
+  rewrite evalClause_ofM, IH. reflexivity.
+Qed.
+
+(** The shared language SAT is satisfiability in this file's syntax. *)
+Theorem sat_ofM : forall w : Word, SAT w = true <-> Satisfiable (ofM (decode w)).
+Proof.
+  intro w. rewrite sat_iff. split; intros [a ha]; exists a.
+  - rewrite evalCNF_ofM. exact ha.
+  - rewrite <- evalCNF_ofM. exact ha.
+Qed.
+
+(** The word [w] encodes a CNF with a separator tree of budget
+    [k * log2 (|w|+1)] (logarithmic treewidth). *)
+Definition SepPromise (k : nat) (w : Word) : Prop :=
+  SepTree (k * Nat.log2 (length w + 1)) (ofM (decode w)).
+
+(** Known theorem, not mechanised here.  For each fixed k, SAT is decided in
+    polynomial time on the promise SepPromise k.  The promise gives primal
+    treewidth below 2k * log2 (|w|+1) (see SepTree); a tree decomposition of
+    width O(k log |w|) is found in time 2^(O(k log |w|)) * poly = poly
+    (Robertson-Seymour, Graph Minors XIII, JCTB 63, 1995; Bodlaender, Drange,
+    Dregi, Fomin, Lokshtanov, Pilipczuk, SIAM J. Comput. 45(2), 2016), and
+    dynamic programming over the separator states of the bags decides
+    satisfiability in time 2^(O(tw)) * poly (Alekhnovich-Razborov, FOCS 2002;
+    Samer-Szeider, J. Discrete Algorithms 8(1), 2010).  What is not mechanised
+    is the Machine carrying this out.  Used only as an explicit premise. *)
+Definition LogSeparatorSATInP : Prop :=
+  forall k, exists (d : Machine) (p : Polynomial), DecidesOn d p (SepPromise k) SAT.
+
+(** A polynomial-time machine reduction of [L] to SAT instances with a
+    logarithmic separator tree. *)
+Definition SeparatorReduction (L : Language) (k : nat) : Prop :=
+  exists (m : Machine) (f : Word -> Word) (p : Polynomial), Computes m f p /\
+    forall x, SepPromise k (f x) /\ L x = SAT (f x).
+
+(** Open obligation ((Sep) with recursion, in the machine model).  For some k,
+    a Machine maps every word x, within a polynomial number of Run steps, to a
+    word f x with SAT x = SAT (f x) whose CNF has a separator tree with budget
+    k * log2 (|f x|+1). *)
+Definition SATSeparatorReduction : Prop := exists k, SeparatorReduction SAT k.
+
+(** Transfer: a separator reduction and the separator-state decider put [L] in
+    P. *)
+Theorem inP_of_separatorReduction : forall (L : Language) (k : nat),
+  LogSeparatorSATInP -> SeparatorReduction L k -> InP L.
+Proof.
+  intros L k hS [m [f [p [hm hf]]]].
+  destruct (hS k) as [d [p' hd]].
+  exact (inP_of_promise_reduction L SAT (SepPromise k) m d f p p' hm
+    (fun x => proj1 (hf x)) (fun x => proj2 (hf x)) hd).
+Qed.
+
+(** Conditional theorem.  The open obligation and the known separator-state
+    decider put SAT in P. *)
+Theorem inP_sat_of_separatorReduction :
+  LogSeparatorSATInP -> SATSeparatorReduction -> InP SAT.
+Proof.
+  intros hS [k hk]. exact (inP_of_separatorReduction SAT k hS hk).
+Qed.
+
+(** Conditional theorem.  With the hardness half of Cook-Levin, the open
+    obligation gives P = NP. *)
+Theorem pEqualsNP_of_separatorReduction :
+  SATHard -> LogSeparatorSATInP -> SATSeparatorReduction -> PEqualsNP.
+Proof.
+  intros hard hS h. exact (pEqualsNP_of_inP_sat hard (inP_sat_of_separatorReduction hS h)).
+Qed.
+
+(** Machine analogue of separator_obligation_states: under the obligation,
+    every reduced instance is a small leaf or splits exactly over at most
+    2^(k log2 (|f x|+1)) separator states, and SAT x is its
+    satisfiability. *)
+Theorem separatorReduction_states : SATSeparatorReduction ->
+  exists (k : nat) (m : Machine) (f : Word -> Word) (p : Polynomial), Computes m f p /\
+    forall x, (SAT x = true <-> Satisfiable (ofM (decode (f x)))) /\
+      (length (vars (ofM (decode (f x)))) <= k * Nat.log2 (length (f x) + 1) \/
+        exists (A B : CNF) (Sep : list nat), ofM (decode (f x)) = A ++ B /\
+          length Sep <= k * Nat.log2 (length (f x) + 1) /\
+          (Satisfiable (A ++ B) <-> exists sigma, In sigma (allBool (length Sep)) /\
+            (exists a, restrict Sep a = sigma /\ evalCNF a A = true) /\
+            (exists b, restrict Sep b = sigma /\ evalCNF b B = true))).
+Proof.
+  intros [k [m [f [p [hm hf]]]]].
+  exists k, m, f, p. split; [exact hm |]. intro x.
+  split; [rewrite (proj2 (hf x)); apply sat_ofM |].
+  destruct (sepTree_root _ _ (proj1 (hf x))) as [hl | [A [B [Sep [he [hl hs]]]]]].
+  - left. exact hl.
+  - right. exists A, B, Sep. split; [exact he |]. split; [exact hl |].
+    rewrite <- he. exact hs.
+Qed.
+
+(** ** Reading a machine's output (computable) *)
+
+(** Run [m] from [c] for at most [fuel] steps until it reaches the exit state
+    [length (program m)]; return that configuration. *)
+Fixpoint runOut (m : Machine) (c : Config) (fuel : nat) : option Config :=
+  if Nat.eqb (state c) (length (program m)) then Some c else
+  match fuel with
+  | 0 => None
+  | S f => match step m c with
+           | inl _ => None
+           | inr c' => runOut m c' f
+           end
+  end.
+
+Lemma runOut_of_reaches : forall m c t d, Reaches m c t d ->
+  state d = length (program m) -> forall fuel, t <= fuel -> runOut m c fuel = Some d.
+Proof.
+  intros m c t d h. induction h as [c | c c' d t hs hr IH]; intros hd fuel hf.
+  - destruct fuel; simpl; rewrite hd, Nat.eqb_refl; reflexivity.
+  - pose proof (state_lt_of_step _ _ _ hs) as hlt.
+    destruct fuel as [| fuel]; [lia |]. simpl.
+    destruct (Nat.eqb_spec (state c) (length (program m))) as [e | _]; [lia |].
+    rewrite hs. apply IH; [exact hd | lia].
+Qed.
+
+(** The bits at the head and to its right, up to the first non-bit symbol. *)
+Fixpoint readBits (l : list Symbol) : Word :=
+  match l with
+  | one :: r => true :: readBits r
+  | zero :: r => false :: readBits r
+  | _ => []
+  end.
+
+Lemma readBits_output : forall w k, readBits (map ofBool w ++ blanks k) = w.
+Proof.
+  intros w k. induction w as [| b w IH]; simpl.
+  - destruct k; reflexivity.
+  - destruct b; simpl; rewrite IH; reflexivity.
+Qed.
+
+(** The language obtained by running the machine [m] for [p(|x|)] steps as a
+    reduction into [M] (computable). *)
+Definition viaMachine (M : Language) (x : Machine * Polynomial) : Language := fun w =>
+  match runOut (fst x) (initial w) (evalPoly (snd x) (length w)) with
+  | Some c => M (readBits (tapeHead c :: tapeRight c))
+  | None => false
+  end.
+
+Theorem viaMachine_eq : forall (M : Language) m f p, Computes m f p ->
+  forall x, viaMachine M (m, p) x = M (f x).
+Proof.
+  intros M m f p hm x. destruct (hm x) as [t [c [ht [hr [hs [_ [k hk]]]]]]].
+  unfold viaMachine. cbn [fst snd].
+  rewrite (runOut_of_reaches _ _ _ _ hr hs _ ht), hk, readBits_output.
+  reflexivity.
+Qed.
+
+(** Cantor over machines.  For every target language [M] some language has no
+    machine map [f] with [L x = M (f x)] (pointwise diagonal over
+    machine-polynomial pairs). *)
+Theorem exists_not_reducible : forall M : Language,
+  exists L : Language, forall m f p, Computes m f p -> exists x, L x <> M (f x).
+Proof.
+  intro M.
+  exists (fun w => match decMachinePoly w with
+                   | Some a => negb (viaMachine M a w)
+                   | None => true
+                   end).
+  intros m f p hm. exists (encMachinePoly (m, p)).
+  rewrite decMachinePoly_encMachinePoly, (viaMachine_eq M m f p hm).
+  destruct (M (f (encMachinePoly (m, p)))); discriminate.
+Qed.
+
+
+(** Non-vacuity.  For every k, some language has no separator reduction, so
+    [SeparatorReduction SAT k] is a statement about SAT. *)
+Theorem not_forall_separatorReduction : forall k : nat,
+  ~ (forall L : Language, SeparatorReduction L k).
+Proof.
+  intros k h.
+  destruct (exists_not_reducible SAT) as [L hL].
+  destruct (h L) as [m [f [p [hm hf]]]].
+  destruct (hL m f p hm) as [x hx].
+  exact (hx (proj2 (hf x))).
 Qed.

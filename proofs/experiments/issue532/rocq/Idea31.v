@@ -12,10 +12,30 @@
    As a route to uniform algorithms it fails: parity needs 2 ^ n leaves
    (parity_tree_leaves), and every enumeration of uniform deciders misses a
    length-only language with one-node trees at every length
-   (advice_beyond_uniform).  Nothing here decides P vs NP. *)
+   (advice_beyond_uniform).
+
+   Machine model (Machines.v, Circuits.v): UniformAdvice L asks for advice
+   adv n attached to the input by a polynomial-time Machine (so the advice is
+   uniform and of polynomial length) and a polynomial-time machine deciding L
+   from the input with its advice.  The open obligation is
+   UniformSATAdvice := UniformAdvice SAT; inP_sat_of_uniformSATAdvice and
+   pEqualsNP_of_uniformSATAdvice derive InP SAT and PEqualsNP from it,
+   not_uniformSATAdvice_of_superpoly shows that a superpolynomial circuit
+   lower bound for SAT refutes it (given the named known theorem
+   PSubsetPPoly), not_forall_uniformAdvice is the non-vacuity check, and
+   uniformPolyAdviceFor_of_uniformAdvice instantiates the schema
+   UniformPolyAdviceFor.
+
+   Difference from Lean: not_uniformSATAdvice_of_superpoly uses the
+   constructive direction Circuits.not_inPPoly_of_superpoly instead of
+   superpoly_iff_not_inPPoly (which in Rocq takes excluded middle as a
+   premise).  No axioms are used.
+
+   Nothing here decides P vs NP. *)
 
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines Circuits.
 
 (* Binary decision trees: node lo hi reads the next input bit. *)
 Inductive DTree : Type :=
@@ -331,17 +351,134 @@ Record Poly := mkPoly { coefficient : nat; degree : nat }.
 
 Definition eval (p : Poly) (n : nat) : nat := coefficient p * (n + 1) ^ degree p.
 
-(* The obligation for turning advice into a uniform algorithm. *)
-Definition UniformPolyAdvice (Uniform : (nat -> list bool) -> Prop) (L : list bool -> bool) : Prop :=
+(** Schema for turning advice into a uniform algorithm: advice of polynomial
+    length produced by a generator in a caller-supplied class Uniform, and an
+    unrestricted decoder.  Uniform and decode are free, so the schema carries
+    no running-time content; the machine version is UniformAdvice below. *)
+Definition UniformPolyAdviceFor (Uniform : (nat -> list bool) -> Prop) (L : list bool -> bool) : Prop :=
   exists (gen : nat -> list bool) (decode : list bool -> list bool -> bool) (p : Poly),
     Uniform gen /\ (forall n, length (gen n) <= eval p n) /\
     forall x, decode (gen (length x)) x = L x.
 
-(* Unpacking the obligation: generator and decoder combine into one decider. *)
+(* Unpacking the schema: generator and decoder combine into one decider. *)
 Theorem uniform_advice_decides (Uniform : (nat -> list bool) -> Prop) (L : list bool -> bool) :
-  UniformPolyAdvice Uniform L ->
+  UniformPolyAdviceFor Uniform L ->
   exists (gen : nat -> list bool) (decode : list bool -> list bool -> bool),
     Uniform gen /\ forall x, decode (gen (length x)) x = L x.
 Proof.
   intros (gen & decode & p & hu & _ & hc). exists gen, decode. split; assumption.
+Qed.
+
+(** ** The machine model: uniformly generated polynomial advice *)
+
+(** Self-delimiting encoding of an advice string: each bit b becomes 1 b, and
+    a final 0 ends the advice. *)
+Fixpoint pack (a : Word) : Word :=
+  match a with
+  | [] => [false]
+  | b :: a' => true :: b :: pack a'
+  end.
+
+(** Strip a packed advice prefix. *)
+Fixpoint unpack (w : Word) : Word :=
+  match w with
+  | true :: _ :: w' => unpack w'
+  | false :: w' => w'
+  | _ => []
+  end.
+
+Theorem unpack_pack_append : forall a x : Word, unpack (pack a ++ x) = x.
+Proof. intros a x. induction a as [| b a IH]; simpl; [reflexivity | exact IH]. Qed.
+
+Theorem length_pack : forall a : Word, length (pack a) = 2 * length a + 1.
+Proof. intro a. induction a as [| b a IH]; simpl; [reflexivity | rewrite IH; lia]. Qed.
+
+(** The input [x] with the advice string [a] attached in front. *)
+Definition adviceWord (a x : Word) : Word := pack a ++ x.
+
+Theorem unpack_adviceWord : forall a x : Word, unpack (adviceWord a x) = x.
+Proof. intros a x. apply unpack_pack_append. Qed.
+
+(** Uniform polynomial advice in the machine model: a Machine m attaches the
+    advice adv |x| to every input within p steps (so the advice is generated
+    uniformly and has polynomial length), and a machine d decides L within q
+    steps from the input with its advice attached. *)
+Definition UniformAdvice (L : Language) : Prop :=
+  exists (adv : nat -> Word) (m : Machine) (p : Polynomial) (d : Machine) (q : Polynomial),
+    Computes m (fun x => adviceWord (adv (length x)) x) p /\
+    DecidesOn d q (fun w => exists x, w = adviceWord (adv (length x)) x)
+      (fun w => L (unpack w)).
+
+(** Open obligation.  SAT has uniform polynomial advice: some length-indexed
+    advice is attached to every input by a polynomial-time Machine, and a
+    polynomial-time machine decides SAT from the input with its advice. *)
+Definition UniformSATAdvice : Prop := UniformAdvice SAT.
+
+(** Uniformly generated polynomial advice gives a polynomial-time decider. *)
+Theorem inP_of_uniformAdvice : forall L : Language, UniformAdvice L -> InP L.
+Proof.
+  intros L [adv [m [p [d [q [hm hd]]]]]].
+  apply (inP_of_promise_reduction L (fun w => L (unpack w))
+    (fun w => exists x, w = adviceWord (adv (length x)) x) m d
+    (fun x => adviceWord (adv (length x)) x) p q hm).
+  - intro x. exists x. reflexivity.
+  - intro x. rewrite unpack_adviceWord. reflexivity.
+  - exact hd.
+Qed.
+
+(** Conditional theorem.  The open obligation puts SAT in P. *)
+Theorem inP_sat_of_uniformSATAdvice : UniformSATAdvice -> InP SAT.
+Proof. intro h. exact (inP_of_uniformAdvice SAT h). Qed.
+
+(** Conditional theorem.  With the hardness half of Cook-Levin, the open
+    obligation gives P = NP. *)
+Theorem pEqualsNP_of_uniformSATAdvice : SATHard -> UniformSATAdvice -> PEqualsNP.
+Proof.
+  intros hard h. exact (pEqualsNP_of_inP_sat hard (inP_sat_of_uniformSATAdvice h)).
+Qed.
+
+(** Uniform advice is in particular non-uniform advice: with the known
+    theorem PSubsetPPoly, the language has polynomial-size circuits. *)
+Theorem inPPoly_of_uniformAdvice : PSubsetPPoly -> forall L : Language,
+  UniformAdvice L -> InPPoly L.
+Proof. intros hP L h. exact (hP L (inP_of_uniformAdvice L h)). Qed.
+
+(** Refutation route.  A superpolynomial circuit lower bound for SAT
+    (together with the known theorem PSubsetPPoly) refutes the open
+    obligation. *)
+Theorem not_uniformSATAdvice_of_superpoly : PSubsetPPoly ->
+  SuperpolyLowerBound SAT -> ~ UniformSATAdvice.
+Proof.
+  intros hP h hU.
+  exact (not_inPPoly_of_superpoly SAT h (inPPoly_of_uniformAdvice hP SAT hU)).
+Qed.
+
+(** Non-vacuity.  Some language has no uniform polynomial advice. *)
+Theorem not_forall_uniformAdvice : ~ (forall L : Language, UniformAdvice L).
+Proof.
+  intro h. destruct exists_not_inP as [L hL].
+  exact (hL (inP_of_uniformAdvice L (h L))).
+Qed.
+
+(** Schema instance.  Machine-generated advice instantiates
+    UniformPolyAdviceFor, with Uniform the class of advice generators that a
+    polynomial-time machine can attach to the input and decode the language
+    decided by the query machine.  The length bound on the advice comes from
+    the running time (computes_output_poly). *)
+Theorem uniformPolyAdviceFor_of_uniformAdvice : forall L : Language, UniformAdvice L ->
+  UniformPolyAdviceFor
+    (fun gen => exists (m : Machine) (p : Polynomial),
+      Computes m (fun x => adviceWord (gen (length x)) x) p)
+    L.
+Proof.
+  intros L [adv [m [p [d [q [hm _]]]]]].
+  destruct (computes_output_poly _ _ _ hm) as [r hr].
+  exists adv, (fun a x => L (unpack (adviceWord a x))),
+    (mkPoly (Complexity.coefficient r) (Complexity.degree r)).
+  split; [exists m, p; exact hm |]. split.
+  - intro n. pose proof (hr (repeat false n)) as hn.
+    cbv beta in hn. unfold adviceWord in hn.
+    rewrite length_app, length_pack, repeat_length in hn.
+    unfold eval. simpl. unfold evalPoly in hn. lia.
+  - intro x. rewrite unpack_adviceWord. reflexivity.
 Qed.

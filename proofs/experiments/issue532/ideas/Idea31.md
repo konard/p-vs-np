@@ -88,6 +88,8 @@ def UniformSATAdvice : Prop := UniformAdvice Machines.SAT
 
 In Rocq, `DTree.eval` is named `teval`, and `leaves`, `size`, `leafList` are plain functions. Helper lemmas are shared by both files (`nodup_map_cons`, `leaves_pos`). The Rocq file additionally proves `nodup_app_intro`, `firstn_app_exact`, `skipn_app_exact`, `uncovered_or_cover` and `differ_or_agree`. The last two are constructive case splits, which Lean handles with `Classical.byContradiction` (core Lean, no added declarations).
 
+The machine-model rows have the same names in Rocq, and implicit Lean arguments are explicit `forall`s there. `not_uniformSATAdvice_of_superpoly` uses the constructive direction `Circuits.not_inPPoly_of_superpoly` in Rocq, where Lean uses `superpoly_iff_not_inPPoly`; the Rocq equivalence needs excluded middle as a premise, and the direction used here does not. In Rocq the schema instance builds the local `Poly` record (`mkPoly`) from the `Complexity.Polynomial` bound. Neither file uses axioms.
+
 ## 4. Complete argument
 
 **Correctness and size of the table lookup.** Induct on `n` with `f` generalized. For `n = 0`, the only input is `[]`. For `n + 1`, the first bit selects the subtree built for `f ∘ (b ::)`, and the induction hypothesis applies to the tail. Leaves satisfy `L(n+1) = 2·L(n)`, and nodes satisfy `S(n+1) = 2·S(n) + 1`. This gives `2^n` and `2^(n+1) − 1`.
