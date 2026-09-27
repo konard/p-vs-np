@@ -29,7 +29,10 @@ from check_proof_status import strip_comments_and_strings  # noqa: E402
 BASE = ROOT / "proofs" / "experiments" / "issue532"
 IDEAS = range(1, 41)
 # Shared machine layer; a section-3 row may name a theorem declared there.
-SHARED = {"lean": BASE / "lean" / "Machines.lean", "rocq": BASE / "rocq" / "Machines.v"}
+SHARED = {
+    "lean": [BASE / "lean" / "Machines.lean", BASE / "lean" / "Circuits.lean"],
+    "rocq": [BASE / "rocq" / "Machines.v", BASE / "rocq" / "Circuits.v"],
+}
 
 SECTIONS = [
     "## 1. The idea at full strength",
@@ -73,14 +76,15 @@ MACHINE_NAMES = {
     "Run", "Reaches", "DecidesWithin", "DecidesOn", "PolyDec", "Computes",
     "PolyReduces", "InP", "InNP", "InCoNP", "PEqualsNP", "PNotEqualsNP",
     "NPEqualsCoNP", "NPHard", "NPComplete", "ClassP", "ClassNP", "InRP",
+    "SAT", "SATInNP", "SATHard", "CookLevin", "InPPoly", "PSubsetPPoly", "CircuitDecides",
 }
 
 SHARED_IMPORT = {
     "lean": re.compile(
-        r"^import\s+proofs\.(?:complexity\.lean\.Complexity|experiments\.issue532\.lean\.Machines)\s*$",
+        r"^import\s+proofs\.(?:complexity\.lean\.Complexity|experiments\.issue532\.lean\.(?:Machines|Circuits))\s*$",
         re.MULTILINE,
     ),
-    "rocq": re.compile(r"^From\s+proofs\.\S+\s+Require\s+Import\s+.*\b(?:Complexity|Machines)\b", re.MULTILINE),
+    "rocq": re.compile(r"^From\s+proofs\.\S+\s+Require\s+Import\s+.*\b(?:Complexity|Machines|Circuits)\b", re.MULTILINE),
 }
 
 DOCUMENTED = {
@@ -106,6 +110,13 @@ DEFINITION = {
 FREE_COST = {
     "lean": re.compile(r"(?:∃|\()\s*(?P<names>[\w' ]+?)\s*:\s*[^,()]*?→\s*Nat\b"),
     "rocq": re.compile(r"(?:\bexists|\()\s*(?P<names>[\w' ]+?)\s*:\s*[^,()]*?->\s*nat\b"),
+}
+
+# A binder for a free predicate, such as ``(PolyTime : (α → β) → Prop)``: the
+# obligation would then hold or fail depending on how the predicate is chosen.
+FREE_PREDICATE = {
+    "lean": re.compile(r"[({]\s*(?P<names>[\w' ]+?)\s*:\s*(?:[^(){}]|\([^()]*\))*?→\s*Prop\s*[)}]"),
+    "rocq": re.compile(r"[({]\s*(?P<names>[\w' ]+?)\s*:\s*(?:[^(){}]|\([^()]*\))*?->\s*Prop\s*[)}]"),
 }
 
 COST_NAME = re.compile(r"^(?:t|T|time\w*|cost\w*|steps?|runtime\w*)$")
@@ -166,6 +177,11 @@ def check_obligations(language: str, source: str, stripped: str, name: str) -> l
                     f"{name}: open obligation `{definition}` quantifies over a free cost function; "
                     "use a `Run` step count"
                 )
+        for predicate in FREE_PREDICATE[language].finditer(body):
+            errors.append(
+                f"{name}: open obligation `{definition}` binds a free predicate "
+                f"`{predicate.group('names').strip()}`; use the machine model's classes"
+            )
     return errors
 
 
@@ -262,11 +278,11 @@ def check_idea(number: int) -> list[str]:
     if not rows:
         errors.append(f"Idea{number:02d}.md: section 3 table lists no theorem names")
     sources = {
-        language: strip_comments_and_strings(files[language].read_text(), language)
-        + "\n"
-        + strip_comments_and_strings(SHARED[language].read_text(), language)
-        if SHARED[language].is_file()
-        else strip_comments_and_strings(files[language].read_text(), language)
+        language: "\n".join(
+            strip_comments_and_strings(path.read_text(), language)
+            for path in [files[language], *SHARED[language]]
+            if path.is_file()
+        )
         for language in ("lean", "rocq")
     }
     for row in rows:

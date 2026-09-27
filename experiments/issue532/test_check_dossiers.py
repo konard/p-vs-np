@@ -52,6 +52,15 @@ class CheckerUnitTests(unittest.TestCase):
             "def Goal : Prop := Fast Issue532.Machines.SAT\n"
         )
         self.assertEqual(self.check_source("lean", tied), [])
+        # A free predicate parameter makes the obligation depend on its choice.
+        free_predicate = tied + (
+            "/-- **Open obligation.** -/\n"
+            "def Isolation (PolyTime : (Nat → Nat) → Prop) : Prop :=\n"
+            "  ∃ g, PolyTime g ∧ Issue532.Machines.SAT = Issue532.Machines.SAT\n"
+        )
+        self.assertTrue(
+            any("free predicate `PolyTime`" in e for e in self.check_source("lean", free_predicate))
+        )
         # A plain schema that is not called an open obligation is not checked.
         schema = head + "/-- An abstract schema. -/\ndef Schema (P : Prop) : Prop := P\n"
         self.assertEqual(self.check_source("lean", schema), [])
