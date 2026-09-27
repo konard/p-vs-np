@@ -47,8 +47,8 @@ axiom goedel_completeness :
 /-! ## Known Mathematical Facts: Non-Standard Models Exist -/
 
 /-
-  These axioms represent well-established results from model theory.
-  They are NOT assumptions we make — they are known mathematical truths:
+  These are abstract model-theory premises in this historical sketch;
+  this file does not derive them:
 
   FACT 1 (Gödel's Incompleteness): PA is incomplete; it cannot characterize
     the natural numbers uniquely up to isomorphism.
@@ -99,12 +99,10 @@ theorem G_holds_in_nonstandard_model : satisfies NonStandardModel forallG := by
   We show this claim is FALSE by deriving a contradiction.
 -/
 
-/-- Singh Anand's (false) inference -/
-axiom singh_anand_inference :
-  provableInPA forallG → ¬ ∃ (M : Model), M ≠ StandardModel
-
 /-- Theorem: Anand's inference leads directly to a contradiction -/
-theorem singh_anand_claim_is_false : False := by
+theorem singh_anand_claim_is_false
+    (singh_anand_inference : provableInPA forallG → ¬ ∃ (M : Model), M ≠ StandardModel) :
+    False := by
   -- We have a non-standard model (established fact)
   have h_nonstandard : ∃ M : Model, M ≠ StandardModel :=
     ⟨NonStandardModel, nonstandard_differs⟩

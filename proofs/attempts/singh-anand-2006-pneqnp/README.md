@@ -75,6 +75,8 @@ In non-standard models, the non-standard "infinite" elements each have a predece
 
 ## Status
 
+The Lean and Rocq `singh_anand_claim_is_false` results now take Anand's false inference as an explicit premise. They establish that this inference conflicts with the model assumptions; neither file exports a closed proof of `False`. These are historical sketches and are not in the certified-result manifest.
+
 - ✅ Error identified: Confusing provability with model elimination
 - ✅ Original paper reconstructed in ORIGINAL.md
 - ✅ Lean formalization: Complete (proof/ and refutation/)
