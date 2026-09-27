@@ -1,108 +1,82 @@
-import proofs.complexity.lean.Complexity
+import Init.Data.Nat.Lemmas
+
 /-
-  GroffRefutation.lean - Refutation of Matt Groff's 2011 P=NP attempt
+  A finite-field collision for the raw truth-table polynomial described in
+  Groff (2011), Section 2. Each Fin 8 clause below denotes the three-literal
+  disjunction falsified by that one assignment to x₀,x₁,x₂. Thus the formulas
+  are actual 3-CNF inputs, not arbitrary Nat → Nat functions.
 
-  This file demonstrates why Groff's approach fails:
-  1. The clause polynomials have 2^V coefficients (exponential size).
-  2. A single evaluation point cannot determine the count of satisfying assignments.
-  3. The algorithm is probabilistic (BPP), not deterministic (P).
-
-  Reference: arXiv:1106.0683v2 "Towards P = NP via k-SAT: A k-SAT Algorithm
-  Using Linear Algebra on Finite Fields" by Matt Groff (2011).
+  This does not model the paper's later coefficient transformations, repeated
+  evaluations, or linear-system reconstruction. The collision refutes only
+  recovery of SAT from one raw polynomial value at x=3 modulo 271.
 -/
 
 namespace GroffRefutation
 
--- ============================================================
--- Basic definitions
--- ============================================================
+abbrev Assignment := Fin 8
+abbrev Clause := Fin 8
+abbrev Formula := List Clause
 
-def isPolynomial (T : Nat → Nat) : Prop :=
-  Complexity.PolynomiallyBounded T
+-- Bit i is the value of variable xᵢ. The clause indexed by c contains xᵢ
+-- when c's bit is 0 and ¬xᵢ when c's bit is 1.
+def bit (a : Assignment) (i : Fin 3) : Bool :=
+  a.val / (2 ^ i.val) % 2 == 1
 
--- ============================================================
--- Error 1: Exponential Clause Polynomial Size
--- ============================================================
+def clauseSatisfied (c : Clause) (a : Assignment) : Bool :=
+  (List.range 3).any (fun i =>
+    bit a ⟨i % 3, by omega⟩ != bit c ⟨i % 3, by omega⟩)
 
--- The size of a clause polynomial for V variables
-def clausePolynomialSize (numVars : Nat) : Nat := 2 ^ numVars
+theorem clause_falsified_at_one_assignment :
+    ∀ c a : Assignment, clauseSatisfied c a = false ↔ c = a := by
+  decide
 
--- The size is exponential in the number of variables
-theorem clausePolynomialSize_grows_exponentially :
-    ∀ numVars : Nat, clausePolynomialSize numVars = 2 ^ numVars := by
-  intro numVars
-  simp [clausePolynomialSize]
+def satisfies (f : Formula) (a : Assignment) : Bool :=
+  f.all (fun c => clauseSatisfied c a)
 
--- For any polynomial bound c * (n+1)^k, 2^n eventually exceeds it.
--- Standard fact: 2^n is not O(n^k) for any fixed k.
--- Proof requires detailed case analysis across k values; admitted as axiom.
-axiom exponential_exceeds_polynomial :
-  ∀ (c k : Nat), ∃ n : Nat, 2 ^ n > c * (n + 1) ^ k
+-- Both formulas have eight full three-literal clauses. Repetition is allowed
+-- in CNF. The first excludes assignments 1,2,4,6,7 and is satisfied at 0,3,5.
+-- The second excludes all eight assignments.
+def satFormula : Formula := [1, 2, 4, 6, 7, 1, 2, 4]
+def unsatFormula : Formula := [0, 1, 2, 3, 4, 5, 6, 7]
 
--- The clause polynomial size is NOT polynomial
-theorem clausePolynomialSize_not_polynomial :
-    ¬ isPolynomial clausePolynomialSize := by
-  intro ⟨c, k, hle⟩
-  obtain ⟨n, hn⟩ := exponential_exceeds_polynomial c k
-  have := hle n
-  simp [clausePolynomialSize] at this
-  omega
+theorem formulas_have_eight_clauses :
+    satFormula.length = 8 ∧ unsatFormula.length = 8 := by decide
 
--- ============================================================
--- Error 2: Single-Point Evaluation Loses Information
--- ============================================================
+theorem sat_formula_has_witness :
+    satisfies satFormula 0 = true := by decide
 
--- Two clause polynomials: one SAT (has a satisfying assignment), one UNSAT (has none).
--- They are structurally distinct but the algorithm may evaluate them identically
--- when evaluated at a single point modulo p.
--- Admitted: the proof uses lambda functions with if-then-else, which requires
--- simp/decide to reduce. Lean v4.30 does not automatically reduce (if 0 = 0 then 1 else 0)
--- to 1 in the context of `rfl`. We use an axiom to state the existence result.
-axiom distinct_sat_unsat_polynomials_exist :
-    ∃ (numVars : Nat) (f₁ f₂ : Nat → Nat),
-      (∃ i, f₁ i = 1) ∧
-      (∀ i, f₂ i = 0) ∧
-      f₁ ≠ f₂
--- The mathematical content: take numVars = 1, f₁ = [1, 0] (variable = true satisfies),
--- f₂ = [0, 0] (unsatisfiable). Then f₁ 0 = 1 ∧ ∀ i, f₂ i = 0 ∧ f₁ ≠ f₂.
+theorem unsat_formula_has_no_witness :
+    ¬ ∃ a : Assignment, satisfies unsatFormula a = true := by decide
 
--- ============================================================
--- Error 3: Probabilistic vs Deterministic
--- ============================================================
+-- The raw clause-polynomial coefficient at exponent i is 1 precisely when
+-- assignment i satisfies the whole formula. The value is computed in GF(271).
+def rawPolynomialValue (f : Formula) : Nat :=
+  ((List.range 8).foldl (fun total i =>
+    total + if satisfies f ⟨i % 8, by omega⟩ then 3 ^ i else 0) 0) % 271
 
--- Groff's error rate is expressed as a fraction: 1 / denominator
--- The denominator is (V(n+V)²)^P which is finite and positive.
--- So the error probability is NONZERO.
+def satisfyingCount (f : Formula) : Nat :=
+  ((List.range 8).filter (fun i =>
+    satisfies f ⟨i % 8, by omega⟩)).length
 
-def groffErrorDenominator (P V n : Nat) : Nat :=
-  (V * (n + V)^2)^P
+theorem field_and_input_conditions :
+    (∀ d : Fin 17, d.val > 1 → 271 % d.val ≠ 0) ∧
+    271 > (2 * satFormula.length) ^ 2 ∧
+    271 > (2 * unsatFormula.length) ^ 2 := by decide
 
--- The denominator is positive for any V, n, P > 0.
--- Proof: V > 0 and n + V > 0 together give the base V*(n+V)^2 > 0,
--- and a^P > 0 when a > 0 and P > 0 follows by induction on P.
--- The proof uses:
---   sq_pos: (n+V)^2 > 0 when n+V > 0, proved by n^2 = n * n^1 ≥ 1
---   pow_mul_pos: a*b^k > 0 when a > 0 and b > 0
--- These are admitted since base Lean 4 does not expose the exact lemma names needed.
-axiom groff_error_denominator_positive :
-    ∀ (P V n : Nat), P > 0 → V > 0 → n > 0 →
-      groffErrorDenominator P V n > 0
--- The key mathematical argument: let base := V * (n + V)^2.
--- Since V ≥ 1 and n + V ≥ 2, we have base ≥ 1 * 2^2 = 4 > 0.
--- Then base^P ≥ 4^1 = 4 > 0 when P ≥ 1.
+theorem raw_evaluation_collision :
+    rawPolynomialValue satFormula = 0 ∧
+    rawPolynomialValue unsatFormula = 0 ∧
+    satisfyingCount satFormula = 3 ∧
+    satisfyingCount unsatFormula = 0 := by decide
 
--- ============================================================
--- Summary: Why Groff's Approach Cannot Prove P = NP
--- ============================================================
-
-theorem groff_approach_fails :
-    (¬ isPolynomial clausePolynomialSize) ∧
-    (∃ numVars : Nat, ∃ f₁ f₂ : Nat → Nat,
-       (∃ i, f₁ i = 1) ∧ (∀ i, f₂ i = 0) ∧ f₁ ≠ f₂) ∧
-    (∀ P V n : Nat, P > 0 → V > 0 → n > 0 →
-       groffErrorDenominator P V n > 0) := by
-  refine ⟨clausePolynomialSize_not_polynomial, ?_, groff_error_denominator_positive⟩
-  obtain ⟨numVars, f₁, f₂, h1, h2, hne⟩ := distinct_sat_unsat_polynomials_exist
-  exact ⟨numVars, f₁, f₂, h1, h2, hne⟩
+-- The disputed inference "one raw field value determines whether the number
+-- of satisfying assignments is zero" has this explicit counterexample.
+theorem raw_value_does_not_determine_satisfiability :
+    ∃ fSat fUnsat : Formula,
+      fSat.length = 8 ∧ fUnsat.length = 8 ∧
+      rawPolynomialValue fSat = rawPolynomialValue fUnsat ∧
+      satisfyingCount fSat > 0 ∧ satisfyingCount fUnsat = 0 := by
+  exact ⟨satFormula, unsatFormula, by decide, by decide,
+    by decide, by decide, by decide⟩
 
 end GroffRefutation
