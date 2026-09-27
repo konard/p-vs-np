@@ -159,6 +159,7 @@ jobs:
             exit 1
           fi
           python3 experiments/issue570/check_contradiction.py --lean
+          bash experiments/issue573/check.sh --lean
         else
           echo "✓ No Lean files - skipping"
         fi
@@ -216,6 +217,7 @@ jobs:
               rocq compile -Q . '' experiments/issue572/Independent.v
             fi
             python3 experiments/issue570/check_contradiction.py --rocq
+            bash experiments/issue573/check.sh --rocq
             echo "✓ Rocq historical sources compile successfully!"
           endGroup
 
