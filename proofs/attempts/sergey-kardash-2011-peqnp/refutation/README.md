@@ -51,7 +51,7 @@ Kardash proves Lemma 1 by induction on nt (number of clause groups). The inducti
 
 ### Local Consistency Is Not Global Consistency
 
-**Theorem** (well-known in constraint programming): There exist constraint satisfaction problem instances that are arc-consistent (no domain value can be eliminated by arc consistency) yet have no solution. The disequality triangle x ≠ y, y ≠ z, z ≠ x over Boolean domains (see below) is the smallest example.
+**Theorem** (well-known in constraint programming): There exist constraint satisfaction problem instances that are arc-consistent (no domain value can be eliminated by arc consistency) yet have no solution. Both formulas in the next section are examples: Counterexample 1 when each clause is its own constraint, and the disequality triangle x ≠ y, y ≠ z, z ≠ x over Boolean domains even when constraints on the same variables are merged.
 
 Pair cleaning is stronger than arc consistency, so such instances do not refute it directly. The point is that local agreement, at any fixed level, needs an argument before it can imply a global solution. For k = 2 such an argument exists (next section). For k ≥ 3 the paper supplies none, and the formalization records this gap with informal axioms rather than a concrete counterexample.
 
@@ -109,7 +109,7 @@ Local consistency (arc consistency, pairwise consistency, unit propagation) IS u
 
 But the paper gives no valid argument that it can replace backtracking search for k ≥ 3 SAT.
 
-## Summary of Why the Claimed O(n^12) Algorithm Fails
+## Summary of Why the Claimed O(n^12) Algorithm Does Not Establish P=NP
 
 1. **The algorithm runs in polynomial time** — this part is CORRECT
 2. **An empty result correctly proves unsatisfiability** — pair cleaning is sound
