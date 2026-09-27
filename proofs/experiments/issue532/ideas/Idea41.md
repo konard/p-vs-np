@@ -241,16 +241,16 @@ argument: reading the input takes `poly(n)` steps, far below
 
 ## 7. Failure modes this idea catches
 
-* **Barrier audit** (Ideas 16, 30, 38): a proposed lower-bound technique
+* **Barrier audit** (Ideas 16, 30, 38; family 14 in
+  [`COMMON_ERRORS.md`](../../../attempts/COMMON_ERRORS.md)): a proposed lower-bound technique
   should say which barrier it avoids and how. The method avoids
   relativization through the circuit-specific algorithm and natural proofs
   through diagonalization. A proof that uses only one of the two ingredients
   meets the barrier it failed to avoid.
-* **Free cost functions** (the review of PR #569): the obligation is a `Run`
+* **Free cost functions** (family 11, and the review of PR #569): the obligation is a `Run`
   step count of a `Complexity.Machine`, so `t := 0` does not meet it. The
   checker enforces this for every open obligation.
-* **Class confusion** (family 5 in
-  [`COMMON_ERRORS.md`](../../../attempts/COMMON_ERRORS.md)): `NEXP ⊄ P/poly`
+* **Class confusion** (families 5 and 16): `NEXP ⊄ P/poly`
   and `NEXP ⊄ ACC⁰` are lower bounds for exponential-time classes. Neither
   is a statement about NP, and neither implies `P ≠ NP`.
 * **Quantifier order** (Idea 34): `FastCircuitSAT` fixes the machine before

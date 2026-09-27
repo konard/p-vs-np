@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the forty issue #532 idea dossiers and their paired proof files.
+"""Check the forty-one issue #532 idea dossiers and their paired proof files.
 
 For every idea NN the checker requires:
 
@@ -27,7 +27,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from check_proof_status import strip_comments_and_strings  # noqa: E402
 
 BASE = ROOT / "proofs" / "experiments" / "issue532"
-IDEAS = range(1, 41)
+IDEAS = range(1, 42)
 # Shared machine layer; a section-3 row may name a theorem declared there.
 SHARED = {
     "lean": [BASE / "lean" / "Machines.lean", BASE / "lean" / "Circuits.lean"],
