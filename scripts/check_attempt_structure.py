@@ -18,6 +18,7 @@ This script checks that each attempt follows the required directory structure:
   - README.md      (recommended - explanation of failures)
   - lean/          (optional - Lean 4 formalizations)
   - rocq/          (optional - Rocq formalizations)
+- lean/, rocq/     (legacy root-level formalizations, counted with a layout warning)
 
 Usage:
     python3 scripts/check_attempt_structure.py
@@ -104,6 +105,8 @@ class StructureValidation:
     has_refutation_rocq: bool = False
     refutation_lean_files: List[str] = field(default_factory=list)
     refutation_rocq_files: List[str] = field(default_factory=list)
+    legacy_lean_files: List[str] = field(default_factory=list)
+    legacy_rocq_files: List[str] = field(default_factory=list)
     metadata: Optional[AttemptMetadata] = None
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
@@ -128,11 +131,11 @@ class StructureValidation:
 
     def has_lean(self) -> bool:
         """Check if the attempt has any Lean formalization."""
-        return self.has_proof_lean or self.has_refutation_lean
+        return self.has_proof_lean or self.has_refutation_lean or bool(self.legacy_lean_files)
 
     def has_rocq(self) -> bool:
         """Check if the attempt has any Rocq formalization."""
-        return self.has_proof_rocq or self.has_refutation_rocq
+        return self.has_proof_rocq or self.has_refutation_rocq or bool(self.legacy_rocq_files)
 
     def get_missing(self) -> List[str]:
         """List missing components."""
@@ -741,11 +744,15 @@ def validate_attempt_structure(attempt_path: Path) -> StructureValidation:
                 result.has_refutation_rocq = True
                 result.refutation_rocq_files = [f.name for f in rocq_files]
 
-    # Check for legacy structures (old formats) - These are WARNINGS, not errors
-    # Legacy: lean/ or rocq/ at root level (should be in proof/ and refutation/)
-    if (attempt_path / "lean").exists() and not result.has_proof:
+    # Count root-level files for coverage, but keep layout migration as a warning.
+    # They do not satisfy the recommended proof/ and refutation/ sections.
+    legacy_lean_path = attempt_path / "lean"
+    if legacy_lean_path.is_dir():
+        result.legacy_lean_files = [f.name for f in legacy_lean_path.glob("*.lean")]
         result.warnings.append("Legacy: lean/ at root level. Consider moving to proof/lean/ and refutation/lean/")
-    if (attempt_path / "rocq").exists() and not result.has_proof:
+    legacy_rocq_path = attempt_path / "rocq"
+    if legacy_rocq_path.is_dir():
+        result.legacy_rocq_files = [f.name for f in legacy_rocq_path.glob("*.v")]
         result.warnings.append("Legacy: rocq/ at root level. Consider moving to proof/rocq/ and refutation/rocq/")
     if (attempt_path / "coq").exists():
         result.warnings.append("Legacy: coq/ should be renamed to rocq/")
@@ -798,10 +805,10 @@ def print_report(validations: List[StructureValidation]):
         for v in complete:
             status = []
             if v.has_lean():
-                lean_count = len(v.proof_lean_files) + len(v.refutation_lean_files)
+                lean_count = len(v.proof_lean_files) + len(v.refutation_lean_files) + len(v.legacy_lean_files)
                 status.append(f"Lean ({lean_count})")
             if v.has_rocq():
-                rocq_count = len(v.proof_rocq_files) + len(v.refutation_rocq_files)
+                rocq_count = len(v.proof_rocq_files) + len(v.refutation_rocq_files) + len(v.legacy_rocq_files)
                 status.append(f"Rocq ({rocq_count})")
             status_str = f" [{', '.join(status)}]" if status else ""
             print(f"  ✓ {v.path.name}{status_str}")
@@ -885,6 +892,8 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
     lines.append("- 📎 = Has original paper file (PDF/HTML/TXT/TEX, root or original/)")
     lines.append("- 🔷 = Has Lean formalization")
     lines.append("- 🔶 = Has Rocq formalization")
+    lines.append("")
+    lines.append("Formal badges include legacy root-level `lean/` and `rocq/` files; structure warnings and completeness are reported separately by the checker.")
     lines.append("")
     lines.append("---")
     lines.append("")

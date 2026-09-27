@@ -30,6 +30,51 @@ from check_attempt_structure import (  # noqa: E402
 
 
 class CheckAttemptStructureTests(unittest.TestCase):
+    def test_legacy_root_formalizations_appear_in_catalog_and_report(self):
+        attempt = self.base_dir / "proofs" / "attempts" / "alice-smith-2001-peqnp"
+        for name in ("lean/Attempt.lean", "rocq/Attempt.v"):
+            source = attempt / name
+            source.parent.mkdir(parents=True, exist_ok=True)
+            source.write_text("historical formalization", encoding="utf-8")
+
+        validation = validate_attempt_structure(attempt)
+        self.assertTrue(validation.has_lean())
+        self.assertTrue(validation.has_rocq())
+        self.assertFalse(validation.is_complete())
+        self.assertIn("proof/ directory (recommended)", validation.get_missing())
+        self.assertEqual(len(validation.warnings), 2)
+        self.assertIn("| 🔷 🔶 | Historical sketch |", generate_markdown_list([validation]))
+
+        report_path = self.base_dir / "report.json"
+        status, output, errors = self.run_checker("--offline", "--json", str(report_path))
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        self.assertEqual((status, errors), (0, ""))
+        self.assertIn("[Lean, Rocq]", output)
+        self.assertTrue(report["attempts"][0]["has_lean"])
+        self.assertTrue(report["attempts"][0]["has_rocq"])
+        self.assertEqual(len(report["attempts"][0]["warnings"]), 2)
+
+    def test_mixed_layout_reports_both_languages_and_legacy_warning(self):
+        attempt = self.base_dir / "proofs" / "attempts" / "alice-smith-2001-peqnp"
+        for name in (
+            "ORIGINAL.md", "ORIGINAL.txt", "proof/README.md", "proof/lean/Proof.lean",
+            "refutation/README.md", "refutation/lean/Refutation.lean", "rocq/Legacy.v",
+        ):
+            source = attempt / name
+            source.parent.mkdir(parents=True, exist_ok=True)
+            source.write_text("historical formalization", encoding="utf-8")
+
+        validation = validate_attempt_structure(attempt)
+        self.assertTrue(validation.has_lean())
+        self.assertTrue(validation.has_rocq())
+        self.assertTrue(validation.is_complete())
+        self.assertEqual(len(validation.warnings), 1)
+        self.assertIn("rocq/ at root level", validation.warnings[0])
+        self.assertIn("| 🔷 🔶 | Historical sketch |", generate_markdown_list([validation]))
+        status, output, errors = self.run_checker("--offline")
+        self.assertEqual((status, errors), (0, ""))
+        self.assertIn("[Lean (2), Rocq (1)]", output)
+
     def test_empty_formalization_directories_are_valid_but_incomplete(self):
         attempt = self.base_dir / "proofs" / "attempts" / "alice-smith-2001-peqnp"
         (attempt / "ORIGINAL.md").write_text("Original argument", encoding="utf-8")
