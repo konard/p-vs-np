@@ -39,6 +39,9 @@ jobs:
     - name: Check Plotnikov refutation assumptions
       run: python3 -m unittest discover -s experiments/issue577 -p 'test_*.py' -v
 
+    - name: Check issue 7 independence claims
+      run: python3 experiments/issue579/check_claims.py
+
     - name: Check verification workflow regressions
       run: python3 -m unittest discover -s experiments/issue584 -p 'test_*.py' -v
 
@@ -139,6 +142,8 @@ jobs:
           lake build
           echo "✓ Lean historical sources compile successfully!"
           echo ""
+          lean experiments/issue7_shoenfield_absoluteness.lean
+          lean experiments/issue7_undecidability_formalization.lean
           bash experiments/issue571/check.sh
           if lake_test_output=$(lake test 2>&1); then
             printf '%s\n' "$lake_test_output"
