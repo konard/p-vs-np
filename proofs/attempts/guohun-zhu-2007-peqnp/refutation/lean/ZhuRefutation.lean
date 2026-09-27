@@ -1,156 +1,148 @@
+import Init.Data.Nat.Lemmas
+
 /-
-  ZhuRefutation.lean - Refutation of Guohun Zhu's 2007 P=NP attempt
+  A finite projector graph witness for Zhu (2007), Lemma 4.
 
-  This file formalizes the error in Zhu's paper "The Complexity of HCP in
-  Digraphs with Degree Bound Two" (arXiv:0704.0309v3).
+  The vertices of the Γ digraph are 0,...,5. From each pair {2i,2i+1}
+  there are arcs to both vertices of the next pair (cyclically). Its projector
+  graph has three independent C4 components. A bit in each component chooses
+  one of its two labeled perfect matchings. The four different bit counts give
+  four classes under the paper's code-permutation convention, exceeding n/2=3.
 
-  The main error is in the counting argument (Lemma 4), where the paper
-  claims there are O(n) perfect matchings to enumerate, when in fact there
-  are exponentially many (2^(n/4)).
-
-  Note: We use Nat for vertex indices to avoid universe polymorphism issues.
-        This file uses only standard Lean 4 library features (no Mathlib).
+  This tests the counting step of Lemma 4. It does not prove that the paper's
+  rank-greedy equations (10-11) fail on this graph or rule out another algorithm.
 -/
 
 namespace ZhuRefutation
 
--- A directed graph with n vertices (indexed 0..n-1)
-structure Digraph where
-  numVertices : Nat
-  edges : Nat → Nat → Bool
+abbrev Vertex := Fin 6
+abbrev Code := Bool × Bool × Bool
 
--- A Gamma-digraph: strongly connected with in-degree and out-degree between 1 and 2
-structure GammaDigraph extends Digraph where
-  strongly_connected : True  -- Simplified
-  in_degree_bound : True     -- Simplified: ∀ v, 1 ≤ d⁻(v) ≤ 2
-  out_degree_bound : True    -- Simplified: ∀ v, 1 ≤ d⁺(v) ≤ 2
+def arc (u v : Vertex) : Bool :=
+  v.val / 2 == (u.val / 2 + 1) % 3
 
--- Balanced bipartite graph
-structure BipartiteGraph where
-  numLeft  : Nat
-  numRight : Nat
-  edges : Nat → Nat → Bool
+-- The projector edge for an arc u → v has endpoints u⁺ and v⁻.
+def projectorEdge (u v : Vertex) : Bool := arc u v
 
--- A C₄ cycle component in the bipartite graph
-structure C4Component where
-  id : Nat  -- Component identifier
+def leftComponent (u : Vertex) : Nat := u.val / 2
+def rightComponent (v : Vertex) : Nat := (v.val / 2 + 2) % 3
 
--- Each C₄ component has exactly 2 distinct perfect matchings
-axiom c4_has_two_matchings : ∀ (c : C4Component),
-  ∃ (choice1 choice2 : Nat), choice1 ≠ choice2
+-- Edge membership is exactly equality of component numbers. Each of the
+-- three components has two left and two right vertices and all four edges.
+theorem projector_component_edges :
+    ∀ u v : Vertex,
+      projectorEdge u v = true ↔ leftComponent u = rightComponent v := by
+  decide
 
--- The paper's INCORRECT claim (Lemma 4):
--- "The maximal number of unlabeled perfect matching in a projector graph G is n/2."
---
--- This is FALSE. With k independent C₄ components, each having 2 choices,
--- the total number of distinct matchings is 2^k, not 2k.
+theorem projector_component_sizes :
+    ∀ c : Fin 3,
+      ((List.range 6).filter (fun u =>
+        leftComponent ⟨u % 6, by omega⟩ == c.val)).length = 2 ∧
+      ((List.range 6).filter (fun v =>
+        rightComponent ⟨v % 6, by omega⟩ == c.val)).length = 2 := by
+  decide
 
--- The CORRECT counting: exponential growth.
--- We prove 2^k > 2*k for k >= 3.
--- The general proof requires handling exponentiation which omega cannot do directly.
--- We demonstrate the error via concrete counterexamples and state the general
--- theorem as an axiom, since the key point is the existence of the error.
+def matching (b : Code) (u : Vertex) : Vertex :=
+  match u.val with
+  | 0 => if b.1 then 3 else 2
+  | 1 => if b.1 then 2 else 3
+  | 2 => if b.2.1 then 5 else 4
+  | 3 => if b.2.1 then 4 else 5
+  | 4 => if b.2.2 then 1 else 0
+  | _ => if b.2.2 then 0 else 1
 
--- For k = 3: 2^3 = 8 > 6 = 2*3
-theorem exponential_beats_linear_3 : 2 ^ 3 > 2 * 3 := by decide
+def perfectMatching (m : Vertex → Vertex) : Prop :=
+  (∀ u, projectorEdge u (m u) = true) ∧
+  (∀ u v, m u = m v → u = v)
 
--- For k = 4: 2^4 = 16 > 8 = 2*4
-theorem exponential_beats_linear_4 : 2 ^ 4 > 2 * 4 := by decide
+-- All 8 codes give bijective matchings of the actual projector graph.
+theorem every_code_is_perfect : ∀ b : Code, perfectMatching (matching b) := by
+  intro ⟨a, b, c⟩
+  cases a <;> cases b <;> cases c <;> unfold perfectMatching <;> decide
 
--- For k = 5: 2^5 = 32 > 10 = 2*5
-theorem exponential_beats_linear_5 : 2 ^ 5 > 2 * 5 := by decide
+def reachesWithinThree (u v : Vertex) : Prop :=
+  u = v ∨ arc u v = true ∨
+  (∃ w, arc u w = true ∧ arc w v = true) ∨
+  (∃ w z, arc u w = true ∧ arc w z = true ∧ arc z v = true)
 
--- General: 2^k > 2*k for k >= 3
--- (Stated as axiom since proving this in Lean 4 without Mathlib requires
---  careful handling of Nat.pow which omega cannot process directly.
---  The concrete cases above demonstrate the exponential growth pattern.)
-axiom exponential_beats_linear : ∀ k : Nat, k ≥ 3 → 2 ^ k > 2 * k
+-- Each vertex has two incoming and two outgoing arcs, and every vertex is
+-- reachable from every other in at most three steps.
+theorem degree_two_out : ∀ u : Vertex,
+    ((List.range 6).filter (fun v => arc u ⟨v % 6, by omega⟩)).length = 2 := by
+  decide
 
--- The paper's Lemma 4 is wrong: it claims 2k matchings when there are 2^k
-theorem lemma4_is_wrong : ∀ k : Nat, k ≥ 3 → 2 ^ k ≠ 2 * k := by
-  intro k hk
-  have h := exponential_beats_linear k hk
-  omega
+theorem degree_two_in : ∀ v : Vertex,
+    ((List.range 6).filter (fun u => arc ⟨u % 6, by omega⟩ v)).length = 2 := by
+  decide
 
--- Key counterexample: For n = 12, the paper claims n/2 = 6 matchings
--- but there are actually 2^(n/4) = 2^3 = 8 matchings
-theorem counterexample_n12 : 2 ^ 3 > 12 / 2 := by decide
+theorem strongly_connected : ∀ u v : Vertex, reachesWithinThree u v := by
+  unfold reachesWithinThree
+  decide
 
--- For n = 16: paper claims 8 matchings, but there are 2^4 = 16
-theorem counterexample_n16 : 2 ^ 4 > 16 / 2 := by decide
+-- Theorem 1(c3) claims at most n/4 C4 components, with n=|V(D)|.
+-- The conjunction ties its failed bound to a valid Γ input and its projector.
+theorem theorem1_c3_counterexample :
+    (∀ u : Vertex,
+      ((List.range 6).filter (fun v => arc u ⟨v % 6, by omega⟩)).length = 2) ∧
+    (∀ v : Vertex,
+      ((List.range 6).filter (fun u => arc ⟨u % 6, by omega⟩ v)).length = 2) ∧
+    (∀ u v : Vertex, reachesWithinThree u v) ∧
+    (∀ u v : Vertex,
+      projectorEdge u v = true ↔ leftComponent u = rightComponent v) ∧
+    (∀ c : Fin 3,
+      ((List.range 6).filter (fun u =>
+        leftComponent ⟨u % 6, by omega⟩ == c.val)).length = 2 ∧
+      ((List.range 6).filter (fun v =>
+        rightComponent ⟨v % 6, by omega⟩ == c.val)).length = 2) ∧
+    3 > 6 / 4 := by
+  exact ⟨degree_two_out, degree_two_in, strongly_connected,
+    projector_component_edges, projector_component_sizes, by decide⟩
 
--- For n = 20: paper claims 10 matchings, but there are 2^5 = 32
-theorem counterexample_n20 : 2 ^ 5 > 20 / 2 := by decide
+def codeWeight (b : Code) : Nat :=
+  (if b.1 then 1 else 0) + (if b.2.1 then 1 else 0) +
+    (if b.2.2 then 1 else 0)
 
--- General statement: For n >= 12 with n divisible by 4,
--- the exponential count exceeds the paper's linear claim.
--- (Stated as axiom since omega cannot handle 2^(n/4) for symbolic n.)
-axiom exponential_exceeds_linear : ∀ n : Nat, n ≥ 12 → n % 4 = 0 →
-    2 ^ (n / 4) > n / 2
+-- Each weight denotes a distinct class under the code-permutation convention
+-- used for the examples preceding Lemma 4. Arbitrary graph isomorphism is a
+-- different quotient and is not established by this theorem.
+theorem four_code_classes :
+    codeWeight (false, false, false) = 0 ∧
+    codeWeight (true, false, false) = 1 ∧
+    codeWeight (true, true, false) = 2 ∧
+    codeWeight (true, true, true) = 3 ∧
+    3 < 4 := by
+  decide
 
--- The Enumeration Gap
---
--- The paper provides recursive equations (10-11) but:
--- - The ⊗ operation is not formally defined
--- - No proof of termination is provided
--- - No proof that all matchings are enumerated
--- - No complexity analysis is given
---
--- Even if there were only n/2 matchings (which is false),
--- the paper provides no algorithm to enumerate them efficiently.
-theorem enumeration_gap :
-    -- The paper claims an O(n^4) algorithm but provides no enumeration method
-    True := by trivial
+-- The n/2 bound is false for this Γ input under that convention.
+theorem lemma4_code_bound_counterexample :
+    ∃ b0 b1 b2 b3 : Code,
+      perfectMatching (matching b0) ∧ perfectMatching (matching b1) ∧
+      perfectMatching (matching b2) ∧ perfectMatching (matching b3) ∧
+      codeWeight b0 = 0 ∧ codeWeight b1 = 1 ∧
+      codeWeight b2 = 2 ∧ codeWeight b3 = 3 ∧
+      6 / 2 < 4 := by
+  refine ⟨(false, false, false), (true, false, false),
+    (true, true, false), (true, true, true), ?_, ?_, ?_, ?_, ?_⟩
+  · exact every_code_is_perfect _
+  · exact every_code_is_perfect _
+  · exact every_code_is_perfect _
+  · exact every_code_is_perfect _
+  · decide
 
--- Why the P=NP Conclusion Fails
---
--- The proof chain is:
---   1. Theorem 1 (projector graph construction) - VALID
---   2. Theorem 2 (HC ↔ matching with rank condition) - VALID
---   3. Lemma 4 (counting: at most n/2 matchings) - INVALID
---   4. Theorem 3 (O(n^4) algorithm) - INVALID (depends on Lemma 4)
---   5. Theorem 6 (extension to degree-2 digraphs) - INVALID (depends on Theorem 3)
---   6. Theorem 7 (P=NP) - INVALID (depends on Theorem 6)
---
--- The error at Lemma 4 propagates and invalidates the final conclusion.
+-- A matching selects one outgoing arc per vertex in the inverse image F⁻¹(M).
+-- For the four representatives above, the all-zero selection has two directed
+-- cycles, while flipping the first component yields one Hamiltonian cycle.
+def orbitFromZero (m : Vertex → Vertex) : Nat → Vertex
+  | 0 => 0
+  | n + 1 => m (orbitFromZero m n)
 
--- The fundamental counting error invalidates the polynomial time claim
-theorem polynomial_claim_invalid_n12 :
-    -- For n = 12: paper claims 6 matchings, but there are 8
-    2 ^ 3 > 12 / 2 :=
-  counterexample_n12
+def oneCycle (m : Vertex → Vertex) : Prop :=
+  ∀ v : Vertex, ∃ k : Fin 6, orbitFromZero m k.val = v
 
--- Summary of Errors
-
--- Error 1: Arithmetic mistake in counting.
--- The paper claims k components × 2 choices = 2k matchings (additive),
--- but it should be 2^k matchings (multiplicative).
-theorem counting_error_demonstrated : 2 ^ 3 ≠ 2 * 3 := by decide
-
--- Error 2: No polynomial-time enumeration algorithm is provided.
--- See enumeration_gap above.
-
--- Error 3: The "isomorphism" argument is invalid.
--- Different matchings, even if "isomorphic" as abstract bipartite patterns,
--- correspond to different arc selections in the original digraph D and
--- may yield different rank values for r(F⁻¹(M)).
-theorem isomorphism_argument_invalid :
-    -- Even isomorphic matchings need to be checked separately
-    -- because they map to different subgraphs of D
-    True := by trivial
-
--- Educational Value:
--- This attempt demonstrates a common error in P vs NP proofs:
--- confusing linear and exponential growth in combinatorial counting.
---
--- Key lesson: When you have k independent binary choices, you get 2^k
--- combinations, not k or 2k combinations. This exponential explosion
--- is the fundamental barrier that makes NP-complete problems hard.
---
--- Example:
---   - 1 component with 2 choices: 2^1 = 2 matchings
---   - 2 components with 2 choices each: 2^2 = 4 matchings (not 2×2=4, ok by coincidence)
---   - 3 components with 2 choices each: 2^3 = 8 matchings (not 2×3 = 6!)
---   - k components with 2 choices each: 2^k matchings (not 2k)
+theorem rank_criterion_is_nontrivial_on_witness :
+    ¬ oneCycle (matching (false, false, false)) ∧
+    oneCycle (matching (true, false, false)) := by
+  unfold oneCycle
+  decide
 
 end ZhuRefutation
