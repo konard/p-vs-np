@@ -150,7 +150,9 @@
    - Схема отделяет математическое высказывание от доказуемости в формальной теории
    - Доступно в Lean, Rocq и Agda
 
-Lean и Rocq проверяются в CI; обновлённые файлы Agda также проверяются отдельным заданием. Архивные формализации Isabelle не проверяются. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
+В CI компилируются Lean и Rocq; отдельное задание проверяет перечисленные файлы общей модели Agda. Архивные формализации Isabelle не проверяются. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
+
+**Значение значка CI:** компиляция файлов Lean и Rocq допускает `sorry`, `Admitted` и аксиомы и поэтому не подтверждает все утверждения в этих файлах. Отдельный [список сертифицированных результатов](scripts/proof_status.json) содержит конкретные теоремы, для которых CI проверяет исходный код и вывод `#print axioms` / `Print Assumptions`. Остальные формализации, включая [каталог исторических попыток](proofs/attempts/ATTEMPTS.md), остаются учебными черновиками. Наличие каталога `refutation/` само по себе не означает доказанной контраргументации. В PR задания для не изменённых языков могут быть пропущены; Agda проверяется только для перечисленных файлов общей модели.
 
 ## Ключевые моменты
 
