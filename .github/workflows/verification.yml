@@ -59,7 +59,7 @@ jobs:
             lean=false
             rocq=false
             agda=false
-            if grep -Eq '\.lean$|(^|/)(lakefile\.lean|lean-toolchain|lake-manifest\.json)$' <<< "$changed_files"; then
+            if grep -Eq '\.lean$|(^|/)(lakefile\.lean|lean-toolchain|lake-manifest\.json)$|^experiments/issue575/check\.sh$' <<< "$changed_files"; then
               lean=true
             fi
             if grep -Eq '\.v$|(^|/)_CoqProject$' <<< "$changed_files"; then
@@ -98,19 +98,19 @@ jobs:
         curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
         echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
-    - name: Verify Lean installation
-      run: |
-        lean --version
-        lake --version
-
     - name: Cache Lean toolchain
       uses: actions/cache@v4
       with:
         path: |
           ~/.elan
-        key: ${{ runner.os }}-lean-elan-v2-${{ hashFiles('lakefile.lean') }}
+        key: ${{ runner.os }}-lean-elan-v3-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lakefile.lean') }}
         restore-keys: |
-          ${{ runner.os }}-lean-elan-v2-
+          ${{ runner.os }}-lean-elan-v3-${{ hashFiles('lean-toolchain') }}-
+
+    - name: Verify Lean installation
+      run: |
+        lean --version
+        lake --version
 
     - name: Clean stale build artifacts
       run: |
@@ -125,6 +125,7 @@ jobs:
           echo "=== Lean Verification ==="
           lean --version
           echo ""
+          bash experiments/issue575/check.sh
           echo "Building Lean project..."
           lake build
           echo "✓ Lean build completed successfully!"
