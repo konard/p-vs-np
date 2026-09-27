@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   DeolalikarProof.v - Forward formalization of Vinay Deolalikar's 2010 P≠NP attempt
 
@@ -27,7 +28,7 @@ Module DeolalikarProofAttempt.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 Definition DecisionProblem := nat -> bool.
 

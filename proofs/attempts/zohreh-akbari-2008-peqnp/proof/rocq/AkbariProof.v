@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   AkbariProof.v - Forward formalization of Akbari's 2008 P=NP claim
 
@@ -19,7 +20,7 @@ Definition Language := list bool -> bool.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * (n ^ k).
+  Complexity.Complexity.PolynomiallyBounded T.
 
 Record ClassP : Type := {
   p_language : Language;

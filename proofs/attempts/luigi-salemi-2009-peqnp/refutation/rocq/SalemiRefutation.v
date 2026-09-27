@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (** * SalemiRefutation.v - Refutation of Luigi Salemi's 2009 P=NP attempt
 
    This file formally demonstrates the critical errors in Salemi's paper
@@ -21,9 +22,9 @@ Module SalemiRefutation.
 
 (** ** Key Definitions *)
 
-(** A function T(n) is polynomial if bounded by c * n^k for some constants c, k *)
+(** A function T(n) is polynomial if bounded by c * (n+1)^k for some constants c, k *)
 Definition isPolynomial (T : nat -> nat) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (** ** Error 1: Saturation Complexity Claim is Unproven
 

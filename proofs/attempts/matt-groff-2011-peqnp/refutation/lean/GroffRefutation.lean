@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   GroffRefutation.lean - Refutation of Matt Groff's 2011 P=NP attempt
 
@@ -17,7 +18,7 @@ namespace GroffRefutation
 -- ============================================================
 
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 -- ============================================================
 -- Error 1: Exponential Clause Polynomial Size
@@ -32,11 +33,11 @@ theorem clausePolynomialSize_grows_exponentially :
   intro numVars
   simp [clausePolynomialSize]
 
--- For any polynomial bound c * n^k, 2^n eventually exceeds it.
+-- For any polynomial bound c * (n+1)^k, 2^n eventually exceeds it.
 -- Standard fact: 2^n is not O(n^k) for any fixed k.
 -- Proof requires detailed case analysis across k values; admitted as axiom.
 axiom exponential_exceeds_polynomial :
-  ∀ (c k : Nat), ∃ n : Nat, 2 ^ n > c * n ^ k
+  ∀ (c k : Nat), ∃ n : Nat, 2 ^ n > c * (n + 1) ^ k
 
 -- The clause polynomial size is NOT polynomial
 theorem clausePolynomialSize_not_polynomial :

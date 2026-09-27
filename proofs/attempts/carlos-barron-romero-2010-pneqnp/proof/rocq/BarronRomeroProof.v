@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   BarronRomeroProof.v - Forward Proof Formalization
   Carlos Barron-Romero (2010) P≠NP attempt
@@ -24,9 +25,9 @@ Import ListNotations.
 
 (** * Paper's Definitions *)
 
-(** Polynomial bound: exists c k > 0, forall n, f(n) <= c * n^k *)
+(** Polynomial bound: exists c k, forall n, f(n) <= c * (n+1)^k *)
 Definition isPolynomialBound (f : nat -> nat) : Prop :=
-  exists (c k : nat), c > 0 /\ forall n, f n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (** Factorial function *)
 Fixpoint myFactorial (n : nat) : nat :=
@@ -65,7 +66,7 @@ Definition barronRomero_checkingTime (n : nat) : nat := tsp_search_space n.
 *)
 Theorem proposition_1_1_tsp : ~ isPolynomialBound tsp_search_space.
 Proof.
-  intros [c [k [_hc _h]]].
+  intros [c [k _h]].
   (* For large n, (n-1)! grows faster than any c * n^k *)
   (* A full proof requires careful induction on factorial growth *)
   admit.

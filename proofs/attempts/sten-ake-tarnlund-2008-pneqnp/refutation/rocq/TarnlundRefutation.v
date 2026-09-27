@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   TarnlundRefutation.v - Refutation of Tarnlund's 2008 P≠NP attempt
 
@@ -30,7 +31,7 @@ Definition Language := string -> bool.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 Record ClassP : Type := mkClassP {
   p_language : Language;

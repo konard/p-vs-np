@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   VegaDelgado2012.v - Formalization of Vega Delgado's 2012 P≠NP proof attempt
 
@@ -24,7 +25,7 @@ Definition TimeComplexity := nat -> nat.
 
 (** A problem is polynomial-time if there exists a polynomial time bound *)
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (** A problem is exponential-time if there exists an exponential time bound *)
 Definition IsExponentialTime (f : TimeComplexity) : Prop :=

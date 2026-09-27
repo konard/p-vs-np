@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   ValeyevAttempt.lean - Formalization of Valeyev's 2013 P≠NP Proof Attempt
 
@@ -15,7 +16,7 @@ def DecisionProblem := String → Prop
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 def IsExponentialTime (f : TimeComplexity) : Prop :=
   ∃ (c : Nat), c > 1 ∧ ∀ (n : Nat), f n ≥ c ^ n

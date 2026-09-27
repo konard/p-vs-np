@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   Delacorte/Czerwinski Refutation - Formal proofs that both claims are false
 
@@ -24,10 +25,10 @@ Definition TimeComplexity := nat -> nat.
 Definition SpaceComplexity := nat -> nat.
 
 Definition isPolynomialTime (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 Definition isPolynomialSpace (S : SpaceComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, S n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded S.
 
 Record Graph := {
   numVertices : nat;

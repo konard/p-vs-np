@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   BarronRomeroProof.lean - Forward Proof Formalization
   Carlos Barron-Romero (2010) P≠NP attempt
@@ -57,9 +58,9 @@ def TSP : NPProblem := {
 def barronRomero_checkingTime (prob : NPProblem) (n : Nat) : Nat :=
   prob.searchSpaceSize n
 
-/-- Polynomial growth: c * n^k -/
+/-- Polynomial growth: c * (n+1)^k -/
 def isPolynomialBound (f : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), c > 0 ∧ ∀ n, f n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded f
 
 /- ## Proposition 1.1 (Barron-Romero's claim) -/
 
@@ -75,7 +76,7 @@ def isPolynomialBound (f : Nat → Nat) : Prop :=
 theorem proposition_1_1_TSP : ¬ isPolynomialBound TSP.searchSpaceSize := by
   -- TSP.searchSpaceSize(n) = (n-1)!
   -- Factorial grows faster than any polynomial — this part is TRUE
-  intro ⟨_c, _k, _hc, _h⟩
+  intro ⟨_c, _k, _h⟩
   -- A full proof requires careful induction on factorial growth
   sorry
 
@@ -109,7 +110,7 @@ axiom proposition_6_9 : isPolynomialBound euclideanTSP_searchSpace
     but that doesn't prove P ≠ NP (see refutation). -/
 theorem proposition_6_12 : ¬ isPolynomialBound GAP.searchSpaceSize := by
   -- (n-1)! is super-polynomial
-  intro ⟨_c, _k, _hc, _h⟩
+  intro ⟨_c, _k, _h⟩
   -- The factorial eventually exceeds any polynomial
   sorry  -- Requires careful arithmetic
 

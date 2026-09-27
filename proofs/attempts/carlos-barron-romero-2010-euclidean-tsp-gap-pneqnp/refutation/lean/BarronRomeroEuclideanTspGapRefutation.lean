@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   BarronRomeroEuclideanTspGapRefutation.lean
 
@@ -13,7 +14,7 @@ abbrev DecisionProblem := String → Prop
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 structure PolyTimeFunction where
   compute : String → String
@@ -36,11 +37,7 @@ def constantTruePolyTime : PolyTimeFunction where
   compute := fun _ => "true"
   time := fun _ => 1
   isPolyTime := by
-    exists 0
-    intro n
-    cases n with
-    | zero => simp
-    | succ n => simp
+    exact Complexity.polynomiallyBounded_const 1
 
 theorem always_true_in_p : InP alwaysTrueProblem := by
   refine ⟨constantTruePolyTime, ?_⟩

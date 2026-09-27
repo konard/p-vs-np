@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   MeyerAttempt.v - Formalization of Steven Meyer (2016) P=NP attempt
 
@@ -24,7 +25,7 @@ Definition TimeComplexity := nat -> nat.
 
 (** Polynomial time predicate *)
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (** * Computational Models *)
 
@@ -110,9 +111,10 @@ Axiom tm_to_mram_simulation :
     (forall n, mram_time mram n <= overhead (tm_time tm n)).
 
 (** Helper: Polynomial composition *)
-Axiom poly_compose :
+Theorem poly_compose :
   forall f g : nat -> nat,
   IsPolynomialTime f -> IsPolynomialTime g -> IsPolynomialTime (fun n => f (g n)).
+Proof. exact Complexity.Complexity.polynomiallyBounded_comp. Qed.
 
 (** Theorem: P is the same in both models *)
 Theorem P_model_equivalence :
@@ -129,16 +131,10 @@ Proof.
     exists mram.
     split.
     + (* Polynomial time *)
-      unfold IsPolynomialTime in *.
-      destruct H_poly as [k H_poly].
-      destruct H_overhead as [k' H_overhead].
-      exists (k + k').
-      intro n.
-      specialize (H_sim_time n).
-      specialize (H_poly n).
-      specialize (H_overhead (tm_time tm n)).
-      (* mram_time mram n <= overhead (tm_time tm n) <= overhead (n^k) <= (n^k)^k' *)
-      admit. (* Proof sketch: polynomial composition *)
+      apply (Complexity.Complexity.polynomiallyBounded_of_le
+        (fun n => overhead (tm_time tm n)) (mram_time mram)).
+      * apply poly_compose; [exact H_overhead | exact H_poly].
+      * exact H_sim_time.
     + (* Correctness *)
       intro x.
       specialize (H_sim_correct x).
@@ -164,15 +160,10 @@ Proof.
     exists tm.
     split.
     + (* Polynomial time *)
-      unfold IsPolynomialTime in *.
-      destruct H_poly as [k H_poly].
-      destruct H_overhead as [k' H_overhead].
-      exists (k + k').
-      intro n.
-      specialize (H_sim_time n).
-      specialize (H_poly n).
-      specialize (H_overhead (mram_time mram n)).
-      admit. (* Proof sketch: polynomial composition *)
+      apply (Complexity.Complexity.polynomiallyBounded_of_le
+        (fun n => overhead (mram_time mram n)) (tm_time tm)).
+      * apply poly_compose; [exact H_overhead | exact H_poly].
+      * exact H_sim_time.
     + (* Correctness *)
       intro x.
       specialize (H_sim_correct x).

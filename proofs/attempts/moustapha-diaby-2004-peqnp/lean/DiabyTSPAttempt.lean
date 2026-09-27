@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   DiabyTSPAttempt.lean - Formalization of Moustapha Diaby's 2004 P=NP attempt
 
@@ -26,9 +27,9 @@ def Language := String → Bool
 /-- Time complexity: maps input size to maximum steps -/
 def TimeComplexity := Nat → Nat
 
-/-- Polynomial time complexity: ∃ c k, T(n) ≤ c * n^k -/
+/-- Polynomial time complexity: ∃ c k, T(n) ≤ c * (n+1)^k -/
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- Class P: Languages decidable in polynomial time -/
 structure ClassP where
@@ -106,7 +107,7 @@ theorem diaby_formulation_is_polynomial (g : Graph) :
   isPolynomial (fun n => n ^ 9) := by
   exists 1, 9
   intro n
-  simp [Nat.pow_le_pow_right]
+  simpa using Nat.pow_le_pow_left (Nat.le_succ n) 9
 
 /- ## 5. The Critical Claim (Unproven) -/
 

@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   Formalization of Douglas Youvan (2012) P=NP Attempt
 
@@ -30,7 +31,7 @@ structure Computation where
 
 -- Computational complexity: defined in terms of steps, not physical time
 def isPolynomialTime (f : Nat → Nat) : Prop :=
-  ∃ c k, ∀ n, f n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded f
 
 def isExponentialTime (f : Nat → Nat) : Prop :=
   ∃ c, ∀ n, f n ≥ c ^ n

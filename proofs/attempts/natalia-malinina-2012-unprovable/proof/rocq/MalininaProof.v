@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   MalininaProof.v - Forward formalization of Natalia L. Malinina's 2012 unprovability claim
 
@@ -32,7 +33,7 @@ Record TuringMachine := {
 
 (* Polynomial time bound *)
 Definition isPolynomialBound (T : nat -> nat) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* A language is in P *)
 Definition inP (L : Language) : Prop :=

@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   KardashProof.lean - Forward formalization of Sergey Kardash's 2011 P=NP attempt
 
@@ -73,7 +74,7 @@ def pairCleaning (rs : RelationshipStructure) : Nat → RelationshipStructure
 def TimeComplexity := Nat → Nat
 
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c d : Nat), ∀ n : Nat, T n ≤ c * n ^ d
+  Complexity.PolynomiallyBounded T
 
 -- CLAIM: Pair cleaning runs in polynomial time O(n^12) for 3-SAT
 axiom kardash_claim_polynomial_time :

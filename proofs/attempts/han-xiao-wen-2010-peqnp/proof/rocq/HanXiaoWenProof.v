@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   HanXiaoWenProof.v - Forward Formalization of Han Xiao Wen's 2010 P=NP Proof Attempt
 
@@ -25,7 +26,7 @@ Definition DecisionProblem := nat -> Prop.
 Definition TimeComplexity := nat -> nat.
 
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists c k : nat, forall n : nat, f n <= c * Nat.pow n k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 Record TuringMachine : Type := mkTM {
   tm_compute : nat -> bool;

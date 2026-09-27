@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   Audit of Plotnikov's 2007 P=NP argument. The predicates below name the
   mathematical obligations in the paper; they do not implement its algorithm.
@@ -9,7 +10,7 @@ namespace PlotnikovRefutation
 def TimeComplexity := Nat → Nat
 
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /- An instance represents a VS-digraph and its initiating set V⁰. The graph,
    fictitious-arc type, and induced set size remain abstract; a full audit
@@ -73,12 +74,12 @@ theorem polynomial_time_if_bound (T : TimeComplexity)
     (bound : ∀ n : Nat, T n ≤ n ^ 8) : isPolynomial T := by
   refine ⟨1, 8, ?_⟩
   intro n
-  simpa using bound n
+  exact Nat.le_trans (bound n) (by simpa using Nat.pow_le_pow_left (Nat.le_succ n) 8)
 
 /- The old refutation negated polynomiality of this cubic function. -/
 theorem cubic_is_polynomial : isPolynomial (fun n => n ^ 3) := by
   refine ⟨1, 3, ?_⟩
   intro n
-  simp
+  simpa using Nat.pow_le_pow_left (Nat.le_succ n) 3
 
 end PlotnikovRefutation

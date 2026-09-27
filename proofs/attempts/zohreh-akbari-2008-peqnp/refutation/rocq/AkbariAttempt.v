@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   AkbariAttempt.v - Coq formalization of Zohreh O. Akbari's 2008 P=NP attempt
 
@@ -32,9 +33,9 @@ Definition Language := list bool -> bool.
 (** Time complexity: maps input size to maximum steps *)
 Definition TimeComplexity := nat -> nat.
 
-(** Polynomial time complexity: ∃ c k, T(n) ≤ c * n^k *)
+(** Polynomial time complexity: ∃ c k, T(n) ≤ c * (n+1)^k *)
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * (n ^ k).
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (** Exponential time complexity: ∃ c, T(n) ≥ 2^(n/c) *)
 Definition isExponential (T : TimeComplexity) : Prop :=

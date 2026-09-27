@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   TazawaAttempt.v - Formalization of Satoshi Tazawa's 2012 P≠NP proof attempt
 
@@ -21,7 +22,7 @@ Definition DecisionProblem := string -> Prop.
 Definition TimeComplexity := nat -> nat.
 
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 Record TuringMachine := {
   compute : string -> bool;
@@ -93,7 +94,7 @@ Definition CircuitFamily := nat -> Gate.
 
 (** Polynomial-size circuit family *)
 Definition PolynomialSizeCircuits (cf : CircuitFamily) : Prop :=
-  exists k : nat, forall n : nat, circuit_size (cf n) <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded (fun n => circuit_size (cf n)).
 
 (** * Graph Representation of Circuits *)
 

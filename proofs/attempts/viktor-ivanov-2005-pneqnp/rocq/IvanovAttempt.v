@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   IvanovAttempt.v - Formalization of Viktor V. Ivanov's 2005 P≠NP proof attempt
 
@@ -25,7 +26,7 @@ Definition TimeComplexity := nat -> nat.
 
 (** A problem is polynomial-time if there exists a polynomial time bound *)
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (** A problem is super-polynomial if no polynomial bound exists *)
 Definition IsSuperPolynomialTime (f : TimeComplexity) : Prop :=
@@ -230,7 +231,7 @@ Proof.
     *)
 
     unfold IsPolynomialTime in H_poly.
-    destruct H_poly as [k H_poly_bound].
+    destruct H_poly as [c [k H_poly_bound]].
 
     (* Get the super-polynomial property *)
     pose proof ivanov_lower_bound_is_super_poly as H_super_poly.
@@ -248,13 +249,10 @@ Proof.
     (* But we also have ivanov_lower_bound (max n0 1) <= timeComplexity tm (max n0 1) *)
     specialize (H_lower (max n0 1)).
 
-    (* And timeComplexity tm (max n0 1) <= (max n0 1)^k *)
+    (* And timeComplexity tm (max n0 1) <= c*((max n0 1)+1)^k *)
     specialize (H_poly_bound (max n0 1)).
 
-    (* So: (max n0 1)^k < ivanov_lower_bound (max n0 1) <= timeComplexity tm (max n0 1) <= (max n0 1)^k *)
-    (* This is a contradiction! *)
-
-    lia.  (* Linear integer arithmetic should solve this... but it won't! *)
+    (* The n^k lower bound alone does not contradict the shifted bound. *)
 
 Abort.  (* The proof fails because we cannot actually derive the contradiction *)
 

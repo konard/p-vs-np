@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   Formalization of Barbosa's 2009 P≠NP Attempt and Its Refutation
   This file formalizes the key definitions and identifies the uniformity error
@@ -13,9 +14,9 @@ def BString := List Bool
 def Polynomial := Nat → Nat
 
 /-- A function is polynomial if there exist constants c and k
-    such that for all n, P(n) ≤ c * n^k -/
+    such that for all n, P(n) ≤ c * (n+1)^k -/
 def IsPolynomial (P : Polynomial) : Prop :=
-  ∃ c k, ∀ n, P n ≤ c * (n ^ k)
+  Complexity.PolynomiallyBounded P
 
 -- ================================================================
 -- Barbosa's Restricted Type X Programs

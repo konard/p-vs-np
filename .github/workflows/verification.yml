@@ -132,6 +132,7 @@ jobs:
           lake build
           echo "✓ Lean build completed successfully!"
           echo ""
+          lake env lean experiments/issue574/PolynomialRegression.lean
           lean experiments/issue7_shoenfield_absoluteness.lean
           lean experiments/issue7_undecidability_formalization.lean
           bash experiments/issue571/check.sh
@@ -190,11 +191,12 @@ jobs:
               echo "Verifying Rocq files..."
               # Shared semantics must be compiled before its consumers.
               rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
-              find . -name "*.v" -type f ! -path './proofs/complexity/rocq/Complexity.v' | while read -r file; do
+              find . -name "*.v" -type f ! -path './proofs/complexity/rocq/Complexity.v' ! -path './experiments/issue574/PolynomialRegression.v' | while read -r file; do
                 echo "Checking: $file"
                 rocq compile -Q . '' "$file" && echo "✓ $file verified successfully" || exit 1
               done
             fi
+            rocq compile -Q . '' experiments/issue574/PolynomialRegression.v
             python3 experiments/issue570/check_contradiction.py --rocq
             echo "✓ All Rocq files verified successfully!"
           endGroup

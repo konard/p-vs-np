@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   VallsHidalgoGatoAttempt.v - Formalization of Rafael Valls Hidalgo-Gato's 2009 P=NP attempt
 
@@ -36,9 +37,9 @@ Definition Language := String.string -> bool.
 
 Definition TimeComplexity := nat -> nat.
 
-(* Polynomial time complexity: ∃ c k, T(n) ≤ c * n^k *)
+(* Polynomial time complexity: ∃ c k, T(n) ≤ c * (n+1)^k *)
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* Class P: Languages decidable in polynomial time *)
 Record ClassP := {

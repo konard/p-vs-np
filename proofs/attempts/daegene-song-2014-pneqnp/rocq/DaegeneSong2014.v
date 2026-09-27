@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   DaegeneSong2014.v - Formalization of Daegene Song's 2014 P!=NP attempt
 
@@ -128,7 +129,7 @@ Definition Language := string -> bool.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 Record ClassP : Type := mkClassP {
   p_language : Language;

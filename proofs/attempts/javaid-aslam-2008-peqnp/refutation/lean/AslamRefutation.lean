@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   AslamRefutation.lean - Refutation of Javaid Aslam's 2008 P=NP attempt
 
@@ -42,7 +43,7 @@ axiom countPerfectMatchings : BipartiteGraph → Nat
 
 /-- Polynomial time complexity -/
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- Perfect matching counting is #P-complete (Valiant, 1979).
     This means a polynomial-time algorithm for this problem would

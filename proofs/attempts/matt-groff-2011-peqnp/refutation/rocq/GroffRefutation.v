@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   GroffRefutation.v - Refutation of Matt Groff's 2011 P=NP attempt
 
@@ -23,7 +24,7 @@ Module GroffRefutation.
 (* ============================================================ *)
 
 Definition isPolynomial (T : nat -> nat) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 Definition isExponential (T : nat -> nat) : Prop :=
   forall (c k : nat), exists n : nat, T n > c * n ^ k.
@@ -46,7 +47,7 @@ Qed.
    This is the standard fact that 2^n is not O(n^k) for any fixed k.
    We admit this because it requires analysis beyond basic Rocq arithmetic. *)
 Axiom exponential_exceeds_polynomial :
-  forall (c k : nat), exists n : nat, 2 ^ n > c * n ^ k.
+  forall (c k : nat), exists n : nat, 2 ^ n > c * (n + 1) ^ k.
 
 (* The clause polynomial size is NOT polynomial *)
 Theorem clausePolynomialSize_not_polynomial :

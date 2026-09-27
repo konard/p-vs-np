@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   DiduchRefutation.v - Formal refutation of Rodrigo Diduch's 2012 P≠NP attempt
 
@@ -16,7 +17,7 @@ Definition DecisionProblem := nat -> Prop.
 Definition TimeComplexity := nat -> nat.
 
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 Record TuringMachine := {
   tm_decide : nat -> bool;

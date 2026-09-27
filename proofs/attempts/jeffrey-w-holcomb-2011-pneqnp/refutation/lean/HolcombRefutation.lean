@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   HolcombRefutation.lean - Refutation of Jeffrey W. Holcomb's 2011 P≠NP attempt
 
@@ -18,7 +19,7 @@ def DecisionProblem := String → Prop
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 structure TuringMachine where
   compute : String → Bool

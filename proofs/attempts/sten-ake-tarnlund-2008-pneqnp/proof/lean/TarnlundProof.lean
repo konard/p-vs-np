@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   TarnlundProof.lean - Forward Formalization of Tarnlund's 2008 P≠NP Proof Attempt
 
@@ -41,7 +42,7 @@ def TimeComplexity := Nat → Nat
 
 /-- Polynomial time (Definition 8: p(a) for c·|a|^q some c q ∈ ℕ) -/
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- Class P: polynomial-time decidable languages -/
 structure ClassP where

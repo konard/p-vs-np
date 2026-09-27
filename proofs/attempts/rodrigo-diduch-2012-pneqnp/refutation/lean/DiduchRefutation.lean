@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   DiduchRefutation.lean - Formal refutation of Rodrigo Diduch's 2012 P≠NP attempt
 
@@ -17,7 +18,7 @@ def DecisionProblem := Nat → Prop
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 structure TuringMachine where
   decide : Nat → Bool

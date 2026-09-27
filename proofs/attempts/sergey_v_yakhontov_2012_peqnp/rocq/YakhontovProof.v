@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   YakhontovProof.v - Formalization of Sergey V. Yakhontov's 2012 P=NP proof attempt
 
@@ -28,9 +29,9 @@ Definition Language := string -> bool.
 (** Time complexity: maps input size to maximum number of steps *)
 Definition TimeComplexity := nat -> nat.
 
-(** Polynomial time: there exist constants c and k such that T(n) <= c * n^k *)
+(** Polynomial time: there exist constants c and k such that T(n) <= c * (n+1)^k *)
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (** Exponential time: T(n) >= c * k^n for some k >= 2 *)
 Definition isExponential (T : TimeComplexity) : Prop :=

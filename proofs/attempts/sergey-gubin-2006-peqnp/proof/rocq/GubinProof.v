@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   GubinProof.v - Formalization of Sergey Gubin's 2006 P=NP proof attempt
 
@@ -37,9 +38,9 @@ Definition Language := string -> bool.
 (* Time complexity function: maps input size to maximum steps *)
 Definition TimeComplexity := nat -> nat.
 
-(* Polynomial time complexity: exists c k, T(n) <= c * n^k *)
+(* Polynomial time complexity: exists c k, T(n) <= c * (n+1)^k *)
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* Class P: Languages decidable in polynomial time *)
 Record ClassP := {

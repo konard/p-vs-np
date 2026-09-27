@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   Anand2004.lean - Formalization and refutation of Anand's 2004 P≠NP attempt
 
@@ -20,7 +21,7 @@ def TimeComplexity := Nat → Nat
 
 /-- A problem is polynomial-time if there exists a polynomial time bound -/
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 /-- A Turing machine model (abstract representation) -/
 structure TuringMachine where

@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   VegaDelgado2010Proof.lean - Formalization of Vega Delgado'"'"'s November 2010 P≠NP attempt
 
@@ -16,7 +17,7 @@ abbrev DecisionProblem := String → Prop
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 structure PolyTimeFunction where
   compute : String → String

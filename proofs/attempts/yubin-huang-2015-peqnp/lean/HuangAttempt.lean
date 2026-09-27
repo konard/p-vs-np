@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   HuangAttempt.lean - Formalization of Yubin Huang's 2015 P=NP attempt
 
@@ -16,9 +17,9 @@ def Language : Type := String → Bool
 /-- Time complexity: maps input size to maximum number of steps -/
 def TimeComplexity : Type := Nat → Nat
 
-/-- Polynomial time: there exist constants c and k such that T(n) ≤ c * n^k -/
+/-- Polynomial time: there exist constants c and k such that T(n) ≤ c * (n+1)^k -/
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 -- Nondeterministic Turing Machine Model
 

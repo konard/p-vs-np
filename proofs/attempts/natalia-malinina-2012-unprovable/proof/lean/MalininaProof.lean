@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   MalininaProof.lean - Forward formalization of Natalia L. Malinina's 2012 unprovability claim
 
@@ -25,7 +26,7 @@ structure TuringMachine where
 
 -- Polynomial time bound
 def isPolynomialBound (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 -- A language is in P: there exists a polynomial-time TM deciding it
 def inP (L : Language) : Prop :=

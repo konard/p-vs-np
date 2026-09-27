@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   GramRefutation.v - Refutation of Gram (2001) "EXP ⊆ NP" claim
 
@@ -25,7 +26,7 @@ Definition TimeComplexity := nat -> nat.
 
 (** Polynomial time complexity *)
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (** Exponential time complexity *)
 Definition IsExponentialTime (f : TimeComplexity) : Prop :=
@@ -176,24 +177,25 @@ Proof.
   apply H_correct in H_problem.
   destruct H_problem as [cert [H_poly_size H_verify]].
   (* This certificate must be both polynomial and exponential size - contradiction! *)
-  assert (H_poly_size_bound : exists k, String.length cert <= (String.length x) ^ k).
+  assert (H_poly_size_bound : exists c k,
+    String.length cert <= c * (String.length x + 1) ^ k).
   {
     unfold IsPolynomialTime in H_poly_cert.
-    destruct H_poly_cert as [k H_bound].
-    exists k.
+    destruct H_poly_cert as [c [k H_bound]].
+    exists c, k.
     apply Nat.le_trans with (m := certSize (String.length x)).
     - exact H_poly_size.
     - apply H_bound.
   }
-  destruct H_poly_size_bound as [k H_poly_bound].
+  destruct H_poly_size_bound as [c [k H_poly_bound]].
   (* Certificate needs to be >= 2^(n/2) *)
   assert (H_exp_needed : String.length cert >= 2 ^ (Nat.div (String.length x) 2)).
   { apply H_needs_exp. exact H_verify. }
-  (* For large enough x, 2^(n/2) > n^k, contradicting H_poly_bound *)
+  (* For large enough x, 2^(n/2) > c*(n+1)^k, contradicting H_poly_bound *)
   (* This is the key insight: exponential grows faster than any polynomial *)
   (* We assert this as an axiom since proving it requires more infrastructure *)
   assert (H_exp_beats_poly : exists n0, forall n, n >= n0 ->
-    2 ^ (Nat.div n 2) > n ^ k).
+    2 ^ (Nat.div n 2) > c * (n + 1) ^ k).
   { admit. } (* Provable with proper exponential growth lemmas *)
   destruct H_exp_beats_poly as [n0 H_growth].
   (* For strings long enough, we get the contradiction *)
