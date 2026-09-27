@@ -453,21 +453,136 @@ theorem compose_bound (p p' q : Polynomial) :
       (PolynomiallyBounded.comp ⟨p'.coefficient, p'.degree, fun _ => Nat.le_refl _⟩
         ⟨q.coefficient, q.degree, fun _ => Nat.le_refl _⟩))
 
-/-- **P is closed under polynomial-time reductions** (machine construction). -/
-theorem inP_of_reduces {L L' : Language} (hr : PolyReduces L L') (hp : InP L') : InP L := by
-  obtain ⟨m, f, p, hm, hf⟩ := hr
-  obtain ⟨P, rfl⟩ := hp
+/-- A machine decides `L` within `p` on every word of the promise `Pr`. -/
+def DecidesOn (m : Machine) (p : Polynomial) (Pr : Word → Prop) (L : Language) : Prop :=
+  ∀ x, Pr x → ∃ t b, t ≤ p.eval x.length ∧ Run m (initial x) t b ∧ b = L x
+
+/-- **Promise composition** (machine construction). A polynomial-time machine map
+`f` into the promise `Pr` that preserves the answer, followed by a polynomial-time
+machine that is correct only on `Pr`, decides `L` in polynomial time. -/
+theorem inP_of_promise_reduction {L M : Language} {Pr : Word → Prop} {m d : Machine}
+    {f : Word → Word} {p p' : Polynomial} (hm : Computes m f p) (hinto : ∀ x, Pr (f x))
+    (hpres : ∀ x, L x = M (f x)) (hd : DecidesOn d p' Pr M) : InP L := by
   obtain ⟨q, hq⟩ := computes_output_poly hm
-  obtain ⟨B, hB⟩ := compose_bound p P.bound q
-  have key : DecidesWithin (appendMachine m P.machine) B L := by
+  obtain ⟨B, hB⟩ := compose_bound p p' q
+  have key : DecidesWithin (appendMachine m d) B L := by
     intro x
-    obtain ⟨t2, b, ht2, hrun, hb⟩ := decidesWithin_of_classP P (f x)
+    obtain ⟨t2, b, ht2, hrun, hb⟩ := hd (f x) (hinto x)
     obtain ⟨t1, ht1, hrun'⟩ := compose_run hm x hrun
-    refine ⟨t1 + t2, b, ?_, hrun', by rw [hb, hf]⟩
-    have := polynomial_eval_mono P.bound (hq x)
+    refine ⟨t1 + t2, b, ?_, hrun', by rw [hb, hpres]⟩
+    have := polynomial_eval_mono p' (hq x)
     have := hB x.length
     omega
   exact inP_of_decidesWithin key
+
+/-- **P is closed under polynomial-time reductions** (machine construction). -/
+theorem inP_of_reduces {L L' : Language} (hr : PolyReduces L L') (hp : InP L') : InP L := by
+  obtain ⟨m, f, p, hm, hf⟩ := hr
+  obtain ⟨d, p', hd⟩ := (polyDec_iff_inP L').mpr hp
+  exact inP_of_promise_reduction (Pr := fun _ => True) hm (fun _ => trivial) hf
+    (fun y _ => hd y)
+
+/-! ## P is closed under complement
+
+`flipMachine m` normalises every row of `m` to all four symbols, sends every
+out-of-table target to one extra state, and negates every halting answer, so a
+missing instruction (which rejects in `m`) accepts in `flipMachine m`. -/
+
+def flipInstruction (n : Nat) : Instruction → Instruction
+  | .halt b => .halt (!b)
+  | .move q w dir => .move (min q n) w dir
+
+def flipRow (n : Nat) (row : List Instruction) : List Instruction :=
+  (List.range 4).map fun i => flipInstruction n (row.getD i (.halt false))
+
+def flipMachine (m : Machine) : Machine :=
+  ⟨m.program.map (flipRow m.program.length) ++ [List.replicate 4 (.halt true)]⟩
+
+theorem symbol_index_lt (a : Symbol) : a.index < 4 := by cases a <;> decide
+
+theorem flip_instruction (m : Machine) (q : Nat) (a : Symbol) :
+    (flipMachine m).instruction (min q m.program.length) a =
+      flipInstruction m.program.length (m.instruction q a) := by
+  have ha := symbol_index_lt a
+  unfold Machine.instruction flipMachine
+  by_cases hq : q < m.program.length
+  · rw [Nat.min_eq_left (Nat.le_of_lt hq)]
+    rw [List.getElem?_append_left (by simpa using hq)]
+    simp only [List.getElem?_map, List.getElem?_eq_getElem hq, Option.map_some, Option.bind_some]
+    simp only [flipRow, List.getElem?_map, List.getElem?_range ha, Option.map_some,
+      Option.getD_some, List.getD_eq_getElem?_getD]
+  · have hq' : m.program.length ≤ q := Nat.le_of_not_lt hq
+    rw [Nat.min_eq_right hq']
+    rw [List.getElem?_append_right (by simp)]
+    simp only [List.length_map, Nat.sub_self, List.getElem?_cons_zero, Option.bind_some,
+      List.getElem?_replicate, ha, ite_true, Option.getD_some]
+    rw [List.getElem?_eq_none (by omega)]
+    rfl
+
+def normState (n : Nat) (c : Config) : Config := ⟨min c.state n, c.left, c.head, c.right⟩
+
+theorem moveHead_normState (n : Nat) (c : Config) (q : Nat) (w : Symbol) (dir : Direction) :
+    moveHead (normState n c) (min q n) w dir = normState n (moveHead c q w dir) := by
+  obtain ⟨s, l, h, r⟩ := c
+  cases dir <;> cases l <;> cases r <;> rfl
+
+theorem step_flip (m : Machine) (c : Config) :
+    step (flipMachine m) (normState m.program.length c) =
+      match step m c with
+      | .inl b => .inl (!b)
+      | .inr c' => .inr (normState m.program.length c') := by
+  unfold step
+  rw [show (normState m.program.length c).state = min c.state m.program.length from rfl,
+    show (normState m.program.length c).head = c.head from rfl, flip_instruction]
+  cases m.instruction c.state c.head with
+  | halt b => rfl
+  | move q w dir => simp only [flipInstruction]; rw [moveHead_normState]
+
+theorem run_flip {m : Machine} {c : Config} {t : Nat} {b : Bool} (h : Run m c t b) :
+    Run (flipMachine m) (normState m.program.length c) t (!b) := by
+  induction h with
+  | halt hs => exact Run.halt (by rw [step_flip, hs])
+  | next hs _ ih => exact Run.next (by rw [step_flip, hs]) ih
+
+theorem normState_initial (n : Nat) (x : Word) : normState n (initial x) = initial x := by
+  unfold initial normState
+  cases x.map Symbol.ofBool <;> simp [initialSymbols]
+
+/-- The complement of a language. -/
+def complement (L : Language) : Language := fun x => !L x
+
+/-- **P is closed under complement** (machine construction `flipMachine`). -/
+theorem inP_complement {L : Language} (h : InP L) : InP (complement L) := by
+  obtain ⟨m, p, hm⟩ := (polyDec_iff_inP L).mpr h
+  apply inP_of_decidesWithin (m := flipMachine m) (p := p)
+  intro x
+  obtain ⟨t, b, ht, hr, hb⟩ := hm x
+  refine ⟨t, !b, ht, ?_, by rw [hb]; rfl⟩
+  have := run_flip hr
+  rwa [normState_initial] at this
+
+theorem complement_complement (L : Language) : complement (complement L) = L := by
+  funext x; simp [complement]
+
+/-- coNP in the shared model. -/
+def InCoNP (L : Language) : Prop := InNP (complement L)
+
+def NPEqualsCoNP : Prop := ∀ L, InNP L ↔ InCoNP L
+
+/-- P = NP implies NP = coNP (fully proved: `flipMachine` and `ClassP.toNP`). -/
+theorem npEqualsCoNP_of_pEqualsNP (h : PEqualsNP) : NPEqualsCoNP := by
+  intro L
+  constructor
+  · intro hL
+    exact pSubsetNP _ (inP_complement (h L hL))
+  · intro hL
+    have := inP_complement (h _ hL)
+    rw [complement_complement] at this
+    exact pSubsetNP _ this
+
+/-- NP ≠ coNP implies P ≠ NP. -/
+theorem pNotEqualsNP_of_npNeCoNP (h : ¬ NPEqualsCoNP) : PNotEqualsNP :=
+  fun hp => h (npEqualsCoNP_of_pEqualsNP hp)
 
 /-! ## NP-completeness -/
 
@@ -737,21 +852,17 @@ theorem encode_injective {φ ψ : CNF} (h : encodeCNF φ = encodeCNF ψ) : φ = 
   rw [← decode_encode φ, h, decode_encode]
 
 open Classical in
-/-- SAT as a language of the shared model: the encodings of satisfiable CNFs. -/
-noncomputable def SAT : Language := fun w => decide (∃ φ, encodeCNF φ = w ∧ Satisfiable φ)
+/-- SAT as a language of the shared model. Every word denotes a formula through
+the total parser `decode` (malformed tails are dropped), so a machine for SAT
+never needs a separate well-formedness check; on encodings, `decode` inverts
+`encodeCNF` (`decode_encode`). -/
+noncomputable def SAT : Language := fun w => decide (Satisfiable (decode w))
+
+theorem sat_iff (w : Word) : SAT w = true ↔ Satisfiable (decode w) := by
+  simp [SAT]
 
 theorem sat_encode (φ : CNF) : SAT (encodeCNF φ) = true ↔ Satisfiable φ := by
-  simp only [SAT, decide_eq_true_eq]
-  constructor
-  · rintro ⟨ψ, h, hψ⟩
-    rwa [← encode_injective h]
-  · intro h
-    exact ⟨φ, rfl, h⟩
-
-/-- A word that encodes no formula is not in SAT. -/
-theorem sat_of_not_encoding (w : Word) (h : ∀ φ, encodeCNF φ ≠ w) : SAT w = false := by
-  simp only [SAT, decide_eq_false_iff_not, not_exists, not_and]
-  exact fun φ hφ => absurd hφ (h φ)
+  rw [sat_iff, decode_encode]
 
 /-! ## The Cook–Levin theorem, stated in this model
 
