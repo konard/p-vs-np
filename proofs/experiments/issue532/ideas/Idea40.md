@@ -9,10 +9,14 @@ polynomial) gives a polynomial bound, and that multiplicative growth
 (`T(n+1) ≥ 2 T(n)`, i.e. two recursive calls) gives at least `2^n`, which beats
 every polynomial. A self-reduction for SAT with one recursive call of the same
 answer and polynomial step cost would be a polynomial-time SAT algorithm. That
-obligation is stated precisely. With honest machine costs and Cook–Levin (both
-cited, not formalized) it is equivalent to P = NP. The formal definition uses
-abstract costs and does not require `step` to be computable, so formally it is
-only the cost-accounting skeleton of that obligation.
+obligation is stated in the shared machine model (`Issue532.Machines`, time =
+`Complexity.Run` step count) as `SATMachineSelfReduction`: a polynomial-time
+machine step that removes one variable and keeps satisfiability, plus a machine
+for variable-free formulas. The Lean file proves that it gives `InP SAT`, and
+with `SATHard` gives `PEqualsNP`. Two known theorems enter only as named
+hypotheses: `IterationClosure` (iterating a length-non-increasing
+polynomial-time map `|x|` times stays polynomial) and `SATHard` (Cook–Levin).
+The abstract-cost version survives as the schema `AdditiveSelfReductionFor`.
 
 ## 1. The idea at full strength
 
@@ -42,19 +46,44 @@ makes one call. That is exactly an additive-cost self-reduction.
 - A self-reduction solver `run base step n I` applies `step` `n` times, then
   answers with `base`. `runCost baseCost stepCost step n I` is the base cost
   plus the step cost at each level.
-- The open obligation `AdditiveSelfReduction size answer` requires `base`,
-  `step`, `baseCost`, `stepCost`, and `c a k` such that:
-  - `base` is correct on size-0 instances;
-  - `baseCost ≤ c`;
-  - `step` maps size `n+1` to size `n` and preserves `answer`;
-  - `stepCost I ≤ a · (size I + 1)^k`.
+- **Schema.** `AdditiveSelfReductionFor size answer` requires `base`, `step`,
+  `baseCost`, `stepCost`, and `c a k` such that `base` is correct on size-0
+  instances, `baseCost ≤ c`, `step` maps size `n+1` to size `n` and preserves
+  `answer`, and `stepCost I ≤ a · (size I + 1)^k`. The costs are free
+  functions, so this is only the cost-accounting skeleton; `poly_solver_for`
+  and `self_reduction_solver_bound` are its theorems.
+- **Machine model.** Words are `Complexity.Word`, SAT is the shared language
+  `Issue532.Machines.SAT`, and the size of a word is
+  `satSize x = numVars (decode x)`, the number of variables of the formula it
+  denotes (`satSize_le_length`: `satSize x ≤ |x|`). `iter f n x` applies `f`
+  `n` times. `MachineSelfReductionOf L` is:
 
-  The costs are abstract numbers. Nothing ties `stepCost` to the work needed to
-  compute `step`, and `step` need not be computable. Without that link the
-  formal definition can be met for SAT by a non-computable `step` (map `I` to a
-  fixed size-`n` instance with the same answer, at cost `0`). The link to
-  polynomial time is the unformalized requirement that `base` and `step` run
-  within the stated costs on a real machine.
+  ```lean
+  def MachineSelfReductionOf (L : Language) : Prop :=
+    ∃ (m : Machine) (f : Word → Word) (p : Polynomial) (d : Machine) (q : Polynomial),
+      Computes m f p ∧ (∀ x, (f x).length ≤ x.length) ∧
+      (∀ x, satSize (f x) ≤ satSize x - 1 ∧ L (f x) = L x) ∧
+      DecidesOn d q (fun y => satSize y = 0) L
+  ```
+
+  The step map is computed by a `Complexity.Machine` within the polynomial `p`
+  (`Computes`), never lengthens the word, removes one variable and keeps the
+  answer; the base machine `d` decides `L` within `q` on variable-free formulas.
+- **Open obligation.** `def SATMachineSelfReduction : Prop := MachineSelfReductionOf SAT`.
+- **Known theorem (hypothesis, not mechanised).**
+
+  ```lean
+  def IterationClosure : Prop :=
+    ∀ (m : Machine) (f : Word → Word) (p : Polynomial), Computes m f p →
+      (∀ x, (f x).length ≤ x.length) →
+      ∃ (m' : Machine) (p' : Polynomial), Computes m' (fun x => iter f x.length x) p'
+  ```
+
+  Running a polynomial-time, length-non-increasing map `|x|` times with a
+  counter costs at most `|x| · (p(|x|) + O(|x|))` on a multi-tape machine, and
+  one tape simulates it with quadratic overhead (Sipser, 3rd ed., Theorem 7.8;
+  Arora–Barak, Claim 1.6). The Cook–Levin hardness of SAT is the shared
+  hypothesis `SATHard`.
 
 ## 3. What is machine-checked
 
@@ -73,13 +102,25 @@ makes one call. That is exactly an additive-cost self-reduction.
 | `branchCost_exponential` | two recursive calls cost at least `2^n`, whatever the overhead | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
 | `run_correct` | a same-answer size-reducing step plus a correct base give a correct solver | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
 | `runCost_bound` | with `baseCost ≤ c` and polynomial step cost, `runCost ≤ c + n · a(n+1)^k` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
-| `obligation_gives_poly_solver` | `AdditiveSelfReduction` gives a correct solver of cost `≤ c'(size+1)^k'` (the statement quantifies existentially over `solve` and `cost`, so on its own it is weak; the proof uses `run` and `runCost`, and the next row states this explicitly) |
+| `AdditiveSelfReductionFor` | schema (abstract costs): a one-call self-reduction with base cost `≤ c` and step cost `≤ a(size+1)^k` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `poly_solver_for` | schema theorem: `AdditiveSelfReductionFor` gives a correct solver of cost `≤ c'(size+1)^k'` (existential over `solve` and `cost`; the next row is the explicit form) | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
 | `self_reduction_solver_bound` | for any `base`, `step`, `baseCost`, `stepCost` meeting the obligation's conditions, `run base step (size I) I = answer I` and `runCost … ≤ (c+a)(size I + 1)^(k+1)` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `satSize_le_length` | a word of length `n` denotes a formula with at most `n` variables (via `numVars_decodeAux_le`, `clauseBound_append`) | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `MachineSelfReductionOf` | machine one-call self-reduction for a language: polynomial-time `Computes` step, length non-increasing, one variable fewer, same answer, `DecidesOn` base machine | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `SATMachineSelfReduction` | **open obligation**: `MachineSelfReductionOf SAT` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `IterationClosure` | known theorem, hypothesis only: `Computes m f p` and `f` length non-increasing give a machine computing `x ↦ iter f (length x) x` in polynomial time | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `iterate_spec` | `n` steps lower the size by `n` and keep the answer | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `iterate_length_spec` | `length x` steps reach size `0` with the answer of `x` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `inP_of_machineSelfReduction` | `IterationClosure → MachineSelfReductionOf L → InP L` (composition by `inP_of_promise_reduction`) | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `inP_sat_of_machineSelfReduction` | `IterationClosure → SATMachineSelfReduction → InP SAT` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `pEqualsNP_of_machineSelfReduction` | `IterationClosure → SATHard → SATMachineSelfReduction → PEqualsNP` | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
+| `not_forall_machineSelfReductionOf` | non-vacuity: not every language has a machine self-reduction (Cantor over pairs of machines, via `encPair_injective` and `machineSelfReductionOf_eq`) | [Lean](../lean/Idea40.lean) | [Rocq](../rocq/Idea40.v) |
 
 Helper lemmas `succ_le_two_pow`, `lt_two_pow_self`, `linear_lt_exp` and
 `dyadic_bracket` are proved in both files. The definitions `branchCost`, `run`,
-`runCost` and `AdditiveSelfReduction` appear in both files. All proofs are
-constructive. Both files check `branchCost (fun _ => 0) 5 = 32` by computation.
+`runCost` and the schema appear in both files. The recurrence and schema proofs
+are constructive; the non-vacuity part uses classical choice (`mapOf`,
+`acceptsOf`). Both files check `branchCost (fun _ => 0) 5 = 32` by computation.
 
 ## 4. Complete argument
 
@@ -115,12 +156,31 @@ instance-wise: `runCost (n+1) I = stepCost I + runCost n (step I)`, with
 `stepCost I ≤ a(n+2)^k`. The additive argument therefore gives
 `runCost ≤ c + n·a(n+1)^k` (`runCost_bound`), and `additive_poly_closed` turns this
 into `(c+a)(size+1)^(k+1)` (`self_reduction_solver_bound`,
-`obligation_gives_poly_solver`).
+`poly_solver_for`).
+
+**Machine version.** Let `m` compute the step `f` (obligation
+`MachineSelfReductionOf L`). By induction, `satSize (iter f n x) ≤ satSize x - n`
+and `L (iter f n x) = L x` (`iterate_spec`). Since `satSize x ≤ |x|`
+(`satSize_le_length`, by recursion on the parser `decodeAux`), `iter f |x| x` is
+variable-free and has the answer of `x` (`iterate_length_spec`). By
+`IterationClosure` a machine computes `x ↦ iter f |x| x` in polynomial time; this
+is a machine map into the promise `satSize = 0`, on which `d` is correct, so
+`inP_of_promise_reduction` gives `InP L` (`inP_of_machineSelfReduction`). For
+`L = SAT` this is `inP_sat_of_machineSelfReduction`, and
+`pEqualsNP_of_inP_sat` with `SATHard` gives `pEqualsNP_of_machineSelfReduction`.
+
+**Non-vacuity.** If `MachineSelfReductionOf L` holds with machines `m, d`, then
+`L x` is the answer of `d` on `iter (mapOf m) |x| x`, where `mapOf m` is the map
+`m` computes (unique by `computes_unique`) and the answer is unique by
+`run_deterministic` (`machineSelfReductionOf_eq`). So every such `L` lies in a
+family indexed by pairs of machines, which have an injective encoding
+(`encPair_injective`); `exists_language_not_in_family` gives a language outside
+it (`not_forall_machineSelfReductionOf`).
 
 **Where SAT stands.** The standard self-reduction of SAT, `φ ↦ φ[x:=0], φ[x:=1]`,
 reduces the number of variables by one and preserves the answer as a
 disjunction of **two** calls. Its cost is `branchCost`, at least `2^n`. Picking
-the correct branch in polynomial time is exactly what `AdditiveSelfReduction`
+the correct branch in polynomial time is exactly what `SATMachineSelfReduction`
 demands. That is deciding satisfiability of `φ[x:=0]`, which is the original
 problem on one fewer variable.
 
@@ -135,13 +195,12 @@ problem on one fewer variable.
   DPLL on unsatisfiable formulas. Not formalized (Idea 27 treats resolution).
 - SAT is self-reducible, and search reduces to decision. With a polynomial-time
   decision procedure for SAT, `step` can pick a branch preserving
-  satisfiability. So `AdditiveSelfReduction` for SAT (with polynomial-time
-  computable `base` and `step`, and for 3-SAT with duplicate-free clauses so that
-  formula length is polynomial in the number of variables) holds if and only if
-  P = NP, using Cook–Levin for the forward direction. This is standard;
-  see S. Arora and B. Barak, *Computational Complexity: A Modern Approach*,
-  Cambridge University Press, 2009. The equivalence is not formalized, since the
-  files use abstract costs, not machines.
+  satisfiability (and then simplify the formula so that it does not grow). So
+  `SATMachineSelfReduction` is implied by P = NP. This converse direction is
+  standard (S. Arora and B. Barak, *Computational Complexity: A Modern
+  Approach*, Cambridge University Press, 2009, Section 2.5) but is not
+  formalized. The forward direction is formalized modulo the named hypotheses
+  `IterationClosure` and `SATHard`.
 - J. L. Bentley, D. Haken, J. B. Saxe, "A general method for solving
   divide-and-conquer recurrences", *SIGACT News* 12(3), 1980. This is the
   general theory of recurrences `T(n) = a T(n/b) + f(n)`. Size-reducing-by-one
@@ -156,13 +215,17 @@ between is possible for recurrences of these two forms. Any correctness proof
 by induction on size therefore turns into a polynomial-time claim only after
 proving the additive recurrence.
 
-**The obligation.** `AdditiveSelfReduction` for SAT, with `base` and `step`
-computable in the stated polynomial time, gives a polynomial-time SAT algorithm
-(`obligation_gives_poly_solver`), hence P = NP by Cook–Levin. Conversely, if
-P = NP then SAT has such a step, by search-to-decision. So the obligation, read
-with honest polynomial-time costs, is **equivalent** to P = NP. That reading and
-both directions of the equivalence are cited, not formalized. The formal
-`AdditiveSelfReduction` has abstract costs (Section 2). It is a reformulation, not a relaxation.
+**The obligation.** `SATMachineSelfReduction`: a `Complexity.Machine` step map
+computable in polynomial time (`Computes m f p`), length non-increasing,
+removing one variable (`satSize (f x) ≤ satSize x - 1`) and keeping `SAT`, plus
+a machine `d` with `DecidesOn d q (fun y => satSize y = 0) SAT`. The file proves
+`IterationClosure → SATMachineSelfReduction → InP SAT` and, with `SATHard`,
+`PEqualsNP`. `IterationClosure` (iteration of a polynomial-time map) and
+`SATHard` (Cook–Levin) are known theorems stated as hypotheses, not proved.
+Conversely, P = NP gives such a step by search-to-decision (cited, not
+formalized), so the obligation is as hard as P = NP.
+`not_forall_machineSelfReductionOf` shows the machine predicate is a real
+constraint: it fails for some language.
 
 **Why it is hard.** A same-answer step on SAT must decide, in polynomial time,
 which value of a variable preserves satisfiability. That is the decision problem

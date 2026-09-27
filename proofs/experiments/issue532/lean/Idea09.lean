@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 09: description length versus running time
 
@@ -45,9 +47,25 @@ each run for `2 ^ (j - i)` steps. Proved:
 * `totalWork_lt`: the total simulated work up to phase `J` is below
   `2 ^ (J + 2)`.
 * `levin_search_bound`: success with total work `< 8 * 2^i * t`.
-* `levin_poly_of_obligation`: if the open obligation
-  `PolyTimeWitnessProgramExists` holds, Levin search is polynomial on every
-  satisfiable instance.
+* `levin_poly_for`: the schema `PolyTimeWitnessProgramExistsFor` (abstract
+  `runs`) makes Levin search polynomial on every satisfiable instance.
+
+## Part C: the obligation in the shared machine model
+
+Witness finders are `Complexity.Machine`s timed by `Reaches` step counts.
+
+* `SATWitnessMachine` (open obligation): one machine `m` computes, within a
+  polynomial `p` (`Computes m f p`), a satisfying assignment `f x` of every
+  satisfiable encoded formula `x`.
+* `inP_sat_of_witnessMachine`, `pEqualsNP_of_witnessMachine`: the obligation
+  gives `InP SAT`, and with `SATHard` gives `PEqualsNP`. The composition step
+  is the explicit hypothesis `WitnessCheckInP` (a known theorem, not
+  mechanised here).
+* `not_forall_polyWitnessMachine`: the witness-machine property is not
+  vacuous; it fails for some verifier.
+* `machineRuns`, `machineRuns_monotone`, `levin_sat_of_witnessMachine`: Levin
+  search over an enumeration of all machines, with `runs` given by actual
+  machine runs, is polynomial (in simulated steps) under the obligation.
 
 ## Verdict
 
@@ -55,8 +73,9 @@ each run for `2 ^ (j - i)` steps. Proved:
 general theorem `shortest_is_never_fastest`. Levin search is developed: it is
 optimal up to the fixed factor `2^i` (plus verification overhead), but
 whether its running time is polynomial is exactly the open obligation
-`PolyTimeWitnessProgramExists`, which for SAT is equivalent to P = NP. Nothing
-here proves or refutes P = NP.
+`SATWitnessMachine`, stated in the shared machine model; it implies P = NP
+given the known theorems `WitnessCheckInP` and `SATHard`. Nothing here proves
+or refutes P = NP.
 -/
 
 namespace Issue532.Idea09
@@ -514,30 +533,31 @@ theorem levin_search_bound (runs : Nat → Nat → Option W) (V : W → Bool) (h
 
 end Levin
 
-/-! ## Instance-indexed Levin search and the open obligation -/
+/-! ## Instance-indexed Levin search (abstract schema) -/
 
 /--
-Open obligation (NOT assumed anywhere): a single program index `i` finds a
-verified witness within `c * n^d + c` steps on every satisfiable instance of
-size `n`. For SAT with a fixed polynomial-time universal machine this is
-equivalent to P = NP (via search-to-decision self-reducibility); it is not
-proved or refuted here.
+Schema (abstract `runs`, not the machine model): a single program index `i`
+finds a verified witness within `c * n^d + c` steps on every satisfiable
+instance of size `n`. Because `runs` is a parameter, this schema is only as
+meaningful as the `runs` it is instantiated with; `machineRuns` below
+instantiates it with the shared machine model, and `SATWitnessMachine` is the
+corresponding statement about machines.
 -/
-def PolyTimeWitnessProgramExists {X W : Type} (sz : X → Nat)
+def PolyTimeWitnessProgramExistsFor {X W : Type} (sz : X → Nat)
     (runs : Nat → X → Nat → Option W) (V : X → W → Bool) : Prop :=
   ∃ i c d : Nat, ∀ x, (∃ w, V x w = true) →
     ∃ t w, t ≤ c * sz x ^ d + c ∧ runs i x t = some w ∧ V x w = true
 
 /--
-Conditional theorem: under the obligation, Levin search (which does not need
-to know `i`, `c`, or `d`) finds a verified witness on every satisfiable
-instance with total simulated work below `K * (c * n^d + c + 1)` for a fixed
-`K = 8 * 2^i`.
+Schema theorem: under `PolyTimeWitnessProgramExistsFor`, Levin search (which
+does not need to know `i`, `c`, or `d`) finds a verified witness on every
+satisfiable instance with total simulated work below `K * (c * n^d + c + 1)`
+for a fixed `K = 8 * 2^i`.
 -/
-theorem levin_poly_of_obligation {X W : Type} (sz : X → Nat)
+theorem levin_poly_for {X W : Type} (sz : X → Nat)
     (runs : Nat → X → Nat → Option W) (V : X → W → Bool)
     (hmono : ∀ x, MonotoneRuns (runs · x))
-    (hob : PolyTimeWitnessProgramExists sz runs V) :
+    (hob : PolyTimeWitnessProgramExistsFor sz runs V) :
     ∃ K c d : Nat, ∀ x, (∃ w, V x w = true) →
       ∃ J w, search (runs · x) (V x) J = some w ∧ V x w = true ∧
         totalWork J < K * (c * sz x ^ d + c + 1) := by
@@ -552,5 +572,190 @@ theorem levin_poly_of_obligation {X W : Type} (sz : X → Nat)
   have : 8 * 2 ^ i * (t + 1) ≤ 8 * 2 ^ i * (c * sz x ^ d + c + 1) :=
     Nat.mul_le_mul_left _ (by omega)
   omega
+
+/-! ## Part C: the obligation in the shared machine model
+
+Witness finders are `Complexity.Machine`s whose running time is the `Reaches`
+step count (`Computes m f p`). Witnesses for `SAT` are bit vectors read as
+assignments by `toAssign`. -/
+
+section MachineModel
+
+open Complexity Issue532.Machines
+
+/-- The SAT verifier: the word `w`, read as an assignment, satisfies the formula
+encoded by `x`. -/
+def satCheck (x w : Word) : Bool := evalCNF (toAssign w) (decode x)
+
+/-- `SAT` is exactly the set of words that have a `satCheck` witness. -/
+theorem sat_iff_exists_witness (x : Word) : SAT x = true ↔ ∃ w, satCheck x w = true := by
+  rw [sat_iff]
+  constructor
+  · rintro ⟨a, ha⟩
+    refine ⟨prefixOf a (numVars (decode x)), ?_⟩
+    unfold satCheck
+    rw [evalCNF_congr (toAssign (prefixOf a (numVars (decode x)))) a (numVars (decode x))
+      (decode x) (fun i hi => toAssign_prefixOf a _ i hi) (varsBelow_numVars _)]
+    exact ha
+  · rintro ⟨w, hw⟩
+    exact ⟨toAssign w, hw⟩
+
+/-- A single machine that, in polynomial time, outputs a `V`-witness for every
+`x` that has one. -/
+def PolyWitnessMachine (V : Word → Word → Bool) : Prop :=
+  ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Computes m f p ∧
+    ∀ x, (∃ w, V x w = true) → V x (f x) = true
+
+/-- **Open obligation.** One `Complexity.Machine` outputs, within a polynomial
+number of `Reaches` steps, a satisfying assignment of every satisfiable encoded
+formula. This is the machine-model form of "one fixed program finds SAT
+witnesses in polynomial time", the hypothesis under which Levin search is
+polynomial. It is not proved or refuted here. -/
+def SATWitnessMachine : Prop := PolyWitnessMachine satCheck
+
+/-- **Known theorem, not mechanised here:** if `m` computes `f` in polynomial
+time, then checking the SAT verifier on `(x, f x)` is in P: copy `x`, run `m` on
+the copy, then evaluate the formula `decode x` under the assignment `f x`, all
+in time polynomial in `|x|` (the output `f x` has polynomial length by
+`computes_output_poly`). This is the closure of P under composition with
+polynomial-time functions, using the polynomial simulation of multi-tape by
+single-tape machines: Sipser, *Introduction to the Theory of Computation*,
+3rd ed. (2013), Theorem 7.8; Arora and Barak, *Computational Complexity: A
+Modern Approach* (2009), Chapter 1. -/
+def WitnessCheckInP : Prop :=
+  ∀ (m : Machine) (f : Word → Word) (p : Polynomial), Computes m f p →
+    InP (fun x => satCheck x (f x))
+
+/-- Conditional theorem: the open obligation (with the known composition
+theorem) puts `SAT` in P. -/
+theorem inP_sat_of_witnessMachine (hC : WitnessCheckInP) (h : SATWitnessMachine) : InP SAT := by
+  obtain ⟨m, f, p, hm, hf⟩ := h
+  have hL : SAT = fun x => satCheck x (f x) := by
+    funext x
+    cases hs : SAT x with
+    | true => exact (hf x ((sat_iff_exists_witness x).mp hs)).symm
+    | false =>
+      cases hw : satCheck x (f x) with
+      | false => rfl
+      | true =>
+        have := (sat_iff_exists_witness x).mpr ⟨f x, hw⟩
+        rw [hs] at this
+        cases this
+  rw [hL]
+  exact hC m f p hm
+
+/-- Conditional theorem: the open obligation, the composition theorem and the
+NP-hardness half of Cook–Levin (`SATHard`) give P = NP. -/
+theorem pEqualsNP_of_witnessMachine (hC : WitnessCheckInP) (hard : SATHard)
+    (h : SATWitnessMachine) : PEqualsNP :=
+  pEqualsNP_of_inP_sat hard (inP_sat_of_witnessMachine hC h)
+
+open Classical in
+/-- The language "`m` computes some function whose value at `x` is `[true]`". -/
+noncomputable def outputsTrue (m : Machine) : Language :=
+  fun x => decide (∃ (f : Word → Word) (p : Polynomial), Computes m f p ∧ f x = [true])
+
+open Classical in
+/-- Non-vacuity: `PolyWitnessMachine` is not a property of every verifier. For
+the verifier "`w = [L x]`" a witness machine would compute `L`, and by Cantor's
+argument some `L` is computed by no machine. -/
+theorem not_forall_polyWitnessMachine : ¬ ∀ V : Word → Word → Bool, PolyWitnessMachine V := by
+  intro hall
+  obtain ⟨L, hL⟩ := exists_language_not_in_family encMachine
+    (fun _ _ h => encMachine_injective h) outputsTrue
+  obtain ⟨m, f, p, hm, hf⟩ := hall (fun x w => w == [L x])
+  have hfx : ∀ x, f x = [L x] := fun x =>
+    beq_iff_eq.mp (hf x ⟨[L x], beq_self_eq_true _⟩)
+  apply hL m
+  funext x
+  unfold outputsTrue
+  cases hLx : L x with
+  | true =>
+    refine decide_eq_true ⟨f, p, hm, ?_⟩
+    rw [hfx x, hLx]
+  | false =>
+    refine decide_eq_false ?_
+    rintro ⟨g, q, hg, hgx⟩
+    have := computes_unique hm hg
+    subst this
+    rw [hfx x, hLx] at hgx
+    cases hgx
+
+/-! ### Levin search over machines
+
+`OutputsWithin m x t w`: machine `m` started on `x` reaches its exit state with
+output `w` within `t` steps. `machineRuns e` feeds this into the Levin schema
+for an enumeration `e` of machines. -/
+
+/-- Machine `m` on input `x` exits with output `w` within `t` `Reaches` steps. -/
+def OutputsWithin (m : Machine) (x : Word) (t : Nat) (w : Word) : Prop :=
+  ∃ s c k, s ≤ t ∧ Reaches m (initial x) s c ∧ c.state = m.program.length ∧
+    c.left = [] ∧ c.head :: c.right = w.map Symbol.ofBool ++ blanks k
+
+theorem outputsWithin_unique {m : Machine} {x : Word} {t t' : Nat} {w w' : Word}
+    (h : OutputsWithin m x t w) (h' : OutputsWithin m x t' w') : w = w' := by
+  obtain ⟨_, c, k, _, hc, hcs, _, hck⟩ := h
+  obtain ⟨_, d, l, _, hd, hds, _, hdl⟩ := h'
+  have := reaches_exit_unique hc hd hcs hds
+  subst this
+  rw [hck] at hdl
+  exact map_ofBool_blanks_injective hdl
+
+open Classical in
+/-- The `runs` of Levin's schema for the machine enumeration `e`: the output of
+machine `e i` on `x` if it exits within `t` steps. -/
+noncomputable def machineRuns (e : Nat → Machine) (i : Nat) (x : Word) (t : Nat) : Option Word :=
+  if h : ∃ w, OutputsWithin (e i) x t w then some (Classical.choose h) else none
+
+theorem machineRuns_eq (e : Nat → Machine) {i : Nat} {x : Word} {t : Nat} {w : Word}
+    (h : OutputsWithin (e i) x t w) : machineRuns e i x t = some w := by
+  have hex : ∃ w, OutputsWithin (e i) x t w := ⟨w, h⟩
+  unfold machineRuns
+  split
+  · rename_i hex'
+    exact congrArg some (outputsWithin_unique (Classical.choose_spec hex') h)
+  · rename_i hn
+    exact absurd hex hn
+
+theorem machineRuns_spec (e : Nat → Machine) {i : Nat} {x : Word} {t : Nat} {w : Word}
+    (h : machineRuns e i x t = some w) : OutputsWithin (e i) x t w := by
+  unfold machineRuns at h
+  split at h
+  · rename_i hex
+    cases h
+    exact Classical.choose_spec hex
+  · cases h
+
+theorem machineRuns_monotone (e : Nat → Machine) (x : Word) :
+    MonotoneRuns (machineRuns e · x) := by
+  intro i t t' w htt' h
+  obtain ⟨s, c, k, hs, hr⟩ := machineRuns_spec e h
+  exact machineRuns_eq e ⟨s, c, k, Nat.le_trans hs htt', hr⟩
+
+/-- Levin search over machines: under the open obligation, for any enumeration
+`e` that lists every machine, Levin search with the SAT verifier finds a
+satisfying assignment of every satisfiable `x` with total simulated work below
+`K * (p(|x|) + 1)` for a constant `K`. The simulated work counts `Reaches` steps
+of the enumerated machines; the overhead of a universal simulator and of the
+verifier calls is not counted here. -/
+theorem levin_sat_of_witnessMachine (e : Nat → Machine) (he : ∀ m, ∃ i, e i = m)
+    (h : SATWitnessMachine) :
+    ∃ (K : Nat) (p : Polynomial), ∀ x, SAT x = true →
+      ∃ J w, search (machineRuns e · x) (satCheck x) J = some w ∧ satCheck x w = true ∧
+        totalWork J < K * (p.eval x.length + 1) := by
+  obtain ⟨m, f, p, hm, hf⟩ := h
+  obtain ⟨i, hi⟩ := he m
+  refine ⟨8 * 2 ^ i, p, fun x hx => ?_⟩
+  have hv : satCheck x (f x) = true := hf x ((sat_iff_exists_witness x).mp hx)
+  obtain ⟨t, c, ht, hr, hcs, hcl, k, hck⟩ := hm x
+  have hrun : machineRuns e i x (p.eval x.length + 1) = some (f x) := by
+    apply machineRuns_eq
+    rw [hi]
+    exact ⟨t, c, k, by omega, hr, hcs, hcl, hck⟩
+  obtain ⟨J, w, hs, hw, hJ⟩ := levin_search_bound (machineRuns e · x) (satCheck x)
+    (machineRuns_monotone e x) i (p.eval x.length + 1) (by omega) (f x) hrun hv
+  exact ⟨J, w, hs, hw, hJ⟩
+
+end MachineModel
 
 end Issue532.Idea09

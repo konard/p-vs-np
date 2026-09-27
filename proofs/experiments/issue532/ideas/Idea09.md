@@ -1,6 +1,6 @@
 # Idea 09 — Description length versus running time (and Levin universal search)
 
-**Verdict:** Refuted as a route (general theorem) — the inference "the shortest program for a task is also the fastest" is false for every target `v ↦ v + k` with `k ≥ 6` in an explicit loop language with honest size and cost semantics (`shortest_is_never_fastest`). The meta-algorithmic half of the idea is developed to full strength as Levin universal search: it is sound, complete, and within a fixed factor `8 · 2^i` of any witness-producing program `i` (`levin_search_bound`). Whether that search is polynomial for SAT is exactly the open obligation `PolyTimeWitnessProgramExists`, which, instantiated with SAT, is equivalent to P = NP by search-to-decision self-reducibility and the Cook–Levin theorem (both cited, not formalized); nothing here decides it.
+**Verdict:** Refuted as a route (general theorem) — the inference "the shortest program for a task is also the fastest" is false for every target `v ↦ v + k` with `k ≥ 6` in an explicit loop language with honest size and cost semantics (`shortest_is_never_fastest`). The meta-algorithmic half of the idea is developed to full strength as Levin universal search: it is sound, complete, and within a fixed factor `8 · 2^i` of any witness-producing program `i` (`levin_search_bound`). Whether that search is polynomial for SAT is exactly the open obligation `SATWitnessMachine`, stated in the shared machine model (one `Complexity.Machine` outputs a satisfying assignment of every satisfiable encoded formula within a polynomial number of `Reaches` steps). It is proved to imply `InP SAT` and, with `SATHard`, `PEqualsNP`; the composition step `WitnessCheckInP` and `SATHard` are explicit hypotheses (known theorems, not mechanised). The converse holds by search-to-decision self-reducibility (cited, not formalized); nothing here decides the obligation.
 
 ## 1. The idea at full strength
 
@@ -57,10 +57,36 @@ first verified output; `search J` returns the first successful phase `≤ J`.
 Work is the total number of simulated steps (`phaseWork`, `totalWork`);
 verifier calls and simulation overhead are not charged (see §6).
 
-**Open obligation.** `PolyTimeWitnessProgramExists sz runs V`: there are a
-fixed program index `i` and constants `c, d` such that on every satisfiable
+**Schema.** `PolyTimeWitnessProgramExistsFor sz runs V`: there are a fixed
+program index `i` and constants `c, d` such that on every satisfiable
 instance `x` program `i` outputs a verified witness within `c·sz(x)^d + c`
-steps.
+steps. Since `runs` is a parameter, the schema says nothing until `runs` is
+fixed; with an oracle for `runs` it holds trivially. It is therefore not the
+obligation.
+
+**Machine model.** Words are `List Bool`; a machine is a
+`Complexity.Machine` and its running time is the `Reaches`/`Run` step count
+of the shared layer (`Machines.lean`). `Computes m f p` says `m` leaves `f x`
+on its tape within `p(|x|)` steps. The SAT verifier is
+`satCheck x w = evalCNF (toAssign w) (decode x)`, and
+`SAT x = true ↔ ∃ w, satCheck x w = true` (`sat_iff_exists_witness`).
+For Levin search over machines, `OutputsWithin m x t w` says `m` exits on `x`
+with output `w` within `t` steps, and `machineRuns e i x t` is that output for
+the `i`-th machine of an enumeration `e` (well defined by
+`outputsWithin_unique`).
+
+**Open obligation.** `SATWitnessMachine := PolyWitnessMachine satCheck`, i.e.
+
+```lean
+∃ (m : Machine) (f : Word → Word) (p : Polynomial), Computes m f p ∧
+  ∀ x, (∃ w, satCheck x w = true) → satCheck x (f x) = true
+```
+
+**Known theorem used as a hypothesis.** `WitnessCheckInP`: for every
+`Computes m f p`, the language `x ↦ satCheck x (f x)` is in P (closure of P
+under composition with polynomial-time functions; single-tape simulation,
+Sipser Theorem 7.8). It is true but not mechanised here, and it appears only
+as a named hypothesis.
 
 ## 3. What is machine-checked
 
@@ -86,8 +112,17 @@ steps.
 | `totalWork_lt` | `totalWork J + 1 < 2^(J+2)`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
 | `exists_ceil_log` | For `t ≥ 1` there is `L` with `t ≤ 2^L < 2t`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
 | `levin_search_bound` | Under monotonicity, if program `i` outputs a verified witness within `t ≥ 1` steps, some `search J` returns a verified witness and `totalWork J < 8 · 2^i · t`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
-| `PolyTimeWitnessProgramExists` | Definition of the open obligation (a `Prop`, never assumed globally). | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
-| `levin_poly_of_obligation` | If the obligation holds (and runs are monotone), there are `K, c, d` such that Levin search finds a verified witness on every satisfiable `x` with `totalWork J < K · (c·sz(x)^d + c + 1)`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `PolyTimeWitnessProgramExistsFor` | Schema (abstract `runs`, not the obligation): one fixed program index finds verified witnesses in `c·sz(x)^d + c` steps. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `levin_poly_for` | If the schema holds (and runs are monotone), there are `K, c, d` such that Levin search finds a verified witness on every satisfiable `x` with `totalWork J < K · (c·sz(x)^d + c + 1)`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `sat_iff_exists_witness` | `SAT x = true ↔ ∃ w, satCheck x w = true`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `SATWitnessMachine` | Open obligation: one machine computes (`Computes m f p`) a satisfying assignment `f x` of every satisfiable `x`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `WitnessCheckInP` | Known theorem, not mechanised (hypothesis only): `Computes m f p → InP (fun x => satCheck x (f x))`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `inP_sat_of_witnessMachine` | `WitnessCheckInP → SATWitnessMachine → InP SAT`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `pEqualsNP_of_witnessMachine` | `WitnessCheckInP → SATHard → SATWitnessMachine → PEqualsNP`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `not_forall_polyWitnessMachine` | Non-vacuity: `¬ ∀ V, PolyWitnessMachine V` (Cantor over machine encodings). | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `outputsWithin_unique` | A machine's output within any time bound is unique. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `machineRuns_monotone` | Machine runs `machineRuns e · x` are monotone, so Levin's schema applies to them. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `levin_sat_of_witnessMachine` | Under `SATWitnessMachine`, for every enumeration `e` listing all machines, there are `K` and a polynomial `p` with: on every `x` with `SAT x = true`, Levin search over `machineRuns e` returns a satisfying assignment with `totalWork J < K · (p(|x|) + 1)`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
 
 No theorem in either file proves or refutes P = NP.
 
@@ -168,10 +203,40 @@ from a smaller index), and `search_mono` propagates success to `search (i+L)`.
 `t = 1000` steps, then `L = 10`, success by phase 20, and total simulated
 work is below `2^22 ≈ 4.2·10^6 < 8·1024·1000 ≈ 8.2·10^6`.
 
-*Conditional theorem* (`levin_poly_of_obligation`): if one fixed program
-`i` is polynomial on all satisfiable instances, then Levin search is
-polynomial on satisfiable instances, measured in simulated steps, with factor
-`K = 8·2^i`, and it does not need to know `i`, `c`, or `d`.
+*Schema theorem* (`levin_poly_for`): if one fixed program `i` is polynomial
+on all satisfiable instances, then Levin search is polynomial on satisfiable
+instances, measured in simulated steps, with factor `K = 8·2^i`, and it does
+not need to know `i`, `c`, or `d`.
+
+### 4.7 The obligation in the machine model
+
+*Witnesses.* `sat_iff_exists_witness`: if `a` satisfies `decode x`, then so
+does `toAssign (prefixOf a n)` for `n = numVars (decode x)`, because the
+formula only reads variables below `n` (`evalCNF_congr`, `varsBelow_numVars`,
+`toAssign_prefixOf`); conversely a witness `w` gives the assignment
+`toAssign w`.
+
+*Conditional theorems.* Under `SATWitnessMachine` take `m, f, p`. For every
+`x`, `SAT x = satCheck x (f x)`: if `SAT x` then `f x` is a witness; if
+`satCheck x (f x)` then `SAT x`. So `SAT` equals the language
+`x ↦ satCheck x (f x)`, which is in P by the hypothesis `WitnessCheckInP`
+(`inP_sat_of_witnessMachine`). With `SATHard`, `pEqualsNP_of_inP_sat` gives
+`PEqualsNP` (`pEqualsNP_of_witnessMachine`).
+
+*Non-vacuity.* `not_forall_polyWitnessMachine`: for the verifier
+`V x w = (w == [L x])` every `x` has a witness, so a witness machine for `V`
+computes `x ↦ [L x]`. By `computes_unique` the machine then determines `L`
+(`outputsTrue m = L`). Cantor's argument over machine encodings
+(`exists_language_not_in_family encMachine`) yields an `L` determined by no
+machine, so some verifier has no witness machine.
+
+*Levin over machines.* A run that exits is unique (`reaches_exit_unique`,
+`map_ofBool_blanks_injective`), so `OutputsWithin m x t w` determines `w`
+(`outputsWithin_unique`), `machineRuns e` is well defined and monotone in `t`
+(`machineRuns_monotone`). If `e i = m` and `m` computes `f` within `p`, then
+`machineRuns e i x (p(|x|) + 1) = some (f x)`, and `levin_search_bound` gives
+total simulated work below `8·2^i·(p(|x|) + 1)` on every satisfiable `x`
+(`levin_sat_of_witnessMachine`).
 
 ## 5. Known results and literature
 
@@ -214,14 +279,21 @@ time `O(2^{i_A} · T_A(n))` plus verification and simulation overhead
   true statement, but the factor `2^{i_A}` may be astronomically large, and
   the bound says nothing about whether any `T_A` is polynomial.
 
-**Exact remaining obligation.** `PolyTimeWitnessProgramExists` (Lean and
-Rocq `def`/`Definition`). Instantiated with SAT, a polynomial-time verifier,
-and a universal machine, it states that some fixed program finds satisfying
-assignments in polynomial time; by search-to-decision self-reducibility and
-the NP-completeness of SAT (Cook–Levin), both cited and not formalized, this
-is **equivalent to P = NP**. It is therefore not weaker than the original
-problem; the conditional theorem shows that Levin search loses nothing
-beyond a fixed factor, not that the obligation is easier.
+**Exact remaining obligation.** `SATWitnessMachine` (Lean `def`): some
+`Complexity.Machine` computes, within a polynomial bound on its `Reaches`
+step count, a satisfying assignment of every satisfiable encoded formula.
+Proved: it implies `InP SAT` given the composition theorem `WitnessCheckInP`
+(`inP_sat_of_witnessMachine`), and `PEqualsNP` given also `SATHard`
+(`pEqualsNP_of_witnessMachine`); both are true, cited, not mechanised, and
+used only as named hypotheses. The converse (P = NP gives a witness machine)
+holds by search-to-decision self-reducibility and is cited, not formalized.
+So the obligation is **equivalent to P = NP** and not weaker than the
+original problem. The conditional theorems show that Levin search loses
+nothing beyond a fixed factor, not that the obligation is easier.
+`not_forall_polyWitnessMachine` shows that the witness-machine property is
+not satisfied by every verifier, so the obligation is not vacuous. The
+abstract schema `PolyTimeWitnessProgramExistsFor` is kept only as the
+interface of the Levin search theorems; it is not the obligation.
 
 **Decision versus search.** Levin search does not halt on unsatisfiable
 formulas. To obtain a decider one must additionally know the polynomial
@@ -264,7 +336,7 @@ shows that in general models even the existence of a fastest program fails.
   shows that optimising one resource (length) says nothing about another
   (time) across all programs.
 * **Circular reasoning** (family 12): a proof that "Levin search is
-  polynomial" must prove `PolyTimeWitnessProgramExists`, i.e. P = NP; an
+  polynomial" must prove `SATWitnessMachine`, i.e. P = NP; an
   attempt that assumes it has assumed the conclusion.
 
 Audit rule: any argument that infers time bounds from description length
