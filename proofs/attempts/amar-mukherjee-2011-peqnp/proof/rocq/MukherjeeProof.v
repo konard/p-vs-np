@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   MukherjeeProof.v - Forward formalization of Amar Mukherjee's 2011 P=NP attempt
 
@@ -26,7 +27,7 @@ Module MukherjeeProofAttempt.
 
 (* Polynomial time complexity *)
 Definition isPolynomial (T : nat -> nat) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* A Boolean literal: either a variable index or its negation *)
 Inductive Literal : Type :=

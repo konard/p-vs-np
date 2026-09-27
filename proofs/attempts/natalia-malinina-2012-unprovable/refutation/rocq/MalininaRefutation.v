@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   MalininaRefutation.v - Refutation of Natalia L. Malinina's 2012 unprovability claim
 
@@ -25,7 +26,7 @@ Module MalininaRefutation.
 Definition Language := nat -> Prop.
 
 Definition isPolynomialBound (T : nat -> nat) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* P vs NP (abstract) *)
 Axiom P_equals_NP : Prop.

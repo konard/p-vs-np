@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   KleimanProof.lean - Forward formalization of Howard Kleiman's 2006 P=NP attempt
   
@@ -12,7 +13,7 @@ namespace KleimanProofAttempt
 def TimeComplexity := Nat → Nat
 
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 -- Graph definition
 structure Graph where

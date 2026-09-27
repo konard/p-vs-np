@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   ChaudhariAttempt.lean - Formalization of Narendra S. Chaudhari's 2009 P=NP attempt
 
@@ -72,7 +73,7 @@ def TimeComplexity := Nat → Nat
 
 -- Polynomial time bound
 def IsPolynomialTime (t : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), n > 0 → t n ≤ n ^ k
+  Complexity.PolynomiallyBounded t
 
 -- Algorithm model (abstract)
 structure Algorithm where

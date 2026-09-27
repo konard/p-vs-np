@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   Delacorte/Czerwinski Forward Proof Attempt - Following the original arguments
 
@@ -34,7 +35,7 @@ def TimeComplexity := Nat → Nat
 
 /-- Polynomial time predicate -/
 def isPolynomialTime (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- Graph structure -/
 structure Graph where

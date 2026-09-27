@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   KleimanRefutation.v - Refutation of Howard Kleiman's 2006 P=NP attempt
   
@@ -72,7 +73,7 @@ Admitted.
 
 (* Polynomial vs Exponential *)
 Definition isPolynomial (T : nat -> nat) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 Theorem floydWarshall_polynomial :
   isPolynomial (fun n => n * n * n).

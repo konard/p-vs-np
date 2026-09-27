@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   DuProof.lean — Forward formalization of Lizhi Du's 2010 P=NP attempt.
 
@@ -151,9 +152,9 @@ axiom du_correctness_claim : ∀ f : CNFFormula,
 -- § 6. Du's Claimed Implication: P = NP
 -- ============================================================
 
-/-- Polynomial time bound: T : Nat → Nat is polynomial if ∃ c k, T(n) ≤ c * n^k. -/
+/-- Polynomial time bound: T : Nat → Nat is polynomial if ∃ c k, T(n) ≤ c * (n+1)^k. -/
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ c k : Nat, ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- AXIOM (Du's claim): Algorithm 1 runs in polynomial time O(n³). -/
 axiom du_polynomial_time : isPolynomial (fun n => n ^ 3)

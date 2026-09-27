@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   GramRefutation.lean - Refutation of Gram (2001) "EXP ⊆ NP" claim
 
@@ -19,7 +20,7 @@ def TimeComplexity := Nat → Nat
 
 /-- Polynomial time complexity -/
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 /-- Exponential time complexity -/
 def IsExponentialTime (f : TimeComplexity) : Prop :=
@@ -150,17 +151,17 @@ theorem EXP_not_subset_NP :
   have h_np_cert := (h_correct x).mp h_problem
   obtain ⟨cert, h_poly_size, h_verify⟩ := h_np_cert
   -- This certificate must be both polynomial and exponential size - contradiction!
-  have h_poly_size_bound : ∃ k, cert.length ≤ x.length ^ k := by
+  have h_poly_size_bound : ∃ c k, cert.length ≤ c * (x.length + 1) ^ k := by
     unfold IsPolynomialTime at h_poly_cert
-    obtain ⟨k, h_bound⟩ := h_poly_cert
-    exact ⟨k, Nat.le_trans h_poly_size (h_bound x.length)⟩
-  obtain ⟨k, h_poly_bound⟩ := h_poly_size_bound
+    obtain ⟨c, k, h_bound⟩ := h_poly_cert
+    exact ⟨c, k, Nat.le_trans h_poly_size (h_bound x.length)⟩
+  obtain ⟨c, k, h_poly_bound⟩ := h_poly_size_bound
   -- Certificate needs to be >= 2^(n/2)
   have h_exp_needed : cert.length ≥ 2 ^ (x.length / 2) := h_needs_exp cert h_verify
-  -- For large enough x, 2^(n/2) > n^k, contradicting h_poly_bound
+  -- For large enough x, 2^(n/2) > c*(n+1)^k, contradicting h_poly_bound
   -- This is the key insight: exponential grows faster than any polynomial
   -- We leave this as an axiom since proving it requires more infrastructure
-  have h_exp_beats_poly : ∃ n0, ∀ n, n ≥ n0 → 2 ^ (n / 2) > n ^ k := by
+  have h_exp_beats_poly : ∃ n0, ∀ n, n ≥ n0 → 2 ^ (n / 2) > c * (n + 1) ^ k := by
     sorry -- Provable with proper exponential growth lemmas
   obtain ⟨n0, h_growth⟩ := h_exp_beats_poly
   -- For strings long enough, we get the contradiction

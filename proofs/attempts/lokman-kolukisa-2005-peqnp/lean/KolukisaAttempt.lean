@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   KolukisaAttempt.lean - Formalization of Lokman Kolukisa's 2005 P=NP attempt
 
@@ -65,7 +66,7 @@ def formulaSize : BoolFormula → Nat
 
 /-- Polynomial time bound -/
 def IsPolynomialTime (t : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), t n ≤ n ^ k
+  Complexity.PolynomiallyBounded t
 
 /-- Algorithm model (abstract) -/
 structure Algorithm where

@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   MukherjeeRefutation.v - Refutation of Amar Mukherjee's 2011 P=NP attempt
 
@@ -23,7 +24,7 @@ Module MukherjeeRefutation.
 
 (* Polynomial and exponential time complexity *)
 Definition isPolynomial (T : nat -> nat) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* Boolean literals and 3-SAT formula *)
 Inductive Literal : Type :=

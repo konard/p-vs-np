@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   TarnlundProof.v - Forward Formalization of Tarnlund's 2008 P≠NP Proof Attempt
 
@@ -29,7 +30,7 @@ Definition TimeComplexity := nat -> nat.
 
 (* Definition 8: p(a) for c·|a|^q some c q ∈ ℕ *)
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* Class P: polynomial-time decidable languages *)
 Record ClassP : Type := mkClassP {

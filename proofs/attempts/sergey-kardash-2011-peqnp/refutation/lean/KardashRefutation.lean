@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   KardashRefutation.lean - Refutation of Sergey Kardash's 2011 P=NP attempt
 
@@ -31,11 +32,11 @@ def isSatisfiable (f : KCNF) : Prop :=
 
 -- Complexity
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ (c d : Nat), ∀ n : Nat, T n ≤ c * n ^ d
+  Complexity.PolynomiallyBounded T
 
 -- FACT 1: Arc consistency (pair cleaning) is polynomial to compute
 theorem arcConsistency_polynomial : isPolynomial (fun n => n ^ 3) :=
-  ⟨1, 3, fun n => by simp⟩
+  ⟨1, 3, fun n => by simpa using Nat.pow_le_pow_left (Nat.le_succ n) 3⟩
 
 -- FACT 2: Arc consistency is NECESSARY for satisfiability
 -- (If cleaning empties a table, formula is UNSAT)

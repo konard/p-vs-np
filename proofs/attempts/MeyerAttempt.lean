@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   MeyerAttempt.lean - Formalization of Steven Meyer (2016) P=NP attempt
 
@@ -20,7 +21,7 @@ def TimeComplexity := Nat → Nat
 
 /-- Polynomial time predicate -/
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 -- Computational Models
 

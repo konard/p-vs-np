@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   RassAttempt.v - Formalization of Stefan Rass (2016) P≠NP attempt
 
@@ -23,7 +24,7 @@ Definition TimeComplexity := nat -> nat.
 Definition Language := Ensemble string.
 
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 Record TuringMachine := {
   compute : string -> bool;

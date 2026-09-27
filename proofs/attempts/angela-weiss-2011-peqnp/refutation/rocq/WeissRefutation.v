@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   WeissRefutation.v - Refutation of Angela Weiss's 2011 P=NP attempt
 
@@ -22,9 +23,9 @@ Module WeissRefutation2011.
 (* Complexity Definitions                                       *)
 (* ============================================================ *)
 
-(* A function is polynomial if it is bounded by c * n^k for some constants *)
+(* A function is polynomial if it is bounded by c * (n+1)^k for some constants *)
 Definition isPolynomial (T : nat -> nat) : Prop :=
-  exists c k : nat, forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* ============================================================ *)
 (* Key Fact 1: Variable Assignments Are Exponential            *)

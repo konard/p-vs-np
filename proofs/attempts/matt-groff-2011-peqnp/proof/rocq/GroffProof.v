@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   GroffProof.v - Forward formalization of Matt Groff's 2011 P=NP attempt
 
@@ -26,7 +27,7 @@ Module GroffProofAttempt.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* ============================================================ *)
 (* k-SAT Problem Definition                                     *)

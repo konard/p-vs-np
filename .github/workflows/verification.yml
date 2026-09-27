@@ -149,6 +149,7 @@ jobs:
           lake build
           echo "✓ Lean historical sources compile successfully!"
           echo ""
+          lake env lean experiments/issue574/PolynomialRegression.lean
           lean experiments/issue7_shoenfield_absoluteness.lean
           lean experiments/issue7_undecidability_formalization.lean
           lake env lean experiments/issue572/Independent.lean
@@ -162,6 +163,7 @@ jobs:
             exit 1
           fi
           python3 experiments/issue570/check_contradiction.py --lean
+          bash experiments/issue573/check.sh --lean
         else
           echo "✓ No Lean files - skipping"
         fi
@@ -212,13 +214,16 @@ jobs:
               find . -name "*.v" -type f \
                 ! -path './proofs/complexity/rocq/Complexity.v' \
                 ! -path './proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v' \
-                ! -path './experiments/issue572/Independent.v' | while read -r file; do
+                ! -path './experiments/issue572/Independent.v' \
+                ! -path './experiments/issue574/PolynomialRegression.v' | while read -r file; do
                 echo "Checking: $file"
                 rocq compile -Q . '' "$file" && echo "✓ $file verified successfully" || exit 1
               done
               rocq compile -Q . '' experiments/issue572/Independent.v
             fi
+            rocq compile -Q . '' experiments/issue574/PolynomialRegression.v
             python3 experiments/issue570/check_contradiction.py --rocq
+            bash experiments/issue573/check.sh --rocq
             echo "✓ Rocq historical sources compile successfully!"
           endGroup
 

@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   JiangRefutation.v - Refutation of Xinwen Jiang's 2009 P=NP attempt
 
@@ -29,7 +30,7 @@ Definition Language := String.string -> bool.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 Record ClassP := {
   p_language : Language;

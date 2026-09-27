@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   Threshold Sampling and Probability Bounds
 
@@ -178,9 +179,9 @@ This gap means we cannot conclude the sampling satisfies the weak OWF
 definition for ALL sufficiently large ℓ - only that it works asymptotically.
 -/
 
-/-- Polynomial bound: T(n) ≤ c * n^k for some constants c, k -/
+/-- Polynomial bound: T(n) ≤ c * (n+1)^k for some constants c, k -/
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- The weak OWF definition requires uniform bounds -/
 def weak_OWF_sampling_requirement (ell : Nat) : Prop :=

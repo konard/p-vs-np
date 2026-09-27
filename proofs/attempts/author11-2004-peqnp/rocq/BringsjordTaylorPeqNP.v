@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   BringsjordTaylorPeqNP.v - Formalization of Bringsjord & Taylor (2004) P=NP Attempt
 
@@ -22,7 +23,7 @@ Definition ResourceComplexity := nat -> nat.
 
 (** Polynomial bounds *)
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (** Exponential bounds *)
 Definition isExponential (T : TimeComplexity) : Prop :=

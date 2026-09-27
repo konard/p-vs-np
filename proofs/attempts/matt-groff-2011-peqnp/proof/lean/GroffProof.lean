@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   GroffProof.lean - Forward formalization of Matt Groff's 2011 P=NP attempt
 
@@ -23,7 +24,7 @@ namespace GroffProofAttempt
 def TimeComplexity := Nat → Nat
 
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 -- ============================================================
 -- k-SAT Problem Definition

@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   FeinsteinsProof.lean - Formalization of Craig Alan Feinstein's 2011 P≠NP Proof Attempt
 
@@ -21,9 +22,9 @@ def Language := String → Bool
 /-- Time complexity function -/
 def TimeComplexity := Nat → Nat
 
-/-- Polynomial time: ∃ c k, T(n) ≤ c * n^k -/
+/-- Polynomial time: ∃ c k, T(n) ≤ c * (n+1)^k -/
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- Exponential time: ∃ c ε, T(n) ≥ c * 2^(ε*n) -/
 def isExponential (T : TimeComplexity) : Prop :=

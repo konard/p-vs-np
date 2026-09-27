@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   OWMF.v - Formalization of Marius Ionescu's (2004) OWMF-based P ≠ NP attempt
 
@@ -17,7 +18,7 @@ Definition DecisionProblem := string -> Prop.
 Definition TimeComplexity := nat -> nat.
 
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 Record TuringMachine := {
   compute : string -> bool;

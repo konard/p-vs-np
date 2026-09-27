@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   PlotnikovPNEQNP.lean - Forward formalization of Anatoly Plotnikov's 2011 P≠NP attempt
 
@@ -40,7 +41,7 @@ def is3Colorable (G : Graph) : Prop :=
 
 -- Polynomial-time complexity bound
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 -- A decision algorithm for graph 3-colorability
 def DecisionAlgorithm := Graph → Bool

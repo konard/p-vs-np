@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   WeissProof.v - Forward formalization of Angela Weiss's 2011 P=NP attempt
 
@@ -145,7 +146,7 @@ Definition constructMacro (phi : Formula3SAT) : Macro :=
 (* CLAIMED: The macro has polynomial size *)
 (* FLAW: This claim is false for worst-case 3-SAT instances *)
 Definition polynomialBound (f : nat -> nat) : Prop :=
-  exists c k : nat, forall n : nat, f n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 Axiom macro_polynomial_size :
   forall phi : Formula3SAT,

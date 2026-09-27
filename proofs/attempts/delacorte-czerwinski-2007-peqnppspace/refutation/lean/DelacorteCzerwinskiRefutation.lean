@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   Delacorte/Czerwinski Refutation - Formal proofs that both claims are false
 
@@ -17,10 +18,10 @@ def TimeComplexity := Nat → Nat
 def SpaceComplexity := Nat → Nat
 
 def isPolynomialTime (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 def isPolynomialSpace (S : SpaceComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, S n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded S
 
 structure Graph where
   numVertices : Nat

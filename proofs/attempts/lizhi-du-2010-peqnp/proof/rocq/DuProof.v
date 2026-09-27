@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   DuProof.v — Forward formalization of Lizhi Du's 2010 P=NP attempt.
 
@@ -188,9 +189,9 @@ Axiom du_correctness_claim :
    § 6. Du's Claimed Implication: P = NP
    ============================================================ *)
 
-(** Polynomial time bound: T is polynomial if ∃ c k, T(n) ≤ c * n^k. *)
+(** Polynomial time bound: T is polynomial if ∃ c k, T(n) ≤ c * (n+1)^k. *)
 Definition isPolynomial (T : nat -> nat) : Prop :=
-  exists c k : nat, forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (** AXIOM (Du's claim): Algorithm 1 runs in polynomial time O(n³). *)
 Axiom du_polynomial_time : isPolynomial (fun n => n ^ 3).

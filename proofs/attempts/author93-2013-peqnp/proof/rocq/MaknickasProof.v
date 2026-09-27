@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   MaknickasProof.v - Forward formalization of Maknickas's 2013 P=NP attempt
 
@@ -33,7 +34,7 @@ Module MaknickasProofAttempt.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* LP algorithms run in polynomial time *)
 Theorem lp_solvable_in_polynomial_time : isPolynomial (fun n => n ^ 3).

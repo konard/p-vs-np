@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   RomanovProof.lean - Formalization of Romanov's 2010 P=NP proof attempt
 
@@ -34,7 +35,7 @@ def Satisfiable (formula : Formula3CNF) : Prop :=
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (time : TimeComplexity) : Prop :=
-  ∃ k : Nat, ∀ n : Nat, time n ≤ n ^ k
+  Complexity.PolynomiallyBounded time
 
 structure CompactTripletsStructure where
   variableOrder : List Variable

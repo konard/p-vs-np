@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   PlotnikovProof.v - Forward formalization of Anatoly Plotnikov's 2007 P=NP attempt
 
@@ -17,7 +18,7 @@ Section PlotnikovProofAttempt.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (** Graph definition *)
 Record Graph := {

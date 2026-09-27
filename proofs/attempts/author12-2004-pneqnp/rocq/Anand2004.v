@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   Anand2004.v - Formalization and refutation of Anand's 2004 P≠NP attempt
 
@@ -24,7 +25,7 @@ Definition DecisionProblem := string -> Prop.
 Definition TimeComplexity := nat -> nat.
 
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 Record TuringMachine := {
   compute : string -> bool;

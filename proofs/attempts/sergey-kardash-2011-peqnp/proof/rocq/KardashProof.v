@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   KardashProof.v - Forward formalization of Sergey Kardash's 2011 P=NP attempt
 
@@ -97,7 +98,7 @@ Definition rs_nonEmpty {k : nat} (rs : RelationshipStructure k) : bool :=
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c d : nat), forall n : nat, T n <= c * n ^ d.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 (* CLAIM: Pair cleaning runs in polynomial time O(n^12) for 3-SAT *)
 Theorem kardash_claim_polynomial_time :

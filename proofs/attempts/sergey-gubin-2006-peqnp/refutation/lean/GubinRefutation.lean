@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   GubinRefutation.lean - Refutation of Sergey Gubin's 2006 P=NP proof attempt
 
@@ -17,7 +18,7 @@ namespace GubinRefutation
 def TimeComplexity := Nat → Nat
 
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 def isExponential (T : TimeComplexity) : Prop :=
   ∃ (c k : Nat), ∀ n : Nat, c * 2 ^ (n / k) ≤ T n
@@ -194,7 +195,7 @@ theorem size_does_not_imply_integrality :
   · intro g
     exists 1, 2
     intro n
-    simp [Nat.pow_two]
+    simpa [Nat.pow_two] using Nat.mul_le_mul (Nat.le_succ n) (Nat.le_succ n)
   · exact not_all_extreme_points_integral
 
 /-- Lesson 2: k-SAT to (k-1)-SAT typically requires exponential blowup -/

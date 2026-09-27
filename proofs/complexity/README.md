@@ -26,6 +26,12 @@ acceptance and a bounded accepting run. The paired verifier reads
 its certificate and runs a P machine on the input; this gives the usual
 P subset NP proof with an empty certificate.
 
+`PolynomiallyBounded` is the shared predicate for standalone time, space, and
+size functions in the Lean and Rocq attempt modules. It uses the same bound at
+length zero. Both implementations prove zero, constants, `n + 1`, pointwise
+domination, addition, multiplication, and composition. The regression examples
+are in [`experiments/issue574`](../../experiments/issue574/).
+
 The program is finite syntax. A language predicate cannot be placed in the
 transition table or the initial configuration. Costs are attached to actual
 runs, and certificates are bounded in length. These are the missing links

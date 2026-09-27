@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   WeissProof.lean - Forward formalization of Angela Weiss's 2011 P=NP attempt
 
@@ -164,7 +165,7 @@ noncomputable def weissAlgorithm (φ : Formula3SAT) : Bool :=
 -- NOTE: This would need to follow from macro_polynomial_size and
 -- polynomial evaluation time — both unproven
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ c k : Nat, ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 axiom weiss_algorithm_polynomial :
   isPolynomial (fun n => n ^ 3)  -- placeholder exponent

@@ -92,6 +92,88 @@ structure Polynomial where
 def Polynomial.eval (p : Polynomial) (n : Nat) : Nat :=
   p.coefficient * (n + 1) ^ p.degree
 
+/-- A time function bounded at every input length by a polynomial, including zero. -/
+def PolynomiallyBounded (T : Nat → Nat) : Prop :=
+  ∃ c k : Nat, ∀ n : Nat, T n ≤ c * (n + 1) ^ k
+
+theorem polynomiallyBounded_iff_polynomial (T : Nat → Nat) :
+    PolynomiallyBounded T ↔ ∃ p : Polynomial, ∀ n, T n ≤ p.eval n := by
+  constructor
+  · rintro ⟨c, k, h⟩
+    exact ⟨⟨c, k⟩, h⟩
+  · rintro ⟨p, h⟩
+    exact ⟨p.coefficient, p.degree, h⟩
+
+theorem polynomiallyBounded_zero : PolynomiallyBounded (fun _ => 0) := by
+  exact ⟨0, 0, fun _ => Nat.zero_le _⟩
+
+theorem polynomiallyBounded_const (c : Nat) :
+    PolynomiallyBounded (fun _ => c) := by
+  exact ⟨c, 0, fun n => by simp⟩
+
+theorem polynomiallyBounded_succ :
+    PolynomiallyBounded (fun n => n + 1) := by
+  exact ⟨1, 1, fun n => by simp⟩
+
+theorem PolynomiallyBounded.of_le {T U : Nat → Nat}
+    (hT : PolynomiallyBounded T) (hUT : ∀ n, U n ≤ T n) :
+    PolynomiallyBounded U := by
+  obtain ⟨c, k, h⟩ := hT
+  exact ⟨c, k, fun n => Nat.le_trans (hUT n) (h n)⟩
+
+theorem PolynomiallyBounded.add {T U : Nat → Nat}
+    (hT : PolynomiallyBounded T) (hU : PolynomiallyBounded U) :
+    PolynomiallyBounded (fun n => T n + U n) := by
+  obtain ⟨c, k, hT⟩ := hT
+  obtain ⟨d, l, hU⟩ := hU
+  refine ⟨c + d, k + l, ?_⟩
+  intro n
+  have hk : (n + 1) ^ k ≤ (n + 1) ^ (k + l) :=
+    Nat.pow_le_pow_right (Nat.zero_lt_succ n) (Nat.le_add_right k l)
+  have hl : (n + 1) ^ l ≤ (n + 1) ^ (k + l) :=
+    Nat.pow_le_pow_right (Nat.zero_lt_succ n) (Nat.le_add_left l k)
+  calc
+    T n + U n ≤ c * (n + 1) ^ k + d * (n + 1) ^ l :=
+      Nat.add_le_add (hT n) (hU n)
+    _ ≤ c * (n + 1) ^ (k + l) + d * (n + 1) ^ (k + l) :=
+      Nat.add_le_add (Nat.mul_le_mul_left c hk) (Nat.mul_le_mul_left d hl)
+    _ = (c + d) * (n + 1) ^ (k + l) := (Nat.add_mul c d _).symm
+
+theorem PolynomiallyBounded.mul {T U : Nat → Nat}
+    (hT : PolynomiallyBounded T) (hU : PolynomiallyBounded U) :
+    PolynomiallyBounded (fun n => T n * U n) := by
+  obtain ⟨c, k, hT⟩ := hT
+  obtain ⟨d, l, hU⟩ := hU
+  refine ⟨c * d, k + l, ?_⟩
+  intro n
+  calc
+    T n * U n ≤ (c * (n + 1) ^ k) * (d * (n + 1) ^ l) :=
+      Nat.mul_le_mul (hT n) (hU n)
+    _ = (c * d) * ((n + 1) ^ k * (n + 1) ^ l) := by ac_rfl
+    _ = (c * d) * (n + 1) ^ (k + l) := by rw [Nat.pow_add]
+
+/-- Composing polynomial runtime and polynomial output-size bounds. -/
+theorem PolynomiallyBounded.comp {T U : Nat → Nat}
+    (hT : PolynomiallyBounded T) (hU : PolynomiallyBounded U) :
+    PolynomiallyBounded (fun n => T (U n)) := by
+  obtain ⟨c, k, hT⟩ := hT
+  obtain ⟨d, l, hU⟩ := hU
+  refine ⟨c * (d + 1) ^ k, l * k, ?_⟩
+  intro n
+  have hbase : U n + 1 ≤ (d + 1) * (n + 1) ^ l := by
+    calc
+      U n + 1 ≤ d * (n + 1) ^ l + (n + 1) ^ l :=
+        Nat.add_le_add (hU n) (Nat.one_le_pow l (n + 1) (Nat.zero_lt_succ n))
+      _ = (d + 1) * (n + 1) ^ l := by simp [Nat.add_mul]
+  calc
+    T (U n) ≤ c * (U n + 1) ^ k := hT (U n)
+    _ ≤ c * ((d + 1) * (n + 1) ^ l) ^ k :=
+      Nat.mul_le_mul_left c (Nat.pow_le_pow_left hbase k)
+    _ = c * ((d + 1) ^ k * ((n + 1) ^ l) ^ k) := by rw [Nat.mul_pow]
+    _ = (c * (d + 1) ^ k) * (n + 1) ^ (l * k) := by
+      rw [Nat.pow_mul]
+      ac_rfl
+
 structure ClassP where
   language : Language
   machine : Machine

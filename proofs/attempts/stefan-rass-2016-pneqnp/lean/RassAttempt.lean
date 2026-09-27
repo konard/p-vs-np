@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   RassAttempt.lean - Formalization of Stefan Rass (2016) P≠NP attempt
 
@@ -18,7 +19,7 @@ def TimeComplexity := Nat → Nat
 
 /-- A function is polynomial-time if there exists a polynomial bound -/
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 /-- Turing machine model -/
 structure TuringMachine where

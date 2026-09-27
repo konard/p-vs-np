@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   WeissRefutation.lean - Refutation of Angela Weiss's 2011 P=NP attempt
 
@@ -33,7 +34,7 @@ def evalLiteral (α : Assignment) : Literal → Bool
 -- ============================================================
 
 def isPolynomial (T : Nat → Nat) : Prop :=
-  ∃ c k : Nat, ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 def isExponential (T : Nat → Nat) : Prop :=
   ∃ base : Nat, base > 1 ∧ ∀ c k : Nat, ∃ n : Nat, T n > c * n ^ k

@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   KolukisaAttempt.v - Formalization of Lokman Kolukisa's 2005 P=NP attempt
 
@@ -94,7 +95,7 @@ Fixpoint formulaSize (f : BoolFormula) : nat :=
 
 (** Polynomial time bound *)
 Definition IsPolynomialTime (t : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, t n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded t.
 
 (** Algorithm model (abstract) *)
 Record Algorithm := {

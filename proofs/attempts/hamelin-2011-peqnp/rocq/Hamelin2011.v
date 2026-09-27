@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   Hamelin2011.v - Formalization of the error in Hamelin's 2011 P=NP attempt
 
@@ -105,9 +106,9 @@ Admitted. (* This is a standard result in graph theory *)
 
 (** * Time Complexity Classes *)
 
-(** A function is polynomial if it's bounded by n^k for some constant k *)
+(** A function is polynomial if it's bounded by (n+1)^k for some constant k *)
 Definition IsPolynomial (f : nat -> nat) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (** A function is exponential if it grows as 2^n *)
 Definition IsExponential (f : nat -> nat) : Prop :=

@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   PvsNPProofAttempt.lean - Experimental framework for attempting to prove P = NP or P ≠ NP
 
@@ -19,9 +20,9 @@ def Language := String → Bool
 /-- Time complexity: maps input size to maximum steps -/
 def TimeComplexity := Nat → Nat
 
-/-- Polynomial time complexity: ∃ c k, T(n) ≤ c * n^k -/
+/-- Polynomial time complexity: ∃ c k, T(n) ≤ c * (n+1)^k -/
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- Exponential time complexity -/
 def isExponential (T : TimeComplexity) : Prop :=

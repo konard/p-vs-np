@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   GubinProof.lean - Formalization of Sergey Gubin's 2006 P=NP proof attempt
 
@@ -28,9 +29,9 @@ def Language := String → Bool
 /-- Time complexity function: maps input size to maximum steps -/
 def TimeComplexity := Nat → Nat
 
-/-- Polynomial time complexity: ∃ c k, T(n) ≤ c * n^k -/
+/-- Polynomial time complexity: ∃ c k, T(n) ≤ c * (n+1)^k -/
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- Class P: Languages decidable in polynomial time -/
 structure ClassP where
@@ -127,7 +128,7 @@ theorem gubin_LP_size_is_polynomial (g : DiGraph) :
   isPolynomial (fun n => n * n) := by
   exists 1, 2
   intro n
-  simp [Nat.pow_two]
+  simpa [Nat.pow_two] using Nat.mul_le_mul (Nat.le_succ n) (Nat.le_succ n)
 
 /-! ## Gubin's Key Claims
 

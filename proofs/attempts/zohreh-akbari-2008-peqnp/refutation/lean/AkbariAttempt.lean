@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   AkbariAttempt.lean - Formalization of Zohreh O. Akbari's 2008 P=NP attempt
 
@@ -29,9 +30,9 @@ def Language := String → Bool
 /-- Time complexity: maps input size to maximum steps -/
 def TimeComplexity := Nat → Nat
 
-/-- Polynomial time complexity: ∃ c k, T(n) ≤ c * n^k -/
+/-- Polynomial time complexity: ∃ c k, T(n) ≤ c * (n+1)^k -/
 def isPolynomial (T : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ n : Nat, T n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded T
 
 /-- Exponential time complexity: ∃ c, T(n) ≥ 2^(n/c) -/
 def isExponential (T : TimeComplexity) : Prop :=

@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   HolcombProof.v - Forward formalization of Jeffrey W. Holcomb's 2011 P≠NP attempt
 
@@ -32,7 +33,7 @@ Definition TimeComplexity := nat -> nat.
 
 (* A problem is polynomial-time if there exists a polynomial time bound *)
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (* Abstract Turing machine model *)
 Record TuringMachine := {

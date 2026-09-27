@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   HanlinLiu2014.lean - Formalization of Hanlin Liu (2014) P=NP Attempt
 
@@ -74,7 +75,7 @@ def TimeComplexity := Nat → Nat
 
 /-- Polynomial-time predicate -/
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 /-- An algorithm for a decision problem -/
 structure Algorithm (Input Output : Type) where

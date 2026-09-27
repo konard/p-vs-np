@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   JormakkaRefutation.lean - Refutation of Jormakka's 2008 P≠NP Proof Attempt
 
@@ -17,7 +18,7 @@ def DecisionProblem := String → Prop
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (k : Nat), ∀ (n : Nat), f n ≤ n ^ k
+  Complexity.PolynomiallyBounded f
 
 def IsSuperPolynomialTime (f : TimeComplexity) : Prop :=
   ∀ (k : Nat), ∃ (n₀ : Nat), ∀ (n : Nat), n ≥ n₀ → f n > n ^ k

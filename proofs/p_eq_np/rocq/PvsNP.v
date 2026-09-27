@@ -1,6 +1,7 @@
-(** HISTORICAL TOY MODEL: These machine/runtime predicates are not linked to
-    proofs/complexity/rocq/Complexity.v. This file does not establish the
-    Clay P versus NP statement. *)
+(** HISTORICAL TOY MODEL: The P/NP class predicates use separate machine and
+    runtime semantics. Reductions reuse the shared finite machine
+    representation, but are not linked to the class predicates. This file
+    does not establish the Clay P versus NP statement. *)
 
 (**
   PvsNP.v - Formal specification and test/check for P vs NP
@@ -13,6 +14,7 @@ From Stdlib Require Import Arith.
 From Stdlib Require Import List.
 From Stdlib Require Import Lia.
 From Stdlib Require Import FunctionalExtensionality.
+From proofs.complexity.rocq Require Import Complexity.
 Import ListNotations.
 
 (** * 1. Basic Definitions *)
@@ -238,21 +240,183 @@ Definition test_in_NP (L : DecisionProblem)
                       (poly_verifier_proof : polynomial_time_verifier V) : Prop :=
   forall x, L x <-> exists c, input_size c <= cert_size (input_size x) /\ V x c = true.
 
-(** ** Test 3: A many-one reduction with polynomially bounded output length.
-    The computation time of f is not modeled. *)
+(** Polynomial bounds form a syntax closed under addition, multiplication,
+    and substitution. Composition therefore requires no assumed closure law. *)
+Inductive poly_bound :=
+| bound_const (c : nat)
+| bound_input
+| bound_add (p q : poly_bound)
+| bound_mul (p q : poly_bound)
+| bound_comp (p q : poly_bound).
 
-(** L1 reduces to L2 through f with a polynomial bound on output length;
-    the runtime of f is not constrained. *)
+Fixpoint bound_eval (p : poly_bound) (n : nat) : nat :=
+  match p with
+  | bound_const c => c
+  | bound_input => n
+  | bound_add p q => bound_eval p n + bound_eval q n
+  | bound_mul p q => bound_eval p n * bound_eval q n
+  | bound_comp p q => bound_eval p (bound_eval q n)
+  end.
+
+Lemma bound_mono : forall p n m, n <= m -> bound_eval p n <= bound_eval p m.
+Proof.
+  induction p as [c | | p IHp q IHq | p IHp q IHq | p IHp q IHq];
+    intros n m H; simpl.
+  - lia.
+  - exact H.
+  - specialize (IHp n m H). specialize (IHq n m H). lia.
+  - specialize (IHp n m H). specialize (IHq n m H). nia.
+  - apply IHp, IHq. exact H.
+Qed.
+
+(** Read the contiguous binary prefix from the left edge of the final tape. *)
+Fixpoint read_output (symbols : list Complexity.Symbol) : BinaryString :=
+  match symbols with
+  | Complexity.zero :: rest => false :: read_output rest
+  | Complexity.one :: rest => true :: read_output rest
+  | _ => []
+  end.
+
+Definition output (c : Complexity.Config) : BinaryString :=
+  read_output (rev (Complexity.tapeLeft c) ++
+    Complexity.tapeHead c :: Complexity.tapeRight c).
+
+Lemma read_output_map : forall x,
+  read_output (map Complexity.ofBool x) = x.
+Proof.
+  induction x as [|b xs IH]; [reflexivity |].
+  destruct b; simpl; now rewrite IH.
+Qed.
+
+Lemma output_initial : forall x, output (Complexity.initial x) = x.
+Proof.
+  destruct x as [|b xs]; [reflexivity |].
+  destruct b.
+  - change (true :: read_output (map Complexity.ofBool xs) = true :: xs).
+    now rewrite read_output_map.
+  - change (false :: read_output (map Complexity.ofBool xs) = false :: xs).
+    now rewrite read_output_map.
+Qed.
+
+(** Every instruction is charged, including the halting instruction. *)
+Inductive output_run (m : Complexity.Machine) :
+    Complexity.Config -> nat -> Complexity.Config -> Prop :=
+| output_halt : forall c b, Complexity.step m c = inl b -> output_run m c 1 c
+| output_next : forall c c' out t, Complexity.step m c = inr c' ->
+    output_run m c' t out -> output_run m c (S t) out.
+
+Inductive transducer :=
+| tm_machine (m : Complexity.Machine)
+| tm_bit_not
+| tm_compose (first second : transducer).
+
+(** A structural scan charges one step per bit and one final step. *)
+Inductive bit_not_run : BinaryString -> nat -> BinaryString -> Prop :=
+| bit_not_nil : bit_not_run [] 1 []
+| bit_not_cons : forall b xs ys t, bit_not_run xs t ys ->
+    bit_not_run (b :: xs) (S t) (negb b :: ys).
+
+Lemma bit_not_runs : forall x,
+  bit_not_run x (length x + 1) (map negb x).
+Proof.
+  induction x as [|b xs IH]; simpl; constructor; auto.
+Qed.
+
+(** Sequential composition charges the sum of both runs. Bitwise NOT is a
+    structural list traversal, charged once per bit and once at the end. *)
+Inductive transducer_run : transducer -> BinaryString -> nat -> BinaryString -> Prop :=
+| tr_machine : forall m x t c, output_run m (Complexity.initial x) t c ->
+    transducer_run (tm_machine m) x t (output c)
+| tr_bit_not : forall x t y, bit_not_run x t y ->
+    transducer_run tm_bit_not x t y
+| tr_compose : forall first second x middle y t1 t2,
+    transducer_run first x t1 middle ->
+    transducer_run second middle t2 y ->
+    transducer_run (tm_compose first second) x (t1 + t2) y.
+
+(** A certified function has a concrete program and polynomial runtime and
+    output-size bounds. Its program returns exactly f x. *)
+Definition poly_time_computable (f : BinaryString -> BinaryString) : Prop :=
+  exists (program : transducer) (time size : poly_bound),
+    forall x, exists t y,
+      transducer_run program x t y /\
+      t <= bound_eval time (length x) /\
+      y = f x /\ length y <= bound_eval size (length x).
+
+Theorem computable_identity : poly_time_computable (fun x => x).
+Proof.
+  pose (stop_machine := {| Complexity.program := [] |}).
+  exists (tm_machine stop_machine), (bound_const 1), bound_input.
+  intro x. exists 1, x. repeat split; auto.
+  - rewrite <- output_initial.
+    apply tr_machine.
+    apply output_halt with (b := false).
+    unfold stop_machine, Complexity.step, Complexity.instruction.
+    destruct x as [|b xs]; reflexivity.
+Qed.
+
+Theorem computable_bit_not : poly_time_computable (fun x => map negb x).
+Proof.
+  exists tm_bit_not, (bound_add bound_input (bound_const 1)), bound_input.
+  intro x. exists (length x + 1), (map negb x).
+  repeat split; try (apply tr_bit_not, bit_not_runs);
+    simpl; auto using Nat.le_refl.
+  rewrite length_map. apply Nat.le_refl.
+Qed.
+
+Theorem computable_comp : forall f g,
+  poly_time_computable f -> poly_time_computable g ->
+  poly_time_computable (fun x => g (f x)).
+Proof.
+  intros f g [first [time1 [size1 Hfirst]]]
+    [second [time2 [size2 Hsecond]]].
+  exists (tm_compose first second),
+    (bound_add time1 (bound_comp time2 size1)),
+    (bound_comp size2 size1).
+  intro x.
+  destruct (Hfirst x) as [t1 [middle [Hr1 [Ht1 [Hm Hs1]]]]].
+  destruct (Hsecond middle) as [t2 [y [Hr2 [Ht2 [Hy Hs2]]]]].
+  exists (t1 + t2), y. repeat split.
+  - eapply tr_compose; eauto.
+  - simpl. pose proof (bound_mono time2 (length middle)
+      (bound_eval size1 (length x)) Hs1). lia.
+  - now rewrite <- Hm.
+  - simpl. eapply Nat.le_trans; [exact Hs2 |].
+    apply bound_mono. exact Hs1.
+Qed.
+
+(** A many-one reduction must compute its map and preserve membership. *)
 Definition poly_time_reduction (L1 L2 : DecisionProblem) : Prop :=
-  exists (f : BinaryString -> BinaryString) (time : nat -> nat),
-    is_polynomial time /\
-    (* Polynomial output-length bound, not a computation-time bound *)
-    (forall x, input_size (f x) <= time (input_size x)) /\
-    (* Reduction property *)
-    (forall x, L1 x <-> L2 (f x)).
+  exists f, poly_time_computable f /\ forall x, L1 x <-> L2 (f x).
 
-(** ** Test 4: A completeness candidate under the length-bounded reduction
-    model, not standard NP-completeness. *)
+Theorem reduction_refl : forall L, poly_time_reduction L L.
+Proof.
+  intro L. exists (fun x => x). split; [apply computable_identity |].
+  intro x. tauto.
+Qed.
+
+Theorem reduction_trans : forall L1 L2 L3,
+  poly_time_reduction L1 L2 -> poly_time_reduction L2 L3 ->
+  poly_time_reduction L1 L3.
+Proof.
+  intros L1 L2 L3 [f [Hf Hcorrect1]] [g [Hg Hcorrect2]].
+  exists (fun x => g (f x)). split.
+  - apply computable_comp; assumption.
+  - intro x. transitivity (L2 (f x)); [apply Hcorrect1 | apply Hcorrect2].
+Qed.
+
+(** The distinct singleton languages reduce via one-pass bitwise NOT. *)
+Theorem singleton_bit_not_reduction :
+  poly_time_reduction (fun x => x = [true]) (fun x => x = [false]).
+Proof.
+  exists (fun x => map negb x). split; [apply computable_bit_not |].
+  intros [|b xs]; [simpl; split; discriminate |].
+  destruct b; destruct xs as [|c xs]; simpl; split; congruence.
+Qed.
+
+(** ** Test 4: A completeness candidate in this toy P/NP framework. The NP
+    verifier still lacks a machine runtime proof, so it is not standard
+    NP-completeness. *)
 
 (** A problem L is NP-complete if:
     1. L is in NP
@@ -261,8 +425,8 @@ Definition is_NP_complete (L : DecisionProblem) : Prop :=
   in_NP L /\
   forall L', in_NP L' -> poly_time_reduction L' L.
 
-(** The standard NP-completeness theorem needs a machine computing f in
-    polynomial time and a proven composition bound, so it is not asserted. *)
+(** The NP-completeness implication remains unasserted because in_NP still
+    uses an unconstrained Boolean verifier. *)
 
 (** * 8. Example Problems *)
 
@@ -394,6 +558,10 @@ Check test_in_NP.
 Check poly_time_reduction.
 Print Assumptions empty_in_P.
 Print Assumptions universal_in_P.
+Print Assumptions computable_identity.
+Print Assumptions computable_bit_not.
+Print Assumptions reduction_trans.
+Print Assumptions singleton_bit_not_reduction.
 Print Assumptions P_subseteq_NP.
 Print Assumptions P_eq_or_neq_NP.
 Print Assumptions P_closed_under_complement.

@@ -1,3 +1,4 @@
+import proofs.complexity.lean.Complexity
 /-
   HanXiaoWenProof.lean - Forward Formalization of Han Xiao Wen's 2010 P=NP Proof Attempt
 
@@ -22,7 +23,7 @@ def DecisionProblem := String → Prop
 def TimeComplexity := Nat → Nat
 
 def IsPolynomialTime (f : TimeComplexity) : Prop :=
-  ∃ (c k : Nat), ∀ (n : Nat), f n ≤ c * n ^ k
+  Complexity.PolynomiallyBounded f
 
 structure TuringMachine where
   compute : String → Bool

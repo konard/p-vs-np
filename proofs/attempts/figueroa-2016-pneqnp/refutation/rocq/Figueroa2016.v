@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (**
   Figueroa2016.v - Formalization of Figueroa's (2016) P≠NP Attempt
 
@@ -35,7 +36,7 @@ Definition TimeComplexity := nat -> nat.
 
 (** A function is polynomial-time if there exists a polynomial bound *)
 Definition IsPolynomialTime (f : TimeComplexity) : Prop :=
-  exists k : nat, forall n : nat, f n <= n ^ k.
+  Complexity.Complexity.PolynomiallyBounded f.
 
 (** A BitFunction is computable in polynomial time *)
 Definition IsPolytimeComputable (f : BitFunction) : Prop :=

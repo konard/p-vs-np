@@ -1,3 +1,4 @@
+From proofs.complexity.rocq Require Import Complexity.
 (*
   RiazKhiyalRefutation.v - Refutation of Riaz & Khiyal's 2006 P=NP attempt
 
@@ -31,7 +32,7 @@ Definition Language := String.string -> bool.
 Definition TimeComplexity := nat -> nat.
 
 Definition isPolynomial (T : TimeComplexity) : Prop :=
-  exists (c k : nat), forall n : nat, T n <= c * n ^ k.
+  Complexity.Complexity.PolynomiallyBounded T.
 
 Record Graph := {
   g_numNodes : nat;
