@@ -62,7 +62,9 @@ class SemanticCoverageTests(unittest.TestCase):
     def test_catalog_labels_every_result(self):
         source = (ATTEMPTS / "COMMON_ERRORS.md").read_text()
         rows = re.findall(r"^\| \[([^]]+)\]\([^)]*\) \|([^\n]*)$", source, re.M)
-        self.assertGreater(len(rows), 100)
+        folders = {path.name for path in ATTEMPTS.iterdir() if path.is_dir()}
+        self.assertEqual(len(rows), len(folders))
+        self.assertEqual({attempt for attempt, _ in rows}, folders)
         allowed = (
             "Concrete refutation",
             "Conditional result",
