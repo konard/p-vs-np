@@ -27,6 +27,12 @@ jobs:
     - name: Test attempt structure checker
       run: python3 -m unittest scripts.test_check_attempt_structure -v
 
+    - name: Test proof status checker
+      run: python3 -m unittest scripts.test_check_proof_status -v
+
+    - name: Check certified source boundary
+      run: python3 scripts/check_proof_status.py
+
     - name: Check exact Gubin paper LP witness
       run: python3 experiments/issue578/check_paper_lp.py
 
@@ -62,7 +68,7 @@ jobs:
             lean=false
             rocq=false
             agda=false
-            if grep -Eq '\.lean$|(^|/)(lakefile\.lean|lean-toolchain|lake-manifest\.json)$' <<< "$changed_files"; then
+            if grep -Eq '\.lean$|(^|/)(lakefile\.lean|lean-toolchain|lake-manifest\.json)$|^experiments/issue575/check\.sh$' <<< "$changed_files"; then
               lean=true
             fi
             if grep -Eq '\.v$|(^|/)_CoqProject$' <<< "$changed_files"; then
@@ -76,6 +82,10 @@ jobs:
               rocq=true
               agda=true
             fi
+            if grep -Eq '^scripts/(check_proof_status\.py|proof_status\.json)$' <<< "$changed_files"; then
+              lean=true
+              rocq=true
+            fi
             ;;
           *)
             echo "::error::Unsupported event: $GITHUB_EVENT_NAME"
@@ -87,7 +97,7 @@ jobs:
         printf 'Verification selection: Lean=%s Rocq=%s Agda=%s\n' "$lean" "$rocq" "$agda"
 
   lean-verification:
-    name: Lean Verification
+    name: Lean Historical Compilation
     runs-on: ubuntu-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.lean_changed == 'true'
@@ -101,19 +111,19 @@ jobs:
         curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
         echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
-    - name: Verify Lean installation
-      run: |
-        lean --version
-        lake --version
-
     - name: Cache Lean toolchain
       uses: actions/cache@v4
       with:
         path: |
           ~/.elan
-        key: ${{ runner.os }}-lean-elan-v2-${{ hashFiles('lakefile.lean') }}
+        key: ${{ runner.os }}-lean-elan-v3-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lakefile.lean') }}
         restore-keys: |
-          ${{ runner.os }}-lean-elan-v2-
+          ${{ runner.os }}-lean-elan-v3-${{ hashFiles('lean-toolchain') }}-
+
+    - name: Verify Lean installation
+      run: |
+        lean --version
+        lake --version
 
     - name: Clean stale build artifacts
       run: |
@@ -128,9 +138,10 @@ jobs:
           echo "=== Lean Verification ==="
           lean --version
           echo ""
+          bash experiments/issue575/check.sh
           echo "Building Lean project..."
           lake build
-          echo "✓ Lean build completed successfully!"
+          echo "✓ Lean historical sources compile successfully!"
           echo ""
           lake env lean experiments/issue574/PolynomialRegression.lean
           lean experiments/issue7_shoenfield_absoluteness.lean
@@ -150,7 +161,7 @@ jobs:
         fi
 
   rocq-verification:
-    name: Rocq Verification
+    name: Rocq Historical Compilation
     runs-on: ubuntu-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.rocq_changed == 'true'
@@ -198,11 +209,54 @@ jobs:
             fi
             rocq compile -Q . '' experiments/issue574/PolynomialRegression.v
             python3 experiments/issue570/check_contradiction.py --rocq
-            echo "✓ All Rocq files verified successfully!"
+            echo "✓ Rocq historical sources compile successfully!"
           endGroup
 
     - name: Revert permissions
       if: ${{ always() && steps.check-rocq.outputs.has_files == 'true' }}
+      run: sudo chown -R 1001:116 .
+
+  certified-lean:
+    name: Certified Lean Results
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.lean_changed == 'true'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Lean
+      run: |
+        curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+        echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+    - name: Build and audit certified Lean results
+      run: |
+        lake build proofs.complexity.lean.Complexity \
+          proofs.p_vs_np_decidable.lean.PSubsetNP \
+          proofs.p_vs_np_decidable.lean.PvsNPDecidable \
+          proofs.p_not_equal_np.lean.PNotEqualNP
+        python3 scripts/check_proof_status.py --lean
+
+  certified-rocq:
+    name: Certified Rocq Results
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.rocq_changed == 'true'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Fix permissions for docker
+      run: sudo chown -R 1000:1000 .
+    - name: Build and audit certified Rocq results
+      uses: coq-community/docker-coq-action@v1
+      with:
+        custom_image: 'rocq/rocq-prover:9.0'
+        custom_script: |
+          set -e
+          rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+          rocq compile -Q . '' proofs/p_vs_np_decidable/rocq/PSubsetNP.v
+          rocq compile -Q . '' proofs/p_vs_np_decidable/rocq/PvsNPDecidable.v
+          rocq compile -Q . '' proofs/p_not_equal_np/rocq/PNotEqualNP.v
+          python3 scripts/check_proof_status.py --rocq
+    - name: Revert permissions
+      if: always()
       run: sudo chown -R 1001:116 .
 
 # Isabelle verification removed - proofs archived to ./archive/isabelle/
@@ -232,7 +286,7 @@ jobs:
   summary:
     name: Verification Summary
     runs-on: ubuntu-latest
-    needs: [detect-changes, lean-verification, rocq-verification, agda-verification]
+    needs: [detect-changes, lean-verification, rocq-verification, certified-lean, certified-rocq, agda-verification]
     if: always()
 
     steps:
@@ -240,28 +294,33 @@ jobs:
       run: |
         echo "## Formal Verification Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Tool | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
 
         DETECT_RESULT="${{ needs.detect-changes.result }}"
         LEAN_RESULT="${{ needs.lean-verification.result }}"
         ROCQ_RESULT="${{ needs.rocq-verification.result }}"
+        CERT_LEAN_RESULT="${{ needs.certified-lean.result }}"
+        CERT_ROCQ_RESULT="${{ needs.certified-rocq.result }}"
         AGDA_RESULT="${{ needs.agda-verification.result }}"
 
         echo "| Change detection | $DETECT_RESULT |" >> $GITHUB_STEP_SUMMARY
 
         # Show skipped status if no files changed
         if [ "$LEAN_RESULT" = "skipped" ]; then
-          echo "| Lean | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lean historical compilation | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
         else
-          echo "| Lean | $LEAN_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lean historical compilation | $LEAN_RESULT |" >> $GITHUB_STEP_SUMMARY
         fi
 
         if [ "$ROCQ_RESULT" = "skipped" ]; then
-          echo "| Rocq | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rocq historical compilation | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
         else
-          echo "| Rocq | $ROCQ_RESULT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rocq historical compilation | $ROCQ_RESULT |" >> $GITHUB_STEP_SUMMARY
         fi
+
+        echo "| Certified Lean result audit | $CERT_LEAN_RESULT |" >> $GITHUB_STEP_SUMMARY
+        echo "| Certified Rocq result audit | $CERT_ROCQ_RESULT |" >> $GITHUB_STEP_SUMMARY
 
         if [ "$AGDA_RESULT" = "skipped" ]; then
           echo "| Agda | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
@@ -278,12 +337,15 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "_Note: Isabelle proofs archived to ./archive/isabelle/_" >> $GITHUB_STEP_SUMMARY
         echo "_Agda checks cover the shared complexity formalizations._" >> $GITHUB_STEP_SUMMARY
+        echo "_Historical attempts are compiled only. Certified Lean and Rocq conclusions are listed in scripts/proof_status.json and checked for unapproved assumptions._" >> $GITHUB_STEP_SUMMARY
 
     - name: Check results
       run: |
         DETECT_RESULT="${{ needs.detect-changes.result }}"
         LEAN_RESULT="${{ needs.lean-verification.result }}"
         ROCQ_RESULT="${{ needs.rocq-verification.result }}"
+        CERT_LEAN_RESULT="${{ needs.certified-lean.result }}"
+        CERT_ROCQ_RESULT="${{ needs.certified-rocq.result }}"
         AGDA_RESULT="${{ needs.agda-verification.result }}"
 
         if [ "$DETECT_RESULT" != "success" ]; then
@@ -299,6 +361,16 @@ jobs:
 
         if [[ "$ROCQ_RESULT" != "success" && "$ROCQ_RESULT" != "skipped" ]]; then
           echo "::error::Rocq verification failed"
+          exit 1
+        fi
+
+        if [[ "$CERT_LEAN_RESULT" != "success" && "$CERT_LEAN_RESULT" != "skipped" ]]; then
+          echo "::error::Certified Lean audit failed"
+          exit 1
+        fi
+
+        if [[ "$CERT_ROCQ_RESULT" != "success" && "$CERT_ROCQ_RESULT" != "skipped" ]]; then
+          echo "::error::Certified Rocq audit failed"
           exit 1
         fi
 

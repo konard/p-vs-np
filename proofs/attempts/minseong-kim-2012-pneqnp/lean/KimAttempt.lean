@@ -31,7 +31,7 @@ def P_not_equals_NP : Prop := ¬ P_equals_NP
   There is no credible evidence for this claim, and ZFC has been used
   successfully as a foundation for mathematics for over a century.
 -/
-axiom ZFC_inconsistent : False
+-- Keep the alleged inconsistency as an explicit premise, never a global axiom.
 
 /-
   Step 2: From the false assumption, derive P≠NP
@@ -39,21 +39,22 @@ axiom ZFC_inconsistent : False
   This uses the principle of explosion (ex falso quodlibet):
   from a contradiction, anything follows.
 -/
-theorem kim_proof_of_P_neq_NP : P_not_equals_NP := by
+theorem kim_proof_of_P_neq_NP (ZFC_inconsistent : False) : P_not_equals_NP := by
   -- From the assumption that ZFC is inconsistent (False),
   -- we can prove anything, including P≠NP
   exact False.elim ZFC_inconsistent
 
 /-- From the same false assumption, we can prove the OPPOSITE conclusion! -/
-theorem kim_proof_of_P_eq_NP : P_equals_NP := by
+theorem kim_proof_of_P_eq_NP (ZFC_inconsistent : False) : P_equals_NP := by
   -- From the same false assumption, we can prove P=NP
   exact False.elim ZFC_inconsistent
 
 /-- We can prove BOTH P=NP and P≠NP from the false assumption -/
-theorem both_conclusions_from_falsehood : P_equals_NP ∧ P_not_equals_NP := by
+theorem both_conclusions_from_falsehood (ZFC_inconsistent : False) :
+    P_equals_NP ∧ P_not_equals_NP := by
   constructor
-  · exact kim_proof_of_P_eq_NP
-  · exact kim_proof_of_P_neq_NP
+  · exact kim_proof_of_P_eq_NP ZFC_inconsistent
+  · exact kim_proof_of_P_neq_NP ZFC_inconsistent
 
 /-- This demonstrates ex falso quodlibet explicitly -/
 theorem explosion_principle (A : Prop) : False → A := by
@@ -61,7 +62,7 @@ theorem explosion_principle (A : Prop) : False → A := by
   exact False.elim h_false
 
 /-- Any statement whatsoever follows from the inconsistency assumption -/
-theorem anything_from_ZFC_inconsistent (A : Prop) : A :=
+theorem anything_from_ZFC_inconsistent (A : Prop) (ZFC_inconsistent : False) : A :=
   explosion_principle A ZFC_inconsistent
 
 /-
@@ -70,7 +71,7 @@ theorem anything_from_ZFC_inconsistent (A : Prop) : A :=
   The Kim attempt fails for several critical reasons:
 
   1. UNPROVEN ASSUMPTION: The claim that ZFC is inconsistent is not proven.
-     It is simply assumed as an axiom (ZFC_inconsistent : False).
+     It is an explicit premise (ZFC_inconsistent : False) in each result.
 
   2. NO EVIDENCE: There is no credible evidence that ZFC is inconsistent.
      After 100+ years of use, no contradiction has been found.
@@ -99,7 +100,7 @@ theorem anything_from_ZFC_inconsistent (A : Prop) : A :=
   3. Provide actual mathematical content about computational complexity
   4. Not prove its negation from the same assumptions
 
-  In a proper formalization (without the false ZFC_inconsistent axiom),
+  Without the ZFC_inconsistent premise,
   we cannot prove P_equals_NP or P_not_equals_NP without additional
   complexity-theoretic axioms or actual mathematical breakthroughs.
 

@@ -2,6 +2,8 @@
 
 This directory contains formal verifications of historical P vs NP proof attempts from [Woeginger's list](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm).
 
+**Assurance status: historical sketches.** Formal files here can compile with admissions or unproved axioms. A `refutation/` directory documents an analysis, not an automatically certified conclusion. Only the named results in [the certified-result manifest](../../scripts/proof_status.json) receive the separate assumption audit.
+
 ## Purpose
 
 The goal is to formally verify each published P vs NP proof attempt to:

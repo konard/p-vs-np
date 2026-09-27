@@ -164,6 +164,16 @@ The repository includes formal analysis of historical claimed proofs of P vs NP,
 
 Lean and Rocq files and the shared-model Agda files are checked by GitHub Actions. The other Agda files and archived Isabelle files are historical examples outside this CI check. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
 
+**What the badge means:** On `main`, CI compiles the Lean and Rocq sources and checks only the listed shared-model Agda files. Compilation accepts `sorry`, `Admitted`, and axioms, so it does not certify every theorem in those files. Pull requests run the prover jobs selected by changed files; a skipped job provides no proof check for that PR.
+
+| Status | Scope | Guarantee |
+|---|---|---|
+| Certified result | The specific Lean and Rocq conclusions in [the result manifest](scripts/proof_status.json) | CI scans each source and its local imports for admissions and unproved declarations, then checks `#print axioms` or `Print Assumptions` against the listed allowed logical axioms. The claim still has only the scope of its formal model and explicit theorem premises. |
+| Historical sketch | The [attempt catalog](proofs/attempts/ATTEMPTS.md) and other unlisted formalizations | CI may compile the file, but admissions and assumptions may remain. A `refutation/` path alone does not mean its conclusion is proved. |
+| Outside current check | Other Agda files and archived Isabelle files | The workflow does not check them. |
+
+For the audited conclusions, run `python3 scripts/check_proof_status.py` for the source boundary, then `python3 scripts/check_proof_status.py --lean` or `--rocq` after building the corresponding prover files. The manifest states every approved assumption by name. No certified conclusion establishes P = NP or P ≠ NP.
+
 ## Key Highlights
 
 ### Problem Significance
