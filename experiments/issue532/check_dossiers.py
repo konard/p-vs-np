@@ -84,7 +84,7 @@ SHARED_IMPORT = {
         r"^import\s+proofs\.(?:complexity\.lean\.Complexity|experiments\.issue532\.lean\.(?:Machines|Circuits|SATVerifier))\s*$",
         re.MULTILINE,
     ),
-    "rocq": re.compile(r"^From\s+proofs\.\S+\s+Require\s+Import\s+.*\b(?:Complexity|Machines|Circuits|SATVerifier)\b", re.MULTILINE),
+    "rocq": re.compile(r"^From\s+proofs\.\S+\s+Require\s+(?:(?:Import|Export)\s+)?.*\b(?:Complexity|Machines|Circuits|SATVerifier)\b", re.MULTILINE),
 }
 
 DOCUMENTED = {

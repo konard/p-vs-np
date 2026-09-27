@@ -52,6 +52,10 @@ class CheckerUnitTests(unittest.TestCase):
             "def Goal : Prop := Fast Issue532.Machines.SAT\n"
         )
         self.assertEqual(self.check_source("lean", tied), [])
+        # `SATVerifier` imports `Machines`, so it is part of the shared layer.
+        via_verifier = tied.replace(".lean.Machines\n", ".lean.SATVerifier\n")
+        self.assertIn(".lean.SATVerifier\n", via_verifier)
+        self.assertEqual(self.check_source("lean", via_verifier), [])
         # A free predicate parameter makes the obligation depend on its choice.
         free_predicate = tied + (
             "/-- **Open obligation.** -/\n"
@@ -80,6 +84,8 @@ class CheckerUnitTests(unittest.TestCase):
             "Definition Goal : Prop := InP SAT.\n"
         )
         self.assertEqual(self.check_source("rocq", tied), [])
+        via_verifier = tied.replace("Require Import Machines.", "Require SATVerifier.")
+        self.assertEqual(self.check_source("rocq", via_verifier), [])
 
     def test_table_names_reads_first_column_only(self):
         markdown = "\n".join([
