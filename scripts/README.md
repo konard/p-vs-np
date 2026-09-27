@@ -2,6 +2,25 @@
 
 This directory contains utility scripts for managing the P vs NP attempts repository.
 
+## check_proof_status.py
+
+`proof_status.json` is the explicit list of certified Lean and Rocq conclusions.
+The rest of the attempt catalog is historical material. The checker scans each
+certified source and its repository imports for admissions or unproved
+declarations. After the listed modules are compiled, it queries each prover
+with `#print axioms` or `Print Assumptions` and fails if a theorem has any
+assumption outside its manifest allowance.
+
+```bash
+python3 -m unittest scripts.test_check_proof_status -v
+python3 scripts/check_proof_status.py
+python3 scripts/check_proof_status.py --lean
+python3 scripts/check_proof_status.py --rocq
+```
+
+The workflow runs historical compilation and certified audits as separate
+jobs. Passing historical compilation does not change an attempt's status.
+
 ## check_attempt_structure.py
 
 `check_attempt_structure.py` verifies that each attempt in `proofs/attempts/`
