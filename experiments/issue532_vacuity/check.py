@@ -6,6 +6,12 @@ The `IdeaNNVacuity.lean` files are the audit's trivialising proofs (see
 `REPORT.md`). All of them compiled against commit 76ebd01, where the "open
 obligations" had free cost functions or free classes.
 
+Some of those files now fail only because a definition was renamed (the free
+schemas became `...For`). A rename would make them fail too, so
+`ReviewProofsRetargeted.lean` restates the reviewer's moves against the
+current names. Files named `*Retargeted.lean` must fail without any
+unknown-name error: every error must be a type or proof error.
+
 After the move to the shared machine model, none of them may compile. Every
 `theorem` in every file, except the auxiliary lemmas listed in `HELPERS`, must
 produce its own error, and no error may come from the import header: a missing
@@ -26,6 +32,7 @@ ROOT = HERE.parents[1]
 ERROR = re.compile(r"^(?P<file>[^\s:]+\.lean):(?P<line>\d+):\d+: error")
 DECL = re.compile(r"^(?:private\s+)?theorem\s+(?P<name>\S+)")
 IMPORT_FAILURE = ("unknown module prefix", "object file", "file not found")
+NAME_ERROR = re.compile(r"error.*\b(unknown (identifier|constant|namespace))", re.IGNORECASE)
 
 # Auxiliary lemmas of the audit files. They state nothing about an obligation
 # (a correctness fact about a classical oracle, a lemma about CNFs, the bare
@@ -80,6 +87,10 @@ def check(path):
     ]
     if any(line <= header_end for line in error_lines):
         problems.append("fails in the import header")
+    if path.name.endswith("Retargeted.lean"):
+        for line in output.splitlines():
+            if NAME_ERROR.search(line):
+                problems.append(f"fails on a name, not on the definition: {line}")
     helpers = HELPERS.get(path.name, set())
     ranges = [r for r in theorem_ranges(source) if r[0] not in helpers]
     if not ranges:

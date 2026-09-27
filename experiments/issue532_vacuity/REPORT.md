@@ -98,3 +98,14 @@ The only instantiations are toy models or ones that make the obligation trivial:
 - **34** `PNotEqualsNP`, the only idea over `Complexity.lean`.
 
 **No obligation def:** 02, 03, 04, 05, 07, 08, 11, 21, 24 and 27.
+
+## After the move to the machine model
+Everything above describes commit `76ebd01`. Since then every open obligation is stated over `Complexity.Machine`, with its cost the step count of `Complexity.Run`. The free-parameter definitions are kept as schemas, renamed `…For`. A theorem links each schema to its machine instance, and each obligation has a non-vacuity theorem (`not_forall_*` or `exists_*`) saying that it does not hold for every language.
+
+Some audit files therefore fail only because a name disappeared: for example, `PolyDec sz L` no longer exists, and the Group D obligations of Ideas 18, 25, 26, 31 and 35 were renamed. A rename would produce the same failure, so it is weak evidence. `ReviewProofsRetargeted.lean` restates the reviewer's four moves against the current definitions:
+- the answer function in the decider slot;
+- an empty machine claimed to halt in zero steps;
+- the zero cost function;
+- the classical SAT decider in place of a machine.
+
+`check.py` requires every theorem in that file to fail with a type or proof error and none with an unknown name. The errors it reports now are "Application type mismatch", "Tactic `constructor` failed: no applicable constructor found" (`Run` has no zero-step constructor) and "unsolved goals".
