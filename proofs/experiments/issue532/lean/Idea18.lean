@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 18: structural restrictions and easy subclasses of SAT
 
@@ -19,11 +21,19 @@ Proved here, in general (for every CNF / every reduction):
 * `restriction_transfer` and `poly_comp_bound`: if a restricted class `R`
   admits a correct decider and SAT reduces into `R` with polynomial size
   blow-up, then composing gives a correct SAT decider whose cost is bounded
-  by a composed polynomial.  The hypothesis `PolySizeReductionInto R` records
-  only the size bound.  Without a computability requirement it is satisfiable
-  for unit CNF (`unit_size_reduction_exists`, via a non-constructive map), so
-  the open part of the obligation is polynomial-time computability of the
-  map, which needs a machine model and is stated in prose only.
+  by a composed polynomial.  The schema `PolySizeReductionIntoFor R` records
+  only the size bound; without a computability requirement it holds for unit
+  CNF (`unit_size_reduction_exists`, via a non-constructive map).
+* Machine model (`ReducesInto`, `SATInPOn`): the map is computed by a
+  `Complexity.Machine` within a polynomial (`Computes`), and the restricted
+  decider is a machine correct on the promise "decodes into `R`"
+  (`DecidesOn`).  `inP_of_reducesInto` composes them into `InP`;
+  `pEqualsNP_of_unitReduction` turns the open obligation `UnitReduction` (SAT
+  reduces into unit CNF) into `PEqualsNP`, given the named known theorem
+  `UnitSATInP` and `SATHard`.  In the machine model the trivial classes are
+  refuted again (`reducesInto_positive_const`, `not_reducesInto_positive`),
+  and `not_forall_reducesInto` shows that no class makes the reduction
+  statement hold for every language.
 
 Verdict: special-case algorithms are correct, but refuted as a general route
 unless the restriction is shown NP-hard (Schaefer 1978 classifies exactly
@@ -236,14 +246,13 @@ theorem no_sat_reduction_into_negative :
 
 def polyEval (c k n : Nat) : Nat := c * (n + 1) ^ k
 
-/-- **Open obligation** for a restricted class `R`: SAT reduces into `R` by a
-satisfiability-preserving map with polynomial size blow-up.  (Time to compute
-the map must also be polynomial; this file has no machine model, so only the
-size bound is recorded.)  For the classes of (a) this is false by
-`no_sat_reduction_into_positive`.  For unit CNF the size-only statement is
-provable (`unit_size_reduction_exists`); only a version with a
-polynomial-time computable map would carry P vs NP content. -/
-def PolySizeReductionInto (R : CNF → Prop) : Prop :=
+/-- Size-only schema for a restricted class `R`: SAT reduces into `R` by a
+satisfiability-preserving map with polynomial size blow-up.  The map is an
+arbitrary function, so this schema records no running time: for the classes
+of (a) it is false by `no_sat_reduction_into_positive`, and for unit CNF it is
+provable (`unit_size_reduction_exists`).  The machine version, with the map
+computed by a `Complexity.Machine`, is `ReducesInto` below. -/
+def PolySizeReductionIntoFor (R : CNF → Prop) : Prop :=
   ∃ (f : CNF → CNF) (c k : Nat),
     (∀ φ, R (f φ)) ∧ (∀ φ, Satisfiable φ ↔ Satisfiable (f φ)) ∧
     (∀ φ, size (f φ) ≤ polyEval c k (size φ))
@@ -251,7 +260,7 @@ def PolySizeReductionInto (R : CNF → Prop) : Prop :=
 /-- Without a computability requirement the size-only obligation holds for unit
 CNF: send satisfiable formulas to `[]` and the rest to `[[]]`.  The map is
 defined by classical case analysis and is not claimed to be efficient. -/
-theorem unit_size_reduction_exists : PolySizeReductionInto IsUnitCNF := by
+theorem unit_size_reduction_exists : PolySizeReductionIntoFor IsUnitCNF := by
   classical
   refine ⟨fun φ => if Satisfiable φ then [] else [[]], 1, 0, ?_, ?_, ?_⟩
   · intro φ C hC
@@ -289,7 +298,7 @@ satisfiability-preserving reduction into `R`, decides SAT; if `d`'s cost is
 bounded by a monotone polynomial in the size of its input, the composed cost
 is bounded by a polynomial in the size of the original formula (the cost of
 computing `f` must be added separately). -/
-theorem restriction_transfer (R : CNF → Prop) (hR : PolySizeReductionInto R)
+theorem restriction_transfer (R : CNF → Prop) (hR : PolySizeReductionIntoFor R)
     (d : CNF → Bool) (hd : ∀ ψ, R ψ → (d ψ = true ↔ Satisfiable ψ))
     (dcost : CNF → Nat) (c' k' : Nat) (hcost : ∀ ψ, dcost ψ ≤ polyEval c' k' (size ψ)) :
     ∃ f : CNF → CNF, ∃ C K : Nat,
@@ -302,5 +311,159 @@ theorem restriction_transfer (R : CNF → Prop) (hR : PolySizeReductionInto R)
       unfold polyEval
       exact Nat.mul_le_mul_left c' (Nat.pow_le_pow_left (by have := hfsize φ; unfold polyEval at this; omega) k')
     exact Nat.le_trans (hcost _) (Nat.le_trans mono (poly_comp_bound c k c' k' _))
+
+/-! ## The machine model: a polynomial-time reduction into a restricted class -/
+
+open Complexity
+
+/-- A CNF of the shared machine model, read in this file's syntax. -/
+def ofM (φ : Machines.CNF) : CNF := φ.map (List.map fun l => ⟨l.var, l.pos⟩)
+
+theorem evalClause_ofM (a : Assignment) (C : Machines.Clause) :
+    evalClause a (C.map fun l => (⟨l.var, l.pos⟩ : Lit)) = Machines.evalClause a C := by
+  induction C with
+  | nil => rfl
+  | cons l C ih =>
+    simp only [List.map_cons, evalClause, Machines.evalClause, ih, evalLit, Machines.evalLit]
+    cases l.pos <;> cases a l.var <;> rfl
+
+theorem evalCNF_ofM (a : Assignment) (φ : Machines.CNF) :
+    evalCNF a (ofM φ) = Machines.evalCNF a φ := by
+  induction φ with
+  | nil => rfl
+  | cons C φ ih =>
+    simp only [ofM, List.map_cons, evalCNF, Machines.evalCNF] at ih ⊢
+    rw [evalClause_ofM, ih]
+
+/-- The machine-model language `SAT` is satisfiability in this file's syntax. -/
+theorem sat_ofM (w : Word) : Machines.SAT w = true ↔ Satisfiable (ofM (Machines.decode w)) := by
+  rw [Machines.sat_iff]
+  constructor
+  · rintro ⟨a, ha⟩; exact ⟨a, by rw [evalCNF_ofM]; exact ha⟩
+  · rintro ⟨a, ha⟩; exact ⟨a, by rw [← evalCNF_ofM]; exact ha⟩
+
+/-- A polynomial-time machine reduction of `L` into the class `R`: a
+`Complexity.Machine` computes `f` within a polynomial, every output decodes to a
+CNF in `R`, and `L x = SAT (f x)`. -/
+def ReducesInto (L : Language) (R : CNF → Prop) : Prop :=
+  ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧
+    ∀ x, R (ofM (Machines.decode (f x))) ∧ L x = Machines.SAT (f x)
+
+/-- SAT restricted to `R` is decided by a polynomial-time machine that is correct
+on every word decoding to a CNF in `R` (a promise problem). -/
+def SATInPOn (R : CNF → Prop) : Prop :=
+  ∃ (d : Machine) (p : Polynomial),
+    Machines.DecidesOn d p (fun w => R (ofM (Machines.decode w))) Machines.SAT
+
+/-- **Transfer in the machine model.** A polynomial-time reduction into `R`
+followed by a polynomial-time decider correct on `R` puts `L` in P. -/
+theorem inP_of_reducesInto {L : Language} {R : CNF → Prop} (h : ReducesInto L R)
+    (hR : SATInPOn R) : InP L := by
+  obtain ⟨m, f, p, hm, hf⟩ := h
+  obtain ⟨d, p', hd⟩ := hR
+  exact Machines.inP_of_promise_reduction hm (fun x => (hf x).1) (fun x => (hf x).2) hd
+
+/-- The machine-model version of the size schema's correctness half: a machine
+reduction into `R` is a satisfiability-preserving map of CNFs into `R`. -/
+theorem reducesInto_preserves {R : CNF → Prop} (h : ReducesInto Machines.SAT R) :
+    ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧
+      ∀ φ : Machines.CNF, R (ofM (Machines.decode (f (Machines.encodeCNF φ)))) ∧
+        (Satisfiable (ofM φ) ↔ Satisfiable (ofM (Machines.decode (f (Machines.encodeCNF φ))))) := by
+  obtain ⟨m, f, p, hm, hf⟩ := h
+  refine ⟨m, f, p, hm, fun φ => ⟨(hf _).1, ?_⟩⟩
+  have e := (hf (Machines.encodeCNF φ)).2
+  rw [← sat_ofM, ← e, sat_ofM, Machines.decode_encode]
+
+/-- **Known theorem, not mechanised here.** Satisfiability of unit CNFs (every
+clause has at most one literal) is decided in polynomial time: check for an
+empty clause and for a complementary pair of unit clauses (a quadratic scan;
+its correctness is `unitCNF_sat_iff` / `unitDecide_correct` above, and it is a
+special case of Horn-SAT, Dowling–Gallier 1984, and of 2-SAT, Aspvall–Plass–
+Tarjan 1979).  What is not mechanised is a `Complexity.Machine` implementing
+the scan on encoded formulas. -/
+def UnitSATInP : Prop := SATInPOn IsUnitCNF
+
+/-- **Open obligation.** SAT reduces into unit CNF by a polynomial-time machine:
+a `Complexity.Machine` computes, within a polynomial number of `Run` steps, a map
+`f` such that every `f x` decodes to a unit CNF and `SAT x = SAT (f x)`. -/
+def UnitReduction : Prop := ReducesInto Machines.SAT IsUnitCNF
+
+/-- **Conditional theorem.** The open obligation and the known unit-CNF decider
+put SAT in P. -/
+theorem inP_sat_of_unitReduction (hU : UnitSATInP) (h : UnitReduction) : InP Machines.SAT :=
+  inP_of_reducesInto h hU
+
+/-- **Conditional theorem.** With the hardness half of Cook–Levin, the open
+obligation gives P = NP. -/
+theorem pEqualsNP_of_unitReduction (hard : Machines.SATHard) (hU : UnitSATInP)
+    (h : UnitReduction) : PEqualsNP :=
+  Machines.pEqualsNP_of_inP_sat hard (inP_sat_of_unitReduction hU h)
+
+/-- The same route for any class `R` with a polynomial-time promise decider. -/
+theorem pEqualsNP_of_reducesInto (hard : Machines.SATHard) {R : CNF → Prop}
+    (hR : SATInPOn R) (h : ReducesInto Machines.SAT R) : PEqualsNP :=
+  Machines.pEqualsNP_of_inP_sat hard (inP_of_reducesInto h hR)
+
+/-- A machine reduction into the 1-valid class forces a constant answer. -/
+theorem reducesInto_positive_const {L : Language} (h : ReducesInto L PositiveClauses) :
+    ∀ x, L x = true := by
+  obtain ⟨m, f, p, _, hf⟩ := h
+  intro x
+  rw [(hf x).2]
+  exact (sat_ofM (f x)).mpr (positive_satisfiable _ (hf x).1)
+
+theorem machine_empty_clause_unsat : Machines.SAT (Machines.encodeCNF [[]]) = false := by
+  cases h : Machines.SAT (Machines.encodeCNF [[]]) with
+  | false => rfl
+  | true =>
+    obtain ⟨a, ha⟩ := (Machines.sat_encode [[]]).mp h
+    simp [Machines.evalCNF, Machines.evalClause] at ha
+
+/-- **Refutation in the machine model.** SAT has no polynomial-time (indeed no)
+machine reduction into the 1-valid class. -/
+theorem not_reducesInto_positive : ¬ ReducesInto Machines.SAT PositiveClauses := by
+  intro h
+  have := reducesInto_positive_const h (Machines.encodeCNF [[]])
+  rw [machine_empty_clause_unsat] at this
+  cases this
+
+/-- The language obtained by running the machine `m` as a reduction into `M`. -/
+noncomputable def viaMachine (M : Language) (m : Machine) : Language :=
+  fun x => @decide (∃ (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧ M (f x) = true)
+    (Classical.propDecidable _)
+
+theorem viaMachine_eq {M : Language} {m : Machine} {f : Word → Word} {p : Polynomial}
+    (hm : Machines.Computes m f p) : viaMachine M m = fun x => M (f x) := by
+  funext x
+  unfold viaMachine
+  cases h : M (f x) with
+  | true => exact @decide_eq_true _ (Classical.propDecidable _) ⟨f, p, hm, h⟩
+  | false =>
+    apply @decide_eq_false _ (Classical.propDecidable _)
+    rintro ⟨g, q, hg, hgx⟩
+    rw [← Machines.computes_unique hm hg, h] at hgx
+    cases hgx
+
+/-- **Cantor over machines.** For every target language `M` some language has no
+machine map `f` with `L x = M (f x)`. -/
+theorem exists_not_reducible (M : Language) :
+    ∃ L : Language, ∀ (m : Machine) (f : Word → Word) (p : Polynomial),
+      Machines.Computes m f p → ∃ x, L x ≠ M (f x) := by
+  obtain ⟨L, hL⟩ := Machines.exists_language_not_in_family Machines.encMachine
+    (fun _ _ h => Machines.encMachine_injective h) (viaMachine M)
+  refine ⟨L, fun m f p hm => Classical.byContradiction fun hno => hL m ?_⟩
+  rw [viaMachine_eq hm]
+  funext x
+  exact Classical.byContradiction fun hx => hno ⟨x, fun h => hx h.symm⟩
+
+/-- **Non-vacuity.** For every class `R`, some language has no polynomial-time
+machine reduction into `R`; so `ReducesInto Machines.SAT R` is a statement about
+SAT and not a consequence of the definitions. -/
+theorem not_forall_reducesInto (R : CNF → Prop) : ¬ ∀ L : Language, ReducesInto L R := by
+  intro h
+  obtain ⟨L, hL⟩ := exists_not_reducible Machines.SAT
+  obtain ⟨m, f, p, hm, hf⟩ := h L
+  obtain ⟨x, hx⟩ := hL m f p hm
+  exact hx (hf x).2
 
 end Issue532.Idea18

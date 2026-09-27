@@ -8,7 +8,14 @@ prove that every exact (injective) representation of Boolean functions on `n`
 variables gives some function a representation of length at least `2^n`. They
 also prove that fewer than `2^b` truth tables can have codes shorter than `b`.
 Compact representations therefore exist only for special families. Restricted
-to CNF-definable functions, the idea is exactly as hard as SAT itself.
+to CNF-definable functions, the idea is exactly as hard as SAT itself. The Lean
+file proves this in the shared machine model. The open obligation `CompiledSAT`
+asks for a `Complexity.Machine` that compiles every instance in polynomial time,
+and a polynomial-time machine that reads satisfiability off the compiled
+representation. `compiles_iff_inP` proves that such a compilation exists for a
+language exactly when it is in P, so `CompiledSAT ↔ InP SAT`
+(`compiledSAT_iff`). With `SATHard` (not mechanised) the obligation gives
+`PEqualsNP` (`pEqualsNP_of_compiledSAT`).
 
 ## 1. The idea at full strength
 
@@ -42,11 +49,28 @@ as the key resource.
 - `ExactOn n rep := ∀ f g, rep f = rep g → ∀ x, |x| = n → f x = g x`. A
   representation is exact on `n` variables if equal codes imply equal
   functions on `{0,1}^n`.
-- `CompactTractableCompilation size repSize sat q compile query` means
+- `CompactTractableCompilationFor size repSize sat q compile query` means
   `repSize (compile φ) ≤ q (size φ)` for all `φ`, and
-  `query (compile φ) = sat φ` for all `φ`. This is the open obligation. The
-  running times of `compile` and `query` are the real content, and they are
-  kept abstract.
+  `query (compile φ) = sat φ` for all `φ`. This is a schema: the costs of
+  `compile` and `query` are free, so it says nothing about running time.
+- Machine model (Lean, shared `Machines` layer; time is the `Run` step count
+  of a `Complexity.Machine`):
+
+  ```lean
+  def Compiles (L : Language) : Prop :=
+    ∃ (m : Machine) (compile : Word → Word) (p : Polynomial) (d : Machine) (q : Polynomial)
+      (Query : Language), Machines.Computes m compile p ∧ (∀ x, L x = Query (compile x)) ∧
+      Machines.DecidesOn d q (fun w => ∃ x, compile x = w) Query
+
+  /-- Open obligation. -/
+  def CompiledSAT : Prop := Compiles Machines.SAT
+  ```
+
+  The compiler is a machine running in polynomial time, so the representation
+  has polynomial length (`compiles_compact`, from
+  `Machines.computes_output_poly`). The query machine is required to be
+  correct and polynomial (in the representation length) only on compiled
+  representations. This is a promise problem, as in knowledge compilation.
 
 ## 3. What is machine-checked
 
@@ -69,6 +93,22 @@ as the key resource.
 | `compactness_alone_trivial` | compactness without a query cost bound is trivial (identity compilation) | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
 | `decider_gives_compilation` | a SAT decider is a 1-bit compact compilation | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
 | `compilation_decides` | a compact tractable compilation computes `sat` as `query ∘ compile` | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `CompactTractableCompilationFor` (def) | the compilation schema with free costs | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `Compiles` (def) | polynomial-time machine compilation plus polynomial-time machine query on compiled representations | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `CompiledSAT` (def) | open obligation: `Compiles Machines.SAT` | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `compiles_compact` | a machine compilation has polynomially bounded representations | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `inP_of_compiles` | `Compiles L → InP L` (via `Machines.inP_of_promise_reduction`) | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `inP_sat_of_compiledSAT` | `CompiledSAT → InP Machines.SAT` | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `pEqualsNP_of_compiledSAT` | `SATHard → CompiledSAT → PEqualsNP` | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `computes_id` | the empty machine computes the identity in zero steps | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `compiles_iff_inP` | `Compiles L ↔ InP L` for every language | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `compiledSAT_iff` | `CompiledSAT ↔ InP Machines.SAT` | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `not_forall_compiles` | non-vacuity: some language has no compact tractable compilation | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+| `compactTractableCompilationFor_of_compiles` | a machine compilation instantiates the schema (sizes are word lengths, polynomial bound) | [Lean](../lean/Idea35.lean) | [Rocq](../rocq/Idea35.v) |
+
+The rows from `CompactTractableCompilationFor` on are Lean only for now (the
+Rocq file has the schema under its old name `CompactTractableCompilation`).
+The intended Rocq names are the same as the Lean names.
 
 The Rocq file is constructive, with no classical axioms. The Lean proof of
 `no_injective_into_shorter` (and hence of
@@ -111,7 +151,12 @@ so a code of length about `|φ|` for them trivially exists: the formula itself
 answers satisfiability in polynomial time is a polynomial-time SAT algorithm.
 In the trivial direction, a decider already is a one-bit compilation
 (`decider_gives_compilation`). In the other direction, any such compilation
-decides SAT (`compilation_decides`). So the route "compress the solution space
+decides SAT (`compilation_decides`). The machine model makes this exact:
+`compiles_iff_inP` proves `Compiles L ↔ InP L` for every language. One
+direction composes the compiler with the query machine
+(`Machines.inP_of_promise_reduction`). For the other, the empty machine
+computes the identity in zero steps (`computes_id`), and the decider serves as
+the query. So the route "compress the solution space
 and then query it" is refuted as a route to P = NP. Either the compression
 covers all functions, and then it is impossible, or it covers CNF-definable
 functions, and then it is a restatement of the goal.
@@ -145,14 +190,23 @@ functions, and then it is a restatement of the goal.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
-**At full potential**, the idea says: find a class `C` of representations and
-maps `compile`, `query` with
+**At full potential**, the idea says: find representations and maps
+`compile`, `query` satisfying the schema
+`CompactTractableCompilationFor size repSize sat q compile query`, with
+`compile` and `query` both running in polynomial time. In the machine model
+that is the open obligation `CompiledSAT := Compiles Machines.SAT`. The proved
+route is
 
-    CompactTractableCompilation size repSize sat q compile query
+```lean
+theorem pEqualsNP_of_compiledSAT (hard : Machines.SATHard) (h : CompiledSAT) : PEqualsNP
+```
 
-where `compile` and `query` both run in polynomial time. That is
-`sat ∈ P`, which is equivalent to P = NP by Cook–Levin (cited, not
-formalized). Nothing is gained over the original problem.
+Its only hypothesis besides the obligation is `SATHard`, the hardness half of
+Cook–Levin (shared layer, not mechanised). `compiledSAT_iff` proves
+`CompiledSAT ↔ InP Machines.SAT`, so nothing is gained over the original
+problem. `not_forall_compiles` confirms that `Compiles` is not satisfied by
+every language, and `compactTractableCompilationFor_of_compiles` shows that the
+machine notion is an instance of the schema.
 
 **What the counting shows.** No exact scheme compresses everything
 (`exact_representation_needs_long_codes`). Any compression must exploit the
@@ -185,7 +239,8 @@ In [COMMON_ERRORS](../../../attempts/COMMON_ERRORS.md):
 - **Family 5 (solving an easier problem):** compiling a special family (for
   example bounded treewidth CNFs) does not cover all CNFs.
 - **Family 12 (smuggling the conclusion):** assuming that a compact tractable
-  compilation exists is assuming SAT ∈ P (`compilation_decides`).
+  compilation exists is assuming SAT ∈ P (`compilation_decides`,
+  `compiledSAT_iff`).
 
 Audit rule: for any claimed compression, ask (i) is it exact, (ii) what is the
 length bound for **every** input formula, and (iii) what is the time to build

@@ -9,7 +9,7 @@ As a *route to a uniform polynomial-time algorithm*, the idea is refuted in gene
 1. **Size.** The advice is exponential. Even parity, which is in P, needs a decision tree with `2^n` leaves (`parity_tree_leaves`).
 2. **Uniformity.** Advice can encode anything. Every length-only language has one-bit advice, i.e. a one-node tree at every length. For *every* enumeration of uniform deciders, some such language is decided by none of them (`advice_beyond_uniform`).
 
-So a family of small objects, one per length, is not an algorithm. Closing the gap is exactly the obligation `UniformPolyAdvice`. Meeting it amounts to giving a uniform algorithm (`uniform_advice_decides`). Nothing here decides P vs NP.
+So a family of small objects, one per length, is not an algorithm. Closing the gap is the open obligation `UniformSATAdvice`, stated in the shared machine model: a polynomial-time `Complexity.Machine` attaches length-indexed advice to the input, and a polynomial-time machine decides SAT from the input with its advice. Meeting it puts SAT in P (`inP_sat_of_uniformSATAdvice`), so with `SATHard` it gives P = NP (`pEqualsNP_of_uniformSATAdvice`). A superpolynomial circuit lower bound for SAT refutes it, given the known theorem `PSubsetPPoly` (`not_uniformSATAdvice_of_superpoly`). The obligation is not vacuous: some language has no uniform polynomial advice (`not_forall_uniformAdvice`). Uniform advice is thus a uniform algorithm in disguise, and nothing here decides P vs NP.
 
 ## 1. The idea at full strength
 
@@ -31,16 +31,30 @@ At full strength, the idea reads: "for each input length, store (or build) a loo
 * Advice: `advice n f = leafList (build n f)`. Decoding: `ofTable n t` splits `t` into halves of length `2^(n−1)` and recurses.
 * Parity: `parity [] = false`, `parity (b :: x) = b xor parity x`.
 * Polynomials: `p(n) = c·(n+1)^k`.
-* The obligation, with the uniform class `Uniform` kept as a parameter:
+* The generic schema `UniformPolyAdviceFor`, with the uniform class `Uniform` kept as a parameter and an unrestricted decoder:
 
 ```lean
-def UniformPolyAdvice (Uniform : (Nat → List Bool) → Prop) (L : List Bool → Bool) : Prop :=
+def UniformPolyAdviceFor (Uniform : (Nat → List Bool) → Prop) (L : List Bool → Bool) : Prop :=
   ∃ (gen : Nat → List Bool) (decode : List Bool → List Bool → Bool) (p : Poly),
     Uniform gen ∧ (∀ n, (gen n).length ≤ p.eval n) ∧
     ∀ x, decode (gen x.length) x = L x
 ```
 
-This is meant as P/poly (advice of polynomial length, one string per input length) with the additional requirement that the advice itself is generated uniformly. Note that the formal definition places no complexity restriction on `decode`: it is an arbitrary function. So, as stated, the definition is satisfied by any `L` for which `Uniform` accepts some short generator (take `decode a x = L x`). It matches P/poly, or its uniform version, only once `decode` is also required to run in polynomial time, and that restriction is not formalized here.
+  This is a schema only: `Uniform` and `decode` are free, so it carries no running-time content (take `decode a x = L x`).
+* The machine model (`Machines`, `Circuits`). Advice is attached to the input in a self-delimiting way: `pack a` writes each bit `b` as `1 b` and ends with `0`, `adviceWord a x = pack a ++ x`, and `unpack` strips the prefix (`unpack_adviceWord : unpack (adviceWord a x) = x`, `length_pack : (pack a).length = 2 * a.length + 1`).
+
+```lean
+def UniformAdvice (L : Language) : Prop :=
+  ∃ (adv : Nat → Word) (m : Machine) (p : Polynomial) (d : Machine) (q : Polynomial),
+    Machines.Computes m (fun x => adviceWord (adv x.length) x) p ∧
+    Machines.DecidesOn d q (fun w => ∃ x, w = adviceWord (adv x.length) x)
+      (fun w => L (unpack w))
+
+/-- Open obligation. -/
+def UniformSATAdvice : Prop := UniformAdvice Machines.SAT
+```
+
+  The machine `m` generates the advice uniformly, and since it runs within `p` steps the advice has polynomial length (`Machines.computes_output_poly`). The decoder `d` is a machine that runs within `q` steps on every input carrying its advice. Time is the `Run` step count of `Complexity.Machine`.
 
 ## 3. What is machine-checked
 
@@ -61,7 +75,16 @@ This is meant as P/poly (advice of polynomial length, one string per input lengt
 | `parity_tree_exact` | The bound is attained by `build n parity` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
 | `unary_one_bit` | Length-only languages have a one-node tree at each length | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
 | `advice_beyond_uniform` | Every enumeration of deciders misses some one-bit-advice language | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
-| `uniform_advice_decides` | The obligation unpacks into a single uniform decider | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `uniform_advice_decides` | The schema `UniformPolyAdviceFor` unpacks into a single decider | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `unpack_adviceWord`, `length_pack` | The advice prefix is self-delimiting and of length `2·|a|+1` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `UniformSATAdvice` | Open obligation: SAT has machine-generated polynomial advice decoded in polynomial time | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `inP_of_uniformAdvice` | `UniformAdvice L → InP L` (promise reduction) | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `inP_sat_of_uniformSATAdvice` | `UniformSATAdvice → InP SAT` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `pEqualsNP_of_uniformSATAdvice` | `SATHard → UniformSATAdvice → PEqualsNP` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `inPPoly_of_uniformAdvice` | `PSubsetPPoly → UniformAdvice L → InPPoly L` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `not_uniformSATAdvice_of_superpoly` | `PSubsetPPoly → SuperpolyLowerBound SAT → ¬ UniformSATAdvice` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `not_forall_uniformAdvice` | Non-vacuity: some language has no uniform polynomial advice | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `uniformPolyAdviceFor_of_uniformAdvice` | The machine version instantiates the schema `UniformPolyAdviceFor` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
 
 In Rocq, `DTree.eval` is named `teval`, and `leaves`, `size`, `leafList` are plain functions. Helper lemmas are shared by both files (`nodup_map_cons`, `leaves_pos`). The Rocq file additionally proves `nodup_app_intro`, `firstn_app_exact`, `skipn_app_exact`, `uncovered_or_cover` and `differ_or_agree`. The last two are constructive case splits, which Lean handles with `Classical.byContradiction` (core Lean, no added declarations).
 
@@ -77,7 +100,11 @@ In Rocq, `DTree.eval` is named `teval`, and `leaves`, `size`, `leafList` are pla
 
 **Advice beyond uniform algorithms.** Let `e : ℕ → (input → bit)` be any enumeration, for example of all polynomial-time machines. Define `u n = ¬ e n (0ⁿ)` and `L x = u |x|`. At every length, `L` is constant, so a single leaf computes it (`unary_one_bit`). But `L (0ⁱ) = ¬ e i (0ⁱ)`, so `e i ≠ L` for every `i`. Since the enumeration is arbitrary, no countable family of uniform algorithms captures one-bit advice. In particular, P/1 is not contained in P. Taking `e` to enumerate all Turing machines, it contains undecidable languages as well.
 
-**The obligation is the whole problem.** `uniform_advice_decides` shows that the combined map `x ↦ decode (gen |x|) x` is itself a decider. When `gen` is uniform and polynomial-time, this is a uniform polynomial-time algorithm. Advice therefore gives no leverage toward P vs NP beyond the uniform algorithm it hides.
+**The obligation is the whole problem.** `uniform_advice_decides` shows that, in the schema, the combined map `x ↦ decode (gen |x|) x` is itself a decider. In the machine model this becomes a real algorithm. The machine `m` maps `x` to `adviceWord (adv |x|) x` within `p` steps. Every such image satisfies the promise of `d`, and `unpack` recovers `x`, so `SAT x = SAT (unpack (m x))`. `Machines.inP_of_promise_reduction` composes the two machines into a polynomial-time decider (`inP_of_uniformAdvice`). Conversely, if `L ∈ P`, empty advice works: the prepending machine writes the single bit `0` and a decider for `L` runs after skipping it. That construction is not mechanised, so the converse is only argued here. So `UniformSATAdvice` is equivalent to SAT ∈ P, and advice gives no leverage toward P vs NP beyond the uniform algorithm it hides.
+
+**Link to circuits.** Since the advice is uniform, a language with `UniformAdvice` is in P, and with the known theorem `PSubsetPPoly` (Circuits) it is in P/poly (`inPPoly_of_uniformAdvice`). By `superpoly_iff_not_inPPoly`, a superpolynomial circuit lower bound for SAT therefore refutes `UniformSATAdvice` (`not_uniformSATAdvice_of_superpoly`).
+
+**Non-vacuity.** `Machines.exists_not_inP` gives a language outside P. By `inP_of_uniformAdvice` it has no uniform advice, so `UniformAdvice` is not true of every language (`not_forall_uniformAdvice`).
 
 ## 5. Known results and literature
 
@@ -89,16 +116,21 @@ In Rocq, `DTree.eval` is named `teval`, and `leaves`, `size`, `leafList` are pla
 
 ## 6. How far the idea can be pushed toward P vs NP
 
-The open obligation:
+The open obligation, in the shared machine model:
 
 ```lean
-def UniformPolyAdvice (Uniform : (Nat → List Bool) → Prop) (L : List Bool → Bool) : Prop :=
-  ∃ (gen : Nat → List Bool) (decode : List Bool → List Bool → Bool) (p : Poly),
-    Uniform gen ∧ (∀ n, (gen n).length ≤ p.eval n) ∧
-    ∀ x, decode (gen x.length) x = L x
+def UniformSATAdvice : Prop := UniformAdvice Machines.SAT
 ```
 
-For `L = SAT`, with `Uniform` the polynomial-time generators and `decode` additionally restricted to polynomial time (a restriction not present in the formal definition, see section 2), this is equivalent to P = NP by Cook–Levin (cited, not formalized). With the `decode` restriction but without the `Uniform` clause, it is SAT ∈ P/poly, i.e. NP ⊆ P/poly. That is believed false, since it would collapse PH (Karp–Lipton), but it is open. The theorems here show that the route gives no leverage.
+Mechanised consequences:
+
+* `inP_sat_of_uniformSATAdvice : UniformSATAdvice → InP Machines.SAT`, with no further hypotheses.
+* `pEqualsNP_of_uniformSATAdvice : Machines.SATHard → UniformSATAdvice → PEqualsNP`. The hypothesis `SATHard` is the hardness half of Cook–Levin, a known theorem that is not mechanised.
+* `not_uniformSATAdvice_of_superpoly : Circuits.PSubsetPPoly → Circuits.SuperpolyLowerBound Machines.SAT → ¬ UniformSATAdvice`. The hypothesis `PSubsetPPoly` is the known inclusion P ⊆ P/poly, not mechanised.
+* `not_forall_uniformAdvice`: the class is not everything.
+* `uniformPolyAdviceFor_of_uniformAdvice`: the machine version instantiates the schema `UniformPolyAdviceFor`, with `Uniform` the generators whose advice a polynomial-time machine can attach.
+
+By the argument in section 4, `UniformSATAdvice` is equivalent to SAT ∈ P, so (with Cook–Levin) to P = NP. Dropping the uniform generator `m` and keeping only a polynomial length bound on `adv n` gives SAT ∈ P/poly, i.e. NP ⊆ P/poly. That is believed false, since it would collapse PH (Karp–Lipton), but it is open. The theorems here show that the route gives no leverage.
 
 * The naive advice (the truth table) is `2^n` bits, and `no_shorter_advice` shows that no advice of any fixed length `m < 2^n`, with any decoder, works for *all* functions. Any polynomial advice for SAT must exploit SAT's structure. That structure is exactly what a direct algorithm would exploit.
 * `advice_beyond_uniform` shows that "small at every length" does not imply "computable". A per-length construction must come with a single uniform generator, otherwise it proves nothing about P.

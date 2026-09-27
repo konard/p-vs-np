@@ -2,7 +2,7 @@
 
 **Verdict:** Refuted as a route (general theorem)
 
-The idea is to split a CNF into two sides that share only a small set `S` of separator variables, solve each side, and combine the results. This is exact only if the two sides are matched on a *common separator state*, which is an assignment to `S`. The files prove this exact separator theorem for all CNFs. They prove, for every variable, that the naive variant (check each side separately and glue) is unsound. They also prove that the `2^|S|` separator states cannot be merged: any procedure that summarises one side and decides from the summary must tell all of them apart (the equality gadget). That is a lower bound of `2^|S|` summary values, i.e. `|S|` bits, not an exponential lower bound on the combination step. The exact method enumerates all `2^|S|` states, so on formulas all of whose balanced separators have linear size, which include the standard hard families (cited, not formalized), it costs `2^{Ω(n)}`. As a polynomial method for general SAT, this route is refuted: the naive variant by a formal theorem, the exact state-enumerating variant on the hard families by the cited separator facts.
+The idea is to split a CNF into two sides that share only a small set `S` of separator variables, solve each side, and combine the results. This is exact only if the two sides are matched on a *common separator state*, which is an assignment to `S`. The files prove this exact separator theorem for all CNFs. They prove, for every variable, that the naive variant (check each side separately and glue) is unsound. They also prove that the `2^|S|` separator states cannot be merged: any procedure that summarises one side and decides from the summary must tell all of them apart (the equality gadget). That is a lower bound of `2^|S|` summary values, i.e. `|S|` bits, not an exponential lower bound on the combination step. The exact method enumerates all `2^|S|` states, so on formulas all of whose balanced separators have linear size, which include the standard hard families (cited, not formalized), it costs `2^{Ω(n)}`. As a polynomial method for general SAT, this route is refuted: the naive variant by a formal theorem, the exact state-enumerating variant on the hard families by the cited separator facts. In the Lean file the recursive route is stated in the shared machine model. The open obligation `SATSeparatorReduction` asks for a `Complexity.Machine` that maps every SAT instance, within a polynomial number of `Run` steps, to an equisatisfiable instance with a recursive separator decomposition of logarithmic budget. `pEqualsNP_of_separatorReduction` derives `PEqualsNP` from it, given two known theorems that are not mechanised: `SATHard` and `LogSeparatorSATInP` (separator-state dynamic programming is polynomial at logarithmic treewidth). The obligation is as hard as P = NP.
 
 ## 1. The idea at full strength
 
@@ -26,6 +26,34 @@ The claims needed for a polynomial separator algorithm are:
 > (Sep) For every CNF, a polynomial-time recursive separator decomposition with separators of size `O(log n)` at every level;
 > (Comb) a combination step whose cost is polynomial in `|S|`.
 
+In the Lean file, (Sep) is stated in the shared machine model (`Machines`), where time is the `Run` step count of a `Complexity.Machine`. A recursive decomposition with a total separator budget `r` along every branch is
+
+```lean
+inductive SepTree : Nat → CNF → Prop
+  | leaf {r : Nat} {φ : CNF} : (vars φ).length ≤ r → SepTree r φ
+  | split {r : Nat} {A B : CNF} (S : List Nat) :
+      (∀ v, v ∈ vars A → v ∈ vars B → v ∈ S) → S.length ≤ r →
+      SepTree (r - S.length) A → SepTree (r - S.length) B → SepTree r (A ++ B)
+
+def SepPromise (k : Nat) (w : Word) : Prop :=
+  SepTree (k * Nat.log2 (w.length + 1)) (ofM (Machines.decode w))
+
+def SeparatorReduction (L : Language) (k : Nat) : Prop :=
+  ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧
+    ∀ x, SepPromise k (f x) ∧ L x = Machines.SAT (f x)
+
+/-- Open obligation. -/
+def SATSeparatorReduction : Prop := ∃ k, SeparatorReduction Machines.SAT k
+
+/-- Known theorem, not mechanised here. -/
+def LogSeparatorSATInP : Prop :=
+  ∀ k, ∃ (d : Machine) (p : Polynomial), Machines.DecidesOn d p (SepPromise k) Machines.SAT
+```
+
+`ofM` reads a CNF of the shared layer in this file's syntax, and `sat_ofM` proves that `Machines.SAT w = true` iff that CNF is satisfiable. The budget is shared along a branch, not granted afresh at each level. The bag of a node can be taken as the variables of its formula that lie in the separators on its path, plus the leaf variables at a leaf. This gives a tree decomposition of the primal graph of width below `2r` (argued in the docstring, not mechanised). A per-level bound `O(log n)` over `O(log n)` levels would allow treewidth `O(log² n)`, and the known theorem would then not be available. `LogSeparatorSATInP` is true for the budgeted form. A tree decomposition of width `O(log n)` can be found in polynomial time (Robertson–Seymour 1995; Bodlaender et al. 2016), and dynamic programming over its separator states runs in `2^{O(tw)}·poly` (Alekhnovich–Razborov 2002; Samer–Szeider 2010). No machine carrying this out is mechanised, so the statement enters only as a named hypothesis.
+
+The earlier one-level form is kept as the schema `SeparatorObligationFor PolyTime w` over a caller-supplied class `PolyTime`. The machine model does not instantiate it naturally: the schema bounds the separator by a function of the number of clauses, while the machine promise uses the length of the encoded word, and it is recursive.
+
 The files prove a weaker, exact statement in the one-way summary model: a sound summary must be injective on all `2^|S|` states, so it has at least `2^|S|` distinct values (`|S|` bits). This rules out merging states, but it does not by itself exclude a combination step polynomial in `|S|`. The exponential cost of the exact method comes from enumerating the states. The hard families fail (Sep): all their balanced separators have linear size (cited).
 
 ## 3. What is machine-checked
@@ -43,7 +71,23 @@ The files prove a weaker, exact statement in the one-way summary model: a sound 
 | `compatible_states_units` | If `S` is duplicate-free and `|σ| = |S|`: some model of `units S σ` has state `τ` iff `τ = σ` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
 | `equality_gadget` | If `S` is duplicate-free and `|σ| = |τ| = |S|`: both `units S σ` and `units S τ` are satisfiable, and `units S σ ++ units S τ` is satisfiable iff `σ = τ` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
 | `summary_must_be_injective` | Let `S` be duplicate-free, and let `D (summ σ) τ` decide `Satisfiable (units S σ ++ units S τ)` correctly for all length-`|S|` states. Then `summ σ = summ τ` implies `σ = τ` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
-| `separator_obligation_states` | Under `SeparatorObligation`, `Satisfiable φ` iff some of the `2^{|S|}` separator states (`|S| ≤ w(|φ|)`) is realized by models of both sides | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `SeparatorObligationFor` (def) | One-level schema for (Sep) over a free class `PolyTime` of maps and a bound `w` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `separator_obligation_states` | Under `SeparatorObligationFor`, `Satisfiable φ` iff some of the `2^{|S|}` separator states (`|S| ≤ w(|φ|)`) is realized by models of both sides | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `SepTree` (inductive) | Recursive separator decomposition with a total separator budget `r` along every branch | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `sepTree_root` | A separator tree is a leaf with at most `r` variable occurrences, or one exact separator step (`separator_sat_iff`) with `|S| ≤ r` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `sepTree_mono` | A separator tree with budget `r` has every budget `r' ≥ r` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `sat_ofM` | `Machines.SAT w = true ↔ Satisfiable (ofM (Machines.decode w))` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `SepPromise`, `SeparatorReduction` (defs) | The logarithmic-budget promise on words, and a polynomial-time machine reduction onto it | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `LogSeparatorSATInP` (def) | Known theorem, not mechanised: for each `k`, a polynomial-time machine decides SAT on `SepPromise k`. Used only as a hypothesis | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `SATSeparatorReduction` (def) | Open obligation: `∃ k, SeparatorReduction Machines.SAT k` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `inP_of_separatorReduction` | `LogSeparatorSATInP → SeparatorReduction L k → InP L` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `inP_sat_of_separatorReduction` | `LogSeparatorSATInP → SATSeparatorReduction → InP Machines.SAT` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `pEqualsNP_of_separatorReduction` | `SATHard → LogSeparatorSATInP → SATSeparatorReduction → PEqualsNP` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `separatorReduction_states` | Under the obligation, each reduced instance is a small leaf or splits exactly over at most `2^{k·log₂(|f x|+1)}` separator states, and `SAT x` is its satisfiability | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `exists_not_reducible` | For every `M`, some language has no machine map `f` with `L x = M (f x)` (Cantor over machines) | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+| `not_forall_separatorReduction` | Non-vacuity: `¬ ∀ L, SeparatorReduction L k` for every `k` | [Idea26.lean](../lean/Idea26.lean) | [Idea26.v](../rocq/Idea26.v) |
+
+The rows from `SepTree` on are Lean only for now. The intended Rocq names are the same as the Lean names.
 
 No axioms are used, and there is no `sorry`/`Admitted`.
 
@@ -93,20 +137,16 @@ At full potential this idea is separator/treewidth dynamic programming. Its guar
 * `2^{O(√n)}` time on planar instances, which is still NP-complete by Lichtenstein;
 * `2^{O(n)}` time in general.
 
-One level of (Sep) is stated in both files, with the time class and the separator bound `w` as parameters:
+One level of (Sep) is kept in both files as the schema `SeparatorObligationFor PolyTime w`, and `separator_obligation_states` proves its conditional step: satisfiability is decided by the `2^{w(|φ|)}` separator states (in Rocq the triple is destructured as `(A, B, Sep)`). The schema's class `PolyTime` is supplied by the caller, so it carries no running-time content.
+
+The remaining obligation for a P = NP route is the recursive form of (Sep) in the machine model, `SATSeparatorReduction` (Section 2). The proved route is
 
 ```lean
-def SeparatorObligation (PolyTime : (CNF → CNF × CNF × List Nat) → Prop) (w : Nat → Nat) :
-    Prop :=
-  ∃ f : CNF → CNF × CNF × List Nat, PolyTime f ∧ ∀ φ,
-    (∀ v, v ∈ vars (f φ).1 → v ∈ vars (f φ).2.1 → v ∈ (f φ).2.2) ∧
-    (f φ).2.2.length ≤ w φ.length ∧
-    (Satisfiable φ ↔ Satisfiable ((f φ).1 ++ (f φ).2.1))
+theorem pEqualsNP_of_separatorReduction (hard : Machines.SATHard)
+    (hS : LogSeparatorSATInP) (h : SATSeparatorReduction) : PEqualsNP
 ```
 
-`separator_obligation_states` proves the conditional step: under the obligation, satisfiability is decided by the `2^{w(|φ|)}` separator states (in Rocq the triple is destructured as `(A, B, Sep)`). Applied recursively with `w = O(log n)`, this gives the polynomial DP.
-
-The remaining obligation for a P = NP route is (Sep) together with a cheaper (Comb). The files show that a sound one-way summary needs at least `2^|S|` values (`|S|` bits), so states cannot be merged. So the obligation reduces to: *every CNF can be transformed in polynomial time into an equisatisfiable CNF with logarithmic separators at every level*. As in Idea 25, for an honest time model (not formalized), this is equivalent to SAT ∈ P. If SAT ∈ P, output a trivial formula; conversely, run the DP. It is not easier than the original problem.
+Besides the obligation it uses two known theorems that are not mechanised. `SATHard` is the hardness half of Cook–Levin (shared layer). `LogSeparatorSATInP` states that (Comb), done exactly by enumerating separator states, is polynomial at logarithmic budget, with a machine carrying it out. `separatorReduction_states` is the exact step: every reduced instance is a small leaf or splits over at most `2^{k·log₂(|f x|+1)}` separator states. `not_forall_separatorReduction` shows that the obligation is a statement about SAT: for every `k`, some language has no such reduction. The files also show that a sound one-way summary needs at least `2^|S|` values (`|S|` bits), so states cannot be merged and the budget cannot be cheated at the interface. The obligation is equivalent to SAT ∈ P (only the forward direction is mechanised). If SAT ∈ P, a machine outputs a constant-size formula, which is a leaf. So it is not easier than the original problem.
 
 Barriers and evidence:
 

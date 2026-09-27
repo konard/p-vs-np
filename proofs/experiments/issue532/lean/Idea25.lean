@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 25: decomposable constraints (component splitting)
 
@@ -26,6 +28,18 @@ satisfiable formulas can be connected for every size; the hard families used
 in complexity theory (random 3-CNF, Tseitin formulas on expanders) are
 connected and even have linear treewidth. Component splitting therefore gives
 no polynomial bound for SAT in general. See `../ideas/Idea25.md`.
+
+Cost layer, in the shared machine model (`Machines`): `SmallComponents k w`
+says that the CNF encoded by the word `w` is a disjoint union of components
+with at most `k * log₂ (|w|+1)` variable occurrences each.  The named known
+theorem `SmallComponentSATInP` (componentwise brute force is polynomial on that
+promise) is a hypothesis, not mechanised.  The open obligation
+`SATComponentReduction` asks for a `Complexity.Machine` that maps every SAT
+instance, within a polynomial number of steps, to an equisatisfiable instance
+with small components; `inP_sat_of_componentReduction` and
+`pEqualsNP_of_componentReduction` derive `InP SAT` and `PEqualsNP` from it, and
+`not_forall_componentReduction` shows that the reduction notion is not
+satisfied by every language.
 -/
 
 namespace Issue532.Idea25
@@ -237,20 +251,23 @@ theorem split_cost (a b : Nat) : 2 ^ a + 2 ^ b ≤ 2 * 2 ^ (max a b) ∧
     rw [e]; exact Nat.le_add_right _ _
 
 
-/-! ## The open obligation -/
+/-! ## The size schema -/
 
-/-- The open obligation (FS): a map in the class `PolyTime` sending every CNF to
-pairwise variable-disjoint components whose union is equisatisfiable, each
-component having at most `w |φ|` variable occurrences. -/
-def ComponentObligation (PolyTime : (CNF → List CNF) → Prop) (w : Nat → Nat) : Prop :=
+/-- Schema for (FS) over a caller-supplied class `PolyTime` of maps and a width
+bound `w`: a map in `PolyTime` sending every CNF to pairwise variable-disjoint
+components whose union is equisatisfiable, each component having at most
+`w |φ|` variable occurrences.  `PolyTime` is a free parameter, so the schema is
+not itself a statement about running time; the machine version is
+`SATComponentReduction` below. -/
+def ComponentObligationFor (PolyTime : (CNF → List CNF) → Prop) (w : Nat → Nat) : Prop :=
   ∃ f : CNF → List CNF, PolyTime f ∧ ∀ φ, DisjointChain (f φ) ∧
     (∀ ψ, ψ ∈ f φ → (vars ψ).length ≤ w φ.length) ∧
     (Satisfiable φ ↔ Satisfiable (joinAll (f φ)))
 
-/-- Conditional theorem: under the obligation, satisfiability of every CNF is
+/-- Conditional theorem: under the schema, satisfiability of every CNF is
 the conjunction of the satisfiability of its small components. -/
 theorem component_obligation_splits (PolyTime : (CNF → List CNF) → Prop) (w : Nat → Nat)
-    (h : ComponentObligation PolyTime w) :
+    (h : ComponentObligationFor PolyTime w) :
     ∃ f : CNF → List CNF, PolyTime f ∧ ∀ φ,
       (∀ ψ, ψ ∈ f φ → (vars ψ).length ≤ w φ.length) ∧
       (Satisfiable φ ↔ ∀ ψ, ψ ∈ f φ → Satisfiable ψ) := by
@@ -258,5 +275,146 @@ theorem component_obligation_splits (PolyTime : (CNF → List CNF) → Prop) (w 
   refine ⟨f, hf, fun φ => ?_⟩
   obtain ⟨hd, hw, hp⟩ := hall φ
   exact ⟨hw, hp.trans (joinAll_sat_iff (f φ) hd)⟩
+
+/-! ## The machine model -/
+
+open Complexity
+
+/-- A CNF of the shared machine model, read in this file's syntax. -/
+def ofM (φ : Machines.CNF) : CNF := φ.map (List.map fun l => ⟨l.var, l.pos⟩)
+
+theorem evalClause_ofM (a : Assignment) (C : Machines.Clause) :
+    evalClause a (C.map fun l => (⟨l.var, l.pos⟩ : Lit)) = Machines.evalClause a C := by
+  induction C with
+  | nil => rfl
+  | cons l C ih =>
+    simp only [List.map_cons, evalClause, Machines.evalClause, ih, evalLit, Machines.evalLit]
+    cases l.pos <;> cases a l.var <;> rfl
+
+theorem evalCNF_ofM (a : Assignment) (φ : Machines.CNF) :
+    evalCNF a (ofM φ) = Machines.evalCNF a φ := by
+  induction φ with
+  | nil => rfl
+  | cons C φ ih =>
+    simp only [ofM, List.map_cons, evalCNF, Machines.evalCNF] at ih ⊢
+    rw [evalClause_ofM, ih]
+
+/-- The shared language `SAT` is satisfiability in this file's syntax. -/
+theorem sat_ofM (w : Word) : Machines.SAT w = true ↔ Satisfiable (ofM (Machines.decode w)) := by
+  rw [Machines.sat_iff]
+  constructor
+  · rintro ⟨a, ha⟩; exact ⟨a, by rw [evalCNF_ofM]; exact ha⟩
+  · rintro ⟨a, ha⟩; exact ⟨a, by rw [← evalCNF_ofM]; exact ha⟩
+
+/-- The word `w` encodes a CNF that is a disjoint union of components with at
+most `k * log₂ (|w|+1)` variable occurrences each. -/
+def SmallComponents (k : Nat) (w : Word) : Prop :=
+  ∃ φs : List CNF, ofM (Machines.decode w) = joinAll φs ∧ DisjointChain φs ∧
+    ∀ ψ, ψ ∈ φs → (vars ψ).length ≤ k * Nat.log2 (w.length + 1)
+
+/-- On the promise `SmallComponents k`, SAT is the conjunction of the
+satisfiability of the small components (the exact splitting lemma). -/
+theorem sat_of_smallComponents {k : Nat} {w : Word} (h : SmallComponents k w) :
+    ∃ φs : List CNF, (∀ ψ, ψ ∈ φs → (vars ψ).length ≤ k * Nat.log2 (w.length + 1)) ∧
+      (Machines.SAT w = true ↔ ∀ ψ, ψ ∈ φs → Satisfiable ψ) := by
+  obtain ⟨φs, he, hd, hs⟩ := h
+  exact ⟨φs, hs, by rw [sat_ofM, he, joinAll_sat_iff φs hd]⟩
+
+/-- **Known theorem, not mechanised here.** For each fixed `k`, SAT is decided in
+polynomial time on the promise `SmallComponents k`.  Algorithm: compute the
+connected components of the primal graph (graph search, e.g. Hopcroft–Tarjan,
+CACM 16(6), 1973); each of them lies inside one of the promised components
+(the promised components are variable-disjoint), so it has at most
+`k * log₂ (|w|+1)` distinct variables, and brute force over its assignments
+costs at most `(|w|+1)^k` evaluations; by `joinAll_sat_iff` the answer is the
+conjunction.  This is the folklore base case of treewidth dynamic programming
+(Samer–Szeider, J. Discrete Algorithms 8(1), 2010).  What is not mechanised is
+the `Complexity.Machine` carrying it out. -/
+def SmallComponentSATInP : Prop :=
+  ∀ k, ∃ (d : Machine) (p : Polynomial), Machines.DecidesOn d p (SmallComponents k) Machines.SAT
+
+/-- A polynomial-time machine reduction of `L` to SAT instances with small
+components. -/
+def ComponentReduction (L : Language) (k : Nat) : Prop :=
+  ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧
+    ∀ x, SmallComponents k (f x) ∧ L x = Machines.SAT (f x)
+
+/-- **Open obligation** (FS in the machine model).  For some `k`, a
+`Complexity.Machine` maps every word `x`, within a polynomial number of `Run`
+steps, to a word `f x` with `SAT x = SAT (f x)` whose CNF splits into
+variable-disjoint components of at most `k * log₂ (|f x|+1)` variable
+occurrences. -/
+def SATComponentReduction : Prop := ∃ k, ComponentReduction Machines.SAT k
+
+/-- Transfer: a component reduction and the componentwise decider put `L` in P. -/
+theorem inP_of_componentReduction {L : Language} {k : Nat} (hK : SmallComponentSATInP)
+    (h : ComponentReduction L k) : InP L := by
+  obtain ⟨m, f, p, hm, hf⟩ := h
+  obtain ⟨d, p', hd⟩ := hK k
+  exact Machines.inP_of_promise_reduction hm (fun x => (hf x).1) (fun x => (hf x).2) hd
+
+/-- **Conditional theorem.** The open obligation and the known componentwise
+decider put SAT in P. -/
+theorem inP_sat_of_componentReduction (hK : SmallComponentSATInP)
+    (h : SATComponentReduction) : InP Machines.SAT := by
+  obtain ⟨k, hk⟩ := h
+  exact inP_of_componentReduction hK hk
+
+/-- **Conditional theorem.** With the hardness half of Cook–Levin, the open
+obligation gives P = NP. -/
+theorem pEqualsNP_of_componentReduction (hard : Machines.SATHard)
+    (hK : SmallComponentSATInP) (h : SATComponentReduction) : PEqualsNP :=
+  Machines.pEqualsNP_of_inP_sat hard (inP_sat_of_componentReduction hK h)
+
+/-- Machine analogue of `component_obligation_splits`: under the obligation,
+`SAT x` holds iff every small component of the reduced instance is
+satisfiable. -/
+theorem componentReduction_splits (h : SATComponentReduction) :
+    ∃ (k : Nat) (m : Machine) (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧
+      ∀ x, ∃ φs : List CNF,
+        (∀ ψ, ψ ∈ φs → (vars ψ).length ≤ k * Nat.log2 ((f x).length + 1)) ∧
+        (Machines.SAT x = true ↔ ∀ ψ, ψ ∈ φs → Satisfiable ψ) := by
+  obtain ⟨k, m, f, p, hm, hf⟩ := h
+  refine ⟨k, m, f, p, hm, fun x => ?_⟩
+  obtain ⟨φs, hs, hsat⟩ := sat_of_smallComponents (hf x).1
+  exact ⟨φs, hs, by rw [(hf x).2]; exact hsat⟩
+
+/-- The language obtained by running the machine `m` as a reduction into `M`. -/
+noncomputable def viaMachine (M : Language) (m : Machine) : Language :=
+  fun x => @decide (∃ (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧ M (f x) = true)
+    (Classical.propDecidable _)
+
+theorem viaMachine_eq {M : Language} {m : Machine} {f : Word → Word} {p : Polynomial}
+    (hm : Machines.Computes m f p) : viaMachine M m = fun x => M (f x) := by
+  funext x
+  unfold viaMachine
+  cases h : M (f x) with
+  | true => exact @decide_eq_true _ (Classical.propDecidable _) ⟨f, p, hm, h⟩
+  | false =>
+    apply @decide_eq_false _ (Classical.propDecidable _)
+    rintro ⟨g, q, hg, hgx⟩
+    rw [← Machines.computes_unique hm hg, h] at hgx
+    cases hgx
+
+/-- **Cantor over machines.** For every target language `M` some language has no
+machine map `f` with `L x = M (f x)`. -/
+theorem exists_not_reducible (M : Language) :
+    ∃ L : Language, ∀ (m : Machine) (f : Word → Word) (p : Polynomial),
+      Machines.Computes m f p → ∃ x, L x ≠ M (f x) := by
+  obtain ⟨L, hL⟩ := Machines.exists_language_not_in_family Machines.encMachine
+    (fun _ _ h => Machines.encMachine_injective h) (viaMachine M)
+  refine ⟨L, fun m f p hm => Classical.byContradiction fun hno => hL m ?_⟩
+  rw [viaMachine_eq hm]
+  funext x
+  exact Classical.byContradiction fun hx => hno ⟨x, fun h => hx h.symm⟩
+
+/-- **Non-vacuity.** For every `k`, some language has no component reduction, so
+`ComponentReduction Machines.SAT k` is a statement about SAT. -/
+theorem not_forall_componentReduction (k : Nat) : ¬ ∀ L : Language, ComponentReduction L k := by
+  intro h
+  obtain ⟨L, hL⟩ := exists_not_reducible Machines.SAT
+  obtain ⟨m, f, p, hm, hf⟩ := h L
+  obtain ⟨x, hx⟩ := hL m f p hm
+  exact hx (hf x).2
 
 end Issue532.Idea25

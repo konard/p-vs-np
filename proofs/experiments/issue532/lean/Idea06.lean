@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 06: local search and potential functions
 
@@ -23,9 +25,19 @@ Summary.
   `(unsatCount a φ + 1) · B` neighbour evaluations, and its result satisfies
   `φ` iff `φ` is satisfiable.
 
+* Machine model (`Machines`). `ExactLocalSearch` (the open obligation) asks
+  for a polynomial-time `Complexity.Machine` that maps every instance to a SAT
+  instance together with a local minimum of an exact neighbourhood for it.
+  With the named known theorem `CNFEvalInP` (evaluating a CNF under a given
+  assignment is in P) it gives `InP SAT` (`inP_sat_of_exactLocalSearch`) and,
+  with `SATHard`, P = NP (`pEqualsNP_of_exactLocalSearch`).  Not every
+  language is solved this way (`not_forall_localSearchSolves`).
+
 Verdict: refuted as a route (general theorem). A neighbourhood that is exact
 and efficiently computable would give a polynomial SAT decider (Idea 01's
-`PolySATDecider`). Every fixed-radius flip neighbourhood fails exactness.
+`PolySATDecider`). Every fixed-radius flip neighbourhood fails exactness, and
+an exact neighbourhood of size one always exists, so exactness and size are
+not the obstacle: computing the local minimum is.
 -/
 
 namespace Issue532.Idea06
@@ -195,9 +207,11 @@ theorem varsBelow_numVars (φ : CNF) : VarsBelow (numVars φ) φ := by
 def IsLocalMin {α : Type} (cost : α → Nat) (nbr : α → List α) (s : α) : Prop :=
   ∀ t, t ∈ nbr s → cost s ≤ cost t
 
-/-- A neighbourhood is exact (over the whole state space) if every local
-minimum is a global minimum. -/
-def ExactAll {α : Type} (cost : α → Nat) (nbr : α → List α) : Prop :=
+/-- Schema: a neighbourhood is exact (over the whole state space) if every local
+minimum is a global minimum.  `cost` is the potential being minimised, not a
+running time; the machine-model statement built on this schema is
+`ExactLocalSearch` at the end of the file. -/
+def ExactAllFor {α : Type} (cost : α → Nat) (nbr : α → List α) : Prop :=
   ∀ s, IsLocalMin cost nbr s → ∀ t, cost s ≤ cost t
 
 /-- An improving walk: each step moves to a neighbour of strictly smaller cost. -/
@@ -279,12 +293,12 @@ theorem line_never_reaches_global (M n i : Nat) (hi : i + 2 ≤ n) :
 
 /-- The full neighbourhood is exact. -/
 theorem full_neighbourhood_exact {α : Type} (cost : α → Nat) (U : List α)
-    (hU : ∀ t, t ∈ U) : ExactAll cost (fun _ => U) :=
+    (hU : ∀ t, t ∈ U) : ExactAllFor cost (fun _ => U) :=
   fun _ hs t => hs t (hU t)
 
 /-- Jumping directly to a global minimum is an exact neighbourhood of size 1. -/
 theorem singleton_exact_neighbourhood {α : Type} (cost : α → Nat) (best : α)
-    (hbest : ∀ t, cost best ≤ cost t) : ExactAll cost (fun _ => [best]) :=
+    (hbest : ∀ t, cost best ≤ cost t) : ExactAllFor cost (fun _ => [best]) :=
   fun _ hs t => Nat.le_trans (hs best (List.mem_singleton.mpr rfl)) (hbest t)
 
 /-- Improving walks are short: their length is bounded by the start cost. -/
@@ -413,7 +427,7 @@ theorem unsatCount_congr (a b : Assignment) (n : Nat) (φ : CNF)
 anywhere, with fuel `unsatCount a φ + 1`, returns an assignment that satisfies
 `φ` iff `φ` is satisfiable. -/
 theorem exact_local_search_decides (φ : CNF) (nbr : Assignment → List Assignment)
-    (hex : ExactAll (fun a => unsatCount a φ) nbr) (a : Assignment) :
+    (hex : ExactAllFor (fun a => unsatCount a φ) nbr) (a : Assignment) :
     evalCNF (localSearch (fun b => unsatCount b φ) nbr (unsatCount a φ + 1) a) φ = true
       ↔ Satisfiable φ := by
   constructor
@@ -470,7 +484,7 @@ theorem bestAssign_min (φ : CNF) : ∀ t, unsatCount (bestAssign φ) φ ≤ uns
 exact neighbourhood is therefore no obstacle; the cost of computing it is. -/
 theorem exists_size_one_exact_neighbourhood :
     ∃ N : CNF → Assignment → List Assignment,
-      (∀ φ a, (N φ a).length = 1) ∧ ∀ φ, ExactAll (fun a => unsatCount a φ) (N φ) :=
+      (∀ φ a, (N φ a).length = 1) ∧ ∀ φ, ExactAllFor (fun a => unsatCount a φ) (N φ) :=
   ⟨fun φ _ => [bestAssign φ], fun _ _ => rfl,
     fun φ => singleton_exact_neighbourhood _ (bestAssign φ) (bestAssign_min φ)⟩
 
@@ -587,5 +601,184 @@ theorem bounded_flip_not_exact (k : Nat) :
   intro h0
   rw [(unsatCount_eq_zero_iff b _).mp h0] at h
   cases h
+
+/-! ## The machine model: exact local search as a polynomial-time machine -/
+
+open Complexity
+
+/-- The CNFs of the shared machine model, in this file's syntax. -/
+def ofM (φ : Machines.CNF) : CNF := φ.map (List.map fun l => ⟨l.var, l.pos⟩)
+
+theorem evalClause_ofM (a : Assignment) (C : Machines.Clause) :
+    evalClause a (C.map fun l => (⟨l.var, l.pos⟩ : Lit)) = Machines.evalClause a C := by
+  induction C with
+  | nil => rfl
+  | cons l C ih =>
+    simp only [List.map_cons, evalClause, Machines.evalClause, ih, evalLit, Machines.evalLit]
+
+theorem evalCNF_ofM (a : Assignment) (φ : Machines.CNF) :
+    evalCNF a (ofM φ) = Machines.evalCNF a φ := by
+  induction φ with
+  | nil => rfl
+  | cons C φ ih =>
+    simp only [ofM, List.map_cons, evalCNF, Machines.evalCNF] at ih ⊢
+    rw [evalClause_ofM, ih]
+
+/-- The machine-model language `SAT` is satisfiability in this file's syntax. -/
+theorem sat_ofM (w : Word) : Machines.SAT w = true ↔ Satisfiable (ofM (Machines.decode w)) := by
+  rw [Machines.sat_iff]
+  constructor
+  · rintro ⟨a, ha⟩; exact ⟨a, by rw [evalCNF_ofM]; exact ha⟩
+  · rintro ⟨a, ha⟩; exact ⟨a, by rw [← evalCNF_ofM]; exact ha⟩
+
+/-- Self-delimiting encoding of an assignment prefix: each bit `b` becomes
+`1 b`, and a final `0` ends the list. -/
+def pack : Word → Word
+  | [] => [false]
+  | b :: bits => true :: b :: pack bits
+
+/-- Split a word into a packed bit list and the rest. -/
+def splitPacked : Word → Word × Word
+  | true :: b :: w => (b :: (splitPacked w).1, (splitPacked w).2)
+  | false :: w => ([], w)
+  | _ => ([], [])
+
+theorem splitPacked_pack (bits x : Word) : splitPacked (pack bits ++ x) = (bits, x) := by
+  induction bits with
+  | nil => rfl
+  | cons b bits ih => simp only [pack, List.cons_append, splitPacked, ih]
+
+/-- The assignment given by a bit list (variables beyond the list are false). -/
+def assignOf (bits : Word) : Assignment := fun i => bits.getD i false
+
+/-- CNF evaluation as a language: the input is a packed assignment followed by
+an encoded CNF, and the answer is the value of the CNF under the assignment. -/
+def EvalLang : Language := fun w =>
+  Machines.evalCNF (assignOf (splitPacked w).1) (Machines.decode (splitPacked w).2)
+
+theorem evalLang_pack (bits x : Word) :
+    EvalLang (pack bits ++ x) = evalCNF (assignOf bits) (ofM (Machines.decode x)) := by
+  simp only [EvalLang, splitPacked_pack, evalCNF_ofM]
+
+/-- **Known theorem, not mechanised here.** Evaluating a CNF under a given
+assignment is in P: split off the packed assignment, decode the formula in one
+left-to-right scan and evaluate each literal by a table lookup, in time
+quadratic in the input length (S. A. Cook, "The complexity of theorem-proving
+procedures", STOC 1971; Arora–Barak, *Computational Complexity*, 2009, Ch. 2,
+where this is the verifier showing SAT ∈ NP). -/
+def CNFEvalInP : Prop := InP EvalLang
+
+/-- Exact local search as a polynomial-time machine: a neighbourhood `N φ` that
+is exact for `unsatCount · φ` on every CNF, and a `Complexity.Machine` that maps
+each input `x` within `p` steps to a CNF instance `f x` with `L x = SAT (f x)`,
+prefixed by an assignment that is a local minimum of `N` on that instance. -/
+def LocalSearchSolves (L : Language) : Prop :=
+  ∃ (N : CNF → Assignment → List Assignment) (m : Machine) (f g : Word → Word)
+    (p : Polynomial),
+    (∀ φ, ExactAllFor (fun a => unsatCount a φ) (N φ)) ∧ Machines.Computes m g p ∧
+    ∀ x, L x = Machines.SAT (f x) ∧ ∃ bits, g x = pack bits ++ f x ∧
+      IsLocalMin (fun a => unsatCount a (ofM (Machines.decode (f x))))
+        (N (ofM (Machines.decode (f x)))) (assignOf bits)
+
+/-- **Open obligation.** SAT is solved by exact local search in the machine
+model: a polynomial-time `Complexity.Machine` outputs, for every instance, a
+SAT instance together with a local minimum of an exact neighbourhood. -/
+def ExactLocalSearch : Prop := LocalSearchSolves Machines.SAT
+
+/-- With an exact neighbourhood a local minimum decides satisfiability. -/
+theorem localMin_decides {φ : CNF} {N : Assignment → List Assignment}
+    (hN : ExactAllFor (fun a => unsatCount a φ) N) {s : Assignment}
+    (hs : IsLocalMin (fun a => unsatCount a φ) N s) :
+    evalCNF s φ = true ↔ Satisfiable φ := by
+  constructor
+  · intro h; exact ⟨s, h⟩
+  · rintro ⟨u, hu⟩
+    have hle := hN s hs u
+    have h0 := (unsatCount_eq_zero_iff u φ).mpr hu
+    exact (unsatCount_eq_zero_iff s φ).mp (by simp only at hle; omega)
+
+/-- The search machine is a polynomial-time reduction to CNF evaluation. -/
+theorem localSearchSolves_reduces {L : Language} (h : LocalSearchSolves L) :
+    ∃ (m : Machine) (g : Word → Word) (p : Polynomial), Machines.Computes m g p ∧
+      ∀ x, L x = EvalLang (g x) := by
+  obtain ⟨N, m, f, g, p, hN, hm, hx⟩ := h
+  refine ⟨m, g, p, hm, fun x => ?_⟩
+  obtain ⟨hL, bits, hg, hmin⟩ := hx x
+  rw [hL, hg, evalLang_pack]
+  apply Bool.eq_iff_iff.mpr
+  rw [sat_ofM]
+  exact (localMin_decides (hN _) hmin).symm
+
+/-- Exact local search in the machine model puts the language in P, given the
+known theorem `CNFEvalInP`. -/
+theorem inP_of_localSearchSolves (hE : CNFEvalInP) {L : Language}
+    (h : LocalSearchSolves L) : InP L := by
+  obtain ⟨m, g, p, hm, hg⟩ := localSearchSolves_reduces h
+  exact Machines.inP_of_reduces ⟨m, g, p, hm, hg⟩ hE
+
+/-- **Conditional theorem.** The open obligation puts SAT in P (given the known
+theorem `CNFEvalInP`). -/
+theorem inP_sat_of_exactLocalSearch (hE : CNFEvalInP) (h : ExactLocalSearch) :
+    InP Machines.SAT :=
+  inP_of_localSearchSolves hE h
+
+/-- **Conditional theorem.** With the hardness half of Cook–Levin, the open
+obligation gives P = NP. -/
+theorem pEqualsNP_of_exactLocalSearch (hard : Machines.SATHard) (hE : CNFEvalInP)
+    (h : ExactLocalSearch) : PEqualsNP :=
+  Machines.pEqualsNP_of_inP_sat hard (inP_sat_of_exactLocalSearch hE h)
+
+/-- **The neighbourhood is free.** Using the size-one exact neighbourhood of
+`exists_size_one_exact_neighbourhood`, the open obligation follows from a
+polynomial-time machine that attaches a *globally* minimal assignment to every
+input.  So the whole content of `ExactLocalSearch` is computing a minimum. -/
+theorem exactLocalSearch_of_globalMin {m : Machine} {g : Word → Word} {p : Polynomial}
+    (hm : Machines.Computes m g p)
+    (hg : ∀ x, ∃ bits, g x = pack bits ++ x ∧
+      ∀ u, unsatCount (assignOf bits) (ofM (Machines.decode x)) ≤
+        unsatCount u (ofM (Machines.decode x))) :
+    ExactLocalSearch := by
+  obtain ⟨N, _, hN⟩ := exists_size_one_exact_neighbourhood
+  refine ⟨N, m, fun x => x, g, p, hN, hm, fun x => ⟨rfl, ?_⟩⟩
+  obtain ⟨bits, hb, hmin⟩ := hg x
+  exact ⟨bits, hb, fun u _ => hmin u⟩
+
+/-- The language decided by `M` after the map computed by the machine `m`. -/
+noncomputable def viaMachine (M : Language) (m : Machine) : Language :=
+  fun x => @decide (∃ (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧ M (f x) = true)
+    (Classical.propDecidable _)
+
+theorem viaMachine_eq {M : Language} {m : Machine} {f : Word → Word} {p : Polynomial}
+    (hm : Machines.Computes m f p) : viaMachine M m = fun x => M (f x) := by
+  funext x
+  unfold viaMachine
+  cases h : M (f x) with
+  | true => exact @decide_eq_true _ (Classical.propDecidable _) ⟨f, p, hm, h⟩
+  | false =>
+    apply @decide_eq_false _ (Classical.propDecidable _)
+    rintro ⟨g, q, hg, hgx⟩
+    rw [← Machines.computes_unique hm hg, h] at hgx
+    cases hgx
+
+/-- For every language `M` some language is not polynomial-time reducible to it
+(Cantor's argument over machines). -/
+theorem exists_not_reducible (M : Language) :
+    ∃ L : Language, ∀ (m : Machine) (f : Word → Word) (p : Polynomial),
+      Machines.Computes m f p → ∃ x, L x ≠ M (f x) := by
+  obtain ⟨L, hL⟩ := Machines.exists_language_not_in_family Machines.encMachine
+    (fun _ _ h => Machines.encMachine_injective h) (viaMachine M)
+  refine ⟨L, fun m f p hm => Classical.byContradiction fun hno => hL m ?_⟩
+  rw [viaMachine_eq hm]
+  funext x
+  exact Classical.byContradiction fun hx => hno ⟨x, fun h => hx h.symm⟩
+
+/-- **Non-vacuity.** Not every language is solved by exact local search in the
+machine model (unconditionally, without `CNFEvalInP`). -/
+theorem not_forall_localSearchSolves : ¬ ∀ L : Language, LocalSearchSolves L := by
+  intro h
+  obtain ⟨L, hL⟩ := exists_not_reducible EvalLang
+  obtain ⟨m, g, p, hm, hg⟩ := localSearchSolves_reduces (h L)
+  obtain ⟨x, hx⟩ := hL m g p hm
+  exact hx (hg x)
 
 end Issue532.Idea06

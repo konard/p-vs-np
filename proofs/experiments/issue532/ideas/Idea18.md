@@ -4,20 +4,24 @@
 
 Special-case algorithms for restricted CNF classes are correct, and the files
 prove this in general for three classes: 1-valid, 0-valid and unit CNF. For
-unit CNF they also give a decision procedure that is proved correct. It is
-quadratic by inspection, but its running time is not formalized. The route
+unit CNF they also give a decision procedure that is proved correct. The route
 "solve an easy subclass, therefore solve SAT" is refuted by a general theorem.
 No satisfiability-preserving map of any kind, even an uncomputable one, sends
 every CNF into a trivially satisfiable class. The only valid continuation
-needs a polynomial-time reduction from SAT *into* the restricted class. The
-files record only its size bound (`PolySizeReductionInto`), and the
-composition theorem is proved conditionally on it. The size bound alone
-carries no P vs NP content: in Lean only, `unit_size_reduction_exists` proves
-it for unit CNF with a non-constructive map. The open part is polynomial-time
-computability of the map, which is stated in prose only. With that
-requirement, the obligation makes the class NP-hard, so it can hold for a
-class in P only if P = NP. Schaefer's dichotomy (cited) tells which Boolean
-constraint classes are NP-complete.
+needs a polynomial-time reduction from SAT *into* the restricted class. In the
+Lean file this is stated in the shared machine model: `ReducesInto L R` asks
+for a `Complexity.Machine` that computes the map within a polynomial number of
+`Run` steps (`Computes`). The open obligation `UnitReduction` (SAT reduces
+into unit CNF by such a machine) gives `InP SAT` by
+`inP_sat_of_unitReduction`, and `PEqualsNP` by `pEqualsNP_of_unitReduction`.
+Both take as hypotheses the named known theorem `UnitSATInP` (a
+polynomial-time machine decides unit CNF) and, for `PEqualsNP`, `SATHard`.
+Neither is mechanised. The obligation is as hard as P = NP: if P = NP, the
+reduction exists (decide, then output `[]` or `[[]]`). The size-only schema
+`PolySizeReductionIntoFor` carries no P vs NP content, because
+`unit_size_reduction_exists` proves it for unit CNF with a non-constructive
+map. Schaefer's dichotomy (cited) tells which Boolean constraint classes are
+NP-complete.
 
 ## 1. The idea at full strength
 
@@ -46,11 +50,35 @@ affine). The second half is the whole problem.
   * `IsUnitCNF φ`: every clause has length at most 1.
 * A reduction of SAT into a class `R` is a map `f : CNF → CNF` with
   `R (f φ)` and `Satisfiable φ ↔ Satisfiable (f φ)` for all `φ`.
-* The required claim for the full-strength idea is
-  `PolySizeReductionInto R`: such an `f` exists with
-  `size (f φ) ≤ c*(size φ+1)^k`. The idea also needs `f` to be computable in
-  polynomial time, which cannot be stated without a machine model and is
-  recorded in prose. On top of this, `R` must have a polynomial-time decider.
+* The size-only schema `PolySizeReductionIntoFor R` says that such an `f`
+  exists with `size (f φ) ≤ c*(size φ+1)^k`. It does not require `f` to be
+  computable.
+* Machine model (shared `Machines` layer). CNFs are encoded as words
+  (`Machines.encodeCNF`, `Machines.decode`) and `ofM` reads a shared CNF in
+  this file's syntax; `sat_ofM` says `Machines.SAT w = true ↔ Satisfiable (ofM
+  (Machines.decode w))`.
+
+  ```lean
+  def ReducesInto (L : Language) (R : CNF → Prop) : Prop :=
+    ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧
+      ∀ x, R (ofM (Machines.decode (f x))) ∧ L x = Machines.SAT (f x)
+
+  def SATInPOn (R : CNF → Prop) : Prop :=
+    ∃ (d : Machine) (p : Polynomial),
+      Machines.DecidesOn d p (fun w => R (ofM (Machines.decode w))) Machines.SAT
+  ```
+
+  Time is the `Run` step count of the machine, and the output length is
+  bounded by the running time (`Machines.computes_output_length`), so the
+  polynomial size bound is part of `Computes`.
+* **Open obligation** (Lean, `UnitReduction`):
+  `def UnitReduction : Prop := ReducesInto Machines.SAT IsUnitCNF`.
+* **Known theorem, not mechanised here** (`UnitSATInP`):
+  `def UnitSATInP : Prop := SATInPOn IsUnitCNF`. The decider is the quadratic
+  scan `unitDecide`, whose correctness is proved (`unitDecide_correct`); what
+  is missing is a `Complexity.Machine` running it on encoded formulas. Unit
+  CNF is a special case of Horn-SAT (Dowling–Gallier 1984) and of 2-SAT
+  (Aspvall–Plass–Tarjan 1979).
 
 ## 3. What is machine-checked
 
@@ -67,21 +95,38 @@ affine). The second half is the whole problem.
 | `no_reduction_of_nontrivial` | A predicate with a no-instance has no reduction (by any function) to an identically true predicate. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `empty_clause_unsat` | `[[]]` is unsatisfiable. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `no_sat_reduction_into_positive` / `no_sat_reduction_into_negative` | No function `CNF → CNF` both preserves satisfiability and lands in the 1-valid (resp. 0-valid) class. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
-| `PolySizeReductionInto` (def) | Size part of the open obligation: a satisfiability-preserving map into `R` with polynomial size blow-up. Computability is not part of the definition. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `PolySizeReductionIntoFor` (def) | Size-only schema: a satisfiability-preserving map into `R` with polynomial size blow-up. Computability is not part of the definition. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `poly_comp_bound` | `c'*(c*(n+1)^k+1)^k' ≤ (c'*(c+1)^k')*(n+1)^(k*k')` for all naturals. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
-| `restriction_transfer` | Given the obligation for `R`, a decider correct on `R` and a cost function `dcost` polynomially bounded in input size, the composite decides SAT correctly and `dcost` of the reduced instance is polynomially bounded in the original size. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `restriction_transfer` | Given the schema for `R`, a decider correct on `R` and a cost function `dcost` polynomially bounded in input size, the composite decides SAT correctly and `dcost` of the reduced instance is polynomially bounded in the original size. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 
-`dcost` is an arbitrary function supplied as a hypothesis. It is not tied to
-`d` or to any machine model, so the cost half of `restriction_transfer` is
-bookkeeping about polynomial composition only.
+| `sat_ofM` | The shared language `Machines.SAT` is satisfiability of the decoded CNF read in this file's syntax. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `ReducesInto` (def) | `L` reduces into the class `R` by a `Complexity.Machine` computing the map within a polynomial number of steps. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `SATInPOn` (def) | A polynomial-time machine decides SAT on every word that decodes into `R` (promise problem). | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `UnitSATInP` (def) | Known theorem, not mechanised: `SATInPOn IsUnitCNF`. Used only as a hypothesis. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `UnitReduction` (def) | Open obligation: `ReducesInto Machines.SAT IsUnitCNF`. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `inP_of_reducesInto` | `ReducesInto L R` and `SATInPOn R` give `InP L` (via `Machines.inP_of_promise_reduction`). | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `reducesInto_preserves` | A machine reduction of SAT into `R` restricts to a satisfiability-preserving map of CNFs into `R`. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `inP_sat_of_unitReduction` | `UnitSATInP → UnitReduction → InP Machines.SAT`. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `pEqualsNP_of_unitReduction` | `SATHard → UnitSATInP → UnitReduction → PEqualsNP`. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `pEqualsNP_of_reducesInto` | The same for every class `R` with `SATInPOn R`. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `reducesInto_positive_const`, `not_reducesInto_positive` | A machine reduction into the 1-valid class forces a constant language, so SAT has none. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `exists_not_reducible` | Cantor over machines: for every `M` some language has no machine map `f` with `L x = M (f x)`. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `not_forall_reducesInto` | Non-vacuity: for every class `R`, `¬ ∀ L, ReducesInto L R`. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+
+The cost function `dcost` in `restriction_transfer` is a hypothesis about the
+schema only. The machine-model theorems take their costs from `Run` step
+counts, so `inP_of_reducesInto` needs no separate cost argument. The machine
+section is Lean only for now; the intended Rocq names are the same as the
+Lean names.
 
 The Lean file also proves `unit_size_reduction_exists`:
-`PolySizeReductionInto IsUnitCNF` holds, by sending satisfiable formulas to
+`PolySizeReductionIntoFor IsUnitCNF` holds, by sending satisfiable formulas to
 `[]` and all others to `[[]]`. The map is defined by classical case analysis
 and is not claimed to be efficient. This theorem is not in the Rocq file. Without
 classical logic, a Rocq proof would need a verified satisfiability decision
 procedure. It shows that the
-formal definition does not capture the open obligation by itself.
+size-only schema does not capture the open obligation, which is why the
+obligation `UnitReduction` requires a machine that computes the map.
 
 The Rocq `unitDecide` tests for the empty clause with `existsb isEmptyClause`,
 while the Lean version uses `decide ([] ∈ φ)`. The two are extensionally the
@@ -118,7 +163,7 @@ function, including non-computable ones and functions of any size. The
 abstract lemma `no_reduction_of_nontrivial` is the same argument for arbitrary
 predicates.
 
-**Transfer.** Let `f` witness `PolySizeReductionInto R` with bound
+**Transfer.** Let `f` witness `PolySizeReductionIntoFor R` with bound
 `c*(n+1)^k`, and let `d` be correct on `R` with cost at most `c'*(m+1)^k'`
 on inputs of size `m`. Then `d (f φ) = true ↔ Satisfiable (f φ) ↔
 Satisfiable φ`. For the cost,
@@ -126,14 +171,21 @@ Satisfiable φ`. For the cost,
 `c'*(size(f φ)+1)^k' ≤ c'*(c+1)^k'*(n+1)^(k k')`. This is `poly_comp_bound`
 combined with monotonicity of `x ↦ c'*(x+1)^k'`.
 
+**Machine transfer.** Let `m` compute `f` within `p` steps with every `f x`
+decoding into `R`, and let `d` decide SAT within `p'` steps on every word
+decoding into `R`. Then `Machines.inP_of_promise_reduction` composes them into
+a machine deciding `L` within a composed polynomial (`inP_of_reducesInto`).
+The machine version of the trivial-class refutation is
+`not_reducesInto_positive`: `SAT (encodeCNF [[]]) = false`, but a reduction
+into the 1-valid class would make it `true`.
+
 **Why the route is refuted.** A restricted class helps only when the
-obligation holds, and here the obligation includes polynomial-time
-computability of the map (prose only). For trivial classes it provably fails (by the previous
-theorem). For nontrivial classes in P, such as Horn, 2-CNF, unit CNF or
-affine, it combines with `restriction_transfer` to give a polynomial SAT
-algorithm (after adding the cost of computing `f`). With Cook–Levin (cited,
-not formalized) this gives P = NP, so proving it is at least as hard as
-proving P = NP. For classes where it is known to hold, such as
+obligation `ReducesInto Machines.SAT R` holds. For trivial classes it provably
+fails (by the previous theorems). For nontrivial classes in P, such as Horn,
+2-CNF, unit CNF or affine, it gives `InP SAT` (`inP_of_reducesInto`), and with
+`SATHard` (Cook–Levin hardness, not mechanised) it gives P = NP
+(`pEqualsNP_of_reducesInto`). So proving it is at least as hard as proving
+P = NP. For classes where it is known to hold, such as
 3-CNF, 1-in-3-SAT or NAE-3-SAT, the class is NP-complete, and the
 restriction is not "easy". The special-case algorithm therefore never
 transfers unless P = NP is proved by other means.
@@ -168,15 +220,21 @@ transfer theorems.
   their classes. Combined with a reduction, they give *exactly*
   `restriction_transfer`: correctness of the composite and a composed
   polynomial cost.
-* **Remaining obligation.** `PolySizeReductionInto R` for a class `R` with a
-  polynomial-time decider, plus polynomial-time computability of the
-  reduction. For any such `R` this obligation implies P = NP (using
-  Cook–Levin, cited, not formalized). Conversely, if
+* **Remaining obligation.** `UnitReduction := ReducesInto Machines.SAT
+  IsUnitCNF`, or `ReducesInto Machines.SAT R` for any class `R` with
+  `SATInPOn R`. The proved route is
+  `pEqualsNP_of_unitReduction (hard : Machines.SATHard) (hU : UnitSATInP)
+  (h : UnitReduction) : PEqualsNP`. Its two hypotheses besides the
+  obligation are known theorems that are not mechanised: `SATHard`
+  (Cook–Levin hardness, shared layer) and `UnitSATInP` (a machine running the
+  quadratic unit-CNF scan). `not_forall_reducesInto` shows that the
+  obligation is a statement about SAT: for every class `R` some language has
+  no machine reduction into it. Conversely (argued, not mechanised), if
   P = NP then SAT reduces to any nontrivial class. Given an instance, decide
   it in polynomial time and output a fixed satisfiable or unsatisfiable
   member of `R`. So the obligation is *equivalent* to P = NP for every
-  nontrivial `R ∈ P`, and false for trivial `R`. The computability part is
-  essential. Without it the size-only statement already holds for unit CNF
+  nontrivial `R ∈ P`, and false for trivial `R`. The machine requirement is
+  essential. Without it the size-only schema already holds for unit CNF
   (`unit_size_reduction_exists`, Lean only).
 * **Barriers.** Schaefer's theorem already classifies which Boolean
   restrictions stay hard. Unless P = NP, no Boolean constraint language
@@ -192,12 +250,14 @@ transfer theorems.
 
 * **Family 5 (special or different problem).** An algorithm that works on a
   structurally restricted class is a special-case algorithm. The auditor
-  should demand a proof of `PolySizeReductionInto` for that class.
+  should demand a proof of `ReducesInto Machines.SAT R` for that class, with
+  the reduction computed by a machine.
 * **Family 4 (invalid reduction).** A "reduction" into a trivial class is
   refuted outright by `no_sat_reduction_into_positive`/`_negative` and
   `no_reduction_of_nontrivial`, whatever the construction.
 * **Family 17 (encoding size).** `restriction_transfer` requires a size
-  bound. A reduction into Horn or 2-CNF with exponential blow-up (for
+  bound, and in the machine model it is implied by the running time
+  (`Machines.computes_output_length`). A reduction into Horn or 2-CNF with exponential blow-up (for
   example, expanding to a truth table) does not give a polynomial algorithm.
 
 See [COMMON_ERRORS.md](../../../attempts/COMMON_ERRORS.md).

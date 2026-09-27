@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 26: separator consistency
 
@@ -29,6 +31,18 @@ Consequently the separator method costs `2^|S| · (cost A + cost B)` in the
 worst case; it is polynomial only when separators have logarithmic size, which
 fails for expander-based hard formulas (linear separators).
 See `../ideas/Idea26.md`.
+
+Cost layer, in the shared machine model (`Machines`): `SepTree r φ` is a
+recursive separator decomposition of `φ` with a total separator budget `r`
+along every branch (so the primal graph has treewidth at most `2r`), and
+`SepPromise k w` asks for it with `r = k * log₂ (|w|+1)`.  The named known
+theorem `LogSeparatorSATInP` (separator-state dynamic programming is
+polynomial on that promise) is a hypothesis, not mechanised.  The open
+obligation `SATSeparatorReduction` asks for a `Complexity.Machine` mapping every
+SAT instance, within a polynomial number of steps, to an equisatisfiable
+instance with such a decomposition; `pEqualsNP_of_separatorReduction` derives
+`PEqualsNP` from it, and `not_forall_separatorReduction` is the non-vacuity
+check.
 -/
 
 namespace Issue532.Idea26
@@ -283,22 +297,24 @@ theorem summary_must_be_injective {β : Type} (S : List Nat) (hS : S.Nodup)
   exact ((equality_gadget S hS τ σ hτ hσ).2.2.mp ((hD τ σ hτ hσ).mp h1)).symm
 
 
-/-! ## The open obligation -/
+/-! ## The one-level schema -/
 
-/-- The open obligation (Sep), one level: a map in the class `PolyTime` sending
-every CNF to an equisatisfiable split `A ++ B` whose shared variables lie in a
-separator `S` of length at most `w |φ|`. -/
-def SeparatorObligation (PolyTime : (CNF → CNF × CNF × List Nat) → Prop) (w : Nat → Nat) :
+/-- Schema for (Sep), one level, over a caller-supplied class `PolyTime` of maps
+and a bound `w`: a map in `PolyTime` sending every CNF to an equisatisfiable
+split `A ++ B` whose shared variables lie in a separator `S` of length at most
+`w |φ|`.  `PolyTime` is a free parameter, so the schema carries no running-time
+content; the machine version is `SATSeparatorReduction` below. -/
+def SeparatorObligationFor (PolyTime : (CNF → CNF × CNF × List Nat) → Prop) (w : Nat → Nat) :
     Prop :=
   ∃ f : CNF → CNF × CNF × List Nat, PolyTime f ∧ ∀ φ,
     (∀ v, v ∈ vars (f φ).1 → v ∈ vars (f φ).2.1 → v ∈ (f φ).2.2) ∧
     (f φ).2.2.length ≤ w φ.length ∧
     (Satisfiable φ ↔ Satisfiable ((f φ).1 ++ (f φ).2.1))
 
-/-- Conditional theorem: under the obligation, satisfiability of every CNF is
+/-- Conditional theorem: under the schema, satisfiability of every CNF is
 decided by the `2 ^ w(|φ|)` separator states. -/
 theorem separator_obligation_states (PolyTime : (CNF → CNF × CNF × List Nat) → Prop)
-    (w : Nat → Nat) (h : SeparatorObligation PolyTime w) :
+    (w : Nat → Nat) (h : SeparatorObligationFor PolyTime w) :
     ∃ f : CNF → CNF × CNF × List Nat, PolyTime f ∧ ∀ φ,
       (f φ).2.2.length ≤ w φ.length ∧
       (Satisfiable φ ↔ ∃ σ, σ ∈ allBool (f φ).2.2.length ∧
@@ -308,5 +324,177 @@ theorem separator_obligation_states (PolyTime : (CNF → CNF × CNF × List Nat)
   refine ⟨f, hf, fun φ => ?_⟩
   obtain ⟨hS, hw, hp⟩ := hall φ
   exact ⟨hw, hp.trans (separator_sat_iff _ _ _ hS)⟩
+
+/-! ## Recursive separator decompositions -/
+
+/-- `SepTree r φ`: `φ` is either a leaf with at most `r` variable occurrences, or
+a concatenation `A ++ B` whose shared variables lie in a separator `S` with
+`|S| ≤ r`, both halves decomposed recursively with the remaining budget
+`r - |S|`.  Along every branch the separators add up to at most `r`, so taking
+as bag of a node the variables of its formula that lie in the separators on its
+path (plus the leaf variables at leaves) gives a tree decomposition of the
+primal graph of width below `2r`. -/
+inductive SepTree : Nat → CNF → Prop
+  | leaf {r : Nat} {φ : CNF} : (vars φ).length ≤ r → SepTree r φ
+  | split {r : Nat} {A B : CNF} (S : List Nat) :
+      (∀ v, v ∈ vars A → v ∈ vars B → v ∈ S) → S.length ≤ r →
+      SepTree (r - S.length) A → SepTree (r - S.length) B → SepTree r (A ++ B)
+
+/-- A separator tree exposes, at its root, either a small leaf or one exact
+separator step with at most `2^r` states (`separator_sat_iff`). -/
+theorem sepTree_root {r : Nat} {φ : CNF} (h : SepTree r φ) :
+    (vars φ).length ≤ r ∨
+      ∃ (A B : CNF) (S : List Nat), φ = A ++ B ∧ S.length ≤ r ∧
+        (Satisfiable φ ↔ ∃ σ, σ ∈ allBool S.length ∧
+          (∃ a, restrict S a = σ ∧ evalCNF a A = true) ∧
+          (∃ b, restrict S b = σ ∧ evalCNF b B = true)) := by
+  cases h with
+  | leaf hl => exact Or.inl hl
+  | split S hS hlen _ _ => exact Or.inr ⟨_, _, S, rfl, hlen, separator_sat_iff _ _ S hS⟩
+
+/-- A separator tree with budget `r` also has every larger budget. -/
+theorem sepTree_mono {r φ} (h : SepTree r φ) : ∀ {r'}, r ≤ r' → SepTree r' φ := by
+  induction h with
+  | leaf hl => exact fun hr => SepTree.leaf (Nat.le_trans hl hr)
+  | split S hS hlen _ _ ihA ihB =>
+    intro r' hr
+    exact SepTree.split S hS (Nat.le_trans hlen hr) (ihA (by omega)) (ihB (by omega))
+
+/-! ## The machine model -/
+
+open Complexity
+
+/-- A CNF of the shared machine model, read in this file's syntax. -/
+def ofM (φ : Machines.CNF) : CNF := φ.map (List.map fun l => ⟨l.var, l.pos⟩)
+
+theorem evalClause_ofM (a : Assignment) (C : Machines.Clause) :
+    evalClause a (C.map fun l => (⟨l.var, l.pos⟩ : Lit)) = Machines.evalClause a C := by
+  induction C with
+  | nil => rfl
+  | cons l C ih =>
+    simp only [List.map_cons, evalClause, Machines.evalClause, ih, evalLit, Machines.evalLit]
+    cases l.pos <;> cases a l.var <;> rfl
+
+theorem evalCNF_ofM (a : Assignment) (φ : Machines.CNF) :
+    evalCNF a (ofM φ) = Machines.evalCNF a φ := by
+  induction φ with
+  | nil => rfl
+  | cons C φ ih =>
+    simp only [ofM, List.map_cons, evalCNF, Machines.evalCNF] at ih ⊢
+    rw [evalClause_ofM, ih]
+
+/-- The shared language `SAT` is satisfiability in this file's syntax. -/
+theorem sat_ofM (w : Word) : Machines.SAT w = true ↔ Satisfiable (ofM (Machines.decode w)) := by
+  rw [Machines.sat_iff]
+  constructor
+  · rintro ⟨a, ha⟩; exact ⟨a, by rw [evalCNF_ofM]; exact ha⟩
+  · rintro ⟨a, ha⟩; exact ⟨a, by rw [← evalCNF_ofM]; exact ha⟩
+
+/-- The word `w` encodes a CNF with a separator tree of budget
+`k * log₂ (|w|+1)` (logarithmic treewidth). -/
+def SepPromise (k : Nat) (w : Word) : Prop :=
+  SepTree (k * Nat.log2 (w.length + 1)) (ofM (Machines.decode w))
+
+/-- **Known theorem, not mechanised here.** For each fixed `k`, SAT is decided in
+polynomial time on the promise `SepPromise k`.  The promise gives primal
+treewidth below `2k·log₂(|w|+1)` (see `SepTree`); a tree decomposition of width
+`O(k log |w|)` is found in time `2^{O(k log |w|)}·poly = poly` (Robertson–
+Seymour, Graph Minors XIII, JCTB 63, 1995; Bodlaender, Drange, Dregi, Fomin,
+Lokshtanov, Pilipczuk, SIAM J. Comput. 45(2), 2016), and dynamic programming
+over the separator states of the bags decides satisfiability in time
+`2^{O(tw)}·poly` (Alekhnovich–Razborov, FOCS 2002; Samer–Szeider, J. Discrete
+Algorithms 8(1), 2010).  What is not mechanised is the `Complexity.Machine`
+carrying this out. -/
+def LogSeparatorSATInP : Prop :=
+  ∀ k, ∃ (d : Machine) (p : Polynomial), Machines.DecidesOn d p (SepPromise k) Machines.SAT
+
+/-- A polynomial-time machine reduction of `L` to SAT instances with a
+logarithmic separator tree. -/
+def SeparatorReduction (L : Language) (k : Nat) : Prop :=
+  ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧
+    ∀ x, SepPromise k (f x) ∧ L x = Machines.SAT (f x)
+
+/-- **Open obligation** ((Sep) with recursion, in the machine model).  For some
+`k`, a `Complexity.Machine` maps every word `x`, within a polynomial number of
+`Run` steps, to a word `f x` with `SAT x = SAT (f x)` whose CNF has a separator
+tree with budget `k * log₂ (|f x|+1)`. -/
+def SATSeparatorReduction : Prop := ∃ k, SeparatorReduction Machines.SAT k
+
+/-- Transfer: a separator reduction and the separator-state decider put `L` in P. -/
+theorem inP_of_separatorReduction {L : Language} {k : Nat} (hS : LogSeparatorSATInP)
+    (h : SeparatorReduction L k) : InP L := by
+  obtain ⟨m, f, p, hm, hf⟩ := h
+  obtain ⟨d, p', hd⟩ := hS k
+  exact Machines.inP_of_promise_reduction hm (fun x => (hf x).1) (fun x => (hf x).2) hd
+
+/-- **Conditional theorem.** The open obligation and the known separator-state
+decider put SAT in P. -/
+theorem inP_sat_of_separatorReduction (hS : LogSeparatorSATInP)
+    (h : SATSeparatorReduction) : InP Machines.SAT := by
+  obtain ⟨k, hk⟩ := h
+  exact inP_of_separatorReduction hS hk
+
+/-- **Conditional theorem.** With the hardness half of Cook–Levin, the open
+obligation gives P = NP. -/
+theorem pEqualsNP_of_separatorReduction (hard : Machines.SATHard)
+    (hS : LogSeparatorSATInP) (h : SATSeparatorReduction) : PEqualsNP :=
+  Machines.pEqualsNP_of_inP_sat hard (inP_sat_of_separatorReduction hS h)
+
+/-- Machine analogue of `separator_obligation_states`: under the obligation,
+every reduced instance is a small leaf or splits exactly over at most
+`2^(k log₂(|f x|+1))` separator states, and `SAT x` is its satisfiability. -/
+theorem separatorReduction_states (h : SATSeparatorReduction) :
+    ∃ (k : Nat) (m : Machine) (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧
+      ∀ x, (Machines.SAT x = true ↔ Satisfiable (ofM (Machines.decode (f x)))) ∧
+        ((vars (ofM (Machines.decode (f x)))).length ≤ k * Nat.log2 ((f x).length + 1) ∨
+          ∃ (A B : CNF) (S : List Nat), ofM (Machines.decode (f x)) = A ++ B ∧
+            S.length ≤ k * Nat.log2 ((f x).length + 1) ∧
+            (Satisfiable (A ++ B) ↔ ∃ σ, σ ∈ allBool S.length ∧
+              (∃ a, restrict S a = σ ∧ evalCNF a A = true) ∧
+              (∃ b, restrict S b = σ ∧ evalCNF b B = true))) := by
+  obtain ⟨k, m, f, p, hm, hf⟩ := h
+  refine ⟨k, m, f, p, hm, fun x => ⟨by rw [(hf x).2, sat_ofM], ?_⟩⟩
+  rcases sepTree_root (hf x).1 with hl | ⟨A, B, S, he, hl, hs⟩
+  · exact Or.inl hl
+  · exact Or.inr ⟨A, B, S, he, hl, he ▸ hs⟩
+
+/-- The language obtained by running the machine `m` as a reduction into `M`. -/
+noncomputable def viaMachine (M : Language) (m : Machine) : Language :=
+  fun x => @decide (∃ (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧ M (f x) = true)
+    (Classical.propDecidable _)
+
+theorem viaMachine_eq {M : Language} {m : Machine} {f : Word → Word} {p : Polynomial}
+    (hm : Machines.Computes m f p) : viaMachine M m = fun x => M (f x) := by
+  funext x
+  unfold viaMachine
+  cases h : M (f x) with
+  | true => exact @decide_eq_true _ (Classical.propDecidable _) ⟨f, p, hm, h⟩
+  | false =>
+    apply @decide_eq_false _ (Classical.propDecidable _)
+    rintro ⟨g, q, hg, hgx⟩
+    rw [← Machines.computes_unique hm hg, h] at hgx
+    cases hgx
+
+/-- **Cantor over machines.** For every target language `M` some language has no
+machine map `f` with `L x = M (f x)`. -/
+theorem exists_not_reducible (M : Language) :
+    ∃ L : Language, ∀ (m : Machine) (f : Word → Word) (p : Polynomial),
+      Machines.Computes m f p → ∃ x, L x ≠ M (f x) := by
+  obtain ⟨L, hL⟩ := Machines.exists_language_not_in_family Machines.encMachine
+    (fun _ _ h => Machines.encMachine_injective h) (viaMachine M)
+  refine ⟨L, fun m f p hm => Classical.byContradiction fun hno => hL m ?_⟩
+  rw [viaMachine_eq hm]
+  funext x
+  exact Classical.byContradiction fun hx => hno ⟨x, fun h => hx h.symm⟩
+
+/-- **Non-vacuity.** For every `k`, some language has no separator reduction, so
+`SeparatorReduction Machines.SAT k` is a statement about SAT. -/
+theorem not_forall_separatorReduction (k : Nat) :
+    ¬ ∀ L : Language, SeparatorReduction L k := by
+  intro h
+  obtain ⟨L, hL⟩ := exists_not_reducible Machines.SAT
+  obtain ⟨m, f, p, hm, hf⟩ := h L
+  obtain ⟨x, hx⟩ := hL m f p hm
+  exact hx (hf x).2
 
 end Issue532.Idea26

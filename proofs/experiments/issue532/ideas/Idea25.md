@@ -2,7 +2,7 @@
 
 **Verdict:** Correct tool, insufficient alone (general theorem proved)
 
-If the clauses of a CNF split into groups with disjoint variable sets, the formula is satisfiable exactly when every group is, and a satisfying assignment of the whole formula is obtained by merging the groups' assignments. Both files prove this for all CNFs and for any number of components. They also prove that for every `n` the chain formula is connected, so the lemma cannot be applied to it. Splitting speeds up SAT only when every component is small. The hard families known from proof complexity are connected and have linear treewidth, so on its own this idea gives no polynomial algorithm.
+If the clauses of a CNF split into groups with disjoint variable sets, the formula is satisfiable exactly when every group is, and a satisfying assignment of the whole formula is obtained by merging the groups' assignments. Both files prove this for all CNFs and for any number of components. They also prove that for every `n` the chain formula is connected, so the lemma cannot be applied to it. Splitting speeds up SAT only when every component is small. The hard families known from proof complexity are connected and have linear treewidth, so on its own this idea gives no polynomial algorithm. In the Lean file the route is stated in the shared machine model. The open obligation `SATComponentReduction` asks for a `Complexity.Machine` that maps every SAT instance, within a polynomial number of `Run` steps, to an equisatisfiable instance whose components have `O(log n)` variable occurrences. `pEqualsNP_of_componentReduction` derives `PEqualsNP` from it, given two hypotheses that are known but not mechanised: `SATHard` and `SmallComponentSATInP` (componentwise brute force is polynomial). `not_forall_componentReduction` shows that this reduction notion does not hold for every language.
 
 ## 1. The idea at full strength
 
@@ -24,7 +24,28 @@ The full-strength claim would be:
 
 > (FS) There is a polynomial-time transformation mapping every CNF `φ` to an equisatisfiable CNF whose primal graph has only connected components of size `O(log |φ|)`.
 
-(FS) implies SAT ∈ P. The theorems below show that splitting itself is exact. They also show that the chain formula admits no non-trivial split, for every `n`. The literature cited in Section 5 shows that the hard families have no small components and no small treewidth.
+(FS) implies SAT ∈ P. In the Lean file (FS) is stated in the shared machine model (`Machines`), where time is the `Run` step count of a `Complexity.Machine`:
+
+```lean
+def SmallComponents (k : Nat) (w : Word) : Prop :=
+  ∃ φs : List CNF, ofM (Machines.decode w) = joinAll φs ∧ DisjointChain φs ∧
+    ∀ ψ, ψ ∈ φs → (vars ψ).length ≤ k * Nat.log2 (w.length + 1)
+
+def ComponentReduction (L : Language) (k : Nat) : Prop :=
+  ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Machines.Computes m f p ∧
+    ∀ x, SmallComponents k (f x) ∧ L x = Machines.SAT (f x)
+
+/-- Open obligation. -/
+def SATComponentReduction : Prop := ∃ k, ComponentReduction Machines.SAT k
+
+/-- Known theorem, not mechanised here. -/
+def SmallComponentSATInP : Prop :=
+  ∀ k, ∃ (d : Machine) (p : Polynomial), Machines.DecidesOn d p (SmallComponents k) Machines.SAT
+```
+
+Here `ofM` reads a CNF of the shared layer in this file's syntax, and `sat_ofM` proves that `Machines.SAT w = true` iff that CNF is satisfiable. `SmallComponentSATInP` is true. Compute the connected components of the primal graph by graph search (Hopcroft–Tarjan 1973). Each of them lies inside a promised component, so it has at most `k·log₂(|w|+1)` distinct variables, and brute force on it costs at most `(|w|+1)^k` evaluations. The answer is the conjunction (`joinAll_sat_iff`). No machine running this algorithm is mechanised, so the statement is only a named hypothesis.
+
+The older abstract form `ComponentObligationFor PolyTime w` is kept as a schema over a caller-supplied class `PolyTime`. The machine model does not instantiate it naturally: the schema bounds components by a function of the number of clauses, while the machine promise bounds them by the length of the encoded word. The theorems below show that splitting itself is exact. They also show that the chain formula admits no non-trivial split, for every `n`. The literature cited in Section 5 shows that the hard families have no small components and no small treewidth.
 
 ## 3. What is machine-checked
 
@@ -42,7 +63,21 @@ The full-strength claim would be:
 | `adjacent_change` | If `p i ≠ p (i+d)`, then `p k ≠ p (k+1)` for some `k` with `i ≤ k` and `k+1 ≤ i+d` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
 | `chain_not_splittable` | For all `n` and every selection `p` of clause indices that contains some `i < n` and misses some `j < n`, there is `k` with `k+1 < n` such that `p k ≠ p (k+1)` and `x_{k+1}` occurs in both `chainClause k` and `chainClause (k+1)` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
 | `split_cost` | `2^a + 2^b ≤ 2·2^{max(a,b)}` and `2^{max(a,b)} ≤ 2^a + 2^b` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
-| `component_obligation_splits` | Under `ComponentObligation`, `Satisfiable φ` iff every (small) component of `f φ` is satisfiable | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `ComponentObligationFor` (def) | Schema for (FS) over a free class `PolyTime` of maps and a width bound `w` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `component_obligation_splits` | Under `ComponentObligationFor`, `Satisfiable φ` iff every (small) component of `f φ` is satisfiable | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `sat_ofM` | `Machines.SAT w = true ↔ Satisfiable (ofM (Machines.decode w))` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `SmallComponents`, `ComponentReduction` (defs) | The small-component promise on words, and a polynomial-time machine reduction onto it | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `sat_of_smallComponents` | On the promise, `SAT w` iff every small component is satisfiable | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `SmallComponentSATInP` (def) | Known theorem, not mechanised: for each `k`, a polynomial-time machine decides SAT on `SmallComponents k`. Used only as a hypothesis | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `SATComponentReduction` (def) | Open obligation: `∃ k, ComponentReduction Machines.SAT k` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `inP_of_componentReduction` | `SmallComponentSATInP → ComponentReduction L k → InP L` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `inP_sat_of_componentReduction` | `SmallComponentSATInP → SATComponentReduction → InP Machines.SAT` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `pEqualsNP_of_componentReduction` | `SATHard → SmallComponentSATInP → SATComponentReduction → PEqualsNP` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `componentReduction_splits` | Under the obligation, `SAT x` iff every small component of the reduced instance is satisfiable (machine analogue of `component_obligation_splits`) | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `exists_not_reducible` | For every `M`, some language has no machine map `f` with `L x = M (f x)` (Cantor over machines) | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+| `not_forall_componentReduction` | Non-vacuity: `¬ ∀ L, ComponentReduction L k` for every `k` | [Idea25.lean](../lean/Idea25.lean) | [Idea25.v](../rocq/Idea25.v) |
+
+The machine-model rows are Lean only for now. The intended Rocq names are the same as the Lean names.
 
 Neither file uses axioms or unfinished proofs. The Rocq file decides membership in the merge with `in_dec Nat.eq_dec`, and the Lean file uses the decidable `v ∈ vars φ₁`. Both are constructive.
 
@@ -84,16 +119,16 @@ None of these results are formalized here. The two files formalize only the exac
 
 At full potential the idea is the treewidth/branch-width dynamic-programming paradigm. It is exact, and it is polynomial exactly on instance families with logarithmic width. The formal content here is the base case of that paradigm: width 0 across components, meaning disjoint interfaces.
 
-The remaining obligation for a P = NP route is (FS) from Section 2, stated in both files with the time class and the width bound `w` as parameters:
+The remaining obligation for a P = NP route is (FS) in the machine model, `SATComponentReduction` (Section 2). The proved route is
 
 ```lean
-def ComponentObligation (PolyTime : (CNF → List CNF) → Prop) (w : Nat → Nat) : Prop :=
-  ∃ f : CNF → List CNF, PolyTime f ∧ ∀ φ, DisjointChain (f φ) ∧
-    (∀ ψ, ψ ∈ f φ → (vars ψ).length ≤ w φ.length) ∧
-    (Satisfiable φ ↔ Satisfiable (joinAll (f φ)))
+theorem pEqualsNP_of_componentReduction (hard : Machines.SATHard)
+    (hK : SmallComponentSATInP) (h : SATComponentReduction) : PEqualsNP
 ```
 
-`component_obligation_splits` proves the conditional step: under the obligation, `Satisfiable φ` holds iff every component of `f φ` is satisfiable, so brute force costs at most `|f φ| · 2^{w(|φ|)}` evaluations. That cost count is informal; it is not part of the formal statement. With `w = O(log n)` and `f` polynomial, that is polynomial. In words, every CNF can be mapped in polynomial time to an equisatisfiable CNF with small components, or, more generally, with small interfaces. This obligation is **at least as strong as SAT ∈ P**. Given such a map, one runs the componentwise brute force. Conversely, if SAT ∈ P, one can output a constant-size equivalent formula. So, for an honest `PolyTime` and `w = O(log n)`, the obligation is equivalent to SAT ∈ P, hence to P = NP by Cook–Levin. Neither the machine model nor this equivalence is formalized.
+Besides the obligation it uses two known theorems that are not mechanised. `SATHard` is the hardness half of Cook–Levin (shared layer). `SmallComponentSATInP` states that componentwise brute force is polynomial, with a machine carrying it out. `componentReduction_splits` is the exact step behind the route: under the obligation, `SAT x` holds iff every component of the reduced instance is satisfiable, and each component has `O(log |f x|)` variable occurrences. `not_forall_componentReduction` shows that the obligation is a statement about SAT: for every `k`, some language has no such reduction. The obligation is **equivalent to SAT ∈ P** (argued, only the forward direction is mechanised): if SAT ∈ P, a machine can output a fixed constant-size satisfiable or unsatisfiable formula, which trivially has small components. So the obligation is exactly as hard as P = NP.
+
+The schema `ComponentObligationFor PolyTime w` and `component_obligation_splits` are kept for any caller-supplied class of maps. They carry no running-time content of their own.
 
 Barriers:
 
@@ -107,7 +142,7 @@ Nothing here separates P from NP. The idea is a correct tool that is insufficien
 * **"The instance splits, so it is easy."** Check the size of the largest component. `split_cost` shows that the cost is at least `2^{max component}`.
 * **Assuming decomposition without proving disjointness.** `split_sat_iff` needs `Disjoint`. Without it the merge is unsound; Idea 26 gives the countermodel `[[x]]`, `[[¬x]]`. This is error family 6 (local or greedy consistency in place of global) in [COMMON_ERRORS.md](../../../attempts/COMMON_ERRORS.md).
 * **Special-case reasoning** (error family 5). An algorithm for decomposable instances solves a restricted problem. `chain_not_splittable` shows that connectivity holds even in trivial families, so a proof that assumes decomposability does not cover general SAT.
-* **Hidden exponential work** (error family 2). A "decomposition" whose computation or component size is not bounded moves the exponential cost elsewhere.
+* **Hidden exponential work** (error family 2). A "decomposition" whose computation or component size is not bounded moves the exponential cost elsewhere. `ComponentReduction` requires the map to be computed by a machine within a polynomial number of steps, and the component bound is logarithmic in the output length.
 
 ## 8. Reproduction
 

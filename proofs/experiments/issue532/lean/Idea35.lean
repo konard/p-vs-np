@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 35: exact compression of solution sets
 
@@ -21,9 +23,19 @@ Main results:
   `rep : (List Bool → Bool) → List Bool` that is exact on length-`n` inputs
   gives some Boolean function a representation of length `≥ 2^n`.
 * `compactness_alone_trivial`, `decider_gives_compilation`,
-  `compilation_decides`: the open obligation `CompactTractableCompilation`
-  (compact **and** queryable) is equivalent to having a SAT decider, so the
-  whole difficulty lies in the cost of compiling and querying.
+  `compilation_decides`: the schema `CompactTractableCompilationFor`
+  (compact **and** queryable, with free cost) is equivalent to having a SAT
+  decider, so the whole difficulty lies in the cost of compiling and querying.
+* Machine model: `Compiles L` asks for a `Complexity.Machine` computing a
+  compilation in polynomial time (so the representation is polynomially
+  compact, `compiles_compact`) and a polynomial-time machine answering the
+  query on every compiled representation.  The open obligation is
+  `CompiledSAT := Compiles Machines.SAT`; `inP_sat_of_compiledSAT` and
+  `pEqualsNP_of_compiledSAT` derive `InP SAT` and `PEqualsNP`, and
+  `compiles_iff_inP` shows the obligation is exactly SAT ∈ P (the identity
+  compilation is computed by the empty machine).  `not_forall_compiles` is the
+  non-vacuity check, and `compactTractableCompilationFor_of_compiles`
+  instantiates the schema.
 
 Verdict: "compress every solution space exactly into polynomial size" is
 refuted by counting, for every `n`. Compact exact representations of the
@@ -267,12 +279,14 @@ theorem exact_representation_needs_long_codes (n : Nat)
   obtain ⟨t, _, hlen⟩ := no_injective_into_shorter (2 ^ n) (fun t => rep (ofTable n t)) inj
   exact ⟨ofTable n t, hlen⟩
 
-/-! ## The open obligation: compact and queryable -/
+/-! ## The compilation schema: compact and queryable -/
 
-/-- **Open obligation.** A compilation of formulas into representations of size at most
-`q (size φ)` from which satisfiability is read off by `query`. With `compile` and
-`query` required to run in polynomial time, this is a polynomial-time SAT algorithm. -/
-def CompactTractableCompilation {Formula Rep : Type} (size : Formula → Nat)
+/-- Schema: a compilation of formulas into representations of size at most
+`q (size φ)` from which satisfiability is read off by `query`.  The costs of
+`compile` and `query` are not constrained here (they are free functions); the
+machine version is `Compiles` below, and its instance for SAT is
+`CompiledSAT`. -/
+def CompactTractableCompilationFor {Formula Rep : Type} (size : Formula → Nat)
     (repSize : Rep → Nat) (sat : Formula → Bool) (q : Nat → Nat)
     (compile : Formula → Rep) (query : Rep → Bool) : Prop :=
   (∀ φ, repSize (compile φ) ≤ q (size φ)) ∧ ∀ φ, query (compile φ) = sat φ
@@ -281,24 +295,101 @@ def CompactTractableCompilation {Formula Rep : Type} (size : Formula → Nat)
 its own solution set; everything depends on the cost of `query`. -/
 theorem compactness_alone_trivial {Formula : Type} (size : Formula → Nat)
     (sat : Formula → Bool) :
-    CompactTractableCompilation size size sat (fun s => s) (fun φ => φ) sat :=
+    CompactTractableCompilationFor size size sat (fun s => s) (fun φ => φ) sat :=
   ⟨fun _ => Nat.le_refl _, fun _ => rfl⟩
 
 /-- **A decider gives a one-bit compilation.** -/
 theorem decider_gives_compilation {Formula : Type} (size : Formula → Nat)
     (sat : Formula → Bool) :
-    CompactTractableCompilation size (fun _ : Bool => 1) sat (fun _ => 1) sat (fun b => b) :=
+    CompactTractableCompilationFor size (fun _ : Bool => 1) sat (fun _ => 1) sat (fun b => b) :=
   ⟨fun _ => Nat.le_refl _, fun _ => rfl⟩
 
 /-- **A compilation gives a decider** (`query ∘ compile`). -/
 theorem compilation_decides {Formula Rep : Type} (size : Formula → Nat)
     (repSize : Rep → Nat) (sat : Formula → Bool) (q : Nat → Nat)
     (compile : Formula → Rep) (query : Rep → Bool)
-    (h : CompactTractableCompilation size repSize sat q compile query) :
+    (h : CompactTractableCompilationFor size repSize sat q compile query) :
     ∀ φ, sat φ = query (compile φ) :=
   fun φ => (h.2 φ).symm
 
 /-- Size check: 16 functions on 2 variables, 15 strings shorter than 4. -/
 example : (allInputs (2 ^ 2)).length = 16 ∧ (inputsBelow (2 ^ 2)).length = 15 := by decide
+
+/-! ## The machine model -/
+
+open Complexity
+
+/-- `L` is compiled in polynomial time into representations on which a
+polynomial-time machine answers the query: a `Complexity.Machine` `m` computes
+`compile` within `p` steps, `L x = Query (compile x)`, and `d` decides `Query`
+within `q` steps on every compiled representation. -/
+def Compiles (L : Language) : Prop :=
+  ∃ (m : Machine) (compile : Word → Word) (p : Polynomial) (d : Machine) (q : Polynomial)
+    (Query : Language), Machines.Computes m compile p ∧ (∀ x, L x = Query (compile x)) ∧
+    Machines.DecidesOn d q (fun w => ∃ x, compile x = w) Query
+
+/-- **Open obligation.** SAT has a compact tractable compilation in the machine
+model: a polynomial-time `Complexity.Machine` compiles every instance, and a
+polynomial-time machine reads satisfiability off the compiled representation. -/
+def CompiledSAT : Prop := Compiles Machines.SAT
+
+/-- A polynomial-time compilation is compact: the representation has polynomial
+length (the output is bounded by the running time). -/
+theorem compiles_compact {L : Language} (h : Compiles L) :
+    ∃ (compile : Word → Word) (Query : Language) (r : Polynomial),
+      (∀ x, (compile x).length ≤ r.eval x.length) ∧ ∀ x, L x = Query (compile x) := by
+  obtain ⟨m, compile, p, d, q, Query, hm, hq, _⟩ := h
+  obtain ⟨r, hr⟩ := Machines.computes_output_poly hm
+  exact ⟨compile, Query, r, hr, hq⟩
+
+/-- A compact tractable compilation decides `L` in polynomial time. -/
+theorem inP_of_compiles {L : Language} (h : Compiles L) : InP L := by
+  obtain ⟨m, compile, p, d, q, Query, hm, hq, hd⟩ := h
+  exact Machines.inP_of_promise_reduction hm (fun x => ⟨x, rfl⟩) hq hd
+
+/-- **Conditional theorem.** The open obligation puts SAT in P. -/
+theorem inP_sat_of_compiledSAT (h : CompiledSAT) : InP Machines.SAT :=
+  inP_of_compiles h
+
+/-- **Conditional theorem.** With the hardness half of Cook–Levin, the open
+obligation gives P = NP. -/
+theorem pEqualsNP_of_compiledSAT (hard : Machines.SATHard) (h : CompiledSAT) : PEqualsNP :=
+  Machines.pEqualsNP_of_inP_sat hard (inP_sat_of_compiledSAT h)
+
+/-- The empty machine computes the identity in zero steps. -/
+theorem computes_id : Machines.Computes ⟨[]⟩ (fun x => x) ⟨0, 0⟩ := by
+  intro x
+  refine ⟨0, initial x, Nat.zero_le _, Machines.Reaches.refl _, ?_, ?_, ?_⟩
+  · cases x <;> rfl
+  · cases x <;> rfl
+  · cases x with
+    | nil => exact ⟨1, rfl⟩
+    | cons b x => exact ⟨0, by simp [initial, initialSymbols, Machines.blanks]⟩
+
+/-- **The obligation is exactly membership in P.** A decider is a compilation
+(identity map, the decider as query), and a compilation is a decider. -/
+theorem compiles_iff_inP (L : Language) : Compiles L ↔ InP L := by
+  refine ⟨inP_of_compiles, fun h => ?_⟩
+  obtain ⟨d, q, hd⟩ := (Machines.polyDec_iff_inP L).mpr h
+  exact ⟨⟨[]⟩, fun x => x, ⟨0, 0⟩, d, q, L, computes_id, fun _ => rfl, fun x _ => hd x⟩
+
+/-- For SAT: the open obligation is equivalent to `InP SAT`, hence (with
+`SATHard`) to P = NP; compression gains nothing over deciding. -/
+theorem compiledSAT_iff : CompiledSAT ↔ InP Machines.SAT := compiles_iff_inP _
+
+/-- **Non-vacuity.** Some language has no compact tractable compilation. -/
+theorem not_forall_compiles : ¬ ∀ L : Language, Compiles L := by
+  intro h
+  obtain ⟨L, hL⟩ := Machines.exists_not_inP
+  exact hL (inP_of_compiles (h L))
+
+/-- **Schema instance.** A machine compilation instantiates the schema with
+sizes = word lengths, the machine-computed `compile`, the machine-decided
+`Query`, and a polynomial size bound. -/
+theorem compactTractableCompilationFor_of_compiles {L : Language} (h : Compiles L) :
+    ∃ (compile : Word → Word) (Query : Language) (r : Polynomial),
+      CompactTractableCompilationFor List.length List.length L (fun n => r.eval n) compile Query := by
+  obtain ⟨compile, Query, r, hr, hq⟩ := compiles_compact h
+  exact ⟨compile, Query, r, hr, fun x => (hq x).symm⟩
 
 end Issue532.Idea35
