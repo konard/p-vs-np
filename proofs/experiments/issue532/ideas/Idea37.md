@@ -8,8 +8,10 @@ whenever `f(k)` is polynomially bounded in `n`, in particular when `2^k ≤ n`.
 When the parameter is as large as the input, the same bound `2^n · n^c` exceeds
 every polynomial at some (in fact all large) `n`, so it no longer certifies
 polynomial time. The route to P = NP is therefore reduced to one precise open
-obligation: an FPT algorithm for an NP-complete problem whose parameter is
-logarithmic on **all** instances.
+obligation over the shared machine model, `LogParamFPTObligation`: a
+`Complexity.Machine` decides `SAT` within `2^(param x) · (|x|+1)^c` `Run` steps
+for a parameter with `2^(param x) ≤ (|x|+1)^b` on **every** word. It gives
+`InP SAT`, and with `SATHard` it gives `PEqualsNP`.
 
 ## 1. The idea at full strength
 
@@ -27,18 +29,35 @@ exploit hidden structure of instances rather than worst-case search.
 
 ## 2. Precise mathematical formulation
 
+Arithmetic core (all instance types):
+
 - `FPTBound time size param f c := ∀ I, time I ≤ f (param I) · (size I)^c`.
 - `LogBoundedParam size param b := ∀ I, 2^(param I) ≤ (size I)^b`, which says
   the parameter is at most `b · log₂(size)`.
-- `LogParamFPTObligation Correct time size` says there is an algorithm `A` with
-  `Correct A`, an FPT bound with `f k = 2^k`, and a parameter that is
-  logarithmically bounded on every instance.
-- Polynomials are in the repository's form `c · (n+1)^d` (see
-  `Polynomial.eval` in `proofs/complexity`).
+- `LogParamFPTObligationFor Correct time size` is the generic **schema**: an
+  algorithm `A` with `Correct A`, an FPT bound with `f k = 2^k`, and a parameter
+  that is logarithmically bounded on every instance. `Correct` and `time` are
+  parameters, so the schema is not itself an open problem.
 
-The abstract predicates `Correct` and `time` stand for "decides the
-NP-complete language" and "step count of the machine". The theorems hold for
-every instantiation.
+Shared machine model (`proofs/complexity/lean/Complexity.lean`,
+`proofs/experiments/issue532/lean/Machines.lean`): instances are words
+`x : Word`, a decider is a `Machine`, its time on `x` is the step count `t` of
+`Run m (initial x) t v`, and polynomials are `Polynomial.eval p n =
+coefficient · (n+1)^degree`. The size of `x` is `|x| + 1`.
+
+```lean
+def LogParamFPT (L : Language) : Prop :=
+  ∃ (m : Machine) (param : Word → Nat) (c b : Nat),
+    (∀ x, 2 ^ param x ≤ (x.length + 1) ^ b) ∧
+    ∀ x, ∃ t v, t ≤ 2 ^ param x * (x.length + 1) ^ c ∧ Run m (initial x) t v ∧ v = L x
+
+def LogParamFPTObligation : Prop := LogParamFPT SAT
+```
+
+`SAT` is the shared language `Issue532.Machines.SAT` (a word is decoded to a
+CNF). `steps m x` is the step count of the unique halting run of `m` on `x`,
+and `MachineDecides L m` says that run answers `L x`; these instantiate the
+schema.
 
 ## 3. What is machine-checked
 
@@ -54,10 +73,20 @@ every instantiation.
 | `poly_lt_two_pow` | for all `c, d` there is `n` with `c · (n+1)^d < 2^n` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
 | `fpt_full_param_not_poly` | for all `a, d, c` there is `n` with `a · (n+1)^d < 2^n · n^c` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
 | `fpt_log_param_polytime` | an FPT bound `2^k · n^c` with `2^k ≤ n^b` gives `time ≤ n^(b+c)` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
-| `obligation_gives_poly_time` | `LogParamFPTObligation` yields a correct algorithm with a polynomial bound | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
+| `obligation_gives_poly_time` | the schema `LogParamFPTObligationFor` yields a correct algorithm with a polynomial bound | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
+| `logParamFPT_inP` | `LogParamFPT L → InP L`: the step bound is at most the polynomial `(x.length + 1)^(b+c)` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
+| `logParam_obligation_inP` | `LogParamFPTObligation → InP SAT` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
+| `logParam_route_gives_pEqualsNP` | `SATHard → LogParamFPTObligation → PEqualsNP` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
+| `not_forall_logParamFPT` | non-vacuity: `LogParamFPT L` fails for some language `L` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
+| `steps_eq` | the step count `steps m x` is the length of any halting run of `m` on `x` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
+| `logParamFPT_iff_schema` | `LogParamFPT L ↔ LogParamFPTObligationFor (MachineDecides L) steps (fun x => x.length + 1)` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
 
-The definitions `FPTBound`, `LogBoundedParam` and `LogParamFPTObligation` are
-present in both files. All proofs are constructive.
+The arithmetic rows are proved in both files. The machine-model rows (from
+`logParamFPT_inP` on) are proved in Lean only so far; the intended Rocq names
+are the same, with the schema named `LogParamFPTObligationFor` as in Lean.
+The arithmetic proofs are constructive. `steps` uses classical choice, and
+`not_forall_logParamFPT` uses the classical diagonal language of the shared
+layer.
 
 ## 4. Complete argument
 
@@ -85,10 +114,10 @@ not a lower bound on the running time of any particular algorithm.)
 
 **(c) The gap between (a) and (b).** Either the parameter is logarithmic on
 every instance, and then the problem is in P, or it is not, and then the FPT
-bound gives nothing better than exponential time on the bad instances. For an
-NP-complete problem the first alternative is exactly
-`LogParamFPTObligation`, and (with honest time and Cook–Levin, neither
-formalized) it implies P = NP. There is no intermediate
+bound gives nothing better than exponential time on the bad instances. For SAT the
+first alternative is exactly `LogParamFPTObligation`. It gives `InP SAT`
+(`logParam_obligation_inP`, via `inP_of_decidesWithin` with the polynomial
+`1 · (n+1)^(b+c)`), and with the named hypothesis `SATHard` it gives P = NP. There is no intermediate
 conclusion. Restricting to instances with small parameter defines a
 **different** problem, which is typically in P and not NP-complete unless
 P = NP.
@@ -120,26 +149,50 @@ P = NP.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
-**At full potential**, the idea proves `LogParamFPTObligation` for an
-NP-complete problem. By `obligation_gives_poly_time`, this is a polynomial-time
-algorithm for that problem, so, with `time` an honest step count and by
-Cook–Levin (cited, not formalized), the obligation is equivalent to P = NP (the
-converse is trivial: with a polynomial algorithm take `param = 0`). The
-formalization makes the needed hypothesis explicit and checks that nothing
-weaker suffices from the FPT bound alone (`fpt_full_param_not_poly`).
+**At full potential**, the idea proves the open obligation
+
+```lean
+def LogParamFPTObligation : Prop := LogParamFPT SAT
+
+theorem logParam_obligation_inP (h : LogParamFPTObligation) : InP SAT
+theorem logParam_route_gives_pEqualsNP (hard : SATHard) (h : LogParamFPTObligation) :
+    PEqualsNP
+```
+
+The time is the step count of a `Run` of a `Complexity.Machine`, so the
+obligation cannot be met by choosing a convenient cost function. The step from
+`InP SAT` to `PEqualsNP` needs the named hypothesis `SATHard` (NP-hardness of
+`SAT`, the hard half of Cook–Levin), stated in `Machines.lean` and not
+mechanised. `logParamFPT_iff_schema` shows that `LogParamFPT L` is exactly the
+generic schema `LogParamFPTObligationFor` instantiated with machines, their
+step count `steps` and the size `|x| + 1`. `not_forall_logParamFPT` shows that
+`LogParamFPT` is not a consequence of the definitions: it fails for the
+diagonal language. The formalization also checks that nothing weaker suffices
+from the FPT bound alone (`fpt_full_param_not_poly`).
+
+The converse, `InP SAT → LogParamFPTObligation`, is not claimed. A machine with
+time bound `a · (n+1)^d` meets the FPT form only if the constant `a` can be
+absorbed. At `|x| = 0` the bound `2^(param x) · 1` with `2^(param x) ≤ 1` forces
+one step. In the informal sense (up to constant factors) the two statements are
+equivalent: take `param = 0`.
 
 **Why the obligation is hard.** Under ETH (Impagliazzo–Paturi), no
 NP-complete problem admits a parameter with both properties, since that would
-give a polynomial-time, hence subexponential, algorithm for 3-SAT. So the obligation is at least as
-hard as refuting ETH. Parameters that are small on "typical" or "structured"
-instances (treewidth, backdoor size) are not small on all instances. A padding
-trick, which pads an instance with `k` variables to length `2^k`, makes any
-parameter logarithmic but needs an exponential-size reduction. That is not a
-polynomial reduction.
+give a polynomial-time, hence subexponential, algorithm for 3-SAT. So the
+obligation is at least as hard as refuting ETH. Parameters that are small on
+"typical" or "structured" instances (treewidth, backdoor size) are not small on
+all instances. A padding trick, which pads an instance with `k` variables to
+length `2^k`, makes any parameter logarithmic but needs an exponential-size
+reduction. That is not a polynomial reduction.
 
 **What is gained.** A correct and fully general accounting of when
 parameterized algorithms yield polynomial time. It is useful for auditing
 claims of the form "SAT is FPT in parameter X, and X is small".
+
+**Caveats.** `SATHard` is a named hypothesis, not a mechanised theorem. ETH and
+the parameterized results of section 5 are cited, not formalized. The
+machine-model part is so far only in Lean; `Idea37.v` has the arithmetic and
+the schema.
 
 ## 7. Failure modes this idea catches
 

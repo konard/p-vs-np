@@ -9,8 +9,12 @@ any half-unit fractional cover is a cover of cost at most twice the LP value,
 which is a correct factor-2 tool. They also prove that the complete graph `K_n` has
 an integrality gap: it has a fractional cover of value `n/2`, while every
 integral cover has at least `n - 1` vertices, so for `n ≥ 3` no rounding of
-this relaxation can be exact. In general, an exact polynomial-time rounding for an
-NP-hard problem would decide it, and that is the open obligation.
+this relaxation can be exact. In general, an exact rounding of any relaxation
+returns optimal solutions. Over the shared machine model, the open obligation
+`ExactRoundingObligation` asks for a polynomial-time `Complexity.Machine` map
+that appends an optimal vertex cover to every word-encoded instance. With the
+named known theorems `CoverCheckInP` (the certificate check is in P) and
+`VCHard` (Karp 1972) it gives `InP VC` and `PEqualsNP`.
 
 ## 1. The idea at full strength
 
@@ -49,8 +53,40 @@ list `vs` and an edge list `edges : List (Nat × Nat)`.
 
 - `Relaxation feasible cost lp := ∀ I s, feasible I s → lp I ≤ cost I s`.
 - `ExactRounding feasible cost lp rnd := ∀ I, feasible I (rnd I) ∧ cost I (rnd I) ≤ lp I`.
-- `ExactRoundingObligation PolyTime feasible cost lp` is a relaxation together
-  with a rounding that is in `PolyTime` and exact.
+- `ExactRoundingObligationFor PolyTime feasible cost lp` is the generic
+  **schema**: a relaxation together with a rounding that is in `PolyTime` and
+  exact. `PolyTime`, `feasible`, `cost` and `lp` are parameters, so the schema
+  is not itself an open problem.
+
+**Vertex cover on the shared machine model.** Words, machines and runs come
+from `proofs/complexity/lean/Complexity.lean`, and `Computes m g p` (the
+machine outputs `g w` within `p.eval |w|` steps of its `Run`) from
+`proofs/experiments/issue532/lean/Machines.lean`.
+
+- A word is read as a list of unary numbers (`nats`, `true^k false` is `k`).
+  The list `k, e, a₁, b₁, …, a_e, b_e, c₀, c₁, …` is the instance with budget
+  `budgetOf w = k` and edges `edgesOf w = [(a₁, b₁), …, (a_e, b_e)]`. The
+  vertices `verticesOf w` are `0, …, vbound - 1`, where `vbound` exceeds every
+  endpoint. The trailing numbers are a candidate cover `coverOf w`: vertex `v`
+  is chosen iff `c_v ≠ 0`.
+- `VC w` holds iff some cover of `edgesOf w` has at most `budgetOf w` vertices.
+  `CoverCheck u` holds iff `coverOf u` is a cover of `edgesOf u` within
+  `budgetOf u`.
+- `OptimalCover edges vs C` says `C` is a cover of minimum cost.
+- Named known theorems (true, not mechanised here):
+  `CoverCheckInP : Prop := InP CoverCheck` (the certificate check of vertex
+  cover ∈ NP) and `VCHard : Prop := NPHard VC` (Karp 1972).
+- The open obligation:
+
+```lean
+def ExactRoundingObligation : Prop :=
+  ∃ (m : Machine) (g : Word → Word) (p : Polynomial), Computes m g p ∧
+    ∀ w, budgetOf (g w) = budgetOf w ∧ edgesOf (g w) = edgesOf w ∧
+      OptimalCover (edgesOf w) (verticesOf w) (coverOf (g w))
+```
+
+- `MachineRounding rnd` says `rnd` is computed by such a machine map, with
+  `vcFeasible` and `vcCost` the vertex-cover feasibility and cost on words.
 
 ## 3. What is machine-checked
 
@@ -69,10 +105,22 @@ list `vs` and an edge list `edges : List (Nat × Nat)`.
 | `no_exact_rounding` | for `n ≥ 3`, some fractional cover of `K_n` is strictly cheaper than every integral cover | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
 | `exact_rounding_optimal` | an exact rounding of a relaxation returns optimal solutions | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
 | `exact_rounding_decides` | an exact rounding decides `∃ s, feasible I s ∧ cost I s ≤ k` | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
+| `exactRounding_reduces` | `ExactRoundingObligation → PolyReduces VC CoverCheck` | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
+| `exactRounding_inP` | `ExactRoundingObligation → CoverCheckInP → InP VC` | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
+| `exactRounding_gives_pEqualsNP` | `VCHard → CoverCheckInP → ExactRoundingObligation → PEqualsNP` | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
+| `not_forall_reduces_coverCheck` | non-vacuity: given `CoverCheckInP`, not every language reduces to `CoverCheck` | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
+| `exactRoundingObligation_iff_schema` | `ExactRoundingObligation ↔ ∃ lp, ExactRoundingObligationFor MachineRounding vcFeasible vcCost lp` | [Lean](../lean/Idea36.lean) | [Rocq](../rocq/Idea36.v) |
 
 The definitions `FracCover`, `IsCover`, `round`, `cost`, `halfSum`,
-`completeEdges`, `Relaxation`, `ExactRounding` and `ExactRoundingObligation`
-are present in both files under the same names. All proofs are constructive.
+`completeEdges`, `Relaxation` and `ExactRounding` are present in both files
+under the same names. The schema is `ExactRoundingObligationFor` in Lean (the
+intended Rocq name is the same). The machine-model part (the word encoding,
+`VC`, `CoverCheck`, `CoverCheckInP`, `VCHard`, `ExactRoundingObligation` and
+the last five rows) is proved in Lean only so far; the intended Rocq names are
+the same. The combinatorial proofs are constructive; `VC` and `CoverCheck` are
+classical `decide`s, and the non-vacuity theorem uses the classical diagonal
+language of the shared layer. A `decide` example checks the encoding on the
+triangle.
 The theorems are stated for arbitrary graphs, arbitrary fractional covers, and
 arbitrary instance and solution types.
 
@@ -110,10 +158,21 @@ it.
 feasible with `cost (rnd I) ≤ lp I`, then for every feasible `s`,
 `cost (rnd I) ≤ lp I ≤ cost s`. So `rnd I` is optimal
 (`exact_rounding_optimal`), and `cost (rnd I) ≤ k` decides whether a solution
-of cost `≤ k` exists (`exact_rounding_decides`). With `PolyTime` interpreted as
-polynomial time and the problem NP-hard, `ExactRoundingObligation` implies
-P = NP. The formal files prove only the logical part. The running-time claims
-stay informal.
+of cost `≤ k` exists (`exact_rounding_decides`).
+
+**The machine obligation.** On words, suppose a machine map `g` keeps the
+instance and appends an optimal cover. If `VC w` holds, some cover of cost
+`≤ k` exists, so the optimal appended cover also has cost `≤ k` and
+`CoverCheck (g w)` holds. Conversely, the appended cover is itself a witness.
+So `VC w = CoverCheck (g w)`, and `g` is a polynomial-time reduction
+(`exactRounding_reduces`). With `CoverCheckInP`, `inP_of_reduces` gives
+`InP VC` (`exactRounding_inP`). With `VCHard`, every NP language reduces to
+`VC`, so P = NP (`exactRounding_gives_pEqualsNP`). The obligation is exactly
+exact rounding on machines (`exactRoundingObligation_iff_schema`). An exact
+rounding of any relaxation bound `lp` is optimal by `exact_rounding_optimal`.
+Conversely, an optimal machine output is an exact rounding for `lp` equal to
+its own cost, which is a relaxation bound by optimality. Time is the step count
+of the machine's `Run` throughout; no running-time claim is left informal.
 
 **Witness transfer.** `tested` is a small illustration kept from an earlier
 round, a one-line logical step rather than a main result. It isolates what a
@@ -143,11 +202,30 @@ cost, and so nothing about optimality.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
-**At full potential**, the idea needs `ExactRoundingObligation` for an NP-hard
-integer program, with a relaxation solvable in polynomial time and a
-polynomial-time exact rounding. By `exact_rounding_decides`, this is a
-polynomial-time algorithm for the problem, so it is equivalent in strength to
-P = NP for that problem. There is no slack.
+**At full potential**, the idea proves the open obligation over the shared
+machine model:
+
+```lean
+def ExactRoundingObligation : Prop :=
+  ∃ (m : Machine) (g : Word → Word) (p : Polynomial), Computes m g p ∧
+    ∀ w, budgetOf (g w) = budgetOf w ∧ edgesOf (g w) = edgesOf w ∧
+      OptimalCover (edgesOf w) (verticesOf w) (coverOf (g w))
+
+theorem exactRounding_inP (h : ExactRoundingObligation) (hc : CoverCheckInP) : InP VC
+theorem exactRounding_gives_pEqualsNP (hard : VCHard) (hc : CoverCheckInP)
+    (h : ExactRoundingObligation) : PEqualsNP
+```
+
+The route needs two named hypotheses, both known theorems that are not
+mechanised here: `CoverCheckInP` (checking a candidate cover is polynomial) and
+`VCHard` (vertex cover is NP-hard, Karp 1972). By
+`exactRoundingObligation_iff_schema`, the obligation is exactly the generic
+schema `ExactRoundingObligationFor` with machine-computed roundings and some
+relaxation bound. So "a polynomial relaxation plus a polynomial exact rounding"
+is equivalent in strength to computing optimal vertex covers in polynomial
+time. There is no slack. Non-vacuity: given `CoverCheckInP`, not every
+language reduces to `CoverCheck` (`not_forall_reduces_coverCheck`), so the
+reduction the obligation provides is a genuine property of `VC`.
 
 **What blocks the obvious relaxations.** The natural LP for vertex cover has
 integrality gap tending to 2 (`complete_graph_gap`), so exact rounding is
@@ -170,6 +248,11 @@ more broadly.
 relaxation is tight, which is a structural property to be proved (total
 unimodularity, half-integrality plus a combinatorial argument, and so on). It
 cannot be assumed.
+
+**Caveats.** `CoverCheckInP` and `VCHard` are named hypotheses, not mechanised
+theorems. Linear programming in P and the literature of section 5 are cited,
+not formalized. The machine-model part is so far only in Lean; `Idea36.v` has
+the combinatorics and the schema.
 
 ## 7. Failure modes this idea catches
 

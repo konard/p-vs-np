@@ -1,6 +1,6 @@
 # Idea 14 — Randomized search
 
-**Verdict:** Developed to an open obligation (conditional theorem proved). Randomness is a legitimate resource with correct general laws. One-sided error amplifies exponentially with repetition (`rp_amplification`, proved by exact counting of seed tuples), and a one-sided algorithm with polynomially many seeds is derandomized in polynomial time by enumeration (`polySeedRP_implies_poly`). Random search does not reach P = NP by itself. Observing success on test seeds gives no error bound (`observed_success_no_guarantee`), and the route needs two open statements, recorded as definitions and never assumed: SAT has a polynomial randomized decider (`NPinRP`), and its seeds can be compressed to logarithmic length (`SeedCompression`). Their conjunction yields a deterministic polynomial decider (`rp_sat_with_seed_compression`). Caveat: the cost classes use an abstract model in which the declared time `T` is not tied to executing the algorithm (Section 2), so as formalized `PolyDec`, `NPinRP` and `SeedCompression` are satisfiable for every language (for example `T = 0` and a single seed); the formal content is the counting and the conditional bookkeeping, and the open statements are open only when read in a real machine model, which is not formalized here.
+**Verdict:** Developed to an open obligation (conditional theorem proved). Randomness is a legitimate resource with correct general laws. One-sided error amplifies exponentially with repetition (`rp_amplification`, proved by exact counting of seed tuples). A one-sided algorithm with polynomially many seeds is derandomized by enumeration (`enumeration_decides`, `poly_seeds_derandomize`, and on machines `logSeed_enumeration`). Random search does not reach P = NP by itself. Observing success on test seeds gives no error bound (`observed_success_no_guarantee`). The route needs two open statements about the shared machine model, recorded as definitions and never assumed: SAT has a polynomial-time one-sided randomised machine (`NPinRP : InRP SAT`), and its random strings can be compressed to logarithmic length (`SeedCompression SAT`). Together with the named known theorem `SeedEnumeration`, they yield a polynomial-time machine decider for SAT (`rp_sat_with_seed_compression`) and, with SAT's NP-hardness, P = NP (`rp_route_gives_pEqualsNP`). Time is the step count of `Complexity.Run`. The obligations are not vacuous: `InRP` fails for some language (`not_forall_inRP`).
 
 ## 1. The idea at full strength
 
@@ -36,20 +36,42 @@ counts divided by `s x`, so all statements are about counts in `ℕ`.
 * **Repetition:** on a tuple `t` of `k` seeds, accept iff some run accepts
   (`t.any (A x)`).
 * **Enumeration:** `anySeed s f` is the OR of `f 0, …, f (s−1)`.
-* **Cost classes** (abstract cost model with declared time `T`, as in
-  [Idea 12](Idea12.md)):
-  * `RPDecider sz L` has `2^(r x)` seeds with `r x`, `T x` polynomial in
-    `sz x`.
-  * `PolySeedRP sz L` has `s x` seeds with `s x`, `T x` polynomial.
-  * `PolyDec sz L` is a deterministic decider with polynomial time.
-  * Caveat: `T` (and the time of `PolyDec`) is a declared number, not the
-    running time of an execution, and nothing links it to `A`. In this
-    abstract model all three classes contain every language (take one seed,
-    `A x i = L x`, `T = 0`; not stated as a theorem). They express the
-    intended classes only when instantiated with a real machine model.
+* **Machine model.** Words, machines, `Run`, `pairedInput`, `InP`,
+  `PEqualsNP` come from `proofs/complexity/lean/Complexity.lean`, and `SAT`,
+  `PolyDec`, `SATHard` from `proofs/experiments/issue532/lean/Machines.lean`.
+  A randomised machine runs on `pairedInput x r` for a random string `r`, and
+  its time is the step count of `Run`.
+  * `seedWord ℓ i` is the `i`-th binary string of length `ℓ`; by
+    `seedWord_surjective`, seeds `i < 2^ℓ` enumerate every string of length
+    `ℓ`.
+  * `HaltsWithin m p ℓ`: on every `x` and every seed `i`, `m` halts on
+    `pairedInput x (seedWord (ℓ |x|) i)` within `p.eval (|x| + ℓ |x| + 1)`
+    steps.
+  * `seedAccepts m ℓ x i` says seed `i` makes `m` accept `x`.
+  * `RPMachine m p R L :≡ HaltsWithin m p R.eval ∧
+    OneSided L (seedAccepts m R.eval) (x ↦ 2^(R.eval |x|))`: random strings of
+    polynomial length `R`, no false accepts, at most half the strings reject a
+    yes-instance. `InRP L :≡ ∃ m p R, RPMachine m p R L`.
+  * `logSeed k n = k · ⌊log₂(n+1)⌋`, with `2^(logSeed k n) ≤ (n+1)^k`
+    (`two_pow_logSeed`). `PolySeedMachine m p k L` is `RPMachine` with random
+    strings of length `logSeed k`, and `PolySeedRP L :≡ ∃ m p k,
+    PolySeedMachine m p k L`.
+  * The random-string length is always an explicit polynomial or
+    `logSeed k`, never an arbitrary function of the input length (which would
+    smuggle in advice).
 * **Open obligations:**
-  * `NPinRP sz SAT :≡ RPDecider sz SAT`.
-  * `SeedCompression sz SAT :≡ RPDecider sz SAT → PolySeedRP sz SAT`.
+
+```lean
+def NPinRP : Prop := InRP SAT
+def SeedCompression (L : Language) : Prop := InRP L → PolySeedRP L
+```
+
+* **Named known theorem, not mechanised here:**
+  `SeedEnumeration : Prop := ∀ L, PolySeedRP L → InP L`. Its mathematics is
+  proved (`logSeed_enumeration`: trying all at most `(n+1)^k` seeds, each run
+  halting within `p`, gives the right answer). The missing part is the
+  single-tape machine that enumerates the seeds and simulates `m`, which is
+  the standard derandomization-by-enumeration argument (Gill 1977).
 
 ## 3. What is machine-checked
 
@@ -63,12 +85,22 @@ counts divided by `s x`, so all statements are about counts in `ℕ`.
 | `one_sided_amplified` | For a `OneSided` algorithm: repetition never accepts a no-instance, and on yes-instances the all-fail tuples are at most `s^k/2^k`. | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
 | `enumeration_decides` | Trying all seeds decides `L` exactly for a `OneSided` algorithm. | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
 | `poly_seeds_derandomize` | With `s x ≤ e(n+1)^k` seeds and `T x ≤ c(n+1)^d` per run, enumeration costs `≤ e·c·(n+1)^(k+d)`. | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
-| `polySeedRP_implies_poly` | `PolySeedRP sz L ⇒ PolyDec sz L`. | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
-| `rp_sat_with_seed_compression` | `NPinRP sz L ∧ SeedCompression sz L ⇒ PolyDec sz L`. | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
+| `seedWord_surjective` | Seeds `i < 2^ℓ` enumerate every random string of length `ℓ`. | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
+| `two_pow_logSeed` | `2^(k·⌊log₂(n+1)⌋) ≤ (n+1)^k`. | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
+| `logSeed_enumeration` | For a `PolySeedMachine`: enumerating all seeds decides `L`, there are at most `(n+1)^k` seeds, and each run halts within `p`. | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
+| `rp_sat_with_seed_compression` | `NPinRP → SeedCompression SAT → SeedEnumeration → PolyDec SAT`. | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
+| `rp_route_gives_pEqualsNP` | `NPinRP → SeedCompression SAT → SeedEnumeration → SATHard → PEqualsNP`. | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
+| `not_forall_inRP` | Non-vacuity: `InRP` fails for some language (diagonalisation against `rpLanguage`). | [Lean](../lean/Idea14.lean) | [Rocq](../rocq/Idea14.v) |
 
-`NPinRP` and `SeedCompression` are `def ... : Prop` in Lean and
-`Definition ... : Prop` in Rocq. They are never assumed. No theorem in
-either file proves or refutes P = NP.
+`NPinRP` and `SeedCompression` are `def ... : Prop` over the shared machine
+model and are never assumed. `SeedEnumeration` is a named hypothesis, not an
+axiom. No theorem in either file proves or refutes P = NP. The counting rows
+are in both files under the same names. The machine-model rows (`seedWord`,
+`HaltsWithin`, `RPMachine`, `InRP`, `PolySeedMachine`, `logSeed_enumeration`,
+`rp_sat_with_seed_compression`, `rp_route_gives_pEqualsNP`,
+`not_forall_inRP`) are Lean-only for now. The intended Rocq names are the same;
+`Idea14.v` still has the earlier abstract-cost version, including
+`polySeedRP_implies_poly`.
 
 ## 4. Complete argument
 
@@ -98,6 +130,19 @@ the algorithm on all seeds, and the same holds for sampled instances.
 `cnt s A = 0`, so `cnt s (¬A) = s` by `cnt_compl`. With `2 cnt s (¬A) ≤ s`
 this forces `s = 0`, contradicting `0 < s`. Enumeration costs
 `s x · T x ≤ e(n+1)^k · c(n+1)^d = e c (n+1)^(k+d)`.
+
+**On machines.** For a `PolySeedMachine m p k L`, `seedAccepts` is
+`OneSided`, so enumeration over the `2^(logSeed k |x|) ≤ (|x|+1)^k` seeds
+decides `L`, and each of these runs halts within `p` steps
+(`logSeed_enumeration`). Packaging this as one machine is `SeedEnumeration`.
+Given it, `NPinRP` and `SeedCompression SAT` give `InP SAT`, hence
+`PolyDec SAT` by `polyDec_iff_inP`, and with `SATHard`, P = NP.
+
+**Non-vacuity.** The language decided by a one-sided machine is determined by
+the pair `(m, R)` (`rpLanguage`, by `enumeration_decides`). Since machine and
+polynomial pairs have an injective encoding into words, a diagonal language
+differs from every `rpLanguage`, so it is not in `InRP` (`not_forall_inRP`).
+So `NPinRP` is a real statement about SAT.
 
 **Where it stops.** A polynomial-time randomized algorithm reads a
 polynomial number `r` of random bits, so it has `2^r` seeds. Enumeration
@@ -145,24 +190,34 @@ SAT is open and widely believed false.
 ## 6. How far the idea can be pushed toward P vs NP
 
 * **Proved (general):** exact seed-tuple counting, exponential one-sided
-  amplification, correctness and cost of derandomization by enumeration, and
-  the conditional theorem `rp_sat_with_seed_compression`.
+  amplification, correctness and cost of derandomization by enumeration
+  (abstractly and, via `logSeed_enumeration`, for machines with logarithmic
+  seeds), and the conditional theorems `rp_sat_with_seed_compression` and
+  `rp_route_gives_pEqualsNP`.
 * **Refuted (general):** "success on the tested seeds or instances implies a
   guarantee" (`observed_success_no_guarantee`).
-* **Exact remaining obligation:**
-  1. `NPinRP sz SAT`: a polynomial-time one-sided randomized algorithm for
+* **Exact remaining obligation** (over the shared machine model, time = `Run`
+  step count):
+  1. `NPinRP : InRP SAT`: a polynomial-time one-sided randomised machine for
      SAT. This is open and, by Karp–Lipton and Adleman, would collapse the
      polynomial hierarchy to its second level.
-  2. `SeedCompression sz SAT`: logarithmic seed length. This is open in
-     general and known to be tied to circuit lower bounds.
+  2. `SeedCompression SAT : InRP SAT → PolySeedRP SAT`: logarithmic
+     random-string length. This is open in general and known to be tied to
+     circuit lower bounds.
 
-  Both are needed. `rp_sat_with_seed_compression` shows they suffice. Note
-  that (1) alone is the statement NP = RP (since RP ⊆ NP, and SAT is
-  NP-complete by the cited Cook–Levin theorem). It is open and widely
-  believed false, but it is not known to imply P = NP.
+  Both are needed. `rp_sat_with_seed_compression` shows they suffice,
+  together with the named known theorem `SeedEnumeration` and, for
+  `PEqualsNP`, `SATHard` (Cook–Levin). Note that (1) alone is the statement
+  NP = RP (since RP ⊆ NP, and SAT is NP-complete by the cited Cook–Levin
+  theorem). It is open and widely believed false, but it is not known to imply
+  P = NP. `not_forall_inRP` shows `InRP` is a genuine restriction.
 * **For P ≠ NP** randomized search gives no route: a failing heuristic
   says nothing about all algorithms (see [Idea 12](Idea12.md) on why
   hardness has to be proved, not observed).
+* **Caveats.** `SeedEnumeration` (the enumerating machine) and `SATHard` are
+  named hypotheses, not mechanised; both are standard theorems. The
+  machine-model part is Lean-only so far; `Idea14.v` keeps the earlier
+  abstract-cost version, where the declared time is not tied to execution.
 
 ## 7. Failure modes this idea catches
 

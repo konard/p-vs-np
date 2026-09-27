@@ -9,7 +9,7 @@ A *promise algorithm* for a language `L` on a promise `P` only has to answer cor
 
 For CNF, the Unique-SAT promise excludes the satisfiable formula `x0 ∨ x1`. So some algorithm that is correct on the promise calls it unsatisfiable (`usat_solver_wrong`). A different promise makes SAT trivial (`trivial_promise_solver`), which shows that promise problems can be genuinely easier.
 
-The open obligation is a **deterministic** polynomial-time map from all CNFs into the Unique-SAT promise that preserves satisfiability (`IsolationObligation`). Given that map, any Unique-SAT promise solver decides SAT (`isolation_solves_sat`). Only a *randomized* map with a weaker guarantee is known (Valiant–Vazirani 1986): it keeps unsatisfiable formulas unsatisfiable and gives a satisfiable formula a unique solution only with probability `Ω(1/n)`. Nothing here decides P vs NP.
+The open obligations are stated over the repository's shared machine model: a decider or map is a `Complexity.Machine`, and its time is the step count of a `Complexity.Run`. `IsolationObligation` asks for a **deterministic** polynomial-time machine map on words that sends every word into the Unique-SAT promise and preserves `SAT`. `PromiseSolver` asks for a polynomial-time machine that decides `SAT` correctly on the promise. Together they give `InP SAT` (`isolation_promise_inP`), and with `SATHard` they give `PEqualsNP` (`isolation_route_gives_pEqualsNP`). Only a *randomized* isolation map with a weaker guarantee is known (Valiant–Vazirani 1986): it keeps unsatisfiable formulas unsatisfiable and gives a satisfiable formula a unique solution only with probability `Ω(1/n)`. The generic version over a free class `PolyTime` is kept as the schema `IsolationObligationFor`. Nothing here decides P vs NP.
 
 ## 1. The idea at full strength
 
@@ -29,13 +29,28 @@ At full strength, the idea is: find a promise on which SAT becomes easy, for exa
 * `twoWay := [[x0, x1]]`, i.e. `x0 ∨ x1`.
 * `EmptyPromise φ :≡ Satisfiable φ ∨ hasEmpty φ`, where `hasEmpty` tests for an empty clause.
 * SAT itself enters as a parameter `sat : CNF → Bool` with `hsat : ∀ φ, sat φ = true ↔ Satisfiable φ`. No particular SAT algorithm is assumed.
-* The obligation, with the time class `PolyTime` kept as a parameter:
+* The generic schema, with the time class `PolyTime` kept as a parameter. With a free `PolyTime` it is met by `isolate` (`decider_meets_isolation`), so it is not itself an open problem:
 
 ```lean
-def IsolationObligation (PolyTime : (CNF → CNF) → Prop) : Prop :=
+def IsolationObligationFor (PolyTime : (CNF → CNF) → Prop) : Prop :=
   ∃ f : CNF → CNF, PolyTime f ∧ (∀ φ, AtMostOneSolution (f φ)) ∧
     ∀ φ, Satisfiable φ ↔ Satisfiable (f φ)
 ```
+
+* The shared machine model (`proofs/complexity/lean/Complexity.lean` and `proofs/experiments/issue532/lean/Machines.lean`): words `Word = List Bool`, machines `Machine`, runs `Run m (initial x) t b` with step count `t`, and `Computes m g p` (the machine outputs `g x` within `p.eval |x|` steps). A word `w` is read as the CNF `decode w`, and `SAT w` is its satisfiability. The shared CNF writes a literal as `a l.var == l.pos`; `ofM`/`toM` translate it to this file's CNF (`evalCNF_ofM`, `satisfiable_ofM`, `sat_iff_ofM`).
+* The promise on words: `UniquePromise w :≡ AtMostOneSolution (ofM (decode w))`.
+* The two open obligations:
+
+```lean
+def IsolationObligation : Prop :=
+  ∃ (m : Machine) (g : Word → Word) (p : Polynomial), Computes m g p ∧
+    (∀ w, UniquePromise (g w)) ∧ ∀ w, SAT w = SAT (g w)
+
+def PromiseSolver : Prop :=
+  ∃ (d : Machine) (p : Polynomial), DecidesOn d p UniquePromise SAT
+```
+
+`IsolationObligation` asks for a *deterministic* map. Valiant–Vazirani gives only a randomized one, so it does not meet this obligation.
 
 ## 3. What is machine-checked
 
@@ -54,10 +69,18 @@ def IsolationObligation (PolyTime : (CNF → CNF) → Prop) : Prop :=
 | `hasEmpty_unsat` | A CNF with an empty clause is unsatisfiable | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
 | `trivial_promise_solver` | On `EmptyPromise`, "no empty clause" decides SAT | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
 | `trivial_solver_wrong` | That solver is wrong on `x0 ∧ ¬x0` (outside the promise) | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
-| `isolation_solves_sat` | `IsolationObligation` + Unique-SAT promise solver ⇒ total SAT solver `A ∘ f` with `f ∈ PolyTime` | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
-| `decider_meets_isolation` | Given a SAT decider, `isolate` maps into the promise and preserves satisfiability | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
+| `isolation_solves_sat` | Schema `IsolationObligationFor PolyTime` + Unique-SAT promise solver ⇒ total SAT solver `A ∘ f` with `f ∈ PolyTime` | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
+| `decider_meets_isolation` | Given a SAT decider, `isolate` maps into the promise and preserves satisfiability, so the schema is met for every free `PolyTime` containing `isolate sat` | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
+| `evalCNF_ofM`, `satisfiable_ofM`, `sat_iff_ofM`, `ofM_toM` | The translation between the shared CNF and this file's CNF preserves evaluation, so `SAT w = true ↔ Satisfiable (ofM (decode w))` | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
+| `isolation_promise_inP` | `IsolationObligation → PromiseSolver → InP SAT` (machine composition `inP_of_promise_reduction`) | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
+| `isolation_route_gives_pEqualsNP` | `SATHard → IsolationObligation → PromiseSolver → PEqualsNP` | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
+| `promiseSolver_of_inP`, `promiseSolver_iff_inP` | `InP SAT → PromiseSolver`; under `IsolationObligation`, `PromiseSolver ↔ InP SAT` | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
+| `isolationObligation_of_schema` | The schema with maps realised by machines on words (`RealizedOnWords`) implies `IsolationObligation` | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
+| `schema_of_isolationObligation` | `IsolationObligation` implies the schema with maps realised by machines on encodings (`RealizedOnEncodings`) | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
+| `uniquePromise_pad`, `unpad_pad` | Every padded word `false, b₁, false, b₂, …` decodes to the empty CNF and so lies in the promise | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
+| `not_forall_promise_class` | Non-vacuity: not every language is decided on `UniquePromise` by a machine, in any polynomial bound | [Idea32.lean](../lean/Idea32.lean) | [Idea32.v](../rocq/Idea32.v) |
 
-Hypotheses are the same in both files. Decidable equality on the input type is a type-class argument in Lean (`[DecidableEq α]`) and an explicit `eq_dec` argument in Rocq. `composition_works_iff` and `promise_total_iff` also assume that the promise is decidable (`[DecidablePred P]` or `Pdec`), so that the forward direction is constructive. Rocq additionally defines `lit_eq_dec` and `cnf_eq_dec`. Lean derives `DecidableEq` for `Lit`.
+The machine-model rows (from `evalCNF_ofM` on) are proved in Lean only so far; the intended Rocq names are the same. Hypotheses of the other rows are the same in both files. Decidable equality on the input type is a type-class argument in Lean (`[DecidableEq α]`) and an explicit `eq_dec` argument in Rocq. `composition_works_iff` and `promise_total_iff` also assume that the promise is decidable (`[DecidablePred P]` or `Pdec`), so that the forward direction is constructive. Rocq additionally defines `lit_eq_dec` and `cnf_eq_dec`. Lean derives `DecidableEq` for `Lit`.
 
 ## 4. Complete argument
 
@@ -69,7 +92,7 @@ Hypotheses are the same in both files. Decidable equality on the input type is a
 
 **Promises can trivialize SAT.** On `EmptyPromise`, an input without an empty clause is satisfiable by the promise. An input with an empty clause is unsatisfiable (`hasEmpty_unsat`). So `¬hasEmpty` is correct on the promise, in linear time. Outside the promise it fails, for example on `x0 ∧ ¬x0`. This is the formal content of "promise problems can be easier". Correctness on a promise says nothing about hard inputs that the promise excludes.
 
-**The obligation.** `isolation_solves_sat` combines `promise_reduction_total` with the promise solver. `decider_meets_isolation` shows why the obligation is *only* hard because of its time bound. With a SAT decider in hand, map satisfiable formulas to `[]` (which has one solution modulo no variables) and unsatisfiable ones to `[[]]`. So the obligation cannot be met by exhibiting some satisfiability-preserving map into the promise. The map must be computed in polynomial time *without* deciding SAT. Using a decider to build `f` would be circular.
+**The schema and the machine obligation.** `isolation_solves_sat` combines `promise_reduction_total` with the promise solver. `decider_meets_isolation` shows why the obligation is *only* hard because of its time bound. With a SAT decider in hand, map satisfiable formulas to `[]` (which has one solution modulo no variables) and unsatisfiable ones to `[[]]`. So the obligation cannot be met by exhibiting some satisfiability-preserving map into the promise. The map must be computed in polynomial time *without* deciding SAT. Using a decider to build `f` would be circular. On machines, `isolation_promise_inP` is the same composition: `inP_of_promise_reduction` runs the machine for `g` and then the promise solver as one machine, whose step count is bounded by a polynomial. The translation lemmas (`evalLit_ofLit`, `evalCNF_ofM`) check that a literal `if pos then a v else ¬a v` of this file is the literal `a v == pos` of the shared layer, so `SAT w = true ↔ Satisfiable (ofM (decode w))`. For non-vacuity, a word `false, b₁, false, b₂, …` decodes to the empty CNF, which lies in the promise. A machine deciding a language on the promise therefore decides it on all padded words, and the Cantor lemma `exists_language_not_in_family` gives a language that no machine decides on padded words (`not_forall_promise_class`).
 
 ## 5. Known results and literature
 
@@ -82,22 +105,33 @@ None of these is formalized here. In particular, the Valiant–Vazirani reductio
 
 ## 6. How far the idea can be pushed toward P vs NP
 
-The open obligation:
+The open obligations, over the shared machine model:
 
 ```lean
-def IsolationObligation (PolyTime : (CNF → CNF) → Prop) : Prop :=
-  ∃ f : CNF → CNF, PolyTime f ∧ (∀ φ, AtMostOneSolution (f φ)) ∧
-    ∀ φ, Satisfiable φ ↔ Satisfiable (f φ)
+def IsolationObligation : Prop :=
+  ∃ (m : Machine) (g : Word → Word) (p : Polynomial), Computes m g p ∧
+    (∀ w, UniquePromise (g w)) ∧ ∀ w, SAT w = SAT (g w)
+
+def PromiseSolver : Prop :=
+  ∃ (d : Machine) (p : Polynomial), DecidesOn d p UniquePromise SAT
+
+theorem isolation_promise_inP (hI : IsolationObligation) (hS : PromiseSolver) : InP SAT
+theorem isolation_route_gives_pEqualsNP (hard : SATHard) (hI : IsolationObligation)
+    (hS : PromiseSolver) : PEqualsNP
 ```
 
-`isolation_solves_sat` turns it plus a Unique-SAT promise solver into a SAT solver. Proving P = NP along this route therefore needs **two** things, neither of which is known:
+The time of the map and of the solver is the step count of a `Run`. `isolation_promise_inP` composes the two machines with `inP_of_promise_reduction` from the shared layer. The step to `PEqualsNP` needs the named hypothesis `SATHard` (NP-hardness of `SAT`, the hard half of Cook–Levin), which is stated in `Machines.lean` and not mechanised. Proving P = NP along this route therefore needs **two** things, neither of which is known:
 
-1. a *deterministic* polynomial-time isolation map; only a randomized one that succeeds with probability `Ω(1/n)` is known (Valiant–Vazirani), and whether isolation can be derandomized is open;
-2. a polynomial-time algorithm for SAT on the Unique-SAT promise. By Valiant–Vazirani such an algorithm would already give NP = RP, and no such algorithm is known.
+1. `IsolationObligation`, a *deterministic* polynomial-time isolation map. Only a randomized one that succeeds with probability `Ω(1/n)` is known (Valiant–Vazirani), and whether isolation can be derandomized is open.
+2. `PromiseSolver`, a polynomial-time algorithm for SAT on the Unique-SAT promise. By Valiant–Vazirani such an algorithm would already give NP = RP, and no such algorithm is known.
 
-`composition_works_iff` shows that nothing weaker than "`f` maps *every* input into the promise" can work for arbitrary promise solvers. A reduction that is only "usually" into the promise gives only a heuristic or randomized solver. `decider_meets_isolation` shows that the correctness part of the obligation is trivial. All the difficulty is in the time bound.
+Under `IsolationObligation` the second item is exactly `InP SAT` (`promiseSolver_iff_inP`), so isolation moves all the difficulty into the promise solver. The generic schema `IsolationObligationFor PolyTime` stays in the file. It is related to the machine obligation in both directions: `isolationObligation_of_schema` (maps realised by machines on all words) and `schema_of_isolationObligation` (maps realised by machines on encodings). With a free `PolyTime` the schema is vacuous: `decider_meets_isolation` meets its correctness part with `isolate`, which uses a SAT decider. All the difficulty is in the time bound, which the machine obligation fixes.
 
-Barriers. Valiant–Vazirani relativizes, so the randomized reduction works relative to every oracle. Any argument that derandomizes it *and* solves Unique-SAT would, if relativizing, contradict Baker–Gill–Solovay (1975). On the lower-bound side, proving that promise-Unique-SAT has no polynomial-time algorithm would in particular prove P ≠ NP (if P = NP, the SAT decider itself is a promise solver), so it is at least as hard as P ≠ NP.
+Non-vacuity. `not_forall_promise_class` shows that deciding on `UniquePromise` is not trivial: the promise contains every padded word, and a diagonal language over padded words escapes every machine. So `PromiseSolver` is a statement about `SAT`, not a consequence of the definitions. `composition_works_iff` shows that nothing weaker than "`g` maps *every* input into the promise" can work for arbitrary promise solvers. A reduction that is only "usually" into the promise gives only a heuristic or randomized solver.
+
+Barriers. Valiant–Vazirani relativizes, so the randomized reduction works relative to every oracle. Any argument that derandomizes it *and* solves Unique-SAT would, if relativizing, contradict Baker–Gill–Solovay (1975). On the lower-bound side, proving `¬ PromiseSolver` would prove `¬ InP SAT` (`promiseSolver_of_inP`), so it is at least as hard as P ≠ NP.
+
+Caveats. Only the deterministic skeleton is formalized. The Valiant–Vazirani reduction and its probability analysis are not formalized. `SATHard` is a named hypothesis, not a mechanised theorem. The machine-model part is so far only in Lean; `Idea32.v` has the general theorems and the schema.
 
 Relation to other ideas: restricted SAT variants (Phase 6), and Idea 29 (reductions compose and preserve membership in P, but only when they are total and answer-preserving).
 

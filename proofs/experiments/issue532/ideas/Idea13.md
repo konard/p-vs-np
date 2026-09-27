@@ -1,6 +1,6 @@
 # Idea 13 — Approximation to exactness
 
-**Verdict:** Developed to an open obligation (conditional theorem proved). For integer-valued objectives, an approximation becomes exact only once its error drops below one unit: a `(1 + 1/q)`-approximation is exact whenever `OPT < q` (`approx_exact_nat`, `approx_exact_max`). The bound is sharp (`threshold_sharp`), and any constant ratio such as 2 leaves room for non-optimal answers (`ratio_two_not_exact`). A fully polynomial approximation scheme is therefore exact in polynomial time whenever the optimum is polynomially bounded (`fptas_poly_bounded_exact`), and a good enough ratio decides gap problems (`polyApprox_decides_gap`). The open obligation is `PolyApprox` beyond a published NP-hardness threshold, read in a real machine model: by the cited PCP gap reductions (not formalized) it would imply P = NP, and this dossier does not discharge it. Caveat: the formal `PolyApprox` uses an abstract cost model whose running time is a given function not tied to execution, so as written it is satisfiable by taking the output to be `opt` and the time to be 0; the formal content is the conditional bookkeeping, not the hardness of the obligation.
+**Verdict:** Developed to an open obligation (conditional theorem proved). For integer-valued objectives, an approximation becomes exact only once its error drops below one unit: a `(1 + 1/q)`-approximation is exact whenever `OPT < q` (`approx_exact_nat`, `approx_exact_max`). The bound is sharp (`threshold_sharp`), and any constant ratio such as 2 leaves room for non-optimal answers (`ratio_two_not_exact`). A fully polynomial approximation scheme is therefore exact in polynomial time whenever the optimum is polynomially bounded (`fptas_poly_bounded_exact`), and a good enough ratio decides gap problems (`polyApprox_decides_gap`). The open obligation is `PolyApprox opt num den`, stated over the shared machine model: a `Complexity.Machine` computes (`Computes`, time = step count of `Run`) a word whose value `wordValue` approximates `opt` within ratio `num/den`. Beyond a published NP-hardness threshold it would imply P = NP by the cited PCP gap reductions (not formalized), and this dossier does not discharge it. `PolyApprox` is not vacuous: for every ratio, some problem has no polynomial-time machine approximation (`not_forall_polyApprox`). Caveat: the step from the gap decider of `polyApprox_decides_gap` to `InP SAT` goes through PCP gap reductions that are cited, not mechanised.
 
 ## 1. The idea at full strength
 
@@ -31,15 +31,25 @@ in `ℕ`.
   FPTAS) if `T q x ≤ c · (sz x + q + 1)^d`.
 * **Gap promise problem:** each instance satisfies `opt x ≤ a` or
   `a · num < opt x · den`; the task is to decide which.
+* **Machine model.** Words, machines, `Run`, `Polynomial` come from
+  `proofs/complexity/lean/Complexity.lean`, and `Computes m f p` (machine `m`
+  outputs `f x` within `p.eval |x|` steps of its `Run`) from
+  `proofs/experiments/issue532/lean/Machines.lean`. Instances are words, and
+  a machine's output word `y` is read as the number `wordValue y` (binary,
+  least significant bit first).
 * **Open obligation:**
-  `PolyApprox sz opt num den :≡` there is an algorithm `(run, time)` with
-  `opt x ≤ run x`, `run x · den ≤ opt x · num` and
-  `time x ≤ c · (sz x + 1)^d` for all `x`. Here `time` is an arbitrary
-  field, not derived from running `run` on a machine, so in the formal files
-  this `Prop` holds trivially whenever `den ≤ num` (take `run = opt`,
-  `time = 0`; not stated as a theorem). It expresses the intended obligation
-  only when `(run, time)` ranges over programs of a real machine model with
-  their true running times, which is not formalized here.
+
+```lean
+def PolyApprox (opt : Word → Nat) (num den : Nat) : Prop :=
+  ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Computes m f p ∧
+    ∀ x, opt x ≤ wordValue (f x) ∧ wordValue (f x) * den ≤ opt x * num
+```
+
+  The time is the step count of the machine's run, so `PolyApprox` cannot be
+  satisfied by declaring a running time.
+* **Non-vacuity helpers:** `optOf L num x` is `1` on members of `L` and
+  `num + 1` on non-members; `thresholdLanguage num m` is the language read off
+  the output of `m` by the test `wordValue ≤ num`.
 
 ## 3. What is machine-checked
 
@@ -52,11 +62,16 @@ in `ℕ`.
 | `scheme_exact_below_bound` | A scheme run with `q = B x > opt x` returns `opt x`. | [Lean](../lean/Idea13.lean) | [Rocq](../rocq/Idea13.v) |
 | `fptas_poly_bounded_exact` | FPTAS + `B x ≤ e(sz x+1)^k` ⇒ exact in time `≤ c(e+1)^d (sz x+1)^((k+1)d)`. | [Lean](../lean/Idea13.lean) | [Rocq](../rocq/Idea13.v) |
 | `approx_decides_gap` | A ratio-`num/den` algorithm decides every gap promise problem with gap above `num/den`. | [Lean](../lean/Idea13.lean) | [Rocq](../rocq/Idea13.v) |
-| `polyApprox_decides_gap` | `PolyApprox` ⇒ a polynomial-time decider for each such gap problem. | [Lean](../lean/Idea13.lean) | [Rocq](../rocq/Idea13.v) |
+| `polyApprox_decides_gap` | `PolyApprox opt num den` ⇒ a machine `m` with `Computes m f p` whose output answers every gap promise problem with gap above `num/den` by the test `wordValue (f x) · den ≤ a · num`. | [Lean](../lean/Idea13.lean) | [Rocq](../rocq/Idea13.v) |
+| `not_forall_polyApprox` | Non-vacuity: for `den ≥ 1`, `PolyApprox opt num den` fails for some `opt` (diagonalisation against `thresholdLanguage`). | [Lean](../lean/Idea13.lean) | [Rocq](../rocq/Idea13.v) |
 
-`PolyApprox` is a `def ... : Prop` in Lean and a `Definition ... : Prop` in
-Rocq. It is never assumed as an axiom. No theorem in either file proves or
-refutes P = NP.
+`PolyApprox` is a `def ... : Prop` over the shared machine model. It is never
+assumed as an axiom. No theorem in either file proves or refutes P = NP. The
+arithmetic rows are in both files under the same names. The machine-model
+statements (`wordValue`, `PolyApprox`, `polyApprox_decides_gap`, `optOf`,
+`thresholdLanguage`, `not_forall_polyApprox`) are Lean-only for now. The
+intended Rocq names are the same; `Idea13.v` still has the earlier
+abstract-cost `PolyApprox`.
 
 ## 4. Complete argument
 
@@ -96,13 +111,24 @@ which is why the knapsack FPTAS does not prove P = NP.
 `opt x ≤ a` or `a·num < opt x·den`, and `opt ≤ A ≤ opt·num/den`. If
 `opt x ≤ a`, then `A x·den ≤ opt x·num ≤ a·num`. Otherwise
 `A x·den ≥ opt x·den > a·num`. So the test `A x·den ≤ a·num` decides the
-promise problem, and `polyApprox_decides_gap` adds the running time. The
+promise problem. `polyApprox_decides_gap` lifts this to machines: the
+machine of `PolyApprox` computes `f` within its polynomial, and the single
+comparison on `wordValue (f x)` answers the promise problem. The
 PCP theorem and its refinements produce polynomial reductions from SAT to
 exactly such gap problems. A polynomial-time approximation with a ratio
 better than the gap would therefore decide SAT, which is the sense in which
 inapproximability results are conditional on P ≠ NP. The dossier formalizes
 the minimisation direction; the maximisation direction (used for MAX-3SAT)
 is symmetric and is not formalized here.
+
+**Non-vacuity (`not_forall_polyApprox`).** Suppose every `opt` had a
+ratio-`num/den` machine approximation with `den ≥ 1`. Take a language `L`
+that differs from `thresholdLanguage num m` for every machine `m`; it exists
+by diagonalisation, since machines have an injective encoding into words. For
+`optOf L num`, the approximation `A` satisfies `A ≤ num` on members
+(`A · den ≤ num` and `A ≤ A · den`) and `A ≥ num + 1` on non-members. So
+`L` is `thresholdLanguage num m` for the approximating machine `m` (the
+computed function is unique, `computes_unique`), a contradiction.
 
 ## 5. Known results and literature
 
@@ -136,13 +162,22 @@ is symmetric and is not formalized here.
 * **Refuted (general):** "a constant-ratio (or near-1 ratio) approximation is
   exact". The countermodels hold for every optimum value.
 * **Exact remaining obligation:** a proof of P = NP along this route requires
-  `PolyApprox sz opt num den` for some NP-hard problem `opt` and a ratio
-  `num/den` strictly better than a published NP-hardness threshold (for
-  example, below Dinur–Safra's constant for vertex cover). Together with the
-  corresponding published gap reduction and `polyApprox_decides_gap`, it
-  would give a polynomial decider for SAT. Alternatively: an FPTAS for a
-  strongly NP-hard problem. Nothing proved here brings either statement
-  closer: by the cited results (not formalized) each would imply P = NP.
+  `PolyApprox opt num den` (over the shared machine model, time = `Run` step
+  count) for some NP-hard problem `opt` and a ratio `num/den` strictly
+  better than a published NP-hardness threshold (for example, below
+  Dinur–Safra's constant for vertex cover). By `polyApprox_decides_gap` it
+  gives a polynomial-time machine answering the corresponding gap problem.
+  Together with the published gap reduction from SAT (cited, not
+  mechanised), it would give a polynomial decider for SAT. Alternatively: an
+  FPTAS for a strongly NP-hard problem. Nothing proved here brings either
+  statement closer: by the cited results each would imply P = NP.
+  `not_forall_polyApprox` shows that `PolyApprox` is a genuine restriction on
+  `opt`, not a consequence of the definitions.
+* **Caveats.** The last step, from a gap decider to `InP SAT`, uses the PCP
+  gap reductions, which are cited and not mechanised, so no conditional
+  theorem to `InP SAT` is stated here. The FPTAS results
+  (`fptas_poly_bounded_exact`) are arithmetic about a given time bound `T`;
+  they are not tied to a machine. The machine-model part is Lean-only so far.
 * **For P ≠ NP** the route gives nothing directly. Inapproximability
   theorems are themselves conditional on P ≠ NP.
 

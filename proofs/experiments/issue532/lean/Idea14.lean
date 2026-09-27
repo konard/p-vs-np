@@ -20,16 +20,32 @@ Proved for all parameters:
   seed-space size `s`, some algorithm succeeds on every observed seed but
   fails on at least `s − |obs|` seeds, so observing success on test seeds
   gives no error bound.
-* `enumeration_decides`, `poly_seeds_derandomize`, `polySeedRP_implies_poly`:
-  a one-sided-error algorithm is derandomized by trying all seeds, in time
+* `enumeration_decides`, `poly_seeds_derandomize`: a one-sided-error
+  algorithm is derandomized by trying all seeds, in time
   `(number of seeds) × (time per run)`; this is polynomial exactly when the
   seed space is polynomial (logarithmic seed length).
-* `rp_sat_with_seed_compression`: conditional theorem, `NPinRP` plus
-  `SeedCompression` gives a polynomial deterministic decider.
 
-Verdict: randomness changes the target class (RP/BPP instead of P), and
-turning it back into P needs a derandomization step that is open. The
-obligations `NPinRP` and `SeedCompression` are definitions, never assumed.
+Over the shared machine model (`Complexity.Machine`, time = step count of
+`Complexity.Run`, random string appended with `Complexity.pairedInput`):
+
+* `seedWord`, `seedWord_surjective`: seeds `i < 2^ℓ` enumerate every random
+  string of length `ℓ`; `two_pow_logSeed`: logarithmic seeds are at most
+  `(n+1)^k`.
+* `HaltsWithin`, `RPMachine`, `InRP`: the class RP with an explicit polynomial
+  random-string length; `PolySeedMachine`, `PolySeedRP`: the same with
+  logarithmic seeds.
+* Open obligations `NPinRP : InRP SAT` and `SeedCompression SAT`; named known
+  theorem `SeedEnumeration` (enumerating logarithmic seeds is polynomial),
+  whose mathematical core is `logSeed_enumeration`.
+* `rp_sat_with_seed_compression`, `rp_route_gives_pEqualsNP`: the conditional
+  theorems to `PolyDec SAT` and `PEqualsNP`.
+* `not_forall_inRP`: non-vacuity, `InRP` fails for some language
+  (diagonalisation against `rpLanguage`).
+
+Verdict: developed to an open obligation. Randomness changes the target class
+(RP/BPP instead of P), and turning it back into P needs a derandomization step
+that is open. The obligations `NPinRP` and `SeedCompression` are definitions,
+never assumed.
 Nothing here proves or refutes P = NP.
 -/
 

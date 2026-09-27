@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 37: parameterized structure
 
@@ -15,11 +17,25 @@ Main results:
 * `fpt_full_param_not_poly`: when the parameter equals the input size
   (`k = n`), the FPT bound `2^n · n^c` beats every polynomial `a · (n+1)^d`
   somewhere, so it is not a polynomial bound.
-* `fpt_log_param_polytime`, `LogParamFPTObligation`,
-  `obligation_gives_poly_time`: an FPT algorithm with a logarithmically bounded
-  parameter on **all** instances is a polynomial-time algorithm. For an
-  NP-complete problem this is the open obligation, and it implies P = NP.
+* `fpt_log_param_polytime`, `LogParamFPTObligationFor`,
+  `obligation_gives_poly_time`: an FPT bound with a logarithmically bounded
+  parameter on **all** instances is a polynomial bound. This is a generic
+  schema: `Correct` and `time` are parameters.
+* `LogParamFPT`, `logParamFPT_inP`: over the shared machine model
+  (`Complexity.Machine`, time = step count of `Complexity.Run`), a machine that
+  decides `L` within `2^(param x) · (|x|+1)^c` steps, with
+  `2^(param x) ≤ (|x|+1)^b` on every word, puts `L` in P.
+* `LogParamFPTObligation := LogParamFPT SAT` is the open obligation;
+  `logParam_route_gives_pEqualsNP` turns it into `PEqualsNP` given `SATHard`.
+  `not_forall_logParamFPT` shows `LogParamFPT` is not provable for every
+  language.
+* `steps`, `logParamFPT_iff_schema`: the machine statement is exactly the
+  schema instantiated with machines, the machine step count as `time`, and
+  `|x| + 1` as the size.
 * `tested`: a monotone cost is bounded when the parameter is bounded.
+
+Verdict: the route is reduced to the open obligation `LogParamFPTObligation`;
+nothing here proves or refutes P = NP.
 -/
 
 namespace Issue532.Idea37
@@ -159,24 +175,113 @@ theorem fpt_log_param_polytime {Inst : Type} (time size param : Inst → Nat) (c
   intro I
   exact Nat.le_trans (hfpt I) (fpt_param_bound_poly (fun k => 2 ^ k) (param I) (size I) b c (hlog I))
 
-/-- **Open obligation.** A correct algorithm for the problem with a `2^k · n^c` FPT bound
-for a parameter that is logarithmic on **all** instances. For an NP-complete problem,
-with `Correct` and `time` the real correctness predicate and step count, meeting it
-gives P = NP. -/
-def LogParamFPTObligation {Inst Alg : Type} (Correct : Alg → Prop)
+/-- Generic schema (not tied to a machine model): a correct algorithm with a
+`2^k · n^c` FPT bound for a parameter that is logarithmic on **all** instances.
+`Correct` and `time` are parameters; `logParamFPT_iff_schema` shows that the
+machine statement `LogParamFPT` is this schema instantiated with machines and
+their step counts. -/
+def LogParamFPTObligationFor {Inst Alg : Type} (Correct : Alg → Prop)
     (time : Alg → Inst → Nat) (size : Inst → Nat) : Prop :=
   ∃ (A : Alg) (param : Inst → Nat) (c b : Nat),
     Correct A ∧ FPTBound (time A) size param (fun k => 2 ^ k) c ∧ LogBoundedParam size param b
 
-/-- **The obligation yields a correct polynomial-time algorithm.** -/
+/-- **The schema yields a correct algorithm with a polynomial bound.** -/
 theorem obligation_gives_poly_time {Inst Alg : Type} (Correct : Alg → Prop)
     (time : Alg → Inst → Nat) (size : Inst → Nat)
-    (h : LogParamFPTObligation Correct time size) :
+    (h : LogParamFPTObligationFor Correct time size) :
     ∃ A d, Correct A ∧ ∀ I, time A I ≤ size I ^ d := by
   obtain ⟨A, param, c, b, hA, hfpt, hlog⟩ := h
   exact ⟨A, b + c, hA, fpt_log_param_polytime (time A) size param c b hfpt hlog⟩
 
 /-- Numerical check: at `n = 16, k = 4, c = 2`: `2^4 · 16^2 = 4096 = 16^3`. -/
 example : 2 ^ 4 * 16 ^ 2 ≤ 16 ^ 3 := by decide
+
+/-! ## The obligation over the shared machine model
+
+A decider is a `Complexity.Machine`; its running time on `x` is the step count
+`t` of the run `Complexity.Run m (initial x) t b`; the size of `x` is
+`|x| + 1` (as in `Complexity.Polynomial.eval`). -/
+
+open Complexity Issue532.Machines
+
+/-- A machine decides `L` within `2^(param x) · (|x|+1)^c` steps, for a
+parameter `param` with `2^(param x) ≤ (|x|+1)^b` on every word `x`. -/
+def LogParamFPT (L : Language) : Prop :=
+  ∃ (m : Machine) (param : Word → Nat) (c b : Nat),
+    (∀ x, 2 ^ param x ≤ (x.length + 1) ^ b) ∧
+    ∀ x, ∃ t v, t ≤ 2 ^ param x * (x.length + 1) ^ c ∧ Run m (initial x) t v ∧ v = L x
+
+/-- **FPT with a logarithmic parameter is in P** (machine model): the step
+bound is at most the polynomial `(|x|+1)^(b+c)`. -/
+theorem logParamFPT_inP {L : Language} (h : LogParamFPT L) : InP L := by
+  obtain ⟨m, param, c, b, hlog, hrun⟩ := h
+  refine inP_of_decidesWithin (m := m) (p := ⟨1, b + c⟩) (fun x => ?_)
+  obtain ⟨t, v, ht, hr, hv⟩ := hrun x
+  refine ⟨t, v, ?_, hr, hv⟩
+  show t ≤ 1 * (x.length + 1) ^ (b + c)
+  rw [Nat.one_mul, Nat.pow_add]
+  exact Nat.le_trans ht (Nat.mul_le_mul_right _ (hlog x))
+
+/-- **Open obligation.** SAT (the shared encoding `Issue532.Machines.SAT`) is
+decided by a machine within `2^(param x) · (|x|+1)^c` steps for a parameter with
+`2^(param x) ≤ (|x|+1)^b` on **every** word. -/
+def LogParamFPTObligation : Prop := LogParamFPT SAT
+
+/-- **Conditional theorem.** The obligation puts SAT in P. -/
+theorem logParam_obligation_inP (h : LogParamFPTObligation) : InP SAT :=
+  logParamFPT_inP h
+
+/-- **Conditional theorem.** With NP-hardness of SAT (`SATHard`, the hard half
+of Cook–Levin, a named hypothesis) the obligation gives P = NP. -/
+theorem logParam_route_gives_pEqualsNP (hard : SATHard) (h : LogParamFPTObligation) :
+    PEqualsNP :=
+  pEqualsNP_of_inP_sat hard (logParamFPT_inP h)
+
+/-- **Non-vacuity.** `LogParamFPT` is not provable for every language. -/
+theorem not_forall_logParamFPT : ¬ ∀ L : Language, LogParamFPT L := by
+  intro hall
+  obtain ⟨L, hL⟩ := exists_not_inP
+  exact hL (logParamFPT_inP (hall L))
+
+/-! ### The machine statement is the schema instantiated with machines -/
+
+open Classical in
+/-- The step count of a machine on `x`: the length of its (unique) halting run
+from `initial x`, and `0` if it does not halt. -/
+noncomputable def steps (m : Machine) (x : Word) : Nat :=
+  if h : ∃ t v, Run m (initial x) t v then Classical.choose h else 0
+
+theorem steps_eq {m : Machine} {x : Word} {t : Nat} {v : Bool} (hr : Run m (initial x) t v) :
+    steps m x = t := by
+  have h : ∃ t v, Run m (initial x) t v := ⟨t, v, hr⟩
+  unfold steps
+  split
+  · rename_i h'
+    obtain ⟨v', hv'⟩ := Classical.choose_spec h'
+    exact (run_deterministic hv' hr).1
+  · exact absurd h ‹_›
+
+/-- A machine halts on every word with the answer `L x`. -/
+def MachineDecides (L : Language) (m : Machine) : Prop := ∀ x, Run m (initial x) (steps m x) (L x)
+
+/-- **Instantiation.** `LogParamFPT L` is exactly the schema
+`LogParamFPTObligationFor` with algorithms = machines, `Correct` = "decides `L`",
+`time` = the machine step count `steps`, and size `|x| + 1`. -/
+theorem logParamFPT_iff_schema (L : Language) :
+    LogParamFPT L ↔
+      LogParamFPTObligationFor (Inst := Word) (Alg := Machine) (MachineDecides L) steps
+        (fun x => x.length + 1) := by
+  constructor
+  · rintro ⟨m, param, c, b, hlog, hrun⟩
+    refine ⟨m, param, c, b, fun x => ?_, fun x => ?_, hlog⟩
+    · obtain ⟨t, v, _, hr, hv⟩ := hrun x
+      rw [steps_eq hr, ← hv]
+      exact hr
+    · obtain ⟨t, v, ht, hr, _⟩ := hrun x
+      show steps m x ≤ 2 ^ param x * (x.length + 1) ^ c
+      rw [steps_eq hr]
+      exact ht
+  · rintro ⟨m, param, c, b, hdec, hfpt, hlog⟩
+    exact ⟨m, param, c, b, hlog, fun x => ⟨steps m x, L x, hfpt x, hdec x, rfl⟩⟩
 
 end Issue532.Idea37

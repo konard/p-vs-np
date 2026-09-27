@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 32: promise algorithms
 
@@ -21,12 +23,28 @@ correctly on inputs satisfying `Π`.  Two general facts are proved.
 Instantiated to CNF: the Unique-SAT promise `AtMostOneSolution` excludes
 `(x0 ∨ x1)` (`not_unique_example`), so some algorithm correct on the promise
 calls this satisfiable formula unsatisfiable (`usat_solver_wrong`).  A
-different promise makes SAT trivial (`trivial_promise_solver`).  The open
-obligation is a deterministic polynomial-time map from all CNFs into the
-Unique-SAT promise that preserves satisfiability (`IsolationObligation`); with
-a promise solver it would decide SAT (`isolation_solves_sat`).  Such a map
-exists trivially once SAT is decidable (`decider_meets_isolation`); whether a
-polynomial-time one exists is open.  Nothing here decides P vs NP.
+different promise makes SAT trivial (`trivial_promise_solver`).
+
+`IsolationObligationFor PolyTime` is a generic schema with a free class
+`PolyTime` of maps; with a free class it is met by the decider-based map
+`isolate` (`decider_meets_isolation`), so it only carries content once
+`PolyTime` is fixed.  The open obligations are stated over the shared machine
+model (`Complexity.Machine`, time = step count of `Complexity.Run`, words
+decoded to CNFs by `Issue532.Machines.decode`):
+
+* `IsolationObligation`: a polynomial-time machine map `g` on words (in the
+  sense of `Issue532.Machines.Computes`) with every `g w` in the Unique-SAT
+  promise and `SAT w = SAT (g w)`.  This is a *deterministic* isolation;
+  Valiant–Vazirani gives only a randomized one.
+* `PromiseSolver`: a polynomial-time machine correct for SAT on the Unique-SAT
+  promise (`Issue532.Machines.DecidesOn`).
+
+`isolation_promise_inP` and `isolation_route_gives_pEqualsNP` prove
+`IsolationObligation → PromiseSolver → InP SAT` (and `PEqualsNP` given
+`SATHard`); `isolationObligation_of_schema` and
+`schema_of_isolationObligation` relate the machine obligation to the schema
+instantiated with machine-computable maps; `not_forall_promise_class` shows
+deciding on the promise is not trivial.  Nothing here decides P vs NP.
 -/
 
 namespace Issue532.Idea32
@@ -216,17 +234,20 @@ theorem trivial_solver_wrong (sat : CNF → Bool) (hsat : ∀ φ, sat φ = true 
   simp only [evalCNF, evalClause, evalLit, Bool.or_false, Bool.and_true] at ha
   cases h0 : a 0 <;> rw [h0] at ha <;> exact Bool.noConfusion ha
 
-/-! ## The open obligation -/
+/-! ## The isolation schema -/
 
-/-- The obligation: a map in the class `PolyTime` from all CNFs into the
-Unique-SAT promise that preserves satisfiability (a deterministic isolation). -/
-def IsolationObligation (PolyTime : (CNF → CNF) → Prop) : Prop :=
+/-- Generic schema (a free class `PolyTime` of maps, not a machine model): a map
+in `PolyTime` from all CNFs into the Unique-SAT promise that preserves
+satisfiability (a deterministic isolation).  With a free `PolyTime` it is met
+by `isolate` (see `decider_meets_isolation`); the machine instance is
+`IsolationObligation` below. -/
+def IsolationObligationFor (PolyTime : (CNF → CNF) → Prop) : Prop :=
   ∃ f : CNF → CNF, PolyTime f ∧ (∀ φ, AtMostOneSolution (f φ)) ∧
     ∀ φ, Satisfiable φ ↔ Satisfiable (f φ)
 
-/-- Conditional theorem: the obligation plus any promise solver for Unique-SAT
-gives a total SAT solver `A ∘ f` with `f` in the class `PolyTime`. -/
-theorem isolation_solves_sat (PolyTime : (CNF → CNF) → Prop) (h : IsolationObligation PolyTime)
+/-- Conditional theorem for the schema: it plus any promise solver for
+Unique-SAT gives a total SAT solver `A ∘ f` with `f` in the class `PolyTime`. -/
+theorem isolation_solves_sat (PolyTime : (CNF → CNF) → Prop) (h : IsolationObligationFor PolyTime)
     (A : CNF → Bool) (hA : ∀ φ, AtMostOneSolution φ → (A φ = true ↔ Satisfiable φ)) :
     ∃ f : CNF → CNF, PolyTime f ∧ ∀ φ, A (f φ) = true ↔ Satisfiable φ := by
   obtain ⟨f, hf, hinto, hpres⟩ := h
@@ -236,8 +257,11 @@ theorem isolation_solves_sat (PolyTime : (CNF → CNF) → Prop) (h : IsolationO
 (one solution modulo no variables) or the empty clause (no solution). -/
 def isolate (sat : CNF → Bool) (φ : CNF) : CNF := if sat φ then [] else [[]]
 
-/-- A SAT decider meets the correctness part of the obligation trivially via
-`isolate`, so the obligation is only as hard as its time bound. -/
+/-- A SAT decider meets the correctness part of the schema trivially via
+`isolate`.  This is why `IsolationObligationFor PolyTime` is vacuous for a free
+`PolyTime` (any class containing `isolate sat` meets it): the content of the
+obligation is entirely in the time bound, which `IsolationObligation` fixes to
+machine step counts. -/
 theorem decider_meets_isolation (sat : CNF → Bool) (hsat : ∀ φ, sat φ = true ↔ Satisfiable φ) :
     (∀ φ, AtMostOneSolution (isolate sat φ)) ∧
       ∀ φ, Satisfiable φ ↔ Satisfiable (isolate sat φ) := by
@@ -259,5 +283,193 @@ theorem decider_meets_isolation (sat : CNF → Bool) (hsat : ∀ φ, sat φ = tr
         exact Bool.noConfusion hs
       · intro ⟨a, ha⟩
         exact Bool.noConfusion ha
+
+/-! ## The obligations over the shared machine model -/
+
+open Complexity
+open Issue532.Machines (SAT decode encodeCNF Computes DecidesOn DecidesWithin
+  inP_of_promise_reduction polyDec_iff_inP pEqualsNP_of_inP_sat SATHard sat_iff sat_encode
+  run_deterministic exists_language_not_in_family encMachine encMachine_injective)
+
+/-! ### Translation between this file's CNF and the shared CNF -/
+
+def ofLit (l : Machines.Lit) : Lit := ⟨l.var, l.pos⟩
+def toLit (l : Lit) : Machines.Lit := ⟨l.var, l.pos⟩
+
+/-- A shared-layer CNF read as a CNF of this file. -/
+def ofM (φ : Machines.CNF) : CNF := φ.map (fun c => c.map ofLit)
+/-- A CNF of this file read as a shared-layer CNF. -/
+def toM (φ : CNF) : Machines.CNF := φ.map (fun c => c.map toLit)
+
+theorem ofClause_toClause (c : Clause) : (c.map toLit).map ofLit = c := by
+  induction c with
+  | nil => rfl
+  | cons l c ih => simp only [List.map_cons, ih]; rfl
+
+theorem ofM_toM (φ : CNF) : ofM (toM φ) = φ := by
+  induction φ with
+  | nil => rfl
+  | cons c φ ih =>
+    simp only [ofM, toM, List.map_cons] at *
+    rw [ofClause_toClause, ih]
+
+theorem evalLit_ofLit (a : Assignment) (l : Machines.Lit) :
+    evalLit a (ofLit l) = Machines.evalLit a l := by
+  obtain ⟨v, b⟩ := l
+  simp only [evalLit, ofLit, Machines.evalLit]
+  cases a v <;> cases b <;> rfl
+
+theorem evalClause_ofM (a : Assignment) (c : Machines.Clause) :
+    evalClause a (c.map ofLit) = Machines.evalClause a c := by
+  induction c with
+  | nil => rfl
+  | cons l c ih => simp only [List.map_cons, evalClause, Machines.evalClause, evalLit_ofLit, ih]
+
+theorem evalCNF_ofM (a : Assignment) (φ : Machines.CNF) :
+    evalCNF a (ofM φ) = Machines.evalCNF a φ := by
+  induction φ with
+  | nil => rfl
+  | cons c φ ih =>
+    simp only [ofM, List.map_cons, evalCNF, Machines.evalCNF, evalClause_ofM] at *
+    rw [ih]
+
+theorem satisfiable_ofM (φ : Machines.CNF) : Satisfiable (ofM φ) ↔ Machines.Satisfiable φ := by
+  simp only [Satisfiable, Machines.Satisfiable, evalCNF_ofM]
+
+/-- The shared `SAT` language, read through this file's CNF semantics. -/
+theorem sat_iff_ofM (w : Word) : SAT w = true ↔ Satisfiable (ofM (decode w)) :=
+  (sat_iff w).trans (satisfiable_ofM _).symm
+
+/-! ### The promise, the obligations and the conditional theorems -/
+
+/-- The Unique-SAT promise on words: the decoded formula has at most one
+solution. -/
+def UniquePromise (w : Word) : Prop := AtMostOneSolution (ofM (decode w))
+
+/-- **Open obligation** (deterministic isolation).  A polynomial-time machine map
+`g` on words (`Computes m g p`: the step count of the machine's run is at most
+`p.eval |w|`) that sends every word into the Unique-SAT promise and preserves
+`SAT`.  Valiant–Vazirani (1986) gives only a *randomized* map with this
+property (success probability `Ω(1/n)`, and only for satisfiable inputs); the
+obligation asks for a deterministic one. -/
+def IsolationObligation : Prop :=
+  ∃ (m : Machine) (g : Word → Word) (p : Polynomial), Computes m g p ∧
+    (∀ w, UniquePromise (g w)) ∧ ∀ w, SAT w = SAT (g w)
+
+/-- **Open obligation** (Unique-SAT solver).  A polynomial-time machine that
+decides `SAT` correctly on every word in the Unique-SAT promise. -/
+def PromiseSolver : Prop :=
+  ∃ (d : Machine) (p : Polynomial), DecidesOn d p UniquePromise SAT
+
+/-- **Conditional theorem.**  Deterministic isolation plus a Unique-SAT promise
+solver puts SAT in P (machine composition `inP_of_promise_reduction`). -/
+theorem isolation_promise_inP (hI : IsolationObligation) (hS : PromiseSolver) : InP SAT := by
+  obtain ⟨m, g, p, hm, hinto, hpres⟩ := hI
+  obtain ⟨d, q, hd⟩ := hS
+  exact inP_of_promise_reduction hm hinto hpres hd
+
+/-- **Conditional theorem.**  With NP-hardness of SAT (`SATHard`, a named
+hypothesis: the hard half of Cook–Levin), the two obligations give P = NP. -/
+theorem isolation_route_gives_pEqualsNP (hard : SATHard) (hI : IsolationObligation)
+    (hS : PromiseSolver) : PEqualsNP :=
+  pEqualsNP_of_inP_sat hard (isolation_promise_inP hI hS)
+
+/-- A total polynomial-time SAT decider is in particular a promise solver. -/
+theorem promiseSolver_of_inP (h : InP SAT) : PromiseSolver := by
+  obtain ⟨m, p, hd⟩ := (polyDec_iff_inP SAT).2 h
+  exact ⟨m, p, fun x _ => hd x⟩
+
+/-- Under deterministic isolation, the promise problem is exactly as hard as SAT. -/
+theorem promiseSolver_iff_inP (hI : IsolationObligation) : PromiseSolver ↔ InP SAT :=
+  ⟨isolation_promise_inP hI, promiseSolver_of_inP⟩
+
+/-! ### The machine obligation is the schema with machine-computable maps -/
+
+/-- `f` is realised on words by a polynomial-time machine: some machine map `g`
+satisfies `decode (g w) = f (decode w)` (read through `ofM`) on every word. -/
+def RealizedOnWords (f : CNF → CNF) : Prop :=
+  ∃ (m : Machine) (g : Word → Word) (p : Polynomial), Computes m g p ∧
+    ∀ w, ofM (decode (g w)) = f (ofM (decode w))
+
+/-- `f` is realised on encodings by a polynomial-time machine: some machine map
+`g` satisfies `decode (g (encodeCNF φ)) = f φ` (read through `ofM`/`toM`). -/
+def RealizedOnEncodings (f : CNF → CNF) : Prop :=
+  ∃ (m : Machine) (g : Word → Word) (p : Polynomial), Computes m g p ∧
+    ∀ φ, ofM (decode (g (encodeCNF (toM φ)))) = f φ
+
+theorem bool_eq_of_iff {a b : Bool} (h : a = true ↔ b = true) : a = b := by
+  cases a <;> cases b <;> simp_all
+
+/-- The schema instantiated with maps realised by machines on words gives the
+machine obligation. -/
+theorem isolationObligation_of_schema (h : IsolationObligationFor RealizedOnWords) :
+    IsolationObligation := by
+  obtain ⟨f, ⟨m, g, p, hm, hg⟩, hinto, hpres⟩ := h
+  refine ⟨m, g, p, hm, fun w => ?_, fun w => bool_eq_of_iff ?_⟩
+  · show AtMostOneSolution (ofM (decode (g w)))
+    rw [hg]; exact hinto _
+  · rw [sat_iff_ofM, sat_iff_ofM, hg]
+    exact hpres _
+
+/-- The machine obligation gives the schema instantiated with maps realised by
+machines on encodings. -/
+theorem schema_of_isolationObligation (h : IsolationObligation) :
+    IsolationObligationFor RealizedOnEncodings := by
+  obtain ⟨m, g, p, hm, hinto, hpres⟩ := h
+  refine ⟨fun φ => ofM (decode (g (encodeCNF (toM φ)))), ⟨m, g, p, hm, fun _ => rfl⟩,
+    fun φ => hinto _, fun φ => ?_⟩
+  have h1 : Satisfiable φ ↔ SAT (encodeCNF (toM φ)) = true := by
+    rw [sat_encode, ← satisfiable_ofM, ofM_toM]
+  rw [h1, hpres, sat_iff_ofM]
+
+/-! ### Non-vacuity: deciding on the promise is not trivial -/
+
+/-- Pad a word into pairs `false, b`; such words decode to the empty formula. -/
+def pad : Word → Word
+  | [] => []
+  | b :: w => false :: b :: pad w
+
+def unpad : Word → Word
+  | _ :: b :: r => b :: unpad r
+  | _ => []
+
+theorem unpad_pad (w : Word) : unpad (pad w) = w := by
+  induction w with
+  | nil => rfl
+  | cons b w ih => simp only [pad, unpad, ih]
+
+theorem decodeAux_pad (w : Word) (k : Nat) (cur : Machines.Clause) :
+    Machines.decodeAux (pad w) k cur = [] := by
+  induction w generalizing k cur with
+  | nil => simp [pad, Machines.decodeAux]
+  | cons b w ih => simp only [pad, Machines.decodeAux, ih]
+
+/-- Every padded word lies in the Unique-SAT promise. -/
+theorem uniquePromise_pad (w : Word) : UniquePromise (pad w) := by
+  intro a b _ _ v hv
+  simp only [decode, Machines.decode, decodeAux_pad, ofM, List.map_nil, vars] at hv
+  exact absurd hv List.not_mem_nil
+
+open Classical in
+/-- **Non-vacuity.**  Not every language is decided on the Unique-SAT promise by
+a machine (in any polynomial time bound): the promise contains all padded words,
+and a diagonal language over them escapes every machine. -/
+theorem not_forall_promise_class :
+    ¬ ∀ L : Language, ∃ (d : Machine) (p : Polynomial), DecidesOn d p UniquePromise L := by
+  intro hall
+  obtain ⟨L0, hL0⟩ := exists_language_not_in_family encMachine
+    (fun _ _ h => encMachine_injective h)
+    (fun m w => decide (∃ t, Run m (initial (pad w)) t true))
+  obtain ⟨d, p, hd⟩ := hall (fun w => L0 (unpad w))
+  apply hL0 d
+  funext w
+  obtain ⟨t, b, _, hr, hb⟩ := hd (pad w) (uniquePromise_pad w)
+  simp only [unpad_pad] at hb
+  subst hb
+  cases hL : L0 w with
+  | true => rw [hL] at hr; exact decide_eq_true ⟨t, hr⟩
+  | false =>
+    rw [hL] at hr
+    exact decide_eq_false (fun ⟨t', hr'⟩ => Bool.noConfusion (run_deterministic hr hr').2)
 
 end Issue532.Idea32

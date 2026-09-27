@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 36: exact relaxation and rounding
 
@@ -21,7 +23,23 @@ Main results:
   rounding can be exact for this relaxation.
 * `exact_rounding_optimal`, `exact_rounding_decides`: in general, an exact
   rounding of a relaxation produces optimal solutions and so decides the
-  decision version. `ExactRoundingObligation` records the open obligation.
+  decision version. `ExactRoundingObligationFor` is the generic schema (free
+  `PolyTime`, `feasible`, `cost`, `lp`).
+* Over the shared machine model (`Complexity.Machine`, time = step count of
+  `Complexity.Run`), vertex-cover instances are words (`budgetOf`, `edgesOf`,
+  `verticesOf`; a certificate cover is read by `coverOf`). The open obligation
+  `ExactRoundingObligation` asks for a polynomial-time machine map that keeps
+  the instance and appends an optimal vertex cover.
+  `exactRoundingObligation_iff_schema` shows it is exactly the schema
+  instantiated with machine-computed roundings and some relaxation bound.
+  `exactRounding_inP` and `exactRounding_gives_pEqualsNP` turn it into
+  `InP VC` and `PEqualsNP` under the named known theorems `CoverCheckInP` and
+  `VCHard`.
+
+Verdict: correct tool, insufficient alone. Exact rounding is impossible for
+the half-integral relaxation (`no_exact_rounding`); for any relaxation it is
+equivalent to computing optimal covers, which is the open obligation above.
+Nothing here proves or refutes P = NP.
 * `tested`: the conditional witness-transfer lemma (a sound rounding map turns a
   relaxed witness into a discrete witness).
 -/
@@ -214,15 +232,180 @@ theorem exact_rounding_decides {Inst Sol : Type} (feasible : Inst → Sol → Pr
   · intro hk
     exact ⟨rnd I, (hex I).1, hk⟩
 
-/-- **Open obligation.** A relaxation of an NP-hard integer program together with a
-polynomial-time exact rounding. By `exact_rounding_decides`, meeting it for an NP-hard
-problem (with `PolyTime` the real polynomial-time predicate) would give P = NP. -/
-def ExactRoundingObligation {Inst Sol : Type} (PolyTime : (Inst → Sol) → Prop)
+/-- Generic schema (free `PolyTime`, `feasible`, `cost` and `lp`, not a machine
+model): a relaxation bound together with an exact rounding in the class
+`PolyTime`. By `exact_rounding_decides`, meeting it for an NP-hard problem with
+`PolyTime` the real polynomial-time class would give P = NP; the machine
+instance for vertex cover is `ExactRoundingObligation` below. -/
+def ExactRoundingObligationFor {Inst Sol : Type} (PolyTime : (Inst → Sol) → Prop)
     (feasible : Inst → Sol → Prop) (cost : Inst → Sol → Nat) (lp : Inst → Nat) : Prop :=
   Relaxation feasible cost lp ∧ ∃ rnd, PolyTime rnd ∧ ExactRounding feasible cost lp rnd
 
 /-- Triangle check: LP value `3/2` (3 halves) against integral optimum `2`. -/
 example : halfSum [0, 1, 2] (fun _ => 1) = 3 ∧ cost [0, 1, 2] (round (fun _ => 1)) = 3 := by
   decide
+
+/-! ## Vertex cover on the shared machine model
+
+A word is read as a list of unary numbers (`true^k false` is `k`). The list
+`k, e, a₁, b₁, …, a_e, b_e, c₀, c₁, …` is the instance "is there a vertex cover
+of the edges `(a₁, b₁), …, (a_e, b_e)` with at most `k` vertices", and the
+trailing numbers `c₀, c₁, …` (if any) are a candidate cover: vertex `v` is
+chosen iff `c_v ≠ 0`. The vertices are `0, …, vbound - 1`, where `vbound`
+exceeds every endpoint. -/
+
+open Complexity
+open Issue532.Machines (Computes PolyReduces NPHard inP_of_reduces exists_not_inP)
+
+def natsAux : Word → Nat → List Nat
+  | [], _ => []
+  | true :: r, k => natsAux r (k + 1)
+  | false :: r, k => k :: natsAux r 0
+
+/-- The unary numbers of a word. -/
+def nats (w : Word) : List Nat := natsAux w 0
+
+/-- Encode a list of numbers in unary. -/
+def encNats : List Nat → Word
+  | [] => []
+  | k :: r => List.replicate k true ++ false :: encNats r
+
+def toPairs : List Nat → List (Nat × Nat)
+  | a :: b :: r => (a, b) :: toPairs r
+  | _ => []
+
+/-- One more than the largest endpoint. -/
+def vbound : List (Nat × Nat) → Nat
+  | [] => 0
+  | e :: r => max (max (e.1 + 1) (e.2 + 1)) (vbound r)
+
+/-- The budget `k` of the instance. -/
+def budgetOf (w : Word) : Nat := (nats w).headD 0
+
+/-- The edges of the instance. -/
+def edgesOf (w : Word) : List (Nat × Nat) :=
+  toPairs (((nats w).drop 2).take (2 * (nats w).getD 1 0))
+
+/-- The vertices `0, …, vbound - 1` of the instance. -/
+def verticesOf (w : Word) : List Nat := List.range (vbound (edgesOf w))
+
+/-- The candidate cover carried after the instance. -/
+def coverOf (w : Word) (v : Nat) : Bool :=
+  ((nats w).drop (2 + 2 * (nats w).getD 1 0)).getD v 0 != 0
+
+/-- The triangle with budget `2`, and the cover `{1, 2}` appended. -/
+example : budgetOf (encNats [2, 3, 0, 1, 1, 2, 0, 2]) = 2 ∧
+    edgesOf (encNats [2, 3, 0, 1, 1, 2, 0, 2]) = [(0, 1), (1, 2), (0, 2)] ∧
+    verticesOf (encNats [2, 3, 0, 1, 1, 2, 0, 2]) = [0, 1, 2] ∧
+    (coverOf (encNats [2, 3, 0, 1, 1, 2, 0, 2, 0, 1, 1]) 0,
+      coverOf (encNats [2, 3, 0, 1, 1, 2, 0, 2, 0, 1, 1]) 1,
+      coverOf (encNats [2, 3, 0, 1, 1, 2, 0, 2, 0, 1, 1]) 2) = (false, true, true) := by
+  decide
+
+open Classical in
+/-- The vertex-cover language: the instance has a cover within its budget. -/
+noncomputable def VC : Language := fun w =>
+  decide (∃ C, IsCover (edgesOf w) C ∧ cost (verticesOf w) C ≤ budgetOf w)
+
+open Classical in
+/-- The certificate check: the appended candidate is a cover within the budget. -/
+noncomputable def CoverCheck : Language := fun u =>
+  decide (IsCover (edgesOf u) (coverOf u) ∧ cost (verticesOf u) (coverOf u) ≤ budgetOf u)
+
+/-- **Known theorem, not mechanised here.** Checking a proposed vertex cover
+against the budget takes polynomial time: this is the certificate check that
+puts vertex cover in NP (R. M. Karp, "Reducibility among combinatorial
+problems", 1972; Garey–Johnson, *Computers and Intractability*, 1979, §3.1).
+With unary numbers the check is a linear scan per edge. -/
+def CoverCheckInP : Prop := InP CoverCheck
+
+/-- **Known theorem, not mechanised here.** Vertex cover is NP-hard (Karp 1972,
+via SAT ≤ 3-SAT ≤ CLIQUE ≤ VERTEX COVER; Garey–Johnson 1979, Theorem 3.3). The
+unary encoding above is polynomially related to the standard one, since vertex
+names and the budget are at most the number of vertices. -/
+def VCHard : Prop := NPHard VC
+
+/-- `C` is a minimum vertex cover of `edges` on the vertex list `vs`. -/
+def OptimalCover (edges : List (Nat × Nat)) (vs : List Nat) (C : Nat → Bool) : Prop :=
+  IsCover edges C ∧ ∀ C', IsCover edges C' → cost vs C ≤ cost vs C'
+
+/-- **Open obligation** (exact rounding for vertex cover, machine model). A
+polynomial-time machine map `g` (`Computes m g p`: the step count of the run is
+at most `p.eval |w|`) that keeps the instance of `w` and appends an optimal
+vertex cover. By `exactRoundingObligation_iff_schema` this is exactly an exact
+rounding, computed by a machine, of some relaxation bound. -/
+def ExactRoundingObligation : Prop :=
+  ∃ (m : Machine) (g : Word → Word) (p : Polynomial), Computes m g p ∧
+    ∀ w, budgetOf (g w) = budgetOf w ∧ edgesOf (g w) = edgesOf w ∧
+      OptimalCover (edgesOf w) (verticesOf w) (coverOf (g w))
+
+theorem bool_eq_of_iff {a b : Bool} (h : a = true ↔ b = true) : a = b := by
+  cases a <;> cases b <;> simp_all
+
+/-- **Conditional theorem.** The obligation reduces vertex cover to the
+certificate check by a polynomial-time machine. -/
+theorem exactRounding_reduces (h : ExactRoundingObligation) : PolyReduces VC CoverCheck := by
+  obtain ⟨m, g, p, hm, hg⟩ := h
+  refine ⟨m, g, p, hm, fun w => bool_eq_of_iff ?_⟩
+  obtain ⟨hb, he, hcov, hopt⟩ := hg w
+  have hv : verticesOf (g w) = verticesOf w := by simp only [verticesOf, he]
+  simp only [VC, CoverCheck, decide_eq_true_eq, hb, he, hv]
+  constructor
+  · rintro ⟨C, hC, hk⟩
+    exact ⟨hcov, Nat.le_trans (hopt C hC) hk⟩
+  · rintro ⟨hC, hk⟩
+    exact ⟨_, hC, hk⟩
+
+/-- **Conditional theorem.** The obligation and the certificate check put vertex
+cover in P. -/
+theorem exactRounding_inP (h : ExactRoundingObligation) (hc : CoverCheckInP) : InP VC :=
+  inP_of_reduces (exactRounding_reduces h) hc
+
+/-- **Conditional theorem.** With NP-hardness of vertex cover, the obligation
+gives P = NP. -/
+theorem exactRounding_gives_pEqualsNP (hard : VCHard) (hc : CoverCheckInP)
+    (h : ExactRoundingObligation) : PEqualsNP :=
+  fun L hL => inP_of_reduces (hard L hL) (exactRounding_inP h hc)
+
+/-- **Non-vacuity** (of the reduction the obligation provides). Given the
+certificate check, not every language reduces to it: otherwise every language
+would be in P, contradicting `exists_not_inP`. -/
+theorem not_forall_reduces_coverCheck (hc : CoverCheckInP) :
+    ¬ ∀ L : Language, PolyReduces L CoverCheck := by
+  intro hall
+  obtain ⟨L, hL⟩ := exists_not_inP
+  exact hL (inP_of_reduces (hall L) hc)
+
+/-! ### The machine obligation is the schema with machine-computed roundings -/
+
+/-- Feasibility and cost of vertex cover on word instances. -/
+def vcFeasible (w : Word) (C : Nat → Bool) : Prop := IsCover (edgesOf w) C
+def vcCost (w : Word) (C : Nat → Bool) : Nat := cost (verticesOf w) C
+
+/-- A rounding computed by a polynomial-time machine: the machine keeps the
+instance and appends the rounded cover. -/
+def MachineRounding (rnd : Word → Nat → Bool) : Prop :=
+  ∃ (m : Machine) (g : Word → Word) (p : Polynomial), Computes m g p ∧
+    ∀ w, budgetOf (g w) = budgetOf w ∧ edgesOf (g w) = edgesOf w ∧ rnd w = coverOf (g w)
+
+/-- **Instantiation.** The machine obligation holds exactly when, for some
+relaxation bound `lp`, the schema `ExactRoundingObligationFor` holds with
+machine-computed roundings. -/
+theorem exactRoundingObligation_iff_schema :
+    ExactRoundingObligation ↔
+      ∃ lp : Word → Nat, ExactRoundingObligationFor MachineRounding vcFeasible vcCost lp := by
+  constructor
+  · rintro ⟨m, g, p, hm, hg⟩
+    refine ⟨fun w => vcCost w (coverOf (g w)), fun w C hC => (hg w).2.2.2 C hC,
+      fun w => coverOf (g w), ⟨m, g, p, hm, fun w => ⟨(hg w).1, (hg w).2.1, rfl⟩⟩,
+      fun w => ⟨(hg w).2.2.1, Nat.le_refl _⟩⟩
+  · rintro ⟨lp, hrel, rnd, ⟨m, g, p, hm, hg⟩, hex⟩
+    refine ⟨m, g, p, hm, fun w => ⟨(hg w).1, (hg w).2.1, ?_, fun C hC => ?_⟩⟩
+    · have := (hex w).1
+      rw [(hg w).2.2] at this
+      exact this
+    · have := exact_rounding_optimal vcFeasible vcCost lp rnd hrel hex w C hC
+      rw [(hg w).2.2] at this
+      exact this
 
 end Issue532.Idea36
