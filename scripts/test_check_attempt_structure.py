@@ -20,6 +20,7 @@ from check_attempt_structure import (  # noqa: E402
     WoegingerAttempt,
     compare_with_woeginger,
     extract_author,
+    generate_markdown_list,
     main,
     parse_metadata_from_readme,
     parse_woeginger_html,
@@ -27,6 +28,13 @@ from check_attempt_structure import (  # noqa: E402
 
 
 class CheckAttemptStructureTests(unittest.TestCase):
+    def test_attempt_catalog_marks_formalization_as_historical_sketch(self):
+        validation = StructureValidation(path=Path('proofs/attempts/example-2001-peqnp'), has_proof_lean=True)
+        catalog = generate_markdown_list([validation])
+        self.assertIn('| Assurance |', catalog)
+        self.assertIn('| 🔷 | Historical sketch |', catalog)
+        self.assertIn('compilation nor a refutation folder certifies', catalog)
+
     def run_checker(self, *args):
         stdout, stderr = io.StringIO(), io.StringIO()
         argv = ["check_attempt_structure.py", "--base-dir", str(self.base_dir), *args]

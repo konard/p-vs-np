@@ -865,6 +865,7 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
     lines.append("# P vs NP Proof Attempts")
     lines.append("")
     lines.append("This document provides a comparison of all documented P vs NP proof attempts in this repository.")
+    lines.append("Every entry here has **historical sketch** status. A Lean or Rocq file may compile while containing admissions or unproved axioms; neither compilation nor a refutation folder certifies the author's claim or its refutation. See [certified results](../../scripts/proof_status.json) for the separately audited theorem list.")
     lines.append("")
     lines.append("**Legend:**")
     lines.append("- ✓ = Claims P = NP")
@@ -884,8 +885,8 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
         key=lambda v: v.path.name.lower()
     )
 
-    lines.append("| Claim | Author | Year | Title | Docs | Formal |")
-    lines.append("|:-----:|--------|------|-------|:----:|:------:|")
+    lines.append("| Claim | Author | Year | Title | Docs | Formal | Assurance |")
+    lines.append("|:-----:|--------|------|-------|:----:|:------:|-----------|")
 
     for v in sorted_validations:
         claim_emoji = v.get_claim_emoji()
@@ -912,7 +913,7 @@ def generate_markdown_list(validations: List[StructureValidation], output_path: 
         # Create link to attempt folder
         folder_link = f"[{title}]({v.path.name}/)"
 
-        lines.append(f"| {claim_emoji} | {author} | {year} | {folder_link} | {docs_str} | {formal_str} |")
+        lines.append(f"| {claim_emoji} | {author} | {year} | {folder_link} | {docs_str} | {formal_str} | Historical sketch |")
 
     lines.append("")
 
