@@ -2,7 +2,7 @@
 
 **Of the 30 ideas that define an obligation, 25 are vacuous as stated.** Each can be proved (a) or disproved (b) trivially because a time, cost or class parameter is left free. Only 01, 10, 15, 28 and 34 use a real cost measure (d), and only 34 uses `Complexity.lean`.
 
-I wrote a compiled proof for every vacuous case except 06, 17 and 23, where the idea file already proves it. The proofs are in `experiments/issue532_vacuity/IdeaNNVacuity.lean`; they compiled against commit `76ebd01` and are kept as a regression that must fail against the current sources (`check.sh`).
+I wrote a compiled proof for every vacuous case except 06, 17 and 23, where the idea file already proves it. The proofs are in `experiments/issue532_vacuity/IdeaNNVacuity.lean`; they compiled against commit `76ebd01` and are kept as a regression that must fail against the current sources (`check.py`, which also runs the reviewer's four proofs in `ReviewProofs.lean`).
 
 ## Setup
 - **What I checked:** commit `76ebd01` (the HEAD of `issue-532-4f371c941e18`), with Lean 4.34.1 core only.
