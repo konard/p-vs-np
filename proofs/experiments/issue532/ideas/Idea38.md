@@ -97,12 +97,18 @@ proof relativizes and cannot be correct, because of the two BGS oracles.
 
 Helper lemmas `succ_le_two_pow`, `lt_two_pow_self`, `linear_lt_exp` and
 `dyadic_bracket` are proved in both files. Everything is constructive except
-`nonrelativizing_iff`, whose backward direction uses excluded middle
-(`Classical.byContradiction` in Lean, `NNPP` from `Classical_Prop` in Rocq).
+`nonrelativizing_iff`, whose backward direction uses excluded middle.
 Neither file declares axioms. Both files check `orTree 2` on `single 1` by
-computation. The Lean file imports Idea 16 for the oracle machines. The intended
-Rocq names are the Lean names; the Rocq file still has the pre-machine version
-(old name `NonrelativizingIngredient`, no machine part).
+computation. Both files import Idea 16 for the oracle machines. The Rocq names
+are the Lean names. Rocq-specific differences:
+
+- `nonrelativizing_iff` takes excluded middle as an explicit premise
+  `ExcludedMiddle := ∀ P : Prop, P ∨ ¬ P`. Lean uses
+  `Classical.byContradiction`. The Rocq file imports no classical library.
+- `testLangO` is computable: a bounded search over `wordsUpTo (|x| + 1)` from
+  Idea 16, not a classical `decide`. `testLangO_iff` proves that it means
+  `∃ y, |y| ≤ |x| + 1 ∧ A (x ++ true :: y) = true`.
+- The oracle-instruction constructors are Idea 16's `obase` and `oquery`.
 
 **Label.** The issue's list names Idea 38 as a natural-proofs idea, but this file
 and dossier are the relativization audit (BGS). Natural proofs are treated in

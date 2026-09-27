@@ -6,15 +6,44 @@
    Cook-Reckhow proof systems: polynomial boundedness gives a short
    certificate characterisation of UNSAT (bounded_certificate); an exact
    decider gives a trivially bounded system (fromDecider_bounded), so the
-   open obligation NoPolyBoundedProofSystem must restrict to efficient
-   verifiers (unrestricted_obligation_false); under the obligation, efficient
+   generic schema NoPolyBoundedProofSystemFor must restrict to efficient
+   verifiers (unrestricted_obligation_false); under the schema, efficient
    exact deciders are excluded (lower_bound_excludes_efficient_decider).
+
+   Machine part (shared model, Machines.v): a proof system is a
+   VerifierProgram with a polynomial clock (MachineProofSystem); a
+   polynomially bounded one puts its language in NP (inNP_of_polyBounded);
+   every language in P has one (proofSystem_of_inP); some language has none
+   (exists_noPolyBounded).  The open obligation NoPolyBoundedUNSATProofSystem
+   gives ~ InP SAT, P <> NP given SATInNP, and is equivalent to NP <> coNP
+   given the named known theorems CookReckhowNP, NPClosedUnderReductions,
+   SATInNP and SATHard (noPolyBounded_iff_npNeCoNP).
+
    Verdict: resolution refuted in full strength as a polynomial method
    (Haken 1985, cited, not formalized); Cook's program developed to an open
-   obligation. *)
+   obligation.
+
+   Differences from Lean:
+   - The CNF core (Lit, Clause, CNF, evalLit, ...) is local to this file and
+     shadows the SAT encoding layer of Machines.v, exactly as the Lean file
+     uses its own namespace; SAT itself is Machines.SAT.
+   - Derives constructors are d_ax, d_res, d_weak; ProofSystem fields are
+     verify, ps_sound, ps_complete.
+   - MachineProofSystem fields are verifier, timeBound, halts, mps_sound,
+     mps_complete; Lean's MachineProofSystem.PolyBounded is
+     MachinePolyBounded here (PolyBounded is the abstract notion).
+   - Lean's verifierLanguage v is noncomputable (classical decide of an
+     unbounded search over proofs).  Here verifierLanguage v p q is the
+     computable bounded search: some proof of length <= q(|x|) is accepted
+     by the step-bounded interpreter within timeLimit v p x pi steps.
+     verifierLanguage_eq is stated pointwise and for a proof system whose
+     polynomial bound is q.  exists_noPolyBounded is proved by a direct
+     pointwise diagonal over encoded triples (verifier, clock, proof bound)
+     instead of the Cantor family lemma. *)
 
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
 
 (* ---------- SAT core ---------- *)
 
@@ -424,11 +453,14 @@ Proof.
   exists []. split; [cbn; lia | exact Hpi].
 Qed.
 
-(* Open obligation (Cook's program). *)
-Definition NoPolyBoundedProofSystem (Efficient : ProofSystem -> Prop) : Prop :=
+(** Generic schema over a free efficiency notion Efficient: no proof system
+    satisfying Efficient is polynomially bounded.  Its truth depends on the
+    choice of Efficient (unrestricted_obligation_false); the machine version
+    is NoPolyBoundedUNSATProofSystem below. *)
+Definition NoPolyBoundedProofSystemFor (Efficient : ProofSystem -> Prop) : Prop :=
   forall P, Efficient P -> ~ PolyBounded P.
 
-Theorem unrestricted_obligation_false : ~ NoPolyBoundedProofSystem (fun _ => True).
+Theorem unrestricted_obligation_false : ~ NoPolyBoundedProofSystemFor (fun _ => True).
 Proof.
   intros H. apply (H (fromDecider satDec satDec_correct) I).
   apply fromDecider_bounded.
@@ -437,9 +469,293 @@ Qed.
 Theorem lower_bound_excludes_efficient_decider :
   forall (Efficient : ProofSystem -> Prop) (EffDec : (CNF -> bool) -> Prop),
   (forall dec (H : Decides dec), EffDec dec -> Efficient (fromDecider dec H)) ->
-  NoPolyBoundedProofSystem Efficient ->
+  NoPolyBoundedProofSystemFor Efficient ->
   forall dec, Decides dec -> ~ EffDec dec.
 Proof.
   intros Efficient EffDec Hclosed Hlb dec H He.
   exact (Hlb _ (Hclosed dec H He) (fromDecider_bounded dec H)).
+Qed.
+
+(* ---------- Machine part: Cook-Reckhow proof systems in the shared model ---------- *)
+
+(** A Cook-Reckhow proof system for L in the shared machine model: a verifier
+    program that halts within the polynomial timeBound on every (input, proof)
+    pair, is sound for L, and is complete for L. *)
+Record MachineProofSystem (L : Language) := {
+  verifier : VerifierProgram;
+  timeBound : Polynomial;
+  halts : forall x pi, exists t b,
+    t <= timeLimit verifier timeBound x pi /\ verifierRun verifier x pi t b;
+  mps_sound : forall x pi t, verifierRun verifier x pi t true -> L x = true;
+  mps_complete : forall x, L x = true -> exists pi t, verifierRun verifier x pi t true
+}.
+Arguments verifier {L} _.
+Arguments timeBound {L} _.
+Arguments halts {L} _ _ _.
+Arguments mps_sound {L} _ _ _ _ _.
+Arguments mps_complete {L} _ _ _.
+
+(** Polynomial boundedness (Lean: MachineProofSystem.PolyBounded): every
+    member has an accepted proof of length polynomial in the input length. *)
+Definition MachinePolyBounded {L : Language} (P : MachineProofSystem L) : Prop :=
+  exists q : Polynomial, forall x, L x = true ->
+    exists pi t, length pi <= evalPoly q (length x) /\ verifierRun (verifier P) x pi t true.
+
+(** Verifier runs are deterministic. *)
+Theorem verifierRun_deterministic : forall v x pi t t' b b',
+  verifierRun v x pi t b -> verifierRun v x pi t' b' -> t = t' /\ b = b'.
+Proof.
+  intros [m | m] x pi t t' b b' h h'; simpl in h, h'; exact (run_deterministic _ _ _ _ _ _ h h').
+Qed.
+
+(** A polynomially bounded machine proof system puts L in NP (proved: the
+    proof bound is the certificate bound, and the clock plus determinism bound
+    the accepting run). *)
+Theorem inNP_of_polyBounded : forall L (P : MachineProofSystem L),
+  MachinePolyBounded P -> InNP L.
+Proof.
+  intros L P [q hq].
+  unshelve eexists {| np_language := L; np_verifier := verifier P;
+                      np_timeBound := timeBound P; np_certBound := q |}; [| | reflexivity].
+  - intros x pi _. exact (halts P x pi).
+  - intro x. split.
+    + intro hx. destruct (hq x hx) as [pi [t [hlen hr]]].
+      destruct (halts P x pi) as [t' [b' [ht' hr']]].
+      destruct (verifierRun_deterministic _ _ _ _ _ _ _ hr hr') as [-> _].
+      exists pi, t'. split; [exact hlen | split; [exact ht' | exact hr]].
+    + intros [pi [t [_ [_ hr]]]]. exact (mps_sound P x pi t hr).
+Qed.
+
+(** Every language in P has a polynomially bounded proof system (proved: the
+    decider ignores the proof; the empty proof suffices). *)
+Theorem proofSystem_of_inP : forall L, InP L ->
+  exists P : MachineProofSystem L, MachinePolyBounded P.
+Proof.
+  intros L h. apply polyDec_iff_inP in h. destruct h as [m [p hm]].
+  unshelve eexists {| verifier := ignoreCertificate m; timeBound := p |}.
+  - intros x pi. destruct (hm x) as [t [b [ht [hr _]]]]. exists t, b. auto.
+  - intros x pi t hr. simpl in hr. destruct (hm x) as [t' [b' [_ [hr' hb']]]].
+    destruct (run_deterministic _ _ _ _ _ _ hr hr') as [_ <-]. auto.
+  - intros x hx. destruct (hm x) as [t [b [_ [hr hb]]]].
+    rewrite hx in hb. subst b. exists [], t. exact hr.
+  - exists {| coefficient := 0; degree := 0 |}. intros x hx.
+    destruct (hm x) as [t [b [_ [hr hb]]]].
+    rewrite hx in hb. subst b. exists [], t. split; [simpl; lia | exact hr].
+Qed.
+
+(** L has no polynomially bounded machine proof system. *)
+Definition NoPolyBoundedMachineProofSystem (L : Language) : Prop :=
+  forall P : MachineProofSystem L, ~ MachinePolyBounded P.
+
+(** Open obligation (Cook's program).  UNSAT (complement SAT, over the CNF
+    encoding of the shared layer) has no polynomially bounded proof system
+    whose verifier is a polynomial-time machine.  With the known theorems
+    CookReckhowNP and NPClosedUnderReductions and the Cook-Levin halves, this
+    is equivalent to NP <> coNP (noPolyBounded_iff_npNeCoNP). *)
+Definition NoPolyBoundedUNSATProofSystem : Prop :=
+  NoPolyBoundedMachineProofSystem (complement SAT).
+
+(** A language in P has a polynomially bounded system, so the property is not
+    vacuously true. *)
+Theorem not_noPolyBounded_of_inP : forall L, InP L -> ~ NoPolyBoundedMachineProofSystem L.
+Proof.
+  intros L h hno. destruct (proofSystem_of_inP L h) as [P hP]. exact (hno P hP).
+Qed.
+
+(** A language outside NP has no polynomially bounded system. *)
+Theorem noPolyBounded_of_not_inNP : forall L, ~ InNP L -> NoPolyBoundedMachineProofSystem L.
+Proof. intros L h P hP. exact (h (inNP_of_polyBounded L P hP)). Qed.
+
+(** Injective encoding of verifier programs. *)
+Definition encVerifier (v : VerifierProgram) : Word :=
+  match v with
+  | ignoreCertificate m => false :: encMachine m
+  | paired m => true :: encMachine m
+  end.
+
+Theorem encVerifier_injective : forall v w, encVerifier v = encVerifier w -> v = w.
+Proof.
+  intros [m | m] [m' | m'] h; simpl in h; injection h; intros; try discriminate;
+    f_equal; apply encMachine_injective; assumption.
+Qed.
+
+(** Computable decoder for verifier programs, from the front of a word. *)
+Definition decVerifierFront (w : Word) : option (VerifierProgram * Word) :=
+  match w with
+  | false :: r => obind (decMachineFront r) (fun '(m, r') => Some (ignoreCertificate m, r'))
+  | true :: r => obind (decMachineFront r) (fun '(m, r') => Some (paired m, r'))
+  | [] => None
+  end.
+
+Lemma decVerifierFront_encVerifier : forall v r,
+  decVerifierFront (encVerifier v ++ r) = Some (v, r).
+Proof. intros [m | m] r; simpl; rewrite decMachineFront_encMachine; reflexivity. Qed.
+
+(** Codes of triples (verifier, clock, proof-length bound) and their
+    decoder. *)
+Definition encVerifierBounds (x : VerifierProgram * Polynomial * Polynomial) : Word :=
+  match x with
+  | (v, p, q) => encVerifier v ++ encNat (coefficient p) ++ encNat (degree p) ++
+                 encNat (coefficient q) ++ encNat (degree q)
+  end.
+
+Definition decVerifierBounds (w : Word) : option (VerifierProgram * Polynomial * Polynomial) :=
+  obind (decVerifierFront w) (fun '(v, r1) =>
+  obind (decNat r1) (fun '(c, r2) =>
+  obind (decNat r2) (fun '(k, r3) =>
+  obind (decNat r3) (fun '(c', r4) =>
+  obind (decNat r4) (fun '(k', _) =>
+  Some (v, {| coefficient := c; degree := k |}, {| coefficient := c'; degree := k' |})))))).
+
+Lemma decVerifierBounds_encVerifierBounds : forall x,
+  decVerifierBounds (encVerifierBounds x) = Some x.
+Proof.
+  intros [[v [c k]] [c' k']]. unfold decVerifierBounds, encVerifierBounds. simpl.
+  rewrite decVerifierFront_encVerifier. simpl.
+  rewrite decNat_encNat. simpl. rewrite decNat_encNat. simpl.
+  rewrite decNat_encNat. simpl.
+  rewrite <- (app_nil_r (encNat k')), decNat_encNat. reflexivity.
+Qed.
+
+(** All words of length at most n. *)
+Definition wordsUpTo (n : nat) : list Word := flat_map allAssignments (seq 0 (S n)).
+
+Lemma mem_wordsUpTo : forall n (w : Word), length w <= n -> In w (wordsUpTo n).
+Proof.
+  intros n w h. unfold wordsUpTo. apply in_flat_map. exists (length w).
+  split; [apply in_seq; lia | apply mem_allAssignments_iff; reflexivity].
+Qed.
+
+(** The verifier run with the step-bounded interpreter. *)
+Definition verifierRunFor (v : VerifierProgram) (x pi : Word) (fuel : nat) : option bool :=
+  match v with
+  | ignoreCertificate m => runFor m (initial x) fuel
+  | paired m => runFor m (pairedInput x pi) fuel
+  end.
+
+Lemma verifierRunFor_of_run : forall v x pi t b, verifierRun v x pi t b ->
+  forall fuel, t <= fuel -> verifierRunFor v x pi fuel = Some b.
+Proof. intros [m | m] x pi t b h fuel hf; exact (runFor_of_run _ _ _ _ h _ hf). Qed.
+
+Lemma run_of_verifierRunFor : forall v x pi fuel b, verifierRunFor v x pi fuel = Some b ->
+  exists t, t <= fuel /\ verifierRun v x pi t b.
+Proof. intros [m | m] x pi fuel b h; exact (run_of_runFor _ _ _ _ h). Qed.
+
+(** The language of the verifier v as seen with clock p and proof bound q
+    (computable; Lean's verifierLanguage is the unbounded classical one):
+    some proof of length at most q(|x|) is accepted within the clock. *)
+Definition verifierLanguage (v : VerifierProgram) (p q : Polynomial) : Language := fun x =>
+  existsb (fun pi => match verifierRunFor v x pi (timeLimit v p x pi) with
+                     | Some true => true | _ => false end)
+          (wordsUpTo (evalPoly q (length x))).
+
+(** A proof system with proof bound q determines its language (pointwise). *)
+Theorem verifierLanguage_eq : forall L (P : MachineProofSystem L) (q : Polynomial),
+  (forall x, L x = true -> exists pi t, length pi <= evalPoly q (length x) /\
+     verifierRun (verifier P) x pi t true) ->
+  forall x, verifierLanguage (verifier P) (timeBound P) q x = L x.
+Proof.
+  intros L P q hq x. unfold verifierLanguage. destruct (L x) eqn:hx.
+  - destruct (hq x hx) as [pi [t [hlen hr]]].
+    destruct (halts P x pi) as [t' [b' [ht' hr']]].
+    destruct (verifierRun_deterministic _ _ _ _ _ _ _ hr hr') as [<- <-].
+    apply existsb_exists. exists pi. split; [apply mem_wordsUpTo; exact hlen |].
+    rewrite (verifierRunFor_of_run _ _ _ _ _ hr _ ht'). reflexivity.
+  - destruct (existsb _ _) eqn:he; [| reflexivity].
+    apply existsb_exists in he. destruct he as [pi [_ hpi]].
+    destruct (verifierRunFor (verifier P) x pi _) as [[|] |] eqn:hrun; try discriminate.
+    destruct (run_of_verifierRunFor _ _ _ _ _ hrun) as [t [_ hr]].
+    rewrite (mps_sound P x pi t hr) in hx. discriminate.
+Qed.
+
+(** The diagonal language against all triples (verifier, clock, proof
+    bound). *)
+Definition noProofSystemLanguage : Language := fun w =>
+  match decVerifierBounds w with
+  | Some (v, p, q) => negb (verifierLanguage v p q w)
+  | None => true
+  end.
+
+(** Non-vacuity.  Some language has no polynomially bounded machine proof
+    system (direct pointwise diagonal). *)
+Theorem exists_noPolyBounded : exists L : Language, NoPolyBoundedMachineProofSystem L.
+Proof.
+  exists noProofSystemLanguage. intros P [q hq].
+  set (w := encVerifierBounds (verifier P, timeBound P, q)).
+  pose proof (verifierLanguage_eq _ P q hq w) as he.
+  assert (hd : noProofSystemLanguage w = negb (verifierLanguage (verifier P) (timeBound P) q w)).
+  { unfold noProofSystemLanguage, w. rewrite decVerifierBounds_encVerifierBounds. reflexivity. }
+  rewrite he in hd. destruct (noProofSystemLanguage w); discriminate.
+Qed.
+
+(** Conditional theorem (proved).  The obligation gives ~ InP SAT
+    unconditionally. *)
+Theorem not_inP_sat_of_noPolyBounded : NoPolyBoundedUNSATProofSystem -> ~ InP SAT.
+Proof. intros h hs. exact (not_noPolyBounded_of_inP _ (inP_complement _ hs) h). Qed.
+
+(** Conditional theorem (proved).  With SAT in NP (one half of Cook-Levin, a
+    named hypothesis) the obligation gives P <> NP. *)
+Theorem pNotEqualsNP_of_noPolyBounded : SATInNP -> NoPolyBoundedUNSATProofSystem ->
+  PNotEqualsNP.
+Proof.
+  intros mem h hp. exact (not_inP_sat_of_noPolyBounded h (inP_sat_of_pEqualsNP mem hp)).
+Qed.
+
+(** Known theorem, not mechanised here: every NP language has a polynomially
+    bounded machine proof system (Cook and Reckhow, J. Symbolic Logic 44(1),
+    1979).  The converse direction is proved (inNP_of_polyBounded). *)
+Definition CookReckhowNP : Prop :=
+  forall L : Language, InNP L -> exists P : MachineProofSystem L, MachinePolyBounded P.
+
+(** Known theorem, not mechanised here: NP is closed under polynomial-time
+    many-one reductions (Karp 1972). *)
+Definition NPClosedUnderReductions : Prop :=
+  forall L L' : Language, PolyReduces L L' -> InNP L' -> InNP L.
+
+(** A reduction from L to L' is also one from the complements. *)
+Theorem polyReduces_complement : forall L L', PolyReduces L L' ->
+  PolyReduces (complement L) (complement L').
+Proof.
+  intros L L' [m [f [p [hc hf]]]]. exists m, f, p. split; [exact hc |].
+  intro x. unfold complement. rewrite hf. reflexivity.
+Qed.
+
+(** Conditional theorem (proved).  The obligation gives NP <> coNP, given
+    SAT in NP and CookReckhowNP. *)
+Theorem npNeCoNP_of_noPolyBounded : SATInNP -> CookReckhowNP ->
+  NoPolyBoundedUNSATProofSystem -> ~ NPEqualsCoNP.
+Proof.
+  intros mem hcr h heq. destruct (hcr _ (proj1 (heq SAT) mem)) as [P hP]. exact (h P hP).
+Qed.
+
+Theorem pNotEqualsNP_via_coNP : SATInNP -> CookReckhowNP ->
+  NoPolyBoundedUNSATProofSystem -> PNotEqualsNP.
+Proof.
+  intros mem hcr h. apply pNotEqualsNP_of_npNeCoNP. exact (npNeCoNP_of_noPolyBounded mem hcr h).
+Qed.
+
+(** Converse (proved from named hypotheses).  A polynomially bounded system
+    for UNSAT gives NP = coNP, given SAT's NP-hardness and closure of NP under
+    reductions. *)
+Theorem npEqualsCoNP_of_polyBounded : SATHard -> NPClosedUnderReductions ->
+  forall P : MachineProofSystem (complement SAT), MachinePolyBounded P -> NPEqualsCoNP.
+Proof.
+  intros hard hclosed P hP.
+  pose proof (inNP_of_polyBounded _ P hP) as hu.
+  intro L. split.
+  - intro hL. exact (hclosed _ _ (polyReduces_complement _ _ (hard L hL)) hu).
+  - intro hL.
+    destruct (polyReduces_complement _ _ (hard _ hL)) as [m [f [p [hc hf]]]].
+    apply (hclosed L (complement SAT)); [| exact hu].
+    exists m, f, p. split; [exact hc |].
+    intro x. rewrite <- hf. symmetry. apply complement_complement.
+Qed.
+
+(** Cook-Reckhow equivalence (proved from named hypotheses). *)
+Theorem noPolyBounded_iff_npNeCoNP : SATInNP -> SATHard -> CookReckhowNP ->
+  NPClosedUnderReductions -> (NoPolyBoundedUNSATProofSystem <-> ~ NPEqualsCoNP).
+Proof.
+  intros mem hard hcr hclosed. split.
+  - exact (npNeCoNP_of_noPolyBounded mem hcr).
+  - intros hne P hP. exact (hne (npEqualsCoNP_of_polyBounded hard hclosed P hP)).
 Qed.

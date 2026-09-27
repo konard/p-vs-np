@@ -9,11 +9,18 @@
    polynomial processors in polynomially many rounds for large n
    (poly_parallel_cannot_hide_exponential_work); an abstract physical run
    obeys the same bound iff it is resource honest (physical_conditional,
-   dishonest_model_collapses).  The physical postulate
-   PhysicalResourceHonesty is only defined.  Verdict: refuted as a route. *)
+   dishonest_model_collapses).  The physical postulate is the generic
+   schema PhysicalResourceHonestyFor over a free predicate Realizable; its
+   instance for machine deciders of the shared model is proved
+   (physicalResourceHonesty_machine), and such a run does not perform 2^n
+   work (machine_run_not_exponential).  Verdict: refuted as a route.
+
+   Differences from Lean: none in the statements.  Record equality
+   R = machinePhysicalRun p is eliminated with subst. *)
 
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
 
 (* ---------- Schedules ---------- *)
 
@@ -218,13 +225,15 @@ Theorem schedule_is_honest : forall p s,
   UsesAtMost p s -> totalWork s <= length s * p.
 Proof. intros p s H. rewrite Nat.mul_comm. apply work_bound. exact H. Qed.
 
-(* Open obligation (physical, not mathematical): every physically realisable
-   run is resource honest.  Only defined. *)
-Definition PhysicalResourceHonesty (Realizable : PhysicalRun -> Prop) : Prop :=
+(** Generic schema over a free physical predicate Realizable: every
+    realisable run is resource honest.  Realizable is supplied by physics, so
+    this is a postulate and not a statement of complexity theory; its machine
+    instance physicalResourceHonesty_machine is proved below. *)
+Definition PhysicalResourceHonestyFor (Realizable : PhysicalRun -> Prop) : Prop :=
   forall m, Realizable m -> ResourceHonest m.
 
 Theorem physical_conditional : forall (Realizable : PhysicalRun -> Prop),
-  PhysicalResourceHonesty Realizable ->
+  PhysicalResourceHonestyFor Realizable ->
   forall m, Realizable m -> (forall n, work m n = 2 ^ n) ->
   forall c' k', (forall n, time m n <= polyEval c' k' n) ->
   forall c k n, 2 ^ (2 * (c * c' + (k + k')) + 1) <= n ->
@@ -249,4 +258,34 @@ Proof.
   exists {| work := fun n => 2 ^ n; time := fun _ => 1; resource := fun _ => 1 |}.
   split; [reflexivity|]. split; [reflexivity|]. split; [reflexivity|].
   intros H. specialize (H 1). simpl in H. lia.
+Qed.
+
+(* ---------- Machine part: sequential machines as physical runs ---------- *)
+
+(** The physical run of a machine decider clocked by p: work and time are
+    both the step bound evalPoly p of Run, on one processor. *)
+Definition machinePhysicalRun (p : Polynomial) : PhysicalRun :=
+  {| work := evalPoly p; time := evalPoly p; resource := fun _ => 1 |}.
+
+(** The physical runs of polynomial-time machine deciders of the shared model. *)
+Definition MachineRealizable (R : PhysicalRun) : Prop :=
+  exists (m : Machine) (p : Polynomial) (L : Language),
+    DecidesWithin m p L /\ R = machinePhysicalRun p.
+
+(** Machine instance of the schema (proved): runs of machine deciders are
+    resource honest with one processor. *)
+Theorem physicalResourceHonesty_machine : PhysicalResourceHonestyFor MachineRealizable.
+Proof.
+  intros R [m [p [L [_ HR]]]] n. subst R. simpl. lia.
+Qed.
+
+(** A polynomial-time machine does not perform 2^n work (from exp_beats_poly). *)
+Theorem machine_run_not_exponential : forall R : PhysicalRun,
+  MachineRealizable R -> ~ (forall n, work R n = 2 ^ n).
+Proof.
+  intros R [m [p [L [_ HR]]]] H. subst R.
+  set (n := 2 ^ (2 * (coefficient p + degree p) + 1)).
+  pose proof (exp_beats_poly (coefficient p) (degree p) n (Nat.le_refl _)) as H1.
+  specialize (H n). simpl in H. unfold evalPoly in H. unfold polyEval in H1.
+  lia.
 Qed.

@@ -122,10 +122,33 @@ barrier itself in the shared model.
 `NonRelativizingIngredientFor`, `BGSCollapse`, `BGSSeparation`,
 `UniversalSimulation`, `UniversalSimulationO` and `NTimeHierarchy` are
 `def ... : Prop`. The last five are known theorems, not mechanised here; they
-appear only as explicit hypotheses. The intended Rocq names equal the Lean
-names; the Rocq file still has the pre-machine version. The Rocq file does not
-import `FunctionalExtensionality` or any other axiom. No theorem in either
-file proves or refutes P = NP.
+appear only as explicit hypotheses. The Rocq names are the Lean names.
+Rocq-specific differences:
+
+- Constructor and field names: `OInstruction` is `obase | oquery`, the table
+  of an `OMachine` is `oprogram`, `OVerifier` is `oignoreCertificate |
+  opaired`; Lean's `OVerifier.Run`, `OVerifier.timeLimit` and
+  `OVerifier.lower` are `overifierRun`, `otimeLimit` and `lowerVerifier`.
+  Lean's total `symbolOfIndex` is `symbolOfIndexTotal`, because `Machines.v`
+  already has a partial `symbolOfIndex`. `lowerMachine` uses the
+  index-carrying `lowerRow` instead of `List.mapIdx`.
+- `diagLang` is computable. It takes a decoder `d` (a left inverse of the
+  code) and a Boolean acceptance test instead of an injective code and a
+  classically decided relation. So `diagonal_core` has two extra premises:
+  `∀ a, d (e a) = some a`, and that the test reflects `Acc`. `DiagWithin`
+  and `DiagWithinO` use the step-bounded interpreters `runFor` and `orunFor`
+  (`acceptsWithinb_iff`, `oacceptsWithinb_iff`). Because the decoders ignore
+  trailing bits, these languages also diagonalize on words that only start
+  with a code. `UniversalSimulation` and `UniversalSimulationO` are stated
+  for these languages; the simulation is the same.
+- The NTIME family of `exists_not_inNTIME` is the computable bounded
+  certificate search `ntimeLanguage`, with `ntimeLanguage_iff` for its
+  meaning. The DTIME family is `dtimeLanguage`. Both non-vacuity theorems are
+  proved by a direct pointwise diagonal over `decMachinePoly`, not by the
+  Cantor family lemma, which would need function extensionality.
+
+The Rocq file uses no axioms. No theorem in either file proves or refutes
+P = NP.
 
 ## 4. Complete argument
 

@@ -109,12 +109,29 @@ research log records the core step of resolution: from `P ∨ R` and
 | `npEqualsCoNP_of_polyBounded` | With `SATHard` and `NPClosedUnderReductions`, a polynomially bounded system for `complement SAT` gives `NPEqualsCoNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `noPolyBounded_iff_npNeCoNP` | Under the four named hypotheses, `NoPolyBoundedUNSATProofSystem ↔ ¬ NPEqualsCoNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 
-The intended Rocq names are the Lean names; the Rocq file still has the
-pre-machine version (without the machine part and with the old name
-`NoPolyBoundedProofSystem`). The Rocq constructors are `d_ax`,
-`d_res` and `d_weak`, where Lean has `Derives.ax`, `Derives.res` and
-`Derives.weak`. The proof-system fields are `verify`, `ps_sound` and
-`ps_complete`, where Lean has `verify`, `sound` and `complete`.
+The Rocq names are the Lean names, with these Rocq-specific differences:
+
+* The Rocq constructors are `d_ax`, `d_res` and `d_weak`, where Lean has
+  `Derives.ax`, `Derives.res` and `Derives.weak`. The proof-system fields
+  are `verify`, `ps_sound` and `ps_complete`, where Lean has `verify`,
+  `sound` and `complete`.
+* The fields of `MachineProofSystem` are `verifier`, `timeBound`, `halts`,
+  `mps_sound` and `mps_complete`. Lean's `MachineProofSystem.PolyBounded`
+  is `MachinePolyBounded` in Rocq, because `PolyBounded` is already the
+  abstract notion.
+* Lean's `verifierLanguage v` is `noncomputable`: it decides the unbounded
+  search `∃ π t, v.Run x π t true` with classical logic. The Rocq
+  `verifierLanguage v p q` is computable. It searches the proofs of length
+  at most `q(|x|)` (`wordsUpTo`) and runs each with the step-bounded
+  interpreter `runFor` for `timeLimit v p x π` steps. So Rocq's
+  `verifierLanguage_eq` has an extra premise, that `q` bounds the proofs of
+  the system, and it is stated pointwise, without function extensionality.
+* Lean proves `exists_noPolyBounded` with the Cantor lemma
+  `exists_language_not_in_family` over `encVerifier`. Rocq proves the same
+  statement by a direct pointwise diagonal, `noProofSystemLanguage`, over
+  encoded triples of verifier, clock and proof bound (`encVerifierBounds`,
+  with the computable decoder `decVerifierBounds`).
+* The Rocq file does not import classical logic or any other axiom.
 
 ## 4. Complete argument
 

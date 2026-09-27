@@ -95,8 +95,17 @@ error"*. This is the exact point that fails.
 | `exists_language_far_from_family` | for an injective code of a family of languages, some language differs from each member on both one-bit extensions of its code | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
 | `exists_not_avgPolyDec`, `worstToAverage_nontrivial` | non-vacuity: some language has no machine average-case decider with budget one | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
 
-The intended Rocq names are the Lean names; the Rocq file still has the
-pre-machine version (old name `WorstToAverageObligation`, no machine part).
+The Rocq names are the Lean names. Rocq-specific differences:
+
+- `machineAnswer` is computable in Rocq: it runs the step-bounded interpreter
+  `runFor` with fuel `p(|x|)`, where Lean uses classical `decide`.
+  `machineAnswer_eq` has the Lean statement.
+- `exists_language_far_from_family` takes a computable left inverse `d` of the
+  code (`forall a, d (e a) = Some a`) instead of injectivity of `e`, so the far
+  language is defined without classical logic. `exists_not_avgPolyDec` uses it
+  with `encMachinePoly` and `decMachinePoly`, a direct pointwise diagonal.
+- `two_le_count` needs no decidable equality on the element type.
+- The Rocq file imports the shared `Machines` layer and no axioms.
 
 In Lean the Boolean tests are `A x != L x` and `A x == L x`. In Rocq they are
 `negb (Bool.eqb (A x) (L x))` and `Bool.eqb (A x) (L x)`.

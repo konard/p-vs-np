@@ -1,6 +1,6 @@
 (* Issue #532, Idea 38: relativization audit (oracle query lower bound).
 
-   Rocq counterpart of ../lean/Idea38.lean (same theorem names and content).
+   Rocq counterpart of ../lean/Idea38.lean; theorem names are aligned.
    Deterministic oracle computations are adaptive decision trees over an oracle
    O : nat -> bool. A tree of depth < N cannot distinguish the all-false oracle
    from some oracle that is true at exactly one position j < N, so it cannot
@@ -8,11 +8,30 @@
    The bound is exact (orTree), a guessed position is verified with one query,
    and polynomial-depth families fail on 2^n positions (bgs_core).
    Abstractly, a relativizing proof method settles no statement that holds for
-   one oracle and fails for another. The BGS oracle constructions themselves
-   are not formalized. *)
+   one oracle and fails for another; NonrelativizingIngredientFor is the
+   generic schema over a free proof method.
 
-From Stdlib Require Import Bool Arith PeanoNat List Lia Classical_Prop.
+   Machine part, on the oracle machines of Idea 16 (OMachine extends Machine by
+   a query instruction): the explicit one-query oracle machine testVerifier
+   shows testLangO A in NP^A for every oracle A (testLangO_inNPO);
+   BGSTestSeparation (the BGS stage construction, a known theorem stated as a
+   named premise) gives Idea 16's BGSSeparation; and under the BGS premises a
+   relativizing method proves neither P^A = NP^A nor its negation for all
+   oracles (machineRelativizing_cannot_settle).  The BGS oracle constructions
+   themselves are not formalized.
+
+   Differences from Lean:
+   - nonrelativizing_iff takes the explicit premise ExcludedMiddle for its
+     backward direction (Lean uses Classical.byContradiction); no classical
+     library is imported.
+   - testLangO is the computable bounded search over wordsUpTo (from Idea 16)
+     instead of a classical decide; testLangO_iff gives the Lean meaning.
+   - Constructors of oracle instructions are obase/oquery (Idea 16). *)
+
+From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
+From proofs.experiments.issue532.rocq Require Import Idea16.
 
 Theorem tested : exists property : bool -> Prop, property false /\ ~ property true.
 Proof. exists (fun oracle => oracle = false). split; [reflexivity | discriminate]. Qed.
@@ -236,31 +255,241 @@ Proof.
     intro H. apply H. exact HA.
 Qed.
 
-(* Open obligation: a nonrelativizing ingredient. *)
-Definition NonrelativizingIngredient (Proves : ((nat -> bool) -> Prop) -> Prop) : Prop :=
+(** Generic schema over a free proof method [Proves] (not a machine-level
+    statement): the method proves some statement that fails relative to some
+    oracle.  The machine-level barrier is machineRelativizing_cannot_settle. *)
+Definition NonrelativizingIngredientFor (Proves : ((nat -> bool) -> Prop) -> Prop) : Prop :=
   exists S O, Proves S /\ ~ S O.
 
 Theorem nonrelativizing_needed : forall (Proves : ((nat -> bool) -> Prop) -> Prop)
   (S : (nat -> bool) -> Prop) (A B : nat -> bool),
   S A -> ~ S B -> (Proves S \/ Proves (fun O => ~ S O)) ->
-  NonrelativizingIngredient Proves.
+  NonrelativizingIngredientFor Proves.
 Proof.
   intros Proves S A B HA HB [H | H].
   - exists S, B. split; assumption.
   - exists (fun O => ~ S O), A. split; [exact H|]. intro H'. apply H'. exact HA.
 Qed.
 
-(* NonrelativizingIngredient is exactly the failure of Relativizing. The backward
-   direction uses excluded middle (NNPP from Classical_Prop), as the Lean proof
-   uses Classical.byContradiction; every other theorem in this file is constructive. *)
-Theorem nonrelativizing_iff : forall (Proves : ((nat -> bool) -> Prop) -> Prop),
-  NonrelativizingIngredient Proves <-> ~ Relativizing Proves.
+(** Excluded middle, as an explicit premise (the Lean proof uses
+    Classical.byContradiction; no classical library is imported here). *)
+Definition ExcludedMiddle : Prop := forall P : Prop, P \/ ~ P.
+
+(* NonrelativizingIngredientFor is exactly the failure of Relativizing. The
+   backward direction needs excluded middle, taken as the premise
+   ExcludedMiddle; every other theorem in this file is constructive. *)
+Theorem nonrelativizing_iff : ExcludedMiddle ->
+  forall (Proves : ((nat -> bool) -> Prop) -> Prop),
+  NonrelativizingIngredientFor Proves <-> ~ Relativizing Proves.
 Proof.
-  intros Proves. split.
+  intros em Proves. split.
   - intros [S [O [HS HO]]] Hrel. apply HO. apply (Hrel S HS O).
-  - intros Hnot. apply NNPP. intros Hno. apply Hnot. intros S HS O.
-    apply NNPP. intros HO. apply Hno. exists S, O. split; assumption.
+  - intros Hnot. destruct (em (NonrelativizingIngredientFor Proves)) as [H | Hno];
+      [exact H |].
+    exfalso. apply Hnot. intros S HS O.
+    destruct (em (S O)) as [HO | HO]; [exact HO |].
+    exfalso. apply Hno. exists S, O. split; assumption.
 Qed.
 
 Example orTree_check : eval (single 1) (orTree 2) = true.
 Proof. reflexivity. Qed.
+
+
+(* ======================================================================= *)
+(** * Machine part: the barrier on the oracle machines of Idea 16 *)
+
+(** The verifier for [testLangO]: scan right over [x], overwrite the separator
+    by [1], scan back to the left end, and query the word [x ++ true :: cert]. *)
+Definition testVerifier : OMachine :=
+  {| oprogram :=
+     [ [obase (halt false); obase (move 0 zero right); obase (move 0 one right);
+        obase (move 1 one left)];
+       [obase (move 2 blank right); obase (move 1 zero left); obase (move 1 one left);
+        obase (halt false)];
+       [oquery 3 4; oquery 3 4; oquery 3 4; oquery 3 4];
+       [obase (halt true); obase (halt true); obase (halt true); obase (halt true)];
+       [obase (halt false); obase (halt false); obase (halt false); obase (halt false)] ] |}.
+
+(** The configuration with state [q], left part [L], and the rest of the tape
+    [s] starting at the head. *)
+Definition hc (q : nat) (L : list Symbol) (s : list Symbol) : Config :=
+  match s with
+  | [] => {| state := q; tapeLeft := L; tapeHead := blank; tapeRight := [] |}
+  | a :: r => {| state := q; tapeLeft := L; tapeHead := a; tapeRight := r |}
+  end.
+
+Theorem moveHead_right : forall q q' L a w r,
+  moveHead {| state := q; tapeLeft := L; tapeHead := a; tapeRight := r |} q' w right =
+  hc q' (w :: L) r.
+Proof. intros q q' L a w r. destruct r; reflexivity. Qed.
+
+(** The left scan target: moving left onto [ys] (nearest symbol first). *)
+Definition lc (ys R : list Symbol) : Config :=
+  match ys with
+  | [] => {| state := 1; tapeLeft := []; tapeHead := blank; tapeRight := R |}
+  | a :: rest => {| state := 1; tapeLeft := rest; tapeHead := a; tapeRight := R |}
+  end.
+
+Theorem ofBool_ne_sep : forall x, ofBool x <> separator.
+Proof. intros [|]; discriminate. Qed.
+
+Lemma ostep_scan_right : forall A x L r,
+  ostep A testVerifier (hc 0 L (ofBool x :: r)) = inr (hc 0 (ofBool x :: L) r).
+Proof. intros A x L r. destruct x, r; reflexivity. Qed.
+
+Theorem scan_right : forall (A : Oracle) (cs : list Symbol) (t : nat) (b : bool) xs L,
+  ORun A testVerifier (hc 0 (rev (map ofBool xs) ++ L) (separator :: cs)) t b ->
+  ORun A testVerifier (hc 0 L (map ofBool xs ++ separator :: cs)) (t + length xs) b.
+Proof.
+  intros A cs t b xs. induction xs as [| x xs IH]; intros L h.
+  - rewrite Nat.add_0_r. exact h.
+  - simpl (map ofBool (x :: xs) ++ separator :: cs). simpl (length (x :: xs)).
+    rewrite Nat.add_succ_r.
+    apply orun_next with (hc 0 (ofBool x :: L) (map ofBool xs ++ separator :: cs)).
+    + apply ostep_scan_right.
+    + apply IH. simpl in h. rewrite <- app_assoc in h. exact h.
+Qed.
+
+Lemma ostep_scan_left : forall A y ys R,
+  ostep A testVerifier (lc (ofBool y :: ys) R) = inr (lc ys (ofBool y :: R)).
+Proof. intros A y ys R. destruct y, ys; reflexivity. Qed.
+
+Theorem scan_left : forall (A : Oracle) (t : nat) (b : bool) ys R,
+  ORun A testVerifier {| state := 1; tapeLeft := []; tapeHead := blank;
+                         tapeRight := rev (map ofBool ys) ++ R |} t b ->
+  ORun A testVerifier (lc (map ofBool ys) R) (t + length ys) b.
+Proof.
+  intros A t b ys. induction ys as [| y ys IH]; intros R h.
+  - rewrite Nat.add_0_r. exact h.
+  - simpl (map ofBool (y :: ys)). simpl (length (y :: ys)). rewrite Nat.add_succ_r.
+    apply orun_next with (lc (map ofBool ys) (ofBool y :: R)).
+    + apply ostep_scan_left.
+    + apply IH. simpl in h. rewrite <- app_assoc in h. exact h.
+Qed.
+
+Theorem queryWord_bits : forall xs r, queryWord (map ofBool xs ++ r) = xs ++ queryWord r.
+Proof.
+  intros xs r. induction xs as [| x xs IH]; [reflexivity |].
+  destruct x; simpl; rewrite IH; reflexivity.
+Qed.
+
+Lemma ostep_sep : forall A L C,
+  ostep A testVerifier (hc 0 L (separator :: C)) = inr (lc L (one :: C)).
+Proof. intros A L C. destruct L; reflexivity. Qed.
+
+Lemma ostep_query : forall A L a r,
+  ostep A testVerifier {| state := 2; tapeLeft := L; tapeHead := a; tapeRight := r |} =
+  inr {| state := if A (queryWord (a :: r)) then 3 else 4;
+         tapeLeft := L; tapeHead := a; tapeRight := r |}.
+Proof. intros A L a r. destruct a; reflexivity. Qed.
+
+(** The explicit run: [2 |x| + 4] steps, answer [A (x ++ true :: cert)]. *)
+Theorem testVerifier_run : forall (A : Oracle) (x cert : Word),
+  ORun A testVerifier (pairedInput x cert) (2 * length x + 4) (A (x ++ true :: cert)).
+Proof.
+  intros A x cert.
+  set (C := map ofBool cert).
+  assert (hq : queryWord (map ofBool x ++ one :: C) = x ++ true :: cert).
+  { rewrite queryWord_bits. simpl. unfold C.
+    rewrite <- (app_nil_r (map ofBool cert)), queryWord_bits. simpl.
+    rewrite app_nil_r. reflexivity. }
+  (* final three steps: blank -> right, query, halt *)
+  assert (hfin : ORun A testVerifier
+            {| state := 1; tapeLeft := []; tapeHead := blank;
+               tapeRight := map ofBool x ++ one :: C |} 3 (A (x ++ true :: cert))).
+  { destruct (map ofBool x ++ one :: C) as [| a r] eqn:hz.
+    - destruct (map ofBool x); discriminate.
+    - apply orun_next with {| state := 2; tapeLeft := [blank]; tapeHead := a; tapeRight := r |};
+        [reflexivity |].
+      apply orun_next with {| state := if A (x ++ true :: cert) then 3 else 4;
+                              tapeLeft := [blank]; tapeHead := a; tapeRight := r |}.
+      + rewrite ostep_query, hq. reflexivity.
+      + apply orun_halt. destruct (A (x ++ true :: cert)), a; reflexivity. }
+  assert (h2 : ORun A testVerifier (lc (map ofBool (rev x)) (one :: C))
+                 (3 + length (rev x)) (A (x ++ true :: cert))).
+  { apply scan_left. rewrite map_rev, rev_involutive. exact hfin. }
+  rewrite map_rev in h2.
+  assert (h3 : ORun A testVerifier (hc 0 (rev (map ofBool x) ++ []) (separator :: C))
+                 (S (3 + length (rev x))) (A (x ++ true :: cert))).
+  { apply orun_next with (lc (rev (map ofBool x)) (one :: C)); [| exact h2].
+    rewrite app_nil_r. apply ostep_sep. }
+  pose proof (scan_right A C _ _ x [] h3) as h4.
+  assert (hinit : pairedInput x cert = hc 0 [] (map ofBool x ++ separator :: C)).
+  { unfold pairedInput, C. simpl. destruct (map ofBool x); reflexivity. }
+  rewrite hinit. rewrite length_rev in h4.
+  replace (2 * length x + 4) with (S (3 + length x) + length x) by lia.
+  exact h4.
+Qed.
+
+(** The BGS-style test language relative to [A]: some extension
+    [x ++ true :: y] with [|y| <= |x| + 1] is in [A].  Computable: a bounded
+    search over [wordsUpTo] (testLangO_iff gives the meaning). *)
+Definition testLangO (A : Oracle) : Language := fun x =>
+  existsb (fun y => A (x ++ true :: y)) (wordsUpTo (length x + 1)).
+
+Theorem testLangO_iff : forall A x, testLangO A x = true <->
+  exists y : Word, length y <= length x + 1 /\ A (x ++ true :: y) = true.
+Proof.
+  intros A x. unfold testLangO. split.
+  - intro h. apply existsb_exists in h. destruct h as [y [hy hA]].
+    exists y. split; [apply mem_wordsUpTo; exact hy | exact hA].
+  - intros [y [hy hA]]. apply existsb_exists. exists y.
+    split; [apply mem_wordsUpTo; exact hy | exact hA].
+Qed.
+
+(** The NP side, in the machine model (proved).  For every oracle [A],
+    [testLangO A] is in NP^A, witnessed by the explicit oracle machine
+    [testVerifier] making one query.  This is the machine form of
+    verifier_one_query. *)
+Theorem testLangO_inNPO : forall A : Oracle, InNPO A (testLangO A).
+Proof.
+  intro A.
+  exists (opaired testVerifier), {| coefficient := 4; degree := 1 |},
+    {| coefficient := 1; degree := 1 |}. split.
+  - intros x cert _. exists (2 * length x + 4), (A (x ++ true :: cert)). split.
+    + unfold otimeLimit, evalPoly. simpl. lia.
+    + exact (testVerifier_run A x cert).
+  - intro x. split.
+    + intro h. apply testLangO_iff in h. destruct h as [y [hy hA]].
+      exists y, (2 * length x + 4). split; [| split].
+      * unfold evalPoly. simpl. lia.
+      * unfold otimeLimit, evalPoly. simpl. lia.
+      * pose proof (testVerifier_run A x y) as hr. rewrite hA in hr. exact hr.
+    + intros [cert [t [hc [_ hr]]]].
+      change (ORun A testVerifier (pairedInput x cert) t true) in hr.
+      destruct (orun_deterministic _ _ _ _ _ _ _ hr (testVerifier_run A x cert)) as [_ hb].
+      apply testLangO_iff. exists cert. split; [| exact (eq_sym hb)].
+      unfold evalPoly in hc. simpl in hc. lia.
+Qed.
+
+(** Known theorem, not mechanised here (the stage construction of Baker, Gill,
+    Solovay, SIAM J. Comput. 4(4), 1975, applied to the test language
+    [testLangO]): there is an oracle [B] with [testLangO B] not in P^B.  Its
+    query-complexity core is bgs_core. *)
+Definition BGSTestSeparation : Prop := exists B : Oracle, ~ InPO B (testLangO B).
+
+(** The test separation gives the BGS separation P^B <> NP^B of the shared
+    model. *)
+Theorem bgsSeparation_of_testSeparation : BGSTestSeparation -> BGSSeparation.
+Proof.
+  intros [B hB]. exists B. intro hP. apply hB. apply hP. apply testLangO_inNPO.
+Qed.
+
+(** A proof method over machine-oracle statements relativizes if everything
+    it proves holds relative to every oracle. *)
+Definition MachineRelativizing (Proves : (Oracle -> Prop) -> Prop) : Prop :=
+  forall S, Proves S -> forall A, S A.
+
+(** BGS barrier for machine statements.  Under the known BGS theorems, a
+    relativizing method proves neither P^A = NP^A nor P^A <> NP^A as
+    statements about all oracles. *)
+Theorem machineRelativizing_cannot_settle : forall (Proves : (Oracle -> Prop) -> Prop),
+  MachineRelativizing Proves -> BGSCollapse -> BGSTestSeparation ->
+  ~ Proves PEqualsNPO /\ ~ Proves (fun A => ~ PEqualsNPO A).
+Proof.
+  intros Proves hrel h1 h2.
+  destruct h1 as [A hA].
+  destruct (bgsSeparation_of_testSeparation h2) as [B hB]. split.
+  - intro h. exact (hB (hrel _ h B)).
+  - intro h. exact (hrel _ h A hA).
+Qed.

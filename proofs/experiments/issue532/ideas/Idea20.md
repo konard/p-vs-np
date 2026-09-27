@@ -77,6 +77,12 @@ full strength:
 | `physicalResourceHonesty_machine` | `PhysicalResourceHonestyFor MachineRealizable`: the accounting holds for every machine of the shared model. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
 | `machine_run_not_exponential` | No machine-realizable run has work exactly `2^n` for every `n`. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
 
+The Rocq names are the Lean names, and the Rocq statements are the Lean
+statements. The only Rocq-specific difference is in the proofs: the record
+equality `R = machinePhysicalRun p` is eliminated with `subst`, and `lia`
+replaces `omega`. The Rocq file imports the shared `Machines` layer and no
+axioms.
+
 ## 4. Complete argument
 
 **Work.** By induction on the schedule, each round contributes its length,
