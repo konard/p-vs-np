@@ -1,6 +1,6 @@
 # Idea 15 — Circuit depth versus size
 
-**Verdict:** Correct tool, insufficient alone (general theorem proved). Size and depth are different resources, and the exact relation between them for formulas is proved in general: `depth < size < 2^(depth+1)` and `leaves ≤ 2^depth` (`size_le_pow_depth`, `leaves_le_pow_depth`, `depth_lt_size`). Both extremes are attained, even by formulas for the same function with the same size (`same_function_different_depth`). Depth lower bounds are the right tool for separations below P, and a superpolynomial formula-size lower bound implies a superlogarithmic depth lower bound (`sizeLB_implies_depthLB`). Even the open obligation `DepthLB` for an explicit NP family would only give NP ⊄ NC¹, a statement not known to imply, or to follow from, P ≠ NP.
+**Verdict:** Correct tool, insufficient alone (general theorem proved). Size and depth are different resources, and the exact relation between them for formulas is proved in general: `depth < size < 2^(depth+1)` and `leaves ≤ 2^depth` (`size_le_pow_depth`, `leaves_le_pow_depth`, `depth_lt_size`). Both extremes are attained, even by formulas for the same function with the same size (`same_function_different_depth`). Depth lower bounds are the right tool for separations below P, and a superpolynomial formula-size lower bound implies a superlogarithmic depth lower bound (`sizeLB_implies_depthLB`). The open obligations are stated on the shared machine model for `Issue532.Machines.SAT`: `SATFormulaSizeLB`, `SATDepthLB`, and `NPNotInLogDepth` (some `InNP` language needs superlogarithmic formula depth). Their honest conclusion is only NP ⊄ NC¹ (`npNotInLogDepth_of_satDepthLB`), a statement not known to imply, or to follow from, P ≠ NP; P ≠ NP follows only with the unproved hypothesis `PSubsetLogDepth` (`pNotEqualsNP_of_satDepthLB`). Non-vacuity: the depth and size schemas hold for the explicit family `andPow` and fail for a single variable.
 
 ## 1. The idea at full strength
 
@@ -34,14 +34,27 @@ under an assignment `ρ : ℕ → Bool`.
 * A formula `f` *computes* `g : (ℕ → Bool) → Bool` if
   `eval ρ f = g ρ` for all `ρ`.
 
-**Open obligations (definitions, never assumed).** Let
-`fam : ℕ → (ℕ → Bool) → Bool` be a family, with `fam n` a function of `n`
-variables.
+**Schemas (family is a parameter).** Let `fam : ℕ → (ℕ → Bool) → Bool` be a
+family, with `fam n` a function of `n` variables, and write
+`FormulaComputes f g` for "`f` computes `g`" (renamed from `Computes`, which
+is a name of the shared machine model).
 
-* `FormulaSizeLB fam :≡ ∀ c, ∃ n, ∀ f, Computes f (fam n) → 2^(c·(log₂ n + 1)) ≤ size f`.
+* `FormulaSizeLBFor fam :≡ ∀ c, ∃ n, ∀ f, FormulaComputes f (fam n) → 2^(c·(log₂ n + 1)) ≤ size f`.
   This says superpolynomial formula size.
-* `DepthLB fam :≡ ∀ c, ∃ n, ∀ f, Computes f (fam n) → c·(log₂ n + 1) ≤ depth f`.
+* `DepthLBFor fam :≡ ∀ c, ∃ n, ∀ f, FormulaComputes f (fam n) → c·(log₂ n + 1) ≤ depth f`.
   This says superlogarithmic depth.
+
+**Open obligations (definitions, never assumed).** With
+`slice L n ρ = L [ρ 0, …, ρ (n−1)]` (from `Circuits.lean`) and
+`SAT = Issue532.Machines.SAT`:
+
+* `SATFormulaSizeLB :≡ ∀ c, ∃ n, ∀ f, FormulaComputes f (slice SAT n) → 2^(c·(log₂ n + 1)) ≤ size f`;
+* `SATDepthLB :≡ ∀ c, ∃ n, ∀ f, FormulaComputes f (slice SAT n) → c·(log₂ n + 1) ≤ depth f`;
+* `NPNotInLogDepth :≡ ∃ L, InNP L ∧ ∀ c, ∃ n, ∀ f, FormulaComputes f (slice L n) → c·(log₂ n + 1) ≤ depth f`.
+
+`PSubsetLogDepth` (every `InP` language has formulas of depth
+`O(log n)`, a P ⊆ NC¹ statement) is not known, is widely believed false,
+and appears only as an explicit hypothesis.
 
 ## 3. What is machine-checked
 
@@ -57,9 +70,26 @@ variables.
 | `bal_depth` | `depth (bal d i) = d`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `eval_bal` | `bal d i` computes the AND of its `2^d` variables. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `same_function_different_depth` | For every `d`, `chain (2^d − 1)` and `bal d 0` compute the same function with the same size, with depths `2^d − 1` and `d`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
-| `sizeLB_implies_depthLB` | `FormulaSizeLB fam ⇒ DepthLB fam`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `FormulaComputes` | Definition: `f` computes `g` (renamed from `Computes`; Rocq: same name). | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `FormulaSizeLBFor` | Schema: superpolynomial formula size (renamed from `FormulaSizeLB`; Rocq: same name). | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `DepthLBFor` | Schema: superlogarithmic depth (renamed from `DepthLB`; Rocq: same name). | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `sizeLB_implies_depthLB` | `FormulaSizeLBFor fam ⇒ DepthLBFor fam`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `SATFormulaSizeLB` | Open obligation: superpolynomial formula size for `slice SAT`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `SATDepthLB` | Open obligation: superlogarithmic formula depth for `slice SAT`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `NPNotInLogDepth` | Open obligation: some `InNP` language needs superlogarithmic depth (NP ⊄ NC¹). | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `satFormulaSizeLB_iff_for` | `SATFormulaSizeLB ↔ FormulaSizeLBFor (slice SAT)`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `satDepthLB_iff_for` | `SATDepthLB ↔ DepthLBFor (slice SAT)`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `satSizeLB_implies_satDepthLB` | `SATFormulaSizeLB → SATDepthLB`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `npNotInLogDepth_of_satDepthLB` | Conditional (honest conclusion): `SATInNP → SATDepthLB → NPNotInLogDepth`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `npNotInLogDepth_of_satFormulaSizeLB` | Conditional: `SATInNP → SATFormulaSizeLB → NPNotInLogDepth`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `PSubsetLogDepth` | Definition of the unproved P ⊆ NC¹ hypothesis (never assumed). | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `pNotEqualsNP_of_satDepthLB` | Conditional: `SATInNP → PSubsetLogDepth → SATDepthLB → PNotEqualsNP`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `andPow_sizeLB` | Non-vacuity (true side): `FormulaSizeLBFor andPow`, where `andPow n` is the AND of `2^n` variables. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `andPow_depthLB` | Non-vacuity (true side): `DepthLBFor andPow`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `var0_not_depthLB` | Non-vacuity (false side): the depth schema fails for the family `ρ ↦ ρ 0`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `var0_not_sizeLB` | Non-vacuity (false side): the size schema fails for the same family. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 
-`FormulaSizeLB` and `DepthLB` are `def ... : Prop` in Lean and
+The schemas and obligations are `def ... : Prop` in Lean and (intended)
 `Definition ... : Prop` in Rocq. They are never assumed. No theorem in
 either file proves or refutes P = NP.
 
@@ -145,9 +175,16 @@ is far beyond current techniques.
   examples for all `d`; size lower bounds imply depth lower bounds.
 * **Refuted (general):** "a deep formula for `g` shows that `g` needs depth"
   and "equal size implies equal depth" (`same_function_different_depth`).
-* **Exact remaining obligation:** `DepthLB fam` (equivalently, via Spira,
-  `FormulaSizeLB fam`; only the direction `FormulaSizeLB ⇒ DepthLB` is
-  formalized) for an explicit family `fam` in NP. This is open. The
+* **Proved (conditional):** `npNotInLogDepth_of_satDepthLB` and
+  `npNotInLogDepth_of_satFormulaSizeLB` (with `SATInNP`, NP ⊄ NC¹);
+  `pNotEqualsNP_of_satDepthLB` (P ≠ NP only with the unproved
+  `PSubsetLogDepth`).
+* **Proved (non-vacuity):** the schemas hold for the explicit family
+  `andPow` (a function of `2^n` variables, so its "`n`" is not its number of
+  inputs) and fail for `ρ ↦ ρ 0`.
+* **Exact remaining obligation:** `SATDepthLB` (equivalently, via Spira,
+  `SATFormulaSizeLB`; only the direction `SATFormulaSizeLB ⇒ SATDepthLB` is
+  formalized), or `NPNotInLogDepth`. This is open. The
   best known explicit bound is about `3 log₂ n`. Even if proved, the result
   would be NP ⊄ NC¹, not P ≠ NP. P ≠ NP by circuit methods needs lower
   bounds against polynomial-size circuits of unbounded depth
@@ -155,6 +192,10 @@ is far beyond current techniques.
 * **Barrier:** natural-proofs arguments (Razborov–Rudich; see
   [Idea 10](Idea10.md)) apply to formula lower bounds as well, under
   standard cryptographic assumptions.
+* **Caveats.** The obligations measure SAT on its length-`n` word slices
+  under the shared CNF encoding (`Circuits.slice`), with `log₂` computed by
+  `Nat.log2`. The true-side witness `andPow` is not an NP-hard family; it
+  shows only that the schema's shape is satisfiable.
 
 ## 7. Failure modes this idea catches
 

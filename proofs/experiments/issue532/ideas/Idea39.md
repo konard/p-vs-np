@@ -1,6 +1,6 @@
 # Idea 39 — Proof-system scope (lower bounds and p-simulation)
 
-**Verdict:** Correct tool, insufficient alone (general theorem proved)
+**Verdict:** Developed to an open obligation (conditional theorem proved)
 
 In the Cook–Reckhow program, `NP ≠ coNP` (and hence `P ≠ NP`) would follow from
 superpolynomial proof-size lower bounds for **every** propositional proof system
@@ -12,8 +12,20 @@ bound for one system, however strong, says nothing about systems that are not
 p-simulated by it: a general countermodel has a weak system with a
 superpolynomial lower bound and a strong system with linear-size proofs. This
 refutes the inference "resolution lower bounds imply `NP ≠ coNP`" as a general
-step. The countermodel systems are abstract (polynomial-time checkability is not
-modelled), and Buss's pigeonhole result below is a concrete instance.
+step. The countermodel systems are abstract, and Buss's pigeonhole result below
+is a concrete instance.
+
+Over the shared machine model, a Cook–Reckhow system `CRSystem L` is a
+`Complexity.VerifierProgram` with a polynomial clock that is sound and complete
+for `L`. The open obligation `AllTautSystemsSuperpolynomial` says that every
+such system for `TAUT = complement SAT` (`Issue532.Machines.SAT`) has a
+superpolynomial lower bound. The files prove, without the Cook–Reckhow theorem,
+that a polynomially bounded system puts its language in NP
+(`inNP_of_crPolyBounded`) and that every language in P has one
+(`crPolyBounded_of_inP`). So the obligation gives `SAT ∉ P`, and with `SATInNP`
+it gives `PNotEqualsNP` (`pNotEqualsNP_of_allTautSystemsSuperpolynomial`). The
+converse direction, NP ≠ coNP ⇒ obligation, uses the Cook–Reckhow theorem as
+the named hypothesis `CookReckhow`. Nothing here proves the obligation.
 
 ## 1. The idea at full strength
 
@@ -48,8 +60,24 @@ whose steps compose correctly only along p-simulations.
   `≤ p(fsize φ)`.
 - `SuperpolyLB S taut fsize`: for every `p` there is a tautology `φ` such that
   every `S`-proof of `φ` has size `> p(fsize φ)`.
-- The open obligation is `SuperpolyAllSystems C taut fsize := ∀ S, C S →
-  SuperpolyLB S taut fsize` for a class `C` of systems.
+- The schema `SuperpolyAllSystemsFor C taut fsize := ∀ S, C S →
+  SuperpolyLB S taut fsize` quantifies over a class `C` of abstract systems.
+- Machine model. `TAUT := complement SAT`. A `CRSystem L` consists of a
+  `verifier : VerifierProgram`, a polynomial `timeBound`, a proof `halts` that
+  the verifier halts within `timeBound (|x| + |π| + 1)` on every pair, `sound`
+  (accepted inputs are in `L`) and `complete` (every member of `L` has an
+  accepted proof). `toSystem P` is the abstract system whose proofs are words,
+  with `Proves π x := ∃ t, P.verifier.Run x π t true` and `size := length`.
+  `CRPolyBounded P := ∃ p, PolyBounded (toSystem P) (memberOf L) length p`.
+- The schema over languages is
+  `AllCRSystemsSuperpolynomialFor L := ∀ P : CRSystem L, SuperpolyLB (toSystem P) (memberOf L) length`.
+- The **open obligation** is its instance at `TAUT`:
+
+  ```lean
+  def AllTautSystemsSuperpolynomial : Prop :=
+    ∀ P : CRSystem (complement SAT),
+      SuperpolyLB (toSystem P) (fun x => complement SAT x = true) List.length
+  ```
 
 ## 3. What is machine-checked
 
@@ -69,11 +97,35 @@ whose steps compose correctly only along p-simulations.
 | `weak_lb_strong_short` | general countermodel: `weak` has a superpolynomial lower bound, `strong` is polynomially bounded and p-simulates `weak` | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `optimal_system_reduces` | if `S ∈ C` p-simulates all of `C`, the obligation for `C` is equivalent to a lower bound for `S` | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `bounded_member_refutes` | one polynomially bounded member refutes the obligation | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `SuperpolyAllSystemsFor` (def) | schema: every system in the class `C` has a superpolynomial lower bound | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `TAUT` (def) | `complement SAT` over the shared machine model | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `CRSystem`, `toSystem`, `CRClass`, `memberOf` | Cook–Reckhow systems as sound, complete, clocked verifier programs, and their abstract systems | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `CRPolyBounded` (def) | a Cook–Reckhow system is polynomially bounded | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `superpolyLB_iff_forall_not_polyBounded` | a superpolynomial lower bound is the failure of every polynomial bound | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `AllCRSystemsSuperpolynomialFor` (def) | schema over languages: every Cook–Reckhow system for `L` is superpolynomial | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `AllTautSystemsSuperpolynomial` (def) | open obligation: every Cook–Reckhow system for `complement SAT` is superpolynomial | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `allTautSystemsSuperpolynomial_iff_for`, `allTautSystemsSuperpolynomial_iff_class` | the obligation is the schema at `TAUT`, and `SuperpolyAllSystemsFor (CRClass TAUT)` | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `allCRSystemsSuperpolynomial_iff` | the schema for `L` says that no Cook–Reckhow system for `L` is polynomially bounded | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `optimal_crSystem_reduces` | an optimal Cook–Reckhow system for `TAUT` reduces the obligation to one lower bound | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `verifierRun_deterministic` | verifier runs are deterministic | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `inNP_of_crPolyBounded` | a polynomially bounded Cook–Reckhow system puts `L` in `InNP` | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `crPolyBounded_of_inP` | every language in `InP` has a polynomially bounded Cook–Reckhow system | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `allCRSystemsSuperpolynomial_of_not_inNP`, `not_allCRSystemsSuperpolynomial_of_inP` | the schema holds outside NP and fails inside P | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `allTautSystemsSuperpolynomial_of_not_inNP` | `TAUT ∉ NP` gives the obligation | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `not_inP_sat_of_allTautSystemsSuperpolynomial` | the obligation gives `¬ InP SAT` with no hypotheses | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `pNotEqualsNP_of_allTautSystemsSuperpolynomial` | conditional theorem: `SATInNP → AllTautSystemsSuperpolynomial → PNotEqualsNP` | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `npNeCoNP_of_not_inNP_taut` | given `SATInNP`, `TAUT ∉ NP` gives NP ≠ coNP | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `CookReckhow` (def) | named known theorem (Cook–Reckhow 1979): obligation ↔ NP ≠ coNP | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `npNeCoNP_of_allTautSystemsSuperpolynomial`, `pNotEqualsNP_via_cookReckhow` | given `CookReckhow`, the obligation gives NP ≠ coNP and P ≠ NP | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `allTautSystemsSuperpolynomial_of_npNeCoNP` | given `CookReckhow`, NP ≠ coNP gives the obligation | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `emptyMachine_run`, `inP_const_false`, `const_false_not_allSuperpolynomial` | non-vacuity: the schema fails for the constant-false language | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `encVerifier`, `encVerifier_injective`, `verifierLanguage`, `verifierLanguage_eq` | verifier programs are countable, and each system determines its language | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `exists_allSuperpolynomial`, `crSchema_nontrivial` | non-vacuity: the schema holds for some language (Cantor) and fails for another | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 
 Helper lemmas `succ_le_two_pow`, `lt_two_pow_self`, `linear_lt_exp` and
 `dyadic_bracket` are proved in both files. The definitions `Poly`, `System`,
 `PSim`, `LowerBound`, `PolyBounded`, `SuperpolyLB`, `weakSys`, `strongSys` and
-`SuperpolyAllSystems` appear in both files. Rocq uses `peval`/`pcomp` for Lean's
+`SuperpolyAllSystemsFor` appear in both files (the Rocq file still uses the pre-refactor name `SuperpolyAllSystems`; the intended Rocq names of the machine part are the Lean names). Rocq uses `peval`/`pcomp` for Lean's
 `Poly.eval`/`Poly.comp`. All proofs are constructive.
 
 ## 4. Complete argument
@@ -119,9 +171,11 @@ member refutes the obligation (`bounded_member_refutes`).
 - S. A. Cook, R. A. Reckhow, "The relative efficiency of propositional proof
   systems", *Journal of Symbolic Logic* 44(1), 1979. They define proof systems
   and p-simulation, and prove that a polynomially bounded proof system exists if
-  and only if `NP = coNP`. The abstract simulation calculus is formalized here.
-  The equivalence with `NP = coNP`, which needs Turing machines and the
-  coNP-completeness of TAUT, is **not** formalized.
+  and only if `NP = coNP`. The abstract simulation calculus is formalized here,
+  and so are both directions "polynomially bounded system ⇒ in NP" and "in P ⇒
+  polynomially bounded system" over the shared machine model. The equivalence
+  with `NP = coNP`, which needs the coNP-completeness of TAUT, is **not**
+  formalized. It enters only as the named hypothesis `CookReckhow`.
 - A. Haken, "The intractability of resolution", *Theoretical Computer Science*
   39, 1985. Resolution proofs of the pigeonhole principle `PHP^{n+1}_n` need
   exponential size. Not formalized (Idea 27 treats resolution itself).
@@ -146,12 +200,28 @@ a lower bound for the top system gives lower bounds for everything below
 (`superpoly_transfer`, `psim_trans`). The program therefore needs lower bounds
 for ever stronger systems, and each new lower bound supersedes the old ones.
 
-**Why it is insufficient alone.** The obligation `SuperpolyAllSystems` quantifies
-over **all** systems in a class `C`. For `C` the class of all Cook–Reckhow
-systems (not modelled formally), it is equivalent to `NP ≠ coNP` by the
-Cook–Reckhow theorem (cited, not formalized), which implies `P ≠ NP` but is not known to follow from it.
-`optimal_system_reduces` shows the obligation would collapse to a single lower
-bound if an optimal system existed, but that existence is itself open
+**The open obligation.** `AllTautSystemsSuperpolynomial` quantifies over
+**all** Cook–Reckhow systems for `TAUT = complement SAT` in the shared machine
+model. The proved consequences are:
+
+- `not_inP_sat_of_allTautSystemsSuperpolynomial`: the obligation gives
+  `¬ InP SAT` with no hypotheses. If SAT were in P, `TAUT` would be in P
+  (`inP_complement`), and `crPolyBounded_of_inP` would give a bounded system.
+- `pNotEqualsNP_of_allTautSystemsSuperpolynomial (mem : SATInNP) h : PNotEqualsNP`.
+- With the named known theorem `CookReckhow`, the obligation is equivalent to
+  NP ≠ coNP (`npNeCoNP_of_allTautSystemsSuperpolynomial`,
+  `allTautSystemsSuperpolynomial_of_npNeCoNP`), which implies `P ≠ NP` but is
+  not known to follow from it.
+- Non-vacuity: the schema `AllCRSystemsSuperpolynomialFor` holds for some
+  language (`exists_allSuperpolynomial`, by Cantor over encoded verifiers) and
+  fails for the constant-false language (`const_false_not_allSuperpolynomial`).
+  Both are combined in `crSchema_nontrivial`.
+
+**Why the tools are insufficient alone.** The abstract schema
+`SuperpolyAllSystemsFor` quantifies over **all** systems in a class `C`.
+`optimal_system_reduces` (and `optimal_crSystem_reduces` for the machine
+obligation) shows it would collapse to a single lower bound if an optimal
+system existed, but that existence is itself open
 (Krajíček–Pudlák). Without it, each lower bound covers only the systems it
 p-simulates, and the countermodel shows nothing more can be concluded
 formally.

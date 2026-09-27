@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 39: proof-system scope (lower bounds and p-simulation)
 
@@ -6,7 +8,7 @@ Abstract Cook–Reckhow setting: a proof system over formulas `F` is a relation
 Polynomials are pairs `⟨c, k⟩` evaluated as `c * (n + 1) ^ k`, as in the
 repository's `proofs/complexity` library.
 
-Main results (all general, for arbitrary formula and proof types):
+Abstract results (for arbitrary formula and proof types):
 
 * `poly_comp_bound`: `q (p n) ≤ (q.comp p) n` for an explicit polynomial `q.comp p`.
 * `lower_bound_transfer_quant`, `superpoly_transfer`: lower bounds transfer
@@ -21,15 +23,34 @@ Main results (all general, for arbitrary formula and proof types):
   and `strong`. `strong` p-simulates `weak`, `weak` has a superpolynomial lower
   bound, and `strong` is polynomially bounded. So a lower bound for a weak system
   (resolution, say) says nothing about stronger systems.
-* `SuperpolyAllSystems` (the open obligation) and `optimal_system_reduces`: if a
-  class has a system p-simulating all its members, the obligation for the class is
-  equivalent to a lower bound for that one system.
+* `SuperpolyAllSystemsFor` (a schema over a class of systems) and
+  `optimal_system_reduces`: if a class has a system p-simulating all its
+  members, the schema for the class is equivalent to a lower bound for that one
+  system.
 
-Verdict: correct tool, insufficient alone. The Cook–Reckhow theorem (the
-obligation for all polynomial-time verifiable systems is equivalent to
-`NP ≠ coNP`) is cited, not formalized.
+Machine part (shared model of `Issue532.Machines`):
+
+* `CRSystem L`: a Cook–Reckhow proof system for a language `L` is a
+  `Complexity.VerifierProgram` with a polynomial clock, sound and complete for
+  `L`; `toSystem` views it as an abstract system over words.
+* `TAUT := complement SAT` (the formulas with no satisfying assignment, i.e. the
+  negations of tautologies, under the shared CNF encoding).
+* The open obligation `AllTautSystemsSuperpolynomial`: every Cook–Reckhow system
+  for `TAUT` has a superpolynomial lower bound.
+* Proved: a polynomially bounded system puts its language in NP
+  (`inNP_of_crPolyBounded`); every language in P has one
+  (`crPolyBounded_of_inP`); hence `pNotEqualsNP_of_allTautSystemsSuperpolynomial`
+  (from SAT ∈ NP alone).  With the named known theorem `CookReckhow`
+  (obligation ↔ NP ≠ coNP), `pNotEqualsNP_via_cookReckhow` concludes through
+  `pNotEqualsNP_of_npNeCoNP`.
+* Non-vacuity: the schema `AllCRSystemsSuperpolynomialFor` fails for the
+  constant-false language and holds for a language with no Cook–Reckhow system
+  at all (Cantor over encoded verifiers).
+
+Verdict: correct tool, insufficient alone. The obligation is equivalent to
+`NP ≠ coNP` (Cook–Reckhow 1979; cited as a named hypothesis, not formalized),
+which is at least as hard as P ≠ NP.
 -/
-
 namespace Issue532.Idea39
 
 /-- Old countermodel: a weak system with no proofs inside a strong system with one. -/
@@ -283,11 +304,10 @@ theorem weak_lb_strong_short (taut : F → Prop) (fsize : F → Nat)
 
 /-! ## The obligation -/
 
-/-- **Open obligation.** Every system in the class `C` has a superpolynomial lower bound.
-For `C` = Cook–Reckhow systems (polynomial-time checkable, sound and complete for
-propositional tautologies) this is equivalent to `NP ≠ coNP` (Cook–Reckhow 1979; not
-formalized here). -/
-def SuperpolyAllSystems (C : System F → Prop) (taut : F → Prop) (fsize : F → Nat) : Prop :=
+/-- Schema over a class `C` of systems: every system in `C` has a
+superpolynomial lower bound.  The machine instance for Cook–Reckhow systems
+for `TAUT` is `AllTautSystemsSuperpolynomial` below. -/
+def SuperpolyAllSystemsFor (C : System F → Prop) (taut : F → Prop) (fsize : F → Nat) : Prop :=
   ∀ S, C S → SuperpolyLB S taut fsize
 
 /-- **Optimal systems reduce the obligation to one lower bound.** If `S ∈ C` p-simulates
@@ -295,7 +315,7 @@ every member of `C`, the obligation for `C` is equivalent to a superpolynomial l
 bound for `S`. -/
 theorem optimal_system_reduces (C : System F → Prop) (taut : F → Prop) (fsize : F → Nat)
     (S : System F) (hS : C S) (hopt : ∀ T, C T → ∃ q, PSim S T q) :
-    SuperpolyAllSystems C taut fsize ↔ SuperpolyLB S taut fsize := by
+    SuperpolyAllSystemsFor C taut fsize ↔ SuperpolyLB S taut fsize := by
   constructor
   · intro h
     exact h S hS
@@ -307,10 +327,272 @@ theorem optimal_system_reduces (C : System F → Prop) (taut : F → Prop) (fsiz
 bounded member refutes it. -/
 theorem bounded_member_refutes (C : System F → Prop) (taut : F → Prop) (fsize : F → Nat)
     (S : System F) (hS : C S) (p : Poly) (hb : PolyBounded S taut fsize p) :
-    ¬ SuperpolyAllSystems C taut fsize :=
+    ¬ SuperpolyAllSystemsFor C taut fsize :=
   fun h => superpoly_not_bounded S taut fsize (h S hS) p hb
 
 /-- Check of the composition polynomial at `n = 2`. -/
 example : (Poly.eval ⟨2, 1⟩ (Poly.eval ⟨1, 2⟩ 2)) ≤ (Poly.comp ⟨2, 1⟩ ⟨1, 2⟩).eval 2 := by decide
+
+/-! ## Machine part: Cook–Reckhow systems for `TAUT` in the shared model -/
+
+section MachinePart
+
+open Complexity
+open Issue532.Machines (SAT SATInNP complement InCoNP NPEqualsCoNP run_deterministic
+  inP_of_decidesWithin polyDec_iff_inP inP_complement pNotEqualsNP_of_npNeCoNP
+  inP_sat_of_pEqualsNP exists_language_not_in_family encMachine encMachine_injective)
+
+/-- `TAUT` in the shared encoding: the complement of `SAT`.  A CNF word is in
+`TAUT` exactly when its formula has no satisfying assignment, i.e. when the
+negated formula is a tautology. -/
+def TAUT : Language := complement SAT
+
+/-- A Cook–Reckhow proof system for `L` in the shared machine model: a verifier
+program that halts within the polynomial `timeBound` (in `|x| + |π| + 1`) on
+every (input, proof) pair, accepts only members of `L`, and accepts every
+member with some proof. -/
+structure CRSystem (L : Language) where
+  verifier : VerifierProgram
+  timeBound : Polynomial
+  halts : ∀ x π, ∃ t b, t ≤ verifier.timeLimit timeBound x π ∧ verifier.Run x π t b
+  sound : ∀ x π t, verifier.Run x π t true → L x = true
+  complete : ∀ x, L x = true → ∃ π t, verifier.Run x π t true
+
+/-- The abstract system over words carried by a Cook–Reckhow system: proofs
+are words, a proof proves `x` when the verifier accepts `(x, π)`, and the size
+of a proof is its length. -/
+def toSystem {L : Language} (P : CRSystem L) : System Word :=
+  { Proof := Word, Proves := fun π x => ∃ t, P.verifier.Run x π t true, size := List.length }
+
+/-- The class of abstract systems coming from Cook–Reckhow systems for `L`. -/
+def CRClass (L : Language) : System Word → Prop := fun S => ∃ P : CRSystem L, toSystem P = S
+
+/-- The membership predicate of a language. -/
+def memberOf (L : Language) : Word → Prop := fun x => L x = true
+
+/-- Polynomial boundedness of a Cook–Reckhow system (with the abstract
+`PolyBounded` of this file, measured in the input length). -/
+def CRPolyBounded {L : Language} (P : CRSystem L) : Prop :=
+  ∃ p : Poly, PolyBounded (toSystem P) (memberOf L) List.length p
+
+/-- A superpolynomial lower bound is exactly the failure of every polynomial
+bound (for every abstract system; classical). -/
+theorem superpolyLB_iff_forall_not_polyBounded (S : System F) (taut : F → Prop)
+    (fsize : F → Nat) : SuperpolyLB S taut fsize ↔ ∀ p, ¬ PolyBounded S taut fsize p := by
+  constructor
+  · exact fun h p => superpoly_not_bounded S taut fsize h p
+  · intro h p
+    apply Classical.byContradiction
+    intro hne
+    apply h p
+    intro φ hφ
+    apply Classical.byContradiction
+    intro hno
+    apply hne
+    refine ⟨φ, hφ, fun π hπ => ?_⟩
+    apply Classical.byContradiction
+    intro hle
+    exact hno ⟨π, hπ, Nat.le_of_not_lt hle⟩
+
+/-- Schema over languages: every Cook–Reckhow system for `L` has a
+superpolynomial lower bound. -/
+def AllCRSystemsSuperpolynomialFor (L : Language) : Prop :=
+  ∀ P : CRSystem L, SuperpolyLB (toSystem P) (memberOf L) List.length
+
+/-- **Open obligation (Cook's program).** Every Cook–Reckhow proof system for
+`TAUT = complement SAT` (a polynomial-time machine verifier, sound and
+complete) has a superpolynomial lower bound: for every polynomial `p` some
+member `x` of `TAUT` has only accepted proofs longer than `p |x|`.  With the
+named known theorem `CookReckhow` this is equivalent to NP ≠ coNP. -/
+def AllTautSystemsSuperpolynomial : Prop :=
+  ∀ P : CRSystem (complement SAT),
+    SuperpolyLB (toSystem P) (fun x => complement SAT x = true) List.length
+
+theorem allTautSystemsSuperpolynomial_iff_for :
+    AllTautSystemsSuperpolynomial ↔ AllCRSystemsSuperpolynomialFor TAUT := Iff.rfl
+
+/-- The obligation is the abstract schema for the class of Cook–Reckhow
+systems for `TAUT`. -/
+theorem allTautSystemsSuperpolynomial_iff_class :
+    AllTautSystemsSuperpolynomial ↔
+      SuperpolyAllSystemsFor (CRClass TAUT) (memberOf TAUT) List.length := by
+  constructor
+  · rintro h S ⟨P, rfl⟩
+    exact h P
+  · intro h P
+    exact h _ ⟨P, rfl⟩
+
+/-- The schema for `L` is the absence of a polynomially bounded system. -/
+theorem allCRSystemsSuperpolynomial_iff (L : Language) :
+    AllCRSystemsSuperpolynomialFor L ↔ ∀ P : CRSystem L, ¬ CRPolyBounded P := by
+  constructor
+  · intro h P ⟨p, hp⟩
+    exact (superpolyLB_iff_forall_not_polyBounded _ _ _).mp (h P) p hp
+  · intro h P
+    exact (superpolyLB_iff_forall_not_polyBounded _ _ _).mpr fun p hp => h P ⟨p, hp⟩
+
+/-- **Optimal systems reduce the obligation to one machine lower bound.** If
+some Cook–Reckhow system for `TAUT` p-simulates every other, the obligation is
+equivalent to a superpolynomial lower bound for that one system. -/
+theorem optimal_crSystem_reduces (P : CRSystem TAUT)
+    (hopt : ∀ Q : CRSystem TAUT, ∃ q, PSim (toSystem P) (toSystem Q) q) :
+    AllTautSystemsSuperpolynomial ↔ SuperpolyLB (toSystem P) (memberOf TAUT) List.length := by
+  rw [allTautSystemsSuperpolynomial_iff_class]
+  exact optimal_system_reduces _ _ _ _ ⟨P, rfl⟩ (by rintro T ⟨Q, rfl⟩; exact hopt Q)
+
+/-- Verifier runs are deterministic. -/
+theorem verifierRun_deterministic {v : VerifierProgram} {x π : Word} {t t' : Nat}
+    {b b' : Bool} (h : v.Run x π t b) (h' : v.Run x π t' b') : t = t' ∧ b = b' := by
+  cases v with
+  | ignoreCertificate m => exact run_deterministic h h'
+  | paired m => exact run_deterministic h h'
+
+/-- **A polynomially bounded Cook–Reckhow system puts `L` in NP** (proved: the
+proof bound is the certificate bound; the clock and determinism bound the
+accepting run). -/
+theorem inNP_of_crPolyBounded {L : Language} (P : CRSystem L) (h : CRPolyBounded P) :
+    InNP L := by
+  obtain ⟨q, hq⟩ := h
+  refine ⟨{ language := L, verifier := P.verifier, timeBound := P.timeBound,
+            certBound := ⟨q.c, q.k⟩,
+            terminates := fun x π _ => P.halts x π,
+            correct := fun x => ⟨fun hx => ?_, fun ⟨π, t, _, _, hr⟩ => P.sound x π t hr⟩ }, rfl⟩
+  obtain ⟨π, ⟨t, hr⟩, hlen⟩ := hq x hx
+  obtain ⟨t', b', ht', hr'⟩ := P.halts x π
+  obtain ⟨rfl, _⟩ := verifierRun_deterministic hr hr'
+  exact ⟨π, t, hlen, ht', hr⟩
+
+/-- **Every language in P has a polynomially bounded Cook–Reckhow system**
+(proved: the decider ignores the proof, and the empty proof suffices). -/
+theorem crPolyBounded_of_inP {L : Language} (h : InP L) :
+    ∃ P : CRSystem L, CRPolyBounded P := by
+  obtain ⟨m, p, hm⟩ := (polyDec_iff_inP L).mpr h
+  refine ⟨{ verifier := .ignoreCertificate m, timeBound := p,
+            halts := fun x _ => ?_, sound := fun x _ t hr => ?_, complete := fun x hx => ?_ },
+          ⟨⟨0, 0⟩, fun x hx => ?_⟩⟩
+  · obtain ⟨t, b, ht, hr, _⟩ := hm x
+    exact ⟨t, b, ht, hr⟩
+  · obtain ⟨t', b', _, hr', hb'⟩ := hm x
+    obtain ⟨_, rfl⟩ := run_deterministic hr hr'
+    exact hb'.symm
+  · obtain ⟨t, b, _, hr, hb⟩ := hm x
+    rw [hx] at hb
+    subst hb
+    exact ⟨[], t, hr⟩
+  · obtain ⟨t, b, _, hr, hb⟩ := hm x
+    have hx' : L x = true := hx
+    rw [hx'] at hb
+    subst hb
+    exact ⟨[], ⟨t, hr⟩, Nat.zero_le _⟩
+
+/-- A language outside NP satisfies the schema. -/
+theorem allCRSystemsSuperpolynomial_of_not_inNP {L : Language} (h : ¬ InNP L) :
+    AllCRSystemsSuperpolynomialFor L :=
+  (allCRSystemsSuperpolynomial_iff L).mpr fun P hP => h (inNP_of_crPolyBounded P hP)
+
+/-- A language in P violates the schema. -/
+theorem not_allCRSystemsSuperpolynomial_of_inP {L : Language} (h : InP L) :
+    ¬ AllCRSystemsSuperpolynomialFor L := fun hall => by
+  obtain ⟨P, hP⟩ := crPolyBounded_of_inP h
+  exact (allCRSystemsSuperpolynomial_iff L).mp hall P hP
+
+/-- `¬ TAUT ∈ NP` gives the obligation (proved). -/
+theorem allTautSystemsSuperpolynomial_of_not_inNP (h : ¬ InNP TAUT) :
+    AllTautSystemsSuperpolynomial :=
+  allCRSystemsSuperpolynomial_of_not_inNP h
+
+/-- The obligation gives `SAT ∉ P` unconditionally (proved). -/
+theorem not_inP_sat_of_allTautSystemsSuperpolynomial (h : AllTautSystemsSuperpolynomial) :
+    ¬ InP SAT := fun hs =>
+  not_allCRSystemsSuperpolynomial_of_inP (inP_complement hs) h
+
+/-- **Conditional theorem (proved).** With SAT ∈ NP (a named Cook–Levin half),
+the obligation gives P ≠ NP. -/
+theorem pNotEqualsNP_of_allTautSystemsSuperpolynomial (mem : SATInNP)
+    (h : AllTautSystemsSuperpolynomial) : PNotEqualsNP := fun hp =>
+  not_inP_sat_of_allTautSystemsSuperpolynomial h (inP_sat_of_pEqualsNP mem hp)
+
+/-- `TAUT ∉ NP` gives NP ≠ coNP, given SAT ∈ NP (proved). -/
+theorem npNeCoNP_of_not_inNP_taut (mem : SATInNP) (h : ¬ InNP TAUT) : ¬ NPEqualsCoNP :=
+  fun heq => h ((heq SAT).mp mem)
+
+/-- Known theorem, not mechanised here: every Cook–Reckhow system for `TAUT`
+is superpolynomial iff NP ≠ coNP (S. A. Cook and R. A. Reckhow, "The relative
+efficiency of propositional proof systems", J. Symbolic Logic 44(1), 1979,
+Theorem 1.5; the machine form uses the NP-completeness of SAT and the closure
+of NP under polynomial-time reductions). -/
+def CookReckhow : Prop := AllTautSystemsSuperpolynomial ↔ ¬ NPEqualsCoNP
+
+/-- **Conditional theorem (named hypothesis).** The obligation gives NP ≠ coNP. -/
+theorem npNeCoNP_of_allTautSystemsSuperpolynomial (hCR : CookReckhow)
+    (h : AllTautSystemsSuperpolynomial) : ¬ NPEqualsCoNP := hCR.mp h
+
+/-- **Conditional theorem (named hypothesis).** The obligation gives P ≠ NP
+through NP ≠ coNP (`pNotEqualsNP_of_npNeCoNP`). -/
+theorem pNotEqualsNP_via_cookReckhow (hCR : CookReckhow)
+    (h : AllTautSystemsSuperpolynomial) : PNotEqualsNP :=
+  pNotEqualsNP_of_npNeCoNP (npNeCoNP_of_allTautSystemsSuperpolynomial hCR h)
+
+/-- With `CookReckhow`, NP ≠ coNP gives the obligation. -/
+theorem allTautSystemsSuperpolynomial_of_npNeCoNP (hCR : CookReckhow)
+    (h : ¬ NPEqualsCoNP) : AllTautSystemsSuperpolynomial := hCR.mpr h
+
+/-! ### Non-vacuity -/
+
+/-- The machine with no instructions halts with `false` after one step. -/
+theorem emptyMachine_run (x : Word) : Run ⟨[]⟩ (initial x) 1 false := Run.halt rfl
+
+theorem inP_const_false : InP (fun _ => false) :=
+  inP_of_decidesWithin (m := ⟨[]⟩) (p := ⟨1, 0⟩)
+    (fun x => ⟨1, false, by simp [Polynomial.eval], emptyMachine_run x, rfl⟩)
+
+/-- Non-vacuity, false side: the schema fails for the constant-false language. -/
+theorem const_false_not_allSuperpolynomial :
+    ¬ AllCRSystemsSuperpolynomialFor (fun _ => false) :=
+  not_allCRSystemsSuperpolynomial_of_inP inP_const_false
+
+/-- Injective encoding of verifier programs. -/
+def encVerifier : VerifierProgram → Word
+  | .ignoreCertificate m => false :: encMachine m
+  | .paired m => true :: encMachine m
+
+theorem encVerifier_injective (v w : VerifierProgram) (h : encVerifier v = encVerifier w) :
+    v = w := by
+  cases v <;> cases w <;> simp only [encVerifier, List.cons.injEq] at h
+  · rw [encMachine_injective h.2]
+  · cases h.1
+  · cases h.1
+  · rw [encMachine_injective h.2]
+
+open Classical in
+/-- The language of inputs with some accepted proof. -/
+noncomputable def verifierLanguage (v : VerifierProgram) : Language :=
+  fun x => decide (∃ π t, v.Run x π t true)
+
+theorem verifierLanguage_eq {L : Language} (P : CRSystem L) :
+    verifierLanguage P.verifier = L := by
+  classical
+  funext x
+  simp only [verifierLanguage]
+  cases hx : L x with
+  | true => exact decide_eq_true (P.complete x hx)
+  | false =>
+    refine decide_eq_false fun ⟨π, t, hr⟩ => ?_
+    rw [P.sound x π t hr] at hx
+    cases hx
+
+/-- Non-vacuity, true side: some language has no Cook–Reckhow system at all,
+so the schema holds for it (Cantor over encoded verifiers). -/
+theorem exists_allSuperpolynomial : ∃ L : Language, AllCRSystemsSuperpolynomialFor L := by
+  obtain ⟨L, hL⟩ :=
+    exists_language_not_in_family encVerifier encVerifier_injective verifierLanguage
+  exact ⟨L, fun P => absurd (verifierLanguage_eq P) (hL P.verifier)⟩
+
+/-- The schema is satisfiable and refutable. -/
+theorem crSchema_nontrivial :
+    (∃ L, AllCRSystemsSuperpolynomialFor L) ∧ (∃ L, ¬ AllCRSystemsSuperpolynomialFor L) :=
+  ⟨exists_allSuperpolynomial, ⟨_, const_false_not_allSuperpolynomial⟩⟩
+
+end MachinePart
 
 end Issue532.Idea39

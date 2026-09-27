@@ -11,8 +11,12 @@ an enumeration of Turing machines, which is not formalized. Advice that depends 
 whole input decides every language. So the existence of an advice algorithm
 carries no uniform algorithmic information. The opposite direction, a lower
 bound against advice (NP ⊄ P/poly), would separate P from NP. It is recorded
-as the open obligation `NPNotInPPoly`, and the conditional separation is
-proved.
+on the shared machine and circuit model as the open obligations
+`SATNotInPPoly` (`¬ InPPoly SAT`) and `NPNotInPPoly`
+(`∃ L, InNP L ∧ ¬ InPPoly L`), and the conditional separations
+`pNotEqualsNP_of_satNotInPPoly` and `pNotEqualsNP_of_npNotInPPoly` are proved
+from the named known theorem `PSubsetPPoly`. In the same model, P/poly is
+proved not to be contained in P (`ppoly_not_subset_p`).
 
 ## 1. The idea at full strength
 
@@ -41,9 +45,15 @@ for SAT, yields SAT ∈ P*. The second reading claims *SAT ∉ P/poly*.
 * P/poly (Karp–Lipton) is the class of languages decided by a
   polynomial-time machine with advice of polynomial length. It contains P,
   since the advice can be empty.
-* The open obligation is `NPNotInPPoly NP PPoly := ∃ L, NP L ∧ ¬ PPoly L`.
-  The classes are abstract predicates on languages. With the standard
-  classes this is the open statement NP ⊄ P/poly.
+* The schema is `NPNotInPPolyFor NP PPoly := ∃ L, NP L ∧ ¬ PPoly L`, with
+  the classes as parameters (renamed from `NPNotInPPoly`).
+* **Shared model.** `InPPoly L` (from `Circuits.lean`): some polynomial `p`
+  bounds, at every positive length `n`, the gate count of a well-formed
+  circuit deciding `L` on the words of length `n`. `PSubsetPPoly` (P ⊆ P/poly)
+  is a named known theorem there.
+* **Open obligations.** `SATNotInPPoly := ¬ InPPoly SAT` with
+  `SAT = Issue532.Machines.SAT`, and
+  `NPNotInPPoly := ∃ L, InNP L ∧ ¬ InPPoly L` (NP ⊄ P/poly).
 
 ## 3. What is machine-checked
 
@@ -59,9 +69,23 @@ for SAT, yields SAT ∈ P*. The second reading claims *SAT ∉ P/poly*.
 | `diagonal_against_advice_list` | For any `M` and any list of at most `2^n` advice strings, some language defeats `M` on length `n` under every one of them. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `fixed_machine_advice_limited` | A fixed `M` with advice of length `s ≤ n` cannot decide every language on inputs of length `n`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `uniform_in_advice` | Every uniform decider is an advice machine with empty advice (abstract P ⊆ P/poly). | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
-| `NPNotInPPoly` (def) | Open obligation: some NP language lies outside the advice class. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `NPNotInPPolyFor` (def) | Schema (renamed from `NPNotInPPoly`; Rocq: same name): some language of the class `NP` lies outside the class `PPoly`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `not_in_superclass_not_in_P` | `P ⊆ C` and `L ∉ C` imply `L ∉ P`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
-| `nonuniform_lower_bound_separates` | `P ⊆ PPoly` and `NPNotInPPoly NP PPoly` imply `¬ (NP ⊆ P)`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `nonuniform_lower_bound_separatesFor` | Schema form (renamed from `nonuniform_lower_bound_separates`): `P ⊆ PPoly` and `NPNotInPPolyFor NP PPoly` imply `¬ (NP ⊆ P)`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `inPPoly_lengthOnly` | Every language depending only on the input length is in `InPPoly`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `bijNat_injective` | The bijective base-2 numeral of a word is injective. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `unaryDiag_not_inP` | No machine of the shared model decides the unary diagonal. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `ppoly_not_subset_p` | `∃ L, InPPoly L ∧ ¬ InP L`: P/poly is not contained in P. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `SATNotInPPoly` (def) | Open obligation: `¬ InPPoly SAT`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `NPNotInPPoly` (def) | Open obligation: `∃ L, InNP L ∧ ¬ InPPoly L`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `npNotInPPoly_iff_for` | `NPNotInPPoly ↔ NPNotInPPolyFor InNP InPPoly`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `satNotInPPoly_iff_superpoly` | `SATNotInPPoly ↔ SuperpolyLowerBound SAT`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `npNotInPPoly_of_sat` | `SATInNP → SATNotInPPoly → NPNotInPPoly`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `pNotEqualsNP_of_npNotInPPoly` | Conditional: `PSubsetPPoly → NPNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `pNotEqualsNP_of_satNotInPPoly` | Conditional: `SATInNP → PSubsetPPoly → SATNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `nonuniform_lower_bound_separates` | The schema theorem at the shared classes: `PSubsetPPoly → NPNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `not_inPPoly_nonvacuous` | Non-vacuity: some language is outside `InPPoly` (counting), and constant languages are inside. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `ppoly_strictly_bigger_than_p_if` | With `PSubsetPPoly`, P is strictly contained in P/poly. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 
 Differences between the two files:
 
@@ -151,8 +175,9 @@ What is **not** formalized:
   that *computes the advice* in polynomial time, which is the original
   problem again. If that procedure exists the advice is unnecessary.
 * **As a lower-bound route (P ≠ NP): developed to an open obligation.**
-  `NPNotInPPoly` together with `P ⊆ P/poly` gives P ≠ NP
-  (`nonuniform_lower_bound_separates`). The obligation implies P ≠ NP (with
+  `NPNotInPPoly` (or `SATNotInPPoly`, with `SATInNP`) together with the named
+  known theorem `PSubsetPPoly` gives P ≠ NP
+  (`pNotEqualsNP_of_npNotInPPoly`, `pNotEqualsNP_of_satNotInPPoly`). The obligation implies P ≠ NP (with
   the standard classes, where P ⊆ P/poly), and the converse implication is
   not known. By the NP-completeness of SAT (Cook–Levin, cited, not
   formalized) and closure of P/poly under polynomial-time reductions, it is
@@ -162,6 +187,14 @@ What is **not** formalized:
   relativization (Baker–Gill–Solovay 1975) where applicable. Ideas 16 and
   38 formalize parts of the relativization barrier. The natural proofs
   barrier is only cited, here and in Idea 30.
+* **Non-vacuity and caveats.** `¬ InPPoly L` is satisfiable (by Shannon
+  counting in `Circuits.lean`, for a language not known to be in NP) and
+  fails for constant languages (`not_inPPoly_nonvacuous`). `InPPoly` only
+  constrains positive lengths: with length 0 included, a fixed-length
+  circuit convention made `SAT` vacuously outside P/poly (the empty circuit
+  outputs `false` on the empty word, which encodes a satisfiable formula);
+  `Circuits.lean` now quantifies over `0 < n`. `PSubsetPPoly` is a named
+  hypothesis, not proved here.
 
 ## 7. Failure modes this idea catches
 

@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 28: definitional extensions (Tseitin transformation)
 
@@ -21,12 +23,33 @@ Proved for every propositional formula `f` (inductive `var/neg/conj/disj`):
 * `defGate_iff`, `er_sat`, `er_sound` — extended resolution (`ERDerives`:
   resolution plus weakening plus extension clauses `y ↔ l₁ ∧ l₂` for fresh
   `y`) is sound.
-* `ERSuperpolyLowerBound` — the open obligation, as a `def … : Prop`.
+* `ERSuperpolyLowerBoundFor` — the lower-bound shape for a given family of
+  CNFs (a schema).
+
+Tie to the shared machine model. `toMachineCNF` translates this file's CNFs
+into `Issue532.Machines.CNF` (`satisfiable_toMachine`), and `satWord φ` is the
+word that `Issue532.Machines.SAT` reads (`sat_satWord`). The open obligation
+`ERNotPolyBounded` says that extended resolution is not a polynomially bounded
+refutation system for the words that SAT rejects. It is equivalent to the
+existence of a family satisfying the schema (`erNotPolyBounded_iff_family`).
+
+What it gives, honestly: a lower bound for one fixed proof system only shows
+that this system (and every weaker one, e.g. resolution:
+`resNotPolyBounded_of_er`) is not polynomially bounded. It does not give
+NP ≠ coNP, and so not P ≠ NP: that needs a lower bound for *every* proof
+system (Idea 39). The converse direction is a known theorem
+(`CookReckhowER`, Cook–Reckhow 1979): NP ≠ coNP implies the obligation
+(`erNotPolyBounded_of_npNeCoNP`). Non-vacuity of the shape: it holds for the
+proof system with no rules and fails for a one-step system
+(`noRules_notPolyBounded`, `oneStep_not_notPolyBounded`).
 
 See `../ideas/Idea28.md`.
 -/
 
 namespace Issue532.Idea28
+
+open Complexity
+open Issue532.Machines (SAT NPEqualsCoNP)
 
 /-! ## CNF core -/
 
@@ -634,18 +657,19 @@ def size : CNF → Nat
   | [] => 0
   | c :: φ => c.length + 1 + size φ
 
-/-- **Open obligation.** A family of unsatisfiable CNFs whose extended-resolution
-refutations are superpolynomially longer than the formulas. No such family is
-known (Cook–Reckhow 1979); it would follow from NP ≠ coNP. -/
-def ERSuperpolyLowerBound (family : Nat → CNF) : Prop :=
+/-- Schema: a family of unsatisfiable CNFs whose extended-resolution
+refutations are superpolynomially longer than the formulas. The family is a
+parameter; the obligation on the shared machine model is `ERNotPolyBounded`. No
+such family is known (Cook–Reckhow 1979). -/
+def ERSuperpolyLowerBoundFor (family : Nat → CNF) : Prop :=
   (∀ n, ¬ Satisfiable (family n)) ∧
   ∀ c k : Nat, ∃ n, ∀ π, ERDerives (family n) π → [] ∈ π →
     c * (size (family n) + 1) ^ k < π.length
 
-/-- Any family witnessing the obligation consists of unsatisfiable formulas
+/-- Any family witnessing the lower bound consists of unsatisfiable formulas
 and has no refutation of length bounded by a fixed polynomial. -/
 theorem obligation_excludes_poly_bound (family : Nat → CNF)
-    (h : ERSuperpolyLowerBound family) (c k : Nat) :
+    (h : ERSuperpolyLowerBoundFor family) (c k : Nat) :
     ¬ (∀ n, ∃ π, ERDerives (family n) π ∧ [] ∈ π ∧
         π.length ≤ c * (size (family n) + 1) ^ k) := by
   intro hall
@@ -653,5 +677,182 @@ theorem obligation_excludes_poly_bound (family : Nat → CNF)
   obtain ⟨π, hπ, he, hl⟩ := hall n
   have := hn π hπ he
   omega
+
+/-! ## Bridge to the shared machine model -/
+
+/-- A literal of this file as a literal of `Issue532.Machines`. -/
+def toMachineLit (l : Lit) : Issue532.Machines.Lit := ⟨l.var, l.pos⟩
+
+/-- A CNF of this file as a CNF of `Issue532.Machines`. -/
+def toMachineCNF (φ : CNF) : Issue532.Machines.CNF := φ.map (List.map toMachineLit)
+
+theorem evalLit_toMachine (a : Assignment) (l : Lit) :
+    Issue532.Machines.evalLit a (toMachineLit l) = evalLit a l := by
+  cases hp : l.pos <;> cases ha : a l.var <;>
+    simp [Issue532.Machines.evalLit, toMachineLit, evalLit, hp, ha]
+
+theorem evalClause_toMachine (a : Assignment) (c : Clause) :
+    Issue532.Machines.evalClause a (c.map toMachineLit) = evalClause a c := by
+  induction c with
+  | nil => rfl
+  | cons l c ih =>
+    simp only [List.map_cons, Issue532.Machines.evalClause, evalClause, evalLit_toMachine, ih]
+
+theorem evalCNF_toMachine (a : Assignment) (φ : CNF) :
+    Issue532.Machines.evalCNF a (toMachineCNF φ) = evalCNF a φ := by
+  induction φ with
+  | nil => rfl
+  | cons c φ ih =>
+    simp only [toMachineCNF, List.map_cons, Issue532.Machines.evalCNF, evalCNF,
+      evalClause_toMachine] at ih ⊢
+    rw [ih]
+
+theorem satisfiable_toMachine (φ : CNF) :
+    Issue532.Machines.Satisfiable (toMachineCNF φ) ↔ Satisfiable φ := by
+  constructor
+  · rintro ⟨a, ha⟩; exact ⟨a, by rw [← evalCNF_toMachine]; exact ha⟩
+  · rintro ⟨a, ha⟩; exact ⟨a, by rw [evalCNF_toMachine]; exact ha⟩
+
+/-- The word that `Issue532.Machines.SAT` reads for the CNF `φ`. -/
+def satWord (φ : CNF) : Word := Issue532.Machines.encodeCNF (toMachineCNF φ)
+
+theorem sat_satWord (φ : CNF) : SAT (satWord φ) = true ↔ Satisfiable φ := by
+  rw [satWord, Issue532.Machines.sat_encode, satisfiable_toMachine]
+
+theorem sat_satWord_false (φ : CNF) : SAT (satWord φ) = false ↔ ¬ Satisfiable φ := by
+  rw [← sat_satWord]
+  cases SAT (satWord φ) <;> simp
+
+/-! ## The obligation -/
+
+/-- Schema: the refutation system `D` (`D φ π`: `π` is derivable from `φ`) is
+not polynomially bounded on the words that SAT rejects. `D` is a parameter; the
+obligation is the instance `ERNotPolyBounded`. -/
+def NotPolyBoundedFor (D : CNF → CNF → Prop) : Prop :=
+  ∀ c k : Nat, ∃ φ : CNF, SAT (satWord φ) = false ∧
+    ∀ π, D φ π → [] ∈ π → c * (size φ + 1) ^ k < π.length
+
+/-- **Open obligation.** Extended resolution is not polynomially bounded on the
+unsatisfiable instances of `Issue532.Machines.SAT`: for every `c k` some CNF
+`φ` with `SAT (satWord φ) = false` has no extended-resolution refutation with
+at most `c * (size φ + 1) ^ k` clauses. Open since Cook–Reckhow (1979). -/
+def ERNotPolyBounded : Prop :=
+  ∀ c k : Nat, ∃ φ : CNF, SAT (satWord φ) = false ∧
+    ∀ π, ERDerives φ π → [] ∈ π → c * (size φ + 1) ^ k < π.length
+
+theorem erNotPolyBounded_iff_for : ERNotPolyBounded ↔ NotPolyBoundedFor ERDerives := Iff.rfl
+
+/-- Extended resolution is polynomially bounded: every unsatisfiable CNF has a
+refutation with polynomially many clauses. -/
+def ERPolyBounded : Prop :=
+  ∃ c k : Nat, ∀ φ : CNF, SAT (satWord φ) = false →
+    ∃ π, ERDerives φ π ∧ [] ∈ π ∧ π.length ≤ c * (size φ + 1) ^ k
+
+theorem erNotPolyBounded_iff : ERNotPolyBounded ↔ ¬ ERPolyBounded := by
+  constructor
+  · rintro h ⟨c, k, hb⟩
+    obtain ⟨φ, hφ, hlb⟩ := h c k
+    obtain ⟨π, hπ, he, hl⟩ := hb φ hφ
+    have := hlb π hπ he
+    omega
+  · intro h c k
+    apply Classical.byContradiction
+    intro hno
+    apply h
+    refine ⟨c, k, fun φ hφ => Classical.byContradiction fun hnone => hno ⟨φ, hφ, fun π hπ he => ?_⟩⟩
+    apply Classical.byContradiction
+    intro hlt
+    exact hnone ⟨π, hπ, he, by omega⟩
+
+/-- The obligation is exactly the existence of a family meeting the schema. -/
+theorem erNotPolyBounded_iff_family :
+    ERNotPolyBounded ↔ ∃ family : Nat → CNF, ERSuperpolyLowerBoundFor family := by
+  constructor
+  · intro h
+    refine ⟨fun n => Classical.choose (h n n), fun n => ?_, fun c k => ⟨c + k, fun π hπ he => ?_⟩⟩
+    · exact (sat_satWord_false _).mp (Classical.choose_spec (h n n)).1
+    · have hlb := (Classical.choose_spec (h (c + k) (c + k))).2 π hπ he
+      have h1 : c ≤ c + k := Nat.le_add_right c k
+      have h2 : (size (Classical.choose (h (c + k) (c + k))) + 1) ^ k ≤
+          (size (Classical.choose (h (c + k) (c + k))) + 1) ^ (c + k) :=
+        Nat.pow_le_pow_right (Nat.succ_pos _) (Nat.le_add_left k c)
+      exact Nat.lt_of_le_of_lt (Nat.mul_le_mul h1 h2) hlb
+  · rintro ⟨family, hu, hlb⟩ c k
+    obtain ⟨n, hn⟩ := hlb c k
+    exact ⟨family n, (sat_satWord_false _).mpr (hu n), hn⟩
+
+/-! ## What the obligation gives: weaker systems only -/
+
+/-- Resolution derivations (with weakening): extended resolution without the
+extension rule. -/
+inductive ResDerives (φ : CNF) : CNF → Prop
+  | start : ResDerives φ φ
+  | res (π : CNF) (c1 c2 c : Clause) (v : Nat) :
+      ResDerives φ π → c1 ∈ π → c2 ∈ π →
+      (∀ l, l ∈ c1 → l ≠ pl v → l ∈ c) → (∀ l, l ∈ c2 → l ≠ nl v → l ∈ c) →
+      ResDerives φ (c :: π)
+
+theorem erDerives_of_res {φ π : CNF} (h : ResDerives φ π) : ERDerives φ π := by
+  induction h with
+  | start => exact ERDerives.start
+  | res π c1 c2 c v _ h1 h2 k1 k2 ih => exact ERDerives.res π c1 c2 c v ih h1 h2 k1 k2
+
+/-- Resolution is not polynomially bounded on the words SAT rejects. This is a
+known theorem (Haken 1985), not mechanised here; below it is derived from the
+extended-resolution obligation. -/
+def ResNotPolyBounded : Prop := NotPolyBoundedFor ResDerives
+
+/-- **Conditional theorem** (the honest conclusion). A lower bound for extended
+resolution transfers to every weaker system, here resolution. It says nothing
+about proof systems that are not simulated by extended resolution. -/
+theorem resNotPolyBounded_of_er (h : ERNotPolyBounded) : ResNotPolyBounded := by
+  intro c k
+  obtain ⟨φ, hφ, hlb⟩ := h c k
+  exact ⟨φ, hφ, fun π hπ he => hlb π (erDerives_of_res hπ) he⟩
+
+/-- Known theorem, not mechanised here (Cook and Reckhow, "The relative
+efficiency of propositional proof systems", J. Symbolic Logic 44 (1979)):
+extended resolution is a propositional proof system (refutations are checkable
+in polynomial time), so if it were polynomially bounded the complement of SAT
+would be in NP and NP = coNP. Contrapositive: NP ≠ coNP implies
+`ERNotPolyBounded`. -/
+def CookReckhowER : Prop := ¬ NPEqualsCoNP → ERNotPolyBounded
+
+/-- The obligation is implied by NP ≠ coNP (via the known theorem); it is not
+known to imply NP ≠ coNP or P ≠ NP. -/
+theorem erNotPolyBounded_of_npNeCoNP (hCR : CookReckhowER) (h : ¬ NPEqualsCoNP) :
+    ERNotPolyBounded :=
+  hCR h
+
+/-! ## Non-vacuity of the shape -/
+
+/-- `x₀ ∧ ¬x₀` as a CNF. -/
+def contra : CNF := [[pl 0], [nl 0]]
+
+theorem sat_contra : SAT (satWord contra) = false := by decide
+
+/-- The shape holds for the system with no rules (only `φ` itself is derived),
+since `contra` does not contain the empty clause. -/
+theorem noRules_notPolyBounded : NotPolyBoundedFor (fun φ π => π = φ) := by
+  intro c k
+  refine ⟨contra, sat_contra, fun π hπ he => ?_⟩
+  subst hπ
+  simp [contra, pl, nl] at he
+
+/-- The shape fails for a (unsound) system that derives the empty clause in
+one step from anything. -/
+theorem oneStep_not_notPolyBounded : ¬ NotPolyBoundedFor (fun _ π => π = [[]]) := by
+  intro h
+  obtain ⟨φ, _, hlb⟩ := h 1 0
+  have := hlb [[]] rfl (by simp)
+  simp at this
+
+/-- The family schema fails for the formula consisting of the empty clause,
+which extended resolution refutes in zero steps. -/
+theorem emptyClause_not_superpoly : ¬ ERSuperpolyLowerBoundFor (fun _ => [[]]) := by
+  intro h
+  obtain ⟨n, hn⟩ := h.2 1 0
+  have := hn [[]] ERDerives.start (by simp)
+  simp at this
 
 end Issue532.Idea28

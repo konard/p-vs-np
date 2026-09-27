@@ -1,6 +1,6 @@
 # Idea 10 — Restricted (monotone) circuit lower bounds and transfer to general circuits
 
-**Verdict:** Refuted in full strength (published theorem) + formal core — superpolynomial and even exponential lower bounds for *monotone* circuits are known (Razborov 1985; Alon–Boppana 1987), but they do not transfer to general circuits: Tardos (1988) gives a monotone function computable in polynomial time whose monotone circuit complexity is exponential, so a monotone lower bound for an NP function cannot by itself give P ≠ NP. The formal core proves, for all formulas and all `n`, that monotone formulas compute exactly the monotone functions (`monotone_eval`, `monotone_complete`), that NOT and parity have no monotone formulas of any size, and that a general superpolynomial lower bound is *equivalent* to a monotone lower bound for the double-rail partial function (`general_iff_double_rail`), not to a monotone lower bound for `f` itself. The remaining obligation `GeneralSuperpolyLowerBound` is open; as formalized it is a *formula* lower bound (which for an NP family would separate NP from non-uniform NC¹), and only its circuit analogue, which is not formalized, would give P ≠ NP.
+**Verdict:** Refuted in full strength (published theorem) + formal core — superpolynomial and even exponential lower bounds for *monotone* circuits are known (Razborov 1985; Alon–Boppana 1987), but they do not transfer to general circuits: Tardos (1988) gives a monotone function computable in polynomial time whose monotone circuit complexity is exponential, so a monotone lower bound for an NP function cannot by itself give P ≠ NP. The formal core proves, for all formulas and all `n`, that monotone formulas compute exactly the monotone functions (`monotone_eval`, `monotone_complete`), that NOT and parity have no monotone formulas of any size, and that a general superpolynomial lower bound is *equivalent* to a monotone lower bound for the double-rail partial function (`general_iff_double_rail`), not to a monotone lower bound for `f` itself. The remaining open obligation is stated on the shared machine model as `SATFormulaLowerBound` (no polynomial-size formulas for `Issue532.Machines.SAT` on its length-`n` slices) and `NPNotInPolyFormulas` (some language with `InNP` has none). Its honest conclusion is only NP ⊄ polynomial-size formulas, an NC¹-type separation (`npNotInPolyFormulas_of_sat`); P ≠ NP follows only with the unproved and widely disbelieved `PSubsetPolyFormulas` (`pNotEqualsNP_of_satFormulaLowerBound`). The monotone bound for SAT is trivially true, because SAT's slices are not monotone (`sat_slice_not_monotone`, `sat_monotone_lower_bound_trivial`).
 
 ## 1. The idea at full strength
 
@@ -38,16 +38,29 @@ negations to the inputs (De Morgan) and returns a pair of monotone formulas
 for `c` and `¬c` over the double-rail variables. `undual` substitutes
 `xᵢ`, `¬xᵢ` back.
 
-**Lower-bound statements** for a family `f n : (ℕ → Bool) → Bool`:
+**Lower-bound schemas** for a family `f n : (ℕ → Bool) → Bool` (the family
+is a parameter, so these are schemas, not obligations):
 
-* `GeneralSuperpolyLowerBound f`: for all `c, d` there is `n` such that
+* `GeneralSuperpolyLowerBoundFor f`: for all `c, d` there is `n` such that
   every formula `C` with `size C ≤ c·n^d + c` differs from `f n` somewhere.
-* `MonotoneSuperpolyLowerBound f`: the same, but only for monotone `C`.
-* `DoubleRailLowerBound f`: the same for monotone `C` that only need to be
+* `MonotoneSuperpolyLowerBoundFor f`: the same, but only for monotone `C`.
+* `DoubleRailLowerBoundFor f`: the same for monotone `C` that only need to be
   correct on the consistent inputs `dual x`.
 
-**Claim to be refuted.** "`MonotoneSuperpolyLowerBound f` for an NP family
-`f` implies `GeneralSuperpolyLowerBound f`." The published refutations cited
+**The obligation on the machine model.** `slice L n x = L [x₀, …, x_{n−1}]`
+(from `Circuits.lean`) turns a language into a family. With
+`SAT = Issue532.Machines.SAT`:
+
+* `SATFormulaLowerBound := ∀ c d, ∃ n, ∀ C, size C ≤ c·n^d + c → ∃ x, eval C x ≠ slice SAT n x`
+  (open obligation; equal to `GeneralSuperpolyLowerBoundFor (slice SAT)`);
+* `NPNotInPolyFormulas := ∃ L, InNP L ∧ ∀ c d, ∃ n, ∀ C, size C ≤ c·n^d + c → ∃ x, eval C x ≠ slice L n x`
+  (open obligation, the honest target: NP has no polynomial-size formulas);
+* `PSubsetPolyFormulas`: every `InP` language has polynomial-size formulas
+  (a P ⊆ NC¹-type statement; not known, widely believed false, never
+  assumed, only used as an explicit hypothesis).
+
+**Claim to be refuted.** "`MonotoneSuperpolyLowerBoundFor f` for an NP family
+`f` implies `GeneralSuperpolyLowerBoundFor f`." The published refutations cited
 below are for the circuit analogues of these definitions (monotone versus
 general circuit size); the formal files do not prove this refutation.
 
@@ -73,11 +86,21 @@ general circuit size); the formal files do not prove this refutation.
 | `dual_odd` | `dual x (2i+1) = ¬xᵢ`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 | `doubleRail_correct` | For every formula `c`, both rails are monotone, have size `≤ size c`, and compute `c` and `¬c` on every `dual x`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 | `undual_correct` | For every formula `c`, `undual c` has size `≤ 2·size c` and `eval (undual c) x = eval c (dual x)`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
-| `GeneralSuperpolyLowerBound` | Definition of the open obligation (a `Prop`, never assumed). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
-| `MonotoneSuperpolyLowerBound` | Definition: superpolynomial lower bound against monotone formulas. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
-| `DoubleRailLowerBound` | Definition: monotone lower bound for the double-rail partial function. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `GeneralSuperpolyLowerBoundFor` | Schema: no polynomial-size general formulas for the family (renamed from `GeneralSuperpolyLowerBound`; Rocq: same name). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `MonotoneSuperpolyLowerBoundFor` | Schema: superpolynomial lower bound against monotone formulas (Rocq: same name). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `DoubleRailLowerBoundFor` | Schema: monotone lower bound for the double-rail partial function (Rocq: same name). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 | `general_lb_implies_monotone_lb` | A general lower bound implies the monotone one (the easy direction). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
-| `general_iff_double_rail` | For every family `f`: `GeneralSuperpolyLowerBound f ↔ DoubleRailLowerBound f`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `general_iff_double_rail` | For every family `f`: `GeneralSuperpolyLowerBoundFor f ↔ DoubleRailLowerBoundFor f`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `SATFormulaLowerBound` | Open obligation: `Issue532.Machines.SAT` has no polynomial-size formulas (a `Prop`, never assumed; Rocq: same name). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `satFormulaLowerBound_iff_for` | The obligation is the schema at `slice SAT`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `NPNotInPolyFormulas` | Open obligation: some `InNP` language has no polynomial-size formulas. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `npNotInPolyFormulas_of_sat` | Conditional (honest conclusion): with `SATInNP`, `SATFormulaLowerBound → NPNotInPolyFormulas`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `PSubsetPolyFormulas` | Definition of the unproved P ⊆ NC¹-type hypothesis (never assumed). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `pNotEqualsNP_of_satFormulaLowerBound` | Conditional: `SATInNP → PSubsetPolyFormulas → SATFormulaLowerBound → PNotEqualsNP`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `satFormulaLowerBound_iff_doubleRail` | The obligation equals the double-rail monotone bound for SAT. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `sat_slice_not_monotone` | SAT's length-2 slice is not monotone (`00` is the empty formula, `10` the empty clause). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `sat_monotone_lower_bound_trivial` | `MonotoneSuperpolyLowerBoundFor (slice SAT)` holds, for the trivial reason above. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `const_no_general_lower_bound` | Non-vacuity: the schema fails for every constant family. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 
 No theorem in either file proves or refutes P = NP, and no circuit lower
 bound for an explicit NP function is claimed.
@@ -131,14 +154,14 @@ size `≤ 2c·n^d + 2c` correct on all `x`, contradicting the bound.
 `dual x`; the double-rail lower bound gives an `x` where it, hence `C`,
 is wrong. The constants are uniform, so polynomial bounds match exactly.
 
-**Why the transfer from `f` itself fails.** `DoubleRailLowerBound f` asks
+**Why the transfer from `f` itself fails.** `DoubleRailLowerBoundFor f` asks
 for a lower bound on monotone formulas that are only required to be
 correct on the *consistent* inputs `dual x`, and they may use the negated
 literals as free inputs. A monotone lower bound for `f` constrains monotone
 formulas that must be correct on *every* input and see only positive
 literals. For monotone `f` the latter class is contained in the former (a
 monotone formula for `f`, renamed `i ↦ 2i`, is correct on all `dual x`), so
-`DoubleRailLowerBound f` implies the monotone bound for `f`; the converse
+`DoubleRailLowerBoundFor f` implies the monotone bound for `f`; the converse
 is exactly what fails in general. Tardos (1988) exhibits a monotone
 function in P (so its double-rail *circuit* complexity is polynomial, by the
 circuit analogue of `doubleRail_correct`, which is not formalized) whose
@@ -189,18 +212,31 @@ of the specific function that these counterexamples lack.
 * **Proved:** the monotone model is complete for monotone functions and
   exactly as strong as the general model *on the double-rail partial
   function* (for formulas). Consequently, the missing statement is a
-  general lower bound for an NP family `f`; in the formal (formula) setting
-  this is `GeneralSuperpolyLowerBound f`, and
-  `general_iff_double_rail` restates it without negations, as a monotone
-  bound for a partial function.
+  general lower bound for an NP family; on the machine model this is
+  `SATFormulaLowerBound`, and `satFormulaLowerBound_iff_doubleRail`
+  restates it without negations, as a monotone bound for a partial function.
+* **Proved (conditional):** `npNotInPolyFormulas_of_sat` (with `SATInNP`, the
+  obligation gives `NPNotInPolyFormulas`) and
+  `pNotEqualsNP_of_satFormulaLowerBound` (P ≠ NP, but only with the extra
+  hypothesis `PSubsetPolyFormulas`, which is not known and widely believed
+  false).
+* **Proved (monotone bound is uninformative for SAT):** the slices of `SAT`
+  are not monotone, so `MonotoneSuperpolyLowerBoundFor (slice SAT)` holds
+  for a trivial reason (`sat_monotone_lower_bound_trivial`).
 * **Refuted (published):** that a monotone circuit lower bound for `f`
   implies a general circuit lower bound (Tardos 1988; also Razborov's
   matching bound). Not formalized.
-* **Open:** `GeneralSuperpolyLowerBound f` for an NP family `f`. For
-  circuits (rather than formulas) this would give NP ⊄ P/poly and hence
-  P ≠ NP; the formula version formalized here would only give that NP
-  has no polynomial-size formulas, which is not known to imply P ≠ NP.
-  The known general circuit bounds for explicit functions are linear (§5).
+* **Open:** `SATFormulaLowerBound` and `NPNotInPolyFormulas`. The honest
+  conclusion is NP ⊄ polynomial-size formulas (non-uniform NC¹-type), not
+  P ≠ NP. The circuit analogue (Idea 30's `SATCircuitLowerBound`, Idea 19's
+  `SATNotInPPoly`) would give P ≠ NP through P ⊆ P/poly. The known general
+  circuit bounds for explicit functions are linear (§5).
+* **Caveats.** Non-vacuity is proved only on the false side
+  (`const_no_general_lower_bound`); the true side for formulas (a counting
+  argument, as `Circuits.exists_superpolyLowerBound` does for circuits) is
+  not formalized here. The formula model reads variables `0, …, n−1` of an
+  assignment `ℕ → Bool`; `slice` makes the length-`n` words of SAT such a
+  function. Monotonicity of `slice SAT` depends on the shared CNF encoding.
 * **Barrier:** Razborov–Rudich (1997) natural proofs apply to general
   circuit lower bound strategies, and Razborov (1989) showed that the
   method of approximations behind the monotone bounds has strong limits for
@@ -208,8 +244,8 @@ of the specific function that these counterexamples lack.
   reformulation must exploit that correctness is only required on
   consistent inputs; the approximation method does not use this.
 
-Precise obligation for a follow-up: prove `GeneralSuperpolyLowerBound f`
-(or `DoubleRailLowerBound f`, which is equivalent) for a family `f` in NP,
+Precise obligation for a follow-up: prove `SATFormulaLowerBound` (or the
+equivalent `DoubleRailLowerBoundFor (slice SAT)`),
 in its circuit form if the goal is P ≠ NP, and explain which of the barriers
 the argument avoids.
 
@@ -229,7 +265,7 @@ the argument avoids.
   bound usually assumes that negations can be removed cheaply; they can
   (`doubleRail_correct`), but only at the price of changing the function.
 * **Barriers** (family 14): any argument that reaches
-  `GeneralSuperpolyLowerBound` must say how it avoids natural proofs.
+  `SATFormulaLowerBound` must say how it avoids natural proofs.
 * **Uniform vs non-uniform** (family 16): circuit lower bounds are
   non-uniform; P ≠ NP follows from a superpolynomial circuit lower bound for
   an NP family, but the converse is not known.

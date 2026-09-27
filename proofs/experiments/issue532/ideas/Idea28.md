@@ -2,7 +2,7 @@
 
 **Verdict:** Correct tool, insufficient alone (general theorem proved)
 
-Introducing a fresh variable `y` with the definition `y ↔ (x ∧ z)` (or `¬x`, or `x ∨ z`) preserves satisfiability. Applied once per gate, this is the Tseitin transformation, and the files prove it correct for every propositional formula: it is equisatisfiable, has at most `3 · #gates + 1` clauses, at most 3 literals per clause, and exactly one new variable per gate. It is a *hardness-preserving* reduction (formula/circuit-SAT ≤ 3-SAT), so it cannot make instances easier. Adding definitions inside proofs gives extended resolution, and superpolynomial lower bounds for it are a famous open problem, stated here as the obligation `ERSuperpolyLowerBound`.
+Introducing a fresh variable `y` with the definition `y ↔ (x ∧ z)` (or `¬x`, or `x ∨ z`) preserves satisfiability. Applied once per gate, this is the Tseitin transformation, and the files prove it correct for every propositional formula: it is equisatisfiable, has at most `3 · #gates + 1` clauses, at most 3 literals per clause, and exactly one new variable per gate. It is a *hardness-preserving* reduction (formula/circuit-SAT ≤ 3-SAT), so it cannot make instances easier. Adding definitions inside proofs gives extended resolution, and superpolynomial lower bounds for it are a famous open problem. It is stated here as the open obligation `ERNotPolyBounded` over the shared machine language `Issue532.Machines.SAT`: extended resolution is not polynomially bounded on the CNFs that SAT rejects. The files prove that this obligation implies the same lower bound for resolution (`resNotPolyBounded_of_er`), and that NP ≠ coNP implies the obligation given the Cook–Reckhow theorem as a named hypothesis (`erNotPolyBounded_of_npNeCoNP`). The obligation is not known to imply NP ≠ coNP or P ≠ NP, so no conditional theorem to `PNotEqualsNP` is claimed.
 
 ## 1. The idea at full strength
 
@@ -33,6 +33,21 @@ Extended resolution (`ERDerives φ π`) starts from `π = φ` and repeatedly add
 
 A refutation is a derivation containing `[]`. Its length is `π.length`, and `size φ` counts clauses plus literal occurrences.
 
+**Tie to the shared machine model.** `toMachineCNF` translates these CNFs into `Issue532.Machines.CNF` and preserves satisfiability (`satisfiable_toMachine`). `satWord φ` is the encoded word, and `sat_satWord` gives `SAT (satWord φ) = true ↔ Satisfiable φ`.
+
+**Schemas** (parameterised shapes, not obligations):
+
+* `ERSuperpolyLowerBoundFor family`: `family` is unsatisfiable, and for every `c, k` some member has no ER refutation of length `≤ c · (size + 1)^k`.
+* `NotPolyBoundedFor D`: the refutation system `D` is not polynomially bounded on the CNFs that SAT rejects.
+
+**Open obligation** (fixed, no free parameters):
+
+```
+def ERNotPolyBounded : Prop :=
+  ∀ c k : Nat, ∃ φ : CNF, SAT (satWord φ) = false ∧
+    ∀ π, ERDerives φ π → [] ∈ π → c * (size φ + 1) ^ k < π.length
+```
+
 ## 3. What is machine-checked
 
 | Theorem | Informal statement | Lean | Rocq |
@@ -53,8 +68,24 @@ A refutation is a derivation containing `[]`. Its length is `π.length`, and `si
 | `tseitinCNF_vars` | All variables of `tseitinCNF f` are `< bound f + gates f` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `transfer` | A decider correct on all 3-CNFs, composed with `tseitinCNF`, decides formula-SAT | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `defGate_iff`, `er_sat`, `er_sound` | Extended resolution is sound: a derivation containing `[]` refutes `φ` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
-| `ERSuperpolyLowerBound` (def) | The open obligation: unsatisfiable family, no ER refutation of length `≤ c · (size+1)^k` for any `c, k` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `ERSuperpolyLowerBoundFor` (def) | Schema: unsatisfiable family, no ER refutation of length `≤ c · (size+1)^k` for any `c, k` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `obligation_excludes_poly_bound` | A witness of the obligation rules out every fixed polynomial bound on refutation length | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `toMachineCNF`, `satisfiable_toMachine` | Translation into `Issue532.Machines.CNF` preserves satisfiability | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `satWord`, `sat_satWord`, `sat_satWord_false` | `SAT (satWord φ) = true ↔ Satisfiable φ` (and the `false` form) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `NotPolyBoundedFor` (def) | Schema: a refutation system `D` is not polynomially bounded on the CNFs that SAT rejects | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `ERNotPolyBounded` (def) | Open obligation: extended resolution is not polynomially bounded on the CNFs that `SAT` rejects | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `erNotPolyBounded_iff_for` | `ERNotPolyBounded ↔ NotPolyBoundedFor ERDerives` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `ERPolyBounded` (def), `erNotPolyBounded_iff` | `ERNotPolyBounded ↔ ¬ ERPolyBounded` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `erNotPolyBounded_iff_family` | The obligation holds iff some family meets `ERSuperpolyLowerBoundFor` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `ResDerives`, `erDerives_of_res` | Resolution derivations are extended-resolution derivations | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `ResNotPolyBounded` (def) | Resolution is not polynomially bounded (known, Haken 1985; not mechanised) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `resNotPolyBounded_of_er` | Conditional theorem: `ERNotPolyBounded → ResNotPolyBounded` (the honest conclusion) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `CookReckhowER` (def) | Named known theorem (Cook–Reckhow 1979): `¬ NPEqualsCoNP → ERNotPolyBounded` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `erNotPolyBounded_of_npNeCoNP` | Given `CookReckhowER`, NP ≠ coNP implies the obligation | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `contra`, `sat_contra` | `x₀ ∧ ¬x₀` is rejected by `SAT` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `noRules_notPolyBounded` | Non-vacuity: the schema `NotPolyBoundedFor` holds for the system with no rules | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `oneStep_not_notPolyBounded` | Non-vacuity: the schema fails for a system deriving `[]` in one step | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `emptyClause_not_superpoly` | Non-vacuity: `ERSuperpolyLowerBoundFor` fails for the family `fun _ => [[]]` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 
 No axioms are used, and there is no `sorry`/`Admitted`. In Rocq the `ERDerives` constructors are named `er_start`, `er_res`, `er_ext`.
 
@@ -105,15 +136,19 @@ None of these theorems are formalized here. The files formalize the Tseitin tran
 **Toward P ≠ NP.** The open obligation is
 
 ```
-def ERSuperpolyLowerBound (family : Nat → CNF) : Prop :=
-  (∀ n, ¬ Satisfiable (family n)) ∧
-  ∀ c k, ∃ n, ∀ π, ERDerives (family n) π → [] ∈ π →
-    c * (size (family n) + 1) ^ k < π.length
+def ERNotPolyBounded : Prop :=
+  ∀ c k : Nat, ∃ φ : CNF, SAT (satWord φ) = false ∧
+    ∀ π, ERDerives φ π → [] ∈ π → c * (size φ + 1) ^ k < π.length
 ```
 
-* NP ≠ coNP implies that such a family exists (Cook–Reckhow, contrapositive).
-* Its existence would **not** by itself imply NP ≠ coNP or P ≠ NP: it is a lower bound for one proof system.
-* No such family is known. Extended Frege is the strongest system of the Cook–Reckhow program in common use, and even for Frege no superpolynomial lower bound is known.
+Here `SAT` is `Issue532.Machines.SAT` and `satWord` is the machine encoding of the CNF. The formal results are:
+
+* `erNotPolyBounded_iff_family`: the obligation is equivalent to the existence of a family meeting the schema `ERSuperpolyLowerBoundFor`.
+* `resNotPolyBounded_of_er`: the obligation implies the same statement for resolution. This is the honest conclusion. A lower bound for one proof system transfers only to the systems that it simulates.
+* `erNotPolyBounded_of_npNeCoNP`: given the named known theorem `CookReckhowER` (Cook–Reckhow 1979), NP ≠ coNP implies the obligation.
+* The converse is not known. The obligation would **not** by itself imply NP ≠ coNP or P ≠ NP, because it is a lower bound for one proof system. For this reason the file proves no conditional theorem to `PNotEqualsNP`.
+* Non-vacuity: `noRules_notPolyBounded` shows that `NotPolyBoundedFor` holds for a trivial system, and `oneStep_not_notPolyBounded` shows that it fails for an unsound one. `emptyClause_not_superpoly` shows that the family schema fails for the empty-clause family.
+* No witness of the obligation is known. Extended Frege is the strongest system of the Cook–Reckhow program in common use, and even for Frege no superpolynomial lower bound is known.
 
 Barriers:
 
