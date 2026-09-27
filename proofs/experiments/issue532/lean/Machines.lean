@@ -32,9 +32,11 @@ a decider is a `Complexity.Machine` and its time is the step count `t` of a
   CNF formulas, the brute-force decider, a lossless binary encoding with a total
   parser, and SAT as a computable `Complexity.Language`.
 * `SATInNP`, `SATHard`, `CookLevin`, `inP_sat_iff`: the Cook–Levin theorem
-  stated in this model, and "SAT ∈ P ↔ P = NP" under it. Cook–Levin is a known
-  theorem that this file does **not** prove; every use is an explicit
-  hypothesis named `SATInNP`, `SATHard` or `CookLevin`.
+  stated in this model, and "SAT ∈ P ↔ P = NP" under it. The membership half
+  `SATInNP` is proved in `SATVerifier.lean` (`SATVerifier.satInNP`) with an
+  explicit verifier machine. The hardness half `SATHard` is a known theorem
+  that is **not** proved here; every use is an explicit hypothesis named
+  `SATHard` or `CookLevin`.
 -/
 
 namespace Issue532.Machines
@@ -1012,9 +1014,11 @@ theorem sat_encode (φ : CNF) : SAT (encodeCNF φ) = true ↔ Satisfiable φ := 
 `CookLevin` is a precise proposition about `Complexity.Machine`, `Complexity.Run`
 and the class NP of `Complexity.ClassNP`. It is a known theorem (Cook 1971,
 Levin 1973; mechanised for a different machine model by Gäher and Kunze,
-ITP 2021). It is **not proved here**: this repository has no machine
-construction for the verifier or the tableau reduction yet. Idea files that
-use it take `CookLevin` as a named explicit hypothesis. -/
+ITP 2021). The membership half `SATInNP` is proved in `SATVerifier.lean`
+(`SATVerifier.satInNP`, a 45-state verifier that halts within `5(n+1)²`
+steps), which imports this file. The hardness half `SATHard` needs the
+tableau reduction and is **not proved here**. Idea files that use it take
+`SATHard` or `CookLevin` as a named explicit hypothesis. -/
 
 /-- SAT is in NP: a polynomial-time machine verifier for SAT. -/
 def SATInNP : Prop := InNP SAT
