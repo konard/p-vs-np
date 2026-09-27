@@ -37,9 +37,11 @@
       [sat_iff]: CNF formulas, the brute-force decider, a lossless binary
       encoding with a total parser, and SAT as a computable [Language].
     - [SATInNP], [SATHard], [CookLevin], [inP_sat_iff]: the Cook-Levin theorem
-      stated in this model, and "SAT in P <-> P = NP" under it.  Cook-Levin is
-      a known theorem that this file does NOT prove; every use is an explicit
-      hypothesis named [SATInNP], [SATHard] or [CookLevin].
+      stated in this model, and "SAT in P <-> P = NP" under it.  The
+      membership half [SATInNP] is proved in [SATVerifier.v] ([satInNP])
+      with an explicit verifier machine.  The hardness half [SATHard] is a
+      known theorem that is NOT proved here; every use is an explicit
+      hypothesis named [SATHard] or [CookLevin].
 
     Differences from the Lean file (Rocq has no function extensionality and no
     classical logic here; this file uses no axioms at all):
@@ -1283,9 +1285,11 @@ Proof. intro phi. rewrite sat_iff, decode_encode. reflexivity. Qed.
 
     [CookLevin] is a precise proposition about [Machine], [Run] and the class
     NP of [ClassNP].  It is a known theorem (Cook 1971, Levin 1973; mechanised
-    for a different machine model by Gaeher and Kunze, ITP 2021).  It is NOT
-    proved here: this repository has no machine construction for the verifier
-    or the tableau reduction yet.  Idea files that use it take [CookLevin] as
+    for a different machine model by Gaeher and Kunze, ITP 2021).  The
+    membership half [SATInNP] is proved in [SATVerifier.v] ([satInNP], a
+    45-state verifier that halts within [5 (n + 1)^2] steps), which imports
+    this file.  The hardness half [SATHard] needs the tableau reduction and is
+    NOT proved here.  Idea files that use it take [SATHard] or [CookLevin] as
     a named explicit hypothesis (a premise of a theorem, never an [Axiom]). *)
 
 (** SAT is in NP: a polynomial-time machine verifier for SAT. *)
