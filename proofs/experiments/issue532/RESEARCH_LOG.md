@@ -1,146 +1,187 @@
-# Issue 532: forty paired idea checks
+# Issue 532: forty fully developed ideas toward P vs NP
 
-This is a queue of **research directions**, not a ranking of numerical
-probabilities. The first twenty rows are finite diagnostics. The second twenty
-isolate general proof steps and countermodels suggested by the first batch and
-the repository's failed-attempt catalogue. Each row links to an independent
-Lean 4 file and Rocq file. Both prove the same small statement without `sorry`,
-`Admitted`, or new axioms.
+This log records forty research directions suggested by
+[issue #532](https://github.com/konard/p-vs-np/issues/532). Each idea has three
+parts:
 
-The files establish only the statements displayed in the code. A
-counterexample rejects the stated shortcut, not every method in that area.
-General lemmas in the second batch are often *conditional*: the missing
-hypothesis is the actual research problem. No file proves P = NP or P ≠ NP.
-In particular, a fixed input size gives no asymptotic running-time bound or
-circuit lower bound. Nor does a logical implication provide the polynomial
-resource bounds absent from its assumptions.
+- a **dossier** `ideas/IdeaNN.md`, which states the idea at full strength,
+  formulates it precisely, lists the machine-checked theorems, gives the
+  complete argument, surveys the literature, pushes the idea as far as it goes
+  toward P vs NP, and records the failure modes it catches;
+- an independent **Lean 4** file `lean/IdeaNN.lean` (core Lean, no Mathlib);
+- an independent **Rocq** file `rocq/IdeaNN.v` (standard library only).
 
-| Rank | Direction and test | Observed result | Next proof obligation |
-| --- | --- | --- | --- |
-| 1 | **Exact SAT algorithm** ([Lean](lean/Idea01.lean), [Rocq](rocq/Idea01.v)): enumerate four assignments of a two-variable formula. | **Works at size two:** the search finds a witness. | Give a uniform SAT decider and prove correctness and a polynomial bound for all formula sizes. |
-| 2 | **Certificate search** ([Lean](lean/Idea02.lean), [Rocq](rocq/Idea02.v)): one rejected certificate coexists with a valid one. | **Shortcut refuted:** a failed trial cannot certify unsatisfiability. | Prove a sound, complete search procedure for all instances; account for search cost. |
-| 3 | **Verifier formalization** ([Lean](lean/Idea03.lean), [Rocq](rocq/Idea03.v)): a tiny conjunction verifier accepts only matching witnesses. | **Works in the toy model:** soundness holds for every pair of Booleans. | Formalize certificates, instance encodings, and time bounds for a genuine NP-complete language. |
-| 4 | **Constraint propagation** ([Lean](lean/Idea04.lean), [Rocq](rocq/Idea04.v)): an odd XOR triangle has no global assignment. | **Pairwise-to-global shortcut refuted:** every edge is individually satisfiable, yet their conjunction is not. | Identify a restricted constraint class with a proved local-to-global theorem, or find a globally sound rule for arbitrary SAT. |
-| 5 | **Greedy optimization** ([Lean](lean/Idea05.lean), [Rocq](rocq/Idea05.v)): a cheap first step leads to cost 11; a costlier first step leads to 3. | **Universal greedy claim refuted** by a concrete two-path cost model. | Prove an exchange invariant on a specified problem class; show how it would apply to an NP-complete instance. |
-| 6 | **Local search and potential functions** ([Lean](lean/Idea06.lean), [Rocq](rocq/Idea06.v)): state 0 beats its neighbor 1, but state 2 beats state 0. | **Local-equals-global shortcut refuted.** | Find a potential or neighborhood for which every local optimum is globally optimal, with polynomial convergence and unrestricted coverage. |
-| 7 | **Lossless compression** ([Lean](lean/Idea07.lean), [Rocq](rocq/Idea07.v)): dropping one bit maps distinct inputs to the same code. | **Naive compression refuted:** this encoder cannot preserve exact answers to every predicate. | Define the decoder, information retained, and computation cost; prove an exact representation theorem for the target language. |
-| 8 | **Program induction from finite examples** ([Lean](lean/Idea08.lean), [Rocq](rocq/Idea08.v)): two functions agree on the observed input and disagree on another. | **Unrestricted generalization shortcut refuted.** | State the hypothesis class and prove a sample-to-global theorem under explicit assumptions. |
-| 9 | **Description length versus running time** ([Lean](lean/Idea09.lean), [Rocq](rocq/Idea09.v)): the shorter toy program uses more steps. | **Length-implies-speed shortcut refuted** in this cost model. | Define a machine and prove a relationship, if any, between optimal description length and time for the intended task. |
-| 10 | **Restricted circuit lower bounds** ([Lean](lean/Idea10.lean), [Rocq](rocq/Idea10.v)): negation reverses Boolean order. | **Monotone-only coverage refuted:** negation lies outside the monotone fragment. | Extend any restricted lower bound to unrestricted polynomial-size circuits, or prove a reduction that preserves the restriction. |
-| 11 | **LP or SDP relaxations** ([Lean](lean/Idea11.lean), [Rocq](rocq/Idea11.v)): an intermediate relaxed value has smaller cost than either permitted integer value. | **Automatic integrality shortcut refuted.** | Prove integrality or sound exact rounding for the chosen encoding of a hard problem. |
-| 12 | **Reduction verification** ([Lean](lean/Idea12.lean), [Rocq](rocq/Idea12.v)): a constant map changes a no-instance to a yes-instance. | **This reduction refuted** on one input. | Prove yes/no preservation, polynomial construction cost, and size bounds for every input. |
-| 13 | **Approximation algorithms** ([Lean](lean/Idea13.lean), [Rocq](rocq/Idea13.v)): cost 4 is within factor two of 3 but is not optimal. | **Approximate-equals-exact shortcut refuted.** | Establish a gap reduction or exact recovery theorem that converts the claimed approximation to a decision result. |
-| 14 | **Randomized search** ([Lean](lean/Idea14.lean), [Rocq](rocq/Idea14.v)): one seed succeeds and another fails. | **Observed-success-implies-guarantee shortcut refuted.** | Specify error probability, independent randomness, runtime, and whether the target conclusion requires derandomization. |
-| 15 | **Circuit depth versus size** ([Lean](lean/Idea15.lean), [Rocq](rocq/Idea15.v)): equal-size toy shapes have different depths. | **Size-determines-depth shortcut refuted** in the simple shape model. | Define gate semantics and fan-in; relate uniform circuit depth and size to the desired complexity class. |
-| 16 | **Diagonalization** ([Lean](lean/Idea16.lean), [Rocq](rocq/Idea16.v)): a Boolean function differs from two enumerated functions on their indexed inputs. | **Works for a finite list.** The diagonal itself remains a tiny Boolean function. | Formalize a uniform machine enumeration, resource bounds, and a nonrelativizing step that places the diagonal language in NP while excluding P. |
-| 17 | **Enumeration accounting** ([Lean](lean/Idea17.lean), [Rocq](rocq/Idea17.v)): two Boolean variables have four explicit assignments. | **Count verified at size two.** | Prove a general cost bound for the proposed search or a valid shortcut; do not infer a lower bound from enumeration alone. |
-| 18 | **Structural restrictions** ([Lean](lean/Idea18.lean), [Rocq](rocq/Idea18.v)): a restricted disjunction is always true, while the unrestricted family contains false. | **Easy-subclass-to-general shortcut refuted.** | Show the restriction still encodes every instance of a suitable NP-complete problem, or label the result as a special-case algorithm. |
-| 19 | **Advice and nonuniformity** ([Lean](lean/Idea19.lean), [Rocq](rocq/Idea19.v)): input-dependent advice makes a solver trivial. | **Works only because the hint contains the answer.** | Restrict advice to depend on input *length* and bound its size; prove any transfer to uniform computation separately. |
-| 20 | **Parallel and physical cost models** ([Lean](lean/Idea20.lean), [Rocq](rocq/Idea20.v)): independent tasks take a max, dependent tasks retain a sum. | **Toy scheduling check passes.** | Specify a computational model, bounded processors and precision, and a uniform simulation theorem before comparing complexity classes. |
+Every theorem is general: it is stated for all formulas, all input lengths,
+all algorithms in the stated model, and so on, not for one hand-picked
+instance. No file uses `sorry`, `admit`, `Admitted`, a new axiom, a
+`Parameter`, or a theorem whose conclusion is `True`. Open problems appear
+only as **definitions** of propositions (for example `PolySATDecider` or
+`ExplicitNPLowerBound`). They are never assumed as axioms. Conditional
+theorems take them as explicit hypotheses.
 
-## Second round: twenty more concrete routes
+**Nothing here proves P = NP or P ≠ NP.** Each idea ends in one of four
+verdicts:
 
-The most direct positive route is a uniform exact SAT algorithm with a proved
-polynomial bound (21–22, 29). The most direct negative route is an unrestricted
-lower bound with a correct simulation from every polynomial-time algorithm
-(30). These are *targets*, not achieved results. The other rows test proposed
-ingredients or expose a condition that an attempted transfer must satisfy.
-The row number continues the first batch; it is not a probability estimate.
+| Verdict | Meaning | Ideas |
+| --- | --- | --- |
+| Refuted as a route (general theorem) | A theorem proved in both provers shows that the idea, used as a route to a polynomial SAT algorithm or to a separation, cannot work in general. | 02, 05, 06, 07, 08, 09, 17, 18, 19, 20, 26, 27, 31, 33, 35 |
+| Refuted in full strength (published theorem) + formal core | The strongest version is refuted by a published theorem (cited). Its combinatorial core is machine-checked. | 04, 10, 11, 16, 21, 23, 38 |
+| Developed to an open obligation (conditional theorem proved) | The idea is correct as far as it goes. What remains is stated as one precise proposition, and the files prove what would follow from it. | 01, 13, 14, 30, 32, 37 |
+| Correct tool, insufficient alone (general theorem proved) | The tool is proved correct in general and is needed by any solution, but by itself it cannot decide P vs NP. The files prove why. | 03, 12, 15, 22, 24, 25, 28, 29, 34, 36, 39, 40 |
 
-| No. | Candidate direction and paired check | Checked result | Missing theorem or decisive next test |
-| --- | --- | --- | --- |
-| 21 | **Exact SAT branching** ([Lean](lean/Idea21.lean), [Rocq](rocq/Idea21.v)): an existential Boolean branch is equivalent to its two cases. | General logical equivalence proved. | Find a sound rule that avoids exhaustive branching on unrestricted SAT and prove a uniform polynomial total cost. |
-| 22 | **Decision-to-search self-reduction** ([Lean](lean/Idea22.lean), [Rocq](rocq/Idea22.v)): an *exact* decision answer selects a satisfiable branch. | Conditional selection lemma proved. | Supply an exact polynomial-time decider; count all adaptive oracle calls and reduction costs. |
-| 23 | **Resolution-based SAT reasoning** ([Lean](lean/Idea23.lean), [Rocq](rocq/Idea23.v)): the resolvent follows from its parent clauses. | Soundness of one inference proved. | Establish polynomially bounded refutations for every unsatisfiable CNF, or explain why stronger reasoning escapes known size limits. |
-| 24 | **Unit propagation** ([Lean](lean/Idea24.lean), [Rocq](rocq/Idea24.v)): a unit clause and a compatible clause imply the remaining literal. | Soundness proved. | Characterize a complete polynomial propagation rule for unrestricted SAT; a rule that works on a tractable fragment is insufficient. |
-| 25 | **Decomposable constraints** ([Lean](lean/Idea25.lean), [Rocq](rocq/Idea25.v)): independent components have a product witness. | General decomposition lemma proved. | Find a polynomially computable decomposition for all hard instances, with bounded interfaces and exact witness reconstruction. |
-| 26 | **Separator consistency** ([Lean](lean/Idea26.lean), [Rocq](rocq/Idea26.v)): separately satisfiable components can disagree on a shared bit. | Explicit countermodel proved. | Track all shared assignments and prove the resulting state space remains polynomial for the intended unrestricted family. |
-| 27 | **Variable elimination** ([Lean](lean/Idea27.lean), [Rocq](rocq/Idea27.v)): existentially removing one Boolean variable preserves the two branches. | General equivalence proved. | Bound intermediate representation size and elimination order on every CNF, or prove a new compact exact representation. |
-| 28 | **Definitional extensions** ([Lean](lean/Idea28.lean), [Rocq](rocq/Idea28.v)): an auxiliary variable with an equivalence constraint preserves satisfiability. | General equivalence proved. | Show that the extended encoding makes exact solving polynomial, including encoding and decoding cost. |
-| 29 | **Reduction chain to SAT** ([Lean](lean/Idea29.lean), [Rocq](rocq/Idea29.v)): preservation and target correctness compose. | General conditional transfer proved. | Formalize an actual NP-complete reduction, input encodings, and polynomial time bounds for each composition. |
-| 30 | **Unrestricted circuit lower bound** ([Lean](lean/Idea30.lean), [Rocq](rocq/Idea30.v)): lower bound plus uniform simulation and size bound excludes a fast algorithm. | General conditional contradiction proved. | Prove the lower bound for unrestricted circuits computing an explicit NP language and the quantitative machine-to-circuit simulation; audit [known barriers](#research-context). |
-| 31 | **Length-wise advice** ([Lean](lean/Idea31.lean), [Rocq](rocq/Idea31.v)): a two-entry table stores any one-bit-input function. | Finite nonuniform representation proved. | Bound advice for every input length and distinguish a family of circuits from one uniformly constructible algorithm. |
-| 32 | **Promise algorithms** ([Lean](lean/Idea32.lean), [Rocq](rocq/Idea32.v)): correctness on a promise leaves an outside input wrong. | Countermodel proved. | Prove the promise covers all reductions from the NP-complete target or give a total solver. |
-| 33 | **Average-case transfer** ([Lean](lean/Idea33.lean), [Rocq](rocq/Idea33.v)): a function works on three of four points yet fails at one. | Countermodel proved. | Establish a worst-case-to-average-case reduction with a specified distribution and quantitative success bound. |
-| 34 | **Adversarial lower-bound quantifiers** ([Lean](lean/Idea34.lean), [Rocq](rocq/Idea34.v)): every toy algorithm can have a hard input with no input hard for all algorithms. | Quantifier countermodel proved. | State hardness as `∀ algorithm, ∃ input` at arbitrarily large sizes, with the required resource bound; never silently exchange quantifiers. |
-| 35 | **Exact compression** ([Lean](lean/Idea35.lean), [Rocq](rocq/Idea35.v)): a lossless encode/decode pair forces an injective encoder. | General theorem proved. | Specify the compressed object, decoder, exactness condition, and total construction/decoding cost; test for an information bottleneck. |
-| 36 | **Exact relaxation and rounding** ([Lean](lean/Idea36.lean), [Rocq](rocq/Idea36.v)): a sound rounding map converts a relaxed witness into a discrete witness. | Conditional witness transfer proved. | Construct such a map for every relevant relaxed solution and prove polynomial bit complexity; otherwise document an integrality gap. |
-| 37 | **Parameterized structure** ([Lean](lean/Idea37.lean), [Rocq](rocq/Idea37.v)): a monotone parameter cost is bounded when the parameter is bounded. | Conditional cost lemma proved. | Prove the parameter is uniformly bounded, or sufficiently small as a function of input length, on an NP-complete family. |
-| 38 | **Relativization audit** ([Lean](lean/Idea38.lean), [Rocq](rocq/Idea38.v)): a property true in one abstract world need not hold in another. | Logical countermodel proved; **not** an oracle separation theorem. | State the candidate proof in an oracle model and identify its nonrelativizing step. |
-| 39 | **Proof-system scope** ([Lean](lean/Idea39.lean), [Rocq](rocq/Idea39.v)): no proof in a weak system is consistent with a proof in a stronger one. | Countermodel to lower-bound transfer proved. | Establish a simulation from every relevant stronger proof/algorithm into the restricted system before drawing an unrestricted conclusion. |
-| 40 | **Size-uniform invariant** ([Lean](lean/Idea40.lean), [Rocq](rocq/Idea40.v)): base case and a genuine induction step yield all input sizes. | General induction principle instantiated. | Prove a step that preserves correctness and a polynomial resource invariant for actual encoded instances; finite experiments cannot supply this step. |
+## The forty ideas
 
-### Research context
+| No. | Idea (dossier, Lean, Rocq) | Verdict | Principal machine-checked result | What remains, or why the route fails |
+| --- | --- | --- | --- | --- |
+| 01 | [Exact SAT algorithm](ideas/Idea01.md) ([Lean](lean/Idea01.lean), [Rocq](rocq/Idea01.v)) | Open obligation | A uniform brute-force CNF decider is sound and complete. It costs exactly `2^n` evaluations on unsatisfiable formulas. A local Turing-machine model and a lossless encoding are included. | `PolySATDecider`: a polynomial-time machine deciding SAT. It is equivalent to P = NP by Cook–Levin, which is cited. Any such machine agrees with brute force (proved). |
+| 02 | [Certificate search](ideas/Idea02.md) ([Lean](lean/Idea02.lean), [Rocq](rocq/Idea02.v)) | Refuted as a route | An adaptive black-box search that only evaluates candidate certificates needs `2^n` trials, even on CNF inputs. The bound is tight. | A fast algorithm must use the text of the formula. That is the whole problem. |
+| 03 | [Verifier formalization](ideas/Idea03.md) ([Lean](lean/Idea03.lean), [Rocq](rocq/Idea03.v)) | Correct tool | A CNF verifier is sound and complete. Certificates are no longer than the input, and verification costs exactly `size φ`. | Verification is easy. The difficulty is the quantifier `∃ cert`, which is Idea 01's obligation. |
+| 04 | [Local to global consistency](ideas/Idea04.md) ([Lean](lean/Idea04.lean), [Rocq](rocq/Idea04.v)) | Refuted in full strength | An XOR cycle is satisfiable iff its length is even. Every proper subsystem of an odd cycle is satisfiable. | Bounded-width and `k`-consistency fail for 3-SAT and Tseitin formulas (cited). |
+| 05 | [Greedy optimization](ideas/Idea05.md) ([Lean](lean/Idea05.lean), [Rocq](rocq/Idea05.v)) | Refuted as a route | The greedy ratio is unbounded: for every `r` there is an instance with ratio above `r`. Greedy is exact when continuations are uniform or the decisions are independent. | Exactness needs the absence of interaction between choices, which NP-hard problems lack. |
+| 06 | [Local search and potentials](ideas/Idea06.md) ([Lean](lean/Idea06.lean), [Rocq](rocq/Idea06.v)) | Refuted as a route | For every flip radius `k`, some satisfiable CNF has a non-global local minimum. An exact neighbourhood always exists, and with one local search decides SAT. | Computing an exact neighbourhood is as hard as SAT (reduces to Idea 01). |
+| 07 | [Lossless compression](ideas/Idea07.md) ([Lean](lean/Idea07.lean), [Rocq](rocq/Idea07.v)) | Refuted as a route | Pigeonhole: no injective encoder shortens every `n`-bit string. Incompressible strings exist for every decoder. | Compression helps only on structured families, and finding that structure is the problem. |
+| 08 | [Generalization from examples](ideas/Idea08.md) ([Lean](lean/Idea08.lean), [Rocq](rocq/Idea08.v)) | Refuted as a route | Every finite sample has two consistent extensions, and all `2^k` labellings of `k` unseen points are consistent. | Needs a restricted hypothesis class, and consistent learning is NP-hard for natural classes. |
+| 09 | [Shortest vs fastest program; Levin search](ideas/Idea09.md) ([Lean](lean/Idea09.lean), [Rocq](rocq/Idea09.v)) | Refuted as a route | In an explicit loop language the shortest program is never the fastest (`shortest_is_never_fastest`). Levin search is within a factor `8·2^i` of program `i`. | `PolyTimeWitnessProgramExists`: whether any SAT-witness program is polynomial. That is P = NP again. |
+| 10 | [Monotone circuit lower bounds](ideas/Idea10.md) ([Lean](lean/Idea10.lean), [Rocq](rocq/Idea10.v)) | Refuted in full strength | Monotone formulas compute exactly the monotone functions. Negation and parity have no monotone formula. The double-rail translation is proved. | Razborov and Alon–Boppana bounds do not transfer: Tardos (1988) is cited. |
+| 11 | [LP relaxation exactness](ideas/Idea11.md) ([Lean](lean/Idea11.lean), [Rocq](rocq/Idea11.v)) | Refuted in full strength | The vertex-cover LP is not exact on `K_n` for any `n ≥ 3`. The gap on `K_{2q}` is `2 − 1/q`. | Extended-formulation lower bounds (Fiorini et al., Rothvoss) are cited. |
+| 12 | [Reduction verification](ideas/Idea12.md) ([Lean](lean/Idea12.lean), [Rocq](rocq/Idea12.v)) | Correct tool | Reductions compose. Deciders pull back and hardness pushes forward, with explicit polynomials. Constant maps and yes-preservation alone are invalid. | Reductions only move hardness around. They do not create a fast algorithm. |
+| 13 | [Approximation to exactness](ideas/Idea13.md) ([Lean](lean/Idea13.lean), [Rocq](rocq/Idea13.v)) | Open obligation | A `(1+1/q)`-approximation is exact when `OPT < q`, and the threshold is sharp. An FPTAS is exact on polynomially bounded optima. Gap problems are decided by good ratios. | `PolyApprox` beyond the known PCP inapproximability thresholds. |
+| 14 | [Randomized search](ideas/Idea14.md) ([Lean](lean/Idea14.lean), [Rocq](rocq/Idea14.v)) | Open obligation | One-sided error amplifies exactly, by counting seed tuples. Polynomially many seeds derandomize by enumeration. Observed success gives no guarantee. | `NPinRP` and `SeedCompression`, both open. |
+| 15 | [Circuit depth vs size](ideas/Idea15.md) ([Lean](lean/Idea15.lean), [Rocq](rocq/Idea15.v)) | Correct tool | For formulas, `depth < size < 2^(depth+1)`. Both extremes occur for the same function. A size lower bound implies a depth lower bound. | Depth bounds give NP ⊄ NC¹. That is not known to imply P ≠ NP. |
+| 16 | [Diagonalization](ideas/Idea16.md) ([Lean](lean/Idea16.lean), [Rocq](rocq/Idea16.v)) | Refuted in full strength | An abstract hierarchy theorem holds in every oracle world. A relativizing technique cannot prove a statement that fails in some world. There is an oracle adversary for `2^n` queries. | Baker–Gill–Solovay (cited): some non-relativizing ingredient (`NonRelativizingIngredient`) is required. |
+| 17 | [Enumeration accounting](ideas/Idea17.md) ([Lean](lean/Idea17.lean), [Rocq](rocq/Idea17.v)) | Refuted as a route | There are exactly `2^n` assignments with no duplicates. `c(n+1)^k < 2^n` beyond an explicit threshold. One slow algorithm is not a lower bound. | `AllAlgorithmsSuperpolynomial`, which is P ≠ NP itself. |
+| 18 | [Structural restrictions](ideas/Idea18.md) ([Lean](lean/Idea18.lean), [Rocq](rocq/Idea18.v)) | Refuted as a route | 1-valid, 0-valid and unit CNF are decided correctly. No satisfiability-preserving map, even an uncomputable one, sends all CNFs into a trivial class. | `PolySizeReductionInto` a restricted class. By Schaefer (cited), the class must itself be NP-complete. |
+| 19 | [Advice and nonuniformity](ideas/Idea19.md) ([Lean](lean/Idea19.lean), [Rocq](rocq/Idea19.v)) | Refuted as a route | One advice bit per length decides every unary language. Advice classes escape every enumeration of uniform machines. | The opposite direction, `NPNotInPPoly`, would separate P from NP. This conditional is proved. |
+| 20 | [Parallel and physical cost](ideas/Idea20.md) ([Lean](lean/Idea20.lean), [Rocq](rocq/Idea20.v)) | Refuted as a route | `W ≤ p · rounds` and span bounds (Brent) hold, so `2^n` work does not fit in polynomially many rounds and processors. | `PhysicalResourceHonesty` is a physical postulate, not a theorem. |
+| 21 | [DPLL branching](ideas/Idea21.md) ([Lean](lean/Idea21.lean), [Rocq](rocq/Idea21.v)) | Refuted in full strength | The split rule holds. Split and DPLL solvers are correct. The split tree has exactly `2^|vs|` leaves, and pruning never increases this. | Resolution lower bounds (Haken 1985, cited) apply to every DPLL/CDCL run. |
+| 22 | [Decision to search](ideas/Idea22.md) ([Lean](lean/Idea22.lean), [Rocq](rocq/Idea22.v)) | Correct tool | Self-reduction finds a witness with exactly one decider call per variable. The polynomial cost transfers. | `ExactPolyDecider`, which is P = NP. |
+| 23 | [Resolution](ideas/Idea23.md) ([Lean](lean/Idea23.lean), [Rocq](rocq/Idea23.v)) | Refuted in full strength | Resolution with weakening is sound and refutation-complete: unsatisfiable iff the empty clause is derivable. | Haken (cited). The general program is `NoPolyBoundedProofSystem` (NP ≠ coNP). |
+| 24 | [Unit propagation](ideas/Idea24.md) ([Lean](lean/Idea24.lean), [Rocq](rocq/Idea24.v)) | Correct tool | Unit propagation is sound and equisatisfiable. It is incomplete on the family `sq x y ++ ψ`. Horn-SAT is decided in full. | Complete only on tractable fragments. |
+| 25 | [Decomposable constraints](ideas/Idea25.md) ([Lean](lean/Idea25.lean), [Rocq](rocq/Idea25.v)) | Correct tool | Variable-disjoint components are solved independently and their witnesses merged. The chain family is connected for every `n`. | Hard families are connected with linear treewidth. |
+| 26 | [Separator consistency](ideas/Idea26.md) ([Lean](lean/Idea26.lean), [Rocq](rocq/Idea26.v)) | Refuted as a route | The exact separator theorem is proved. Separately satisfiable sides can disagree. By the equality gadget, all `2^|S|` states must be distinguished. | Linear separators force `2^{Ω(n)}` states for this method. |
+| 27 | [Variable elimination](ideas/Idea27.md) ([Lean](lean/Idea27.lean), [Rocq](rocq/Idea27.v)) | Refuted as a route | The Davis–Putnam elimination theorem holds with the exact size law `rest + pos·neg`. A `p + q → p·q` blow-up family is given. | It is a form of resolution, so Haken's bound (cited) applies to every order. |
+| 28 | [Tseitin extensions](ideas/Idea28.md) ([Lean](lean/Idea28.lean), [Rocq](rocq/Idea28.v)) | Correct tool | Tseitin is equisatisfiable for every formula, with at most `3·#gates + 1` clauses of width at most 3. | It preserves hardness. `ERSuperpolyLowerBound` is open. |
+| 29 | [Reduction chains](ideas/Idea29.md) ([Lean](lean/Idea29.lean), [Rocq](rocq/Idea29.v)) | Correct tool | Polynomial addition and substitution have explicit bounds in the repository's `Polynomial` model. `reducesToP_iff_inP` is proved. | "Reduce to something easy" is the same as being easy. |
+| 30 | [Unrestricted circuit lower bounds](ideas/Idea30.md) ([Lean](lean/Idea30.lean), [Rocq](rocq/Idea30.v)) | Open obligation | Lower-bound transfer holds. By Shannon counting, some `n`-bit function has no NAND circuit with `g` gates when `(g+1)((n+g)²)^g < 2^(2^n)`. | `ExplicitNPLowerBound`, which faces the natural-proofs, relativization and algebrization barriers. |
+| 31 | [Length-wise advice](ideas/Idea31.md) ([Lean](lean/Idea31.lean), [Rocq](rocq/Idea31.v)) | Refuted as a route | Truth-table trees compute every function with exactly `2^n` leaves. Parity needs `2^n` leaves. Advice escapes every uniform enumeration. | `UniformPolyAdvice` amounts to a uniform algorithm. |
+| 32 | [Promise algorithms](ideas/Idea32.md) ([Lean](lean/Idea32.lean), [Rocq](rocq/Idea32.v)) | Open obligation | A promise solver is total iff the promise covers every input; otherwise some promise-correct solver errs outside it. A promise-preserving reduction into the promise yields a total solver at additive cost, and the "into" condition is necessary. | `IsolationObligation`: a deterministic polynomial map into Unique-SAT. Only a randomized one is known (Valiant–Vazirani, cited). |
+| 33 | [Average vs worst case](ideas/Idea33.md) ([Lean](lean/Idea33.lean), [Rocq](rocq/Idea33.v)) | Refuted as a route | For every language and length, `flipOne L` errs on exactly one of the `2^n` inputs. | A worst-case-to-average-case reduction for NP. Non-adaptive forms collapse PH (Bogdanov–Trevisan, cited). |
+| 34 | [Quantifier order](ideas/Idea34.md) ([Lean](lean/Idea34.lean), [Rocq](rocq/Idea34.v)) | Correct tool | `PNotEqualsNP ↔ ∃ L ∈ NP, ¬ InP L`, over the repository's `Complexity` model. `∃∀` does not follow from `∀∃`. Hard inputs must occur at unbounded sizes. | An auditing tool. It proves no lower bound. |
+| 35 | [Solution-set compression](ideas/Idea35.md) ([Lean](lean/Idea35.lean), [Rocq](rocq/Idea35.v)) | Refuted as a route | Any exact representation of `n`-variable functions uses at least `2^n` bits on some function. Fewer than `2^b` tables have codes shorter than `b`. | On CNF-definable functions it is as hard as SAT. |
+| 36 | [Relaxation and rounding](ideas/Idea36.md) ([Lean](lean/Idea36.lean), [Rocq](rocq/Idea36.v)) | Correct tool | Threshold rounding gives a cover of cost at most `2·LP`. `K_n` has LP value `n/2` against an integral value `n − 1`. | Exact polynomial rounding for an NP-hard problem would decide it. |
+| 37 | [Parameterized structure](ideas/Idea37.md) ([Lean](lean/Idea37.lean), [Rocq](rocq/Idea37.v)) | Open obligation | `f(k)·n^c` is polynomial when `2^k ≤ n`. With `k = n` it beats every polynomial. | `LogParamFPTObligation`: a logarithmic parameter on all instances of an NP-complete problem. |
+| 38 | [Relativization audit](ideas/Idea38.md) ([Lean](lean/Idea38.lean), [Rocq](rocq/Idea38.v)) | Refuted in full strength | A decision tree of depth `< N` cannot decide OR on `N` oracle bits, while one nondeterministic query does. A relativizing method settles nothing that is oracle-dependent. | Baker–Gill–Solovay (cited). |
+| 39 | [Proof-system scope](ideas/Idea39.md) ([Lean](lean/Idea39.lean), [Rocq](rocq/Idea39.v)) | Correct tool | Lower bounds transfer down along p-simulation with a composed polynomial. p-simulation is a preorder. A weak lower bound is compatible with strong short proofs. | Lower bounds for every proof system (Cook–Reckhow). |
+| 40 | [Size-uniform invariants](ideas/Idea40.md) ([Lean](lean/Idea40.lean), [Rocq](rocq/Idea40.v)) | Correct tool | Additive recurrences are polynomial. Doubling recurrences are at least `2^n` and beat every polynomial. | `AdditiveSelfReduction` for SAT, which restates P = NP. |
 
-The official [P versus NP problem description](https://www.claymath.org/wp-content/uploads/2022/02/MPPc.pdf)
-sets the asymptotic target. The [relativization result](https://doi.org/10.1137/0204037),
-[natural proofs](https://www1.karlin.mff.cuni.cz/~krajicek/rr.pdf), and
-[algebrization barrier](https://eccc.weizmann.ac.il/eccc-reports/2008/TR08-005/Paper.pdf)
-inform the audit in row 30 and 38. Existing research on
-[algorithms yielding circuit lower bounds](https://people.csail.mit.edu/rrw/improved-algs-lbs2.pdf)
-motivates pursuing a precise algorithm-to-lower-bound transfer, but its
-theorems do not by themselves separate P from NP. These papers are context
-for the proposed routes; the paired files do not formalize their results.
-The [resolution width–size tradeoff](https://people.inf.ethz.ch/emo/SatSem05/Papers/BensassonWidgerson01.pdf)
-and [extended-formulation lower bounds](https://arxiv.org/abs/1111.0837)
-illustrate why rows 23 and 36 must specify the exact proof or optimization
-system to which a bound applies.
+## How the issue's questions map to the ideas
+
+The issue asks two groups of questions. The first group is conceptual; the
+second is a phased research plan. Each question is answered by the dossiers
+listed.
+
+| Issue section | Question in the issue | Answered by |
+| --- | --- | --- |
+| Part I.1 | Can TSP or shortest-path intuition lead to a fast exact algorithm? | 05, 06, 11, 18, 37 |
+| Part I.2 | Do heuristics that work in practice generalize? | 05, 06, 13, 14 |
+| Part I.3 | Is finding the shortest program undecidable, and does it matter? | 08, 09 |
+| Part I.4 | Lookup tables versus generalization | 07, 08, 19, 31, 35 |
+| Part I.5 | Is the shortest program also the fastest? | 09 |
+| Part I.6 | Circuits, depth, parallelism and physics | 10, 15, 20, 30 |
+| Part I.7 | What does NP-hardness transfer? | 12, 18, 29 |
+| Part I.8 | Meta-algorithms that search for algorithms | 01, 09 (Levin search), 22 |
+| Part I.9 | What Lean and Rocq can and cannot check | 03, 34, 40 |
+| Part II Phase 1 | Formal foundations | 03, 15, 20, 34 |
+| Part II Phase 2 | Barrier audit | 10, 16, 30, 38, 39 |
+| Part II Phase 3 | Compression and description length | 07, 08, 09, 30, 35 |
+| Part II Phase 4 | Proof templates | 05, 06, 07, 16, 30, 35 |
+| Part II Phase 5 | Alternative computational models | 14, 19, 20, 31, 32, 33 |
+| Part II Phase 6 | Positive frontier (tractable cases) | 15, 18, 32, 33 |
+| Part II Phase 7 | Research log | this file |
+
+## What the forty ideas show together
+
+1. **Every positive route reduces to one obligation.** Ideas 01, 06, 09, 22,
+   29, 36, 37 and 40 each reduce to a polynomial-time exact SAT decider
+   (`PolySATDecider` or an equivalent). The files prove each reduction, so
+   none of these routes adds a new way around the problem.
+2. **Every negative route reduces to explicit lower bounds.** Ideas 17, 19, 23,
+   28, 30 and 39 each reduce to a superpolynomial lower bound against *all*
+   algorithms, all circuits, or all proof systems. Ideas 10, 16, 21, 23 and 38
+   show why the restricted versions that are known do not transfer.
+3. **Shortcuts that look plausible are refuted in general.** Ideas 02, 04,
+   05, 07, 08, 11, 18, 24, 26, 27, 31, 33 and 35 are refuted by theorems that
+   hold for every size, not by single counterexamples.
+4. **The barriers are real and formalized in their combinatorial core.**
+   Relativization (16, 38) and monotone non-transfer (10) are proved in their
+   abstract form. The natural-proofs and algebrization barriers are cited in
+   ideas 30 and 38.
 
 ## Failed attempts used as filters
 
 The repository's [common-errors index](../../attempts/COMMON_ERRORS.md)
-catalogues earlier attempts. In particular, its sections on assumed lower
-bounds and hidden exponential work motivate rows 1, 2, and 17; local versus
-global consistency motivates rows 4–6; counting and compression mistakes
-motivate rows 7–9; relaxation and invalid reductions motivate rows 11–12;
-special-case and heuristic claims motivate rows 13–14 and 18. Those earlier
-attempts are examples of obligations to check, not evidence that every
-direction above is impossible.
+catalogues earlier attempts. Each dossier's section 7 lists the error families
+it catches. For example:
 
-For the second batch, error families 1 and 16 motivate the unrestricted
-simulation check in row 30; families 4 and 17 motivate reduction and encoding
-accounting in row 29; families 2 and 7 motivate the representation and cost
-checks in rows 27 and 35; families 3 and 5 motivate exact rounding in row 36;
-and families 12–14 motivate the quantifier and barrier audits in rows 34 and
-38–39.
+- ideas 17 and 34 catch "one slow algorithm is a lower bound" and swapped
+  quantifiers;
+- ideas 12, 18 and 29 catch invalid or direction-reversed reductions;
+- ideas 05, 06, 13 and 14 catch "works on tests, therefore always";
+- ideas 07 and 35 catch compression that loses information;
+- ideas 10, 16 and 38 catch lower bounds that do not transfer.
 
-## Reproduction and evidence
+## Reproduction
 
-Run `python3 experiments/issue532/generate.py` from the repository root to
-regenerate all eighty files. Then run `lake build` and the Rocq verification
-command used by `.github/workflows/verification.yml`:
+From the repository root:
 
 ```sh
-find proofs/experiments/issue532/rocq -name '*.v' -type f -print0 |
-  while IFS= read -r -d '' file; do rocq compile "$file" || exit 1; done
+# Structure, verdicts, section-3 tables, forbidden tokens, and links
+python3 experiments/issue532/check_dossiers.py
+python3 -m unittest discover -s experiments/issue532 -p 'test_*.py' -v
+
+# Lean: all forty files are part of the `proofs` library
+lake build
+
+# Rocq: the same commands as .github/workflows/verification.yml
+rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+for file in proofs/experiments/issue532/rocq/*.v; do
+  rocq compile -Q . '' "$file" || exit 1
+done
 ```
 
-The Lean and Rocq theorems are checked independently. Their names are aligned
-by number, and each file is standalone so it can be removed or expanded as a
-research direction progresses. Future work should extend these diagnostic
-models and conditional lemmas with explicit encodings, cost semantics, and
-substantive general theorems while keeping
-counterexamples and failed approaches in the log.
+Each file can also be checked on its own with
+`lake env lean proofs/experiments/issue532/lean/IdeaNN.lean`. The one exception
+is Idea 34, which needs `lake build proofs.complexity.lean.Complexity` first.
 
-## Verification log (2026-09-26)
+## Verification log
 
-- All 20 new Lean files compiled individually with Lean 4.33.1.
-- All 20 new Rocq files compiled individually with Rocq 9.2.
-- The complete Rocq sweep compiled all 208 `.v` files under `proofs/`.
-- `lake build` completed with 211 jobs after repairing the existing
-  `contradictory_is_unsat` proof in the Maknickas 2011 refutation. The proof now
-  uses the two concrete unit clauses to derive the contradiction.
-- The latest [main-branch verification run](https://github.com/konard/p-vs-np/actions/runs/36211672580)
-  had failed at `MaknickasRefutation.lean:108` with two unsolved goals; its
-  Rocq job passed. The PR's earlier green run only checked the changed
-  `.gitkeep` file, so both formal jobs were skipped.
+Third round (2026-09-27). Every idea was rewritten from a toy check into a
+full dossier with general theorems.
 
-## Second-round verification log (2026-09-26)
+- `python3 experiments/issue532/check_dossiers.py` reports all 40 dossiers
+  complete, and the checker's unit tests pass.
+- `lake build` (Lean 4.34.1) completed with 233 jobs. All 40 idea files built
+  without warnings.
+- Every Rocq file compiled with no output under both Rocq 9.2 (local) and the
+  `rocq/rocq-prover:9.0` image used in CI.
+- In total there are about 13,200 lines of Lean with 823 theorems, 11,900
+  lines of Rocq with 869 theorems and lemmas, and 7,500 lines of dossiers.
+- The earlier toy generators (`generate.py`, `more_cases.py`) were removed.
+  They would overwrite the developed files.
 
-- All 20 new Lean files and all 20 new Rocq files compiled individually. The
-  Rocq proof-system-scope script was corrected after its first compile exposed
-  an over-eager `repeat split` tactic.
-- `lake build` completed with 231 jobs for the full project.
-- The full Rocq sweep compiled all 228 `.v` files under `proofs/`.
-- `python3 -m py_compile` passed for both generator files. No second-round
-  formal file uses `sorry`, `Admitted`, or an axiom.
+The first two rounds (2026-09-26) introduced the forty directions as small
+paired checks. Their results survive as special cases inside the general
+theorems of this round.
+
+## Research context
+
+The official [P versus NP problem description](https://www.claymath.org/wp-content/uploads/2022/02/MPPc.pdf)
+sets the asymptotic target. The [relativization result](https://doi.org/10.1137/0204037),
+[natural proofs](https://www1.karlin.mff.cuni.cz/~krajicek/rr.pdf) and the
+[algebrization barrier](https://eccc.weizmann.ac.il/eccc-reports/2008/TR08-005/Paper.pdf)
+constrain the lower-bound routes (ideas 10, 16, 30, 38). The
+[resolution width–size tradeoff](https://people.inf.ethz.ch/emo/SatSem05/Papers/BensassonWidgerson01.pdf)
+and [extended-formulation lower bounds](https://arxiv.org/abs/1111.0837)
+bound the proof-system and relaxation routes (ideas 21, 23, 27, 11, 36). Each
+dossier's section 5 cites the literature it relies on and says which results
+are formalized and which are only cited.
