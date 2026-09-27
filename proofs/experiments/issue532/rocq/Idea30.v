@@ -24,8 +24,10 @@
    The open obligations are SATCircuitLowerBound (SAT needs superpolynomial
    circuits) and ExplicitNPLowerBound (some NP language does).  With
    PSubsetPPoly (and SATInNP for the SAT version) each gives PNotEqualsNP
-   (sat_lower_bound_separates, explicit_lower_bound_separates).  Nothing
-   here proves such a bound.
+   (sat_lower_bound_separates, explicit_lower_bound_separates).  SATInNP
+   is proved in SATVerifier.v (SATVerifier.satInNP), so explicit_of_sat'
+   and sat_lower_bound_separates' drop that premise; PSubsetPPoly remains a
+   named hypothesis.  Nothing here proves such a bound.
 
    Difference from Lean: Lean derives superpoly_excludes_poly_circuits and
    const_no_lower_bound from the classical superpoly_iff_not_inPPoly; here
@@ -35,6 +37,7 @@
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines Circuits.
+From proofs.experiments.issue532.rocq Require SATVerifier.
 
 (** The abstract conditional contradiction. *)
 Theorem lower_bound_transfer (Algorithm Circuit : Type) (compile : Algorithm -> Circuit)
@@ -117,12 +120,21 @@ Proof. reflexivity. Qed.
 Theorem explicit_of_sat : SATInNP -> SATCircuitLowerBound -> ExplicitNPLowerBound.
 Proof. intros mem h. exists SAT. split; [exact mem | exact h]. Qed.
 
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem explicit_of_sat' : SATCircuitLowerBound -> ExplicitNPLowerBound.
+Proof. exact (explicit_of_sat SATVerifier.satInNP). Qed.
+
 (** Conditional theorem (SAT form).  Given the membership half of
     Cook-Levin and the known theorem P in P/poly as named hypotheses, a
     superpolynomial circuit lower bound for SAT gives P <> NP. *)
 Theorem sat_lower_bound_separates :
   SATInNP -> PSubsetPPoly -> SATCircuitLowerBound -> PNotEqualsNP.
 Proof. exact pNotEqualsNP_of_superpoly_sat. Qed.
+
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped.
+    [PSubsetPPoly] remains a named hypothesis. *)
+Theorem sat_lower_bound_separates' : PSubsetPPoly -> SATCircuitLowerBound -> PNotEqualsNP.
+Proof. exact (sat_lower_bound_separates SATVerifier.satInNP). Qed.
 
 (** Conditional theorem.  Given P in P/poly as a named hypothesis, an NP
     language with a superpolynomial circuit lower bound gives P <> NP. *)

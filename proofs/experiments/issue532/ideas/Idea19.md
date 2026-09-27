@@ -15,7 +15,9 @@ on the shared machine and circuit model as the open obligations
 `SATNotInPPoly` (`¬ InPPoly SAT`) and `NPNotInPPoly`
 (`∃ L, InNP L ∧ ¬ InPPoly L`), and the conditional separations
 `pNotEqualsNP_of_satNotInPPoly` and `pNotEqualsNP_of_npNotInPPoly` are proved
-from the named known theorem `PSubsetPPoly`. In the same model, P/poly is
+from the named known theorem `PSubsetPPoly`. `SATInNP` is proved in
+`SATVerifier` (`SATVerifier.satInNP`), so the SAT form
+`pNotEqualsNP_of_satNotInPPoly'` needs only `PSubsetPPoly`. In the same model, P/poly is
 proved not to be contained in P (`ppoly_not_subset_p`).
 
 ## 1. The idea at full strength
@@ -81,8 +83,10 @@ for SAT, yields SAT ∈ P*. The second reading claims *SAT ∉ P/poly*.
 | `npNotInPPoly_iff_for` | `NPNotInPPoly ↔ NPNotInPPolyFor InNP InPPoly`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `satNotInPPoly_iff_superpoly` | `SATNotInPPoly ↔ SuperpolyLowerBound SAT`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `npNotInPPoly_of_sat` | `SATInNP → SATNotInPPoly → NPNotInPPoly`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `npNotInPPoly_of_sat'` | `SATNotInPPoly → NPNotInPPoly`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`). | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `pNotEqualsNP_of_npNotInPPoly` | Conditional: `PSubsetPPoly → NPNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `pNotEqualsNP_of_satNotInPPoly` | Conditional: `SATInNP → PSubsetPPoly → SATNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `pNotEqualsNP_of_satNotInPPoly'` | Conditional: `PSubsetPPoly → SATNotInPPoly → PNotEqualsNP` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it; `PSubsetPPoly` remains a named hypothesis). | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `nonuniform_lower_bound_separates` | The schema theorem at the shared classes: `PSubsetPPoly → NPNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `not_inPPoly_nonvacuous` | Non-vacuity: some language is outside `InPPoly` (counting), and constant languages are inside. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `ppoly_strictly_bigger_than_p_if` | With `PSubsetPPoly`, P is strictly contained in P/poly. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
@@ -191,9 +195,9 @@ What is **not** formalized:
   that *computes the advice* in polynomial time, which is the original
   problem again. If that procedure exists the advice is unnecessary.
 * **As a lower-bound route (P ≠ NP): developed to an open obligation.**
-  `NPNotInPPoly` (or `SATNotInPPoly`, with `SATInNP`) together with the named
-  known theorem `PSubsetPPoly` gives P ≠ NP
-  (`pNotEqualsNP_of_npNotInPPoly`, `pNotEqualsNP_of_satNotInPPoly`). The obligation implies P ≠ NP (with
+  `NPNotInPPoly` (or `SATNotInPPoly`; `SATInNP` is proved in `SATVerifier`)
+  together with the named known theorem `PSubsetPPoly` gives P ≠ NP
+  (`pNotEqualsNP_of_npNotInPPoly`, `pNotEqualsNP_of_satNotInPPoly'`). The obligation implies P ≠ NP (with
   the standard classes, where P ⊆ P/poly), and the converse implication is
   not known. By the NP-completeness of SAT (Cook–Levin, cited, not
   formalized) and closure of P/poly under polynomial-time reductions, it is

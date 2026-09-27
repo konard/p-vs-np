@@ -1,4 +1,5 @@
 import proofs.experiments.issue532.lean.Circuits
+import proofs.experiments.issue532.lean.SATVerifier
 
 /-!
 # Issue #532, Idea 10: monotone lower bounds and transfer to general circuits
@@ -42,6 +43,9 @@ function that SAT computes on inputs of length `n`:
   `PSubsetPolyFormulas` (every language in P has polynomial-size formulas, a
   P ⊆ NC¹-type statement that is open and widely believed false), as
   `pNotEqualsNP_of_satFormulaLowerBound` makes explicit.
+* `npNotInPolyFormulas_of_sat'`, `pNotEqualsNP_of_satFormulaLowerBound'`: the
+  same without the `SATInNP` premise, which is proved in `SATVerifier.lean`
+  (`SATVerifier.satInNP`). `PSubsetPolyFormulas` remains a premise.
 * `sat_slice_not_monotone`, `sat_monotone_lower_bound_trivial`: SAT on words
   is not monotone at length 2, so the monotone lower bound for SAT holds for
   a trivial reason and carries no information; the monotone route has to go
@@ -478,6 +482,10 @@ theorem npNotInPolyFormulas_of_sat (mem : SATInNP) (h : SATFormulaLowerBound) :
     NPNotInPolyFormulas :=
   ⟨SAT, mem, h⟩
 
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem npNotInPolyFormulas_of_sat' (h : SATFormulaLowerBound) : NPNotInPolyFormulas :=
+  npNotInPolyFormulas_of_sat SATVerifier.satInNP h
+
 /--
 Not known, and not assumed anywhere: every language in P has polynomial-size
 formulas. This is a P ⊆ NC¹-type statement, an open problem that is widely
@@ -498,6 +506,12 @@ theorem pNotEqualsNP_of_satFormulaLowerBound (mem : SATInNP) (hPF : PSubsetPolyF
   obtain ⟨C, hs, hC⟩ := hc n
   obtain ⟨x, hx⟩ := hn C hs
   exact hx (hC x)
+
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped.
+The unproved `PSubsetPolyFormulas` remains a premise. -/
+theorem pNotEqualsNP_of_satFormulaLowerBound' (hPF : PSubsetPolyFormulas)
+    (h : SATFormulaLowerBound) : PNotEqualsNP :=
+  pNotEqualsNP_of_satFormulaLowerBound SATVerifier.satInNP hPF h
 
 /-- The double-rail reformulation applies to SAT. -/
 theorem satFormulaLowerBound_iff_doubleRail :

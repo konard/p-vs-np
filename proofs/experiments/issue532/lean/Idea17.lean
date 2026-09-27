@@ -1,4 +1,5 @@
 import proofs.experiments.issue532.lean.Machines
+import proofs.experiments.issue532.lean.SATVerifier
 
 /-!
 # Issue #532, Idea 17: enumeration accounting (exponential versus polynomial)
@@ -40,7 +41,9 @@ schema is *exactly* `¬ InP L` (`allMachinesSuperpolynomial_iff_not_inP`), so:
   decider for `Issue532.Machines.SAT` has superpolynomial worst-case step
   count), and it is equivalent to `¬ InP SAT`;
 * with `SATInNP` it implies `PNotEqualsNP`
-  (`pNotEqualsNP_of_satMachinesSuperpolynomial`), and with `CookLevin` it is
+  (`pNotEqualsNP_of_satMachinesSuperpolynomial`); `SATInNP` is proved in
+  `SATVerifier.lean` (`SATVerifier.satInNP`), so
+  `pNotEqualsNP_of_satMachinesSuperpolynomial'` drops that premise; with `CookLevin` it is
   equivalent to `PNotEqualsNP` (`satMachinesSuperpolynomial_iff_pNotEqualsNP`);
 * the statement is not vacuous: it holds for the diagonal language
   `Issue532.Machines.Diag` and fails for the constant-false language, whose
@@ -474,6 +477,11 @@ theorem satMachinesSuperpolynomial_iff_not_inP : SATMachinesSuperpolynomial ↔ 
 theorem pNotEqualsNP_of_satMachinesSuperpolynomial (mem : SATInNP)
     (h : SATMachinesSuperpolynomial) : PNotEqualsNP := fun hPNP =>
   satMachinesSuperpolynomial_iff_not_inP.mp h (inP_sat_of_pEqualsNP mem hPNP)
+
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem pNotEqualsNP_of_satMachinesSuperpolynomial' (h : SATMachinesSuperpolynomial) :
+    PNotEqualsNP :=
+  pNotEqualsNP_of_satMachinesSuperpolynomial SATVerifier.satInNP h
 
 /-- With the Cook–Levin hypothesis the obligation is equivalent to P ≠ NP. -/
 theorem satMachinesSuperpolynomial_iff_pNotEqualsNP (hCL : CookLevin) :

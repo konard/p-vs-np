@@ -28,6 +28,9 @@
      This does not give P <> NP: that would also need PSubsetPolyFormulas
      (a P in NC1-type statement, open and widely believed false), as
      pNotEqualsNP_of_satFormulaLowerBound makes explicit;
+   - npNotInPolyFormulas_of_sat', pNotEqualsNP_of_satFormulaLowerBound':
+     the same without the SATInNP premise, which is proved in SATVerifier.v
+     (SATVerifier.satInNP); PSubsetPolyFormulas remains a premise;
    - sat_slice_not_monotone, sat_monotone_lower_bound_trivial: SAT on words
      is not monotone at length 2, so the monotone lower bound for SAT holds
      for a trivial reason;
@@ -42,6 +45,7 @@
 From Stdlib Require Import Arith PeanoNat Lia Bool List.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines Circuits.
+From proofs.experiments.issue532.rocq Require SATVerifier.
 
 Inductive Circ : Type :=
   | Var : nat -> Circ
@@ -414,6 +418,10 @@ Theorem npNotInPolyFormulas_of_sat :
   SATInNP -> SATFormulaLowerBound -> NPNotInPolyFormulas.
 Proof. intros mem h. exists SAT. split; [exact mem | exact h]. Qed.
 
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem npNotInPolyFormulas_of_sat' : SATFormulaLowerBound -> NPNotInPolyFormulas.
+Proof. exact (npNotInPolyFormulas_of_sat SATVerifier.satInNP). Qed.
+
 (** Not known, and not assumed anywhere: every language in P has
     polynomial-size formulas.  This is a P in NC1-type statement, an open
     problem that is widely believed false.  It is stated only to show what a
@@ -434,6 +442,12 @@ Proof.
   destruct (hn C hs) as [x hx].
   exact (hx (hC x)).
 Qed.
+
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped.
+    The unproved [PSubsetPolyFormulas] remains a premise. *)
+Theorem pNotEqualsNP_of_satFormulaLowerBound' :
+  PSubsetPolyFormulas -> SATFormulaLowerBound -> PNotEqualsNP.
+Proof. exact (pNotEqualsNP_of_satFormulaLowerBound SATVerifier.satInNP). Qed.
 
 (** The double-rail reformulation applies to SAT. *)
 Theorem satFormulaLowerBound_iff_doubleRail :

@@ -15,7 +15,11 @@
    open obligations SATFormulaSizeLB and SATDepthLB.  With SATInNP,
    SATDepthLB gives NPNotInLogDepth (an NC1-type separation), the honest
    conclusion.  P <> NP additionally needs PSubsetLogDepth (P in NC1, open
-   and not assumed anywhere), see pNotEqualsNP_of_satDepthLB.  Non-vacuity:
+   and not assumed anywhere), see pNotEqualsNP_of_satDepthLB.  SATInNP is
+   proved in SATVerifier.v (SATVerifier.satInNP), so
+   npNotInLogDepth_of_satDepthLB', npNotInLogDepth_of_satFormulaSizeLB' and
+   pNotEqualsNP_of_satDepthLB' drop that premise (PSubsetLogDepth stays a
+   premise).  Non-vacuity:
    andPow_sizeLB, andPow_depthLB (a family reading 2 ^ n variables meets
    both shapes), var0_not_depthLB and var0_not_sizeLB (a one-leaf family
    meets neither).
@@ -27,6 +31,7 @@
 From Stdlib Require Import Arith PeanoNat Lia Bool List.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines Circuits.
+From proofs.experiments.issue532.rocq Require SATVerifier.
 
 Inductive F : Type :=
   | Var : nat -> F
@@ -239,11 +244,19 @@ Definition NPNotInLogDepth : Prop :=
 Theorem npNotInLogDepth_of_satDepthLB : SATInNP -> SATDepthLB -> NPNotInLogDepth.
 Proof. intros mem h. exists SAT. split; [exact mem | exact h]. Qed.
 
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem npNotInLogDepth_of_satDepthLB' : SATDepthLB -> NPNotInLogDepth.
+Proof. exact (npNotInLogDepth_of_satDepthLB SATVerifier.satInNP). Qed.
+
 Theorem npNotInLogDepth_of_satFormulaSizeLB :
   SATInNP -> SATFormulaSizeLB -> NPNotInLogDepth.
 Proof.
   intros mem h. exact (npNotInLogDepth_of_satDepthLB mem (satSizeLB_implies_satDepthLB h)).
 Qed.
+
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem npNotInLogDepth_of_satFormulaSizeLB' : SATFormulaSizeLB -> NPNotInLogDepth.
+Proof. exact (npNotInLogDepth_of_satFormulaSizeLB SATVerifier.satInNP). Qed.
 
 (** Not known, and not assumed anywhere: every language in P has formulas of
     logarithmic depth (a P in NC1-type statement, open and widely believed
@@ -264,6 +277,11 @@ Proof.
   destruct (hc n) as [f [hf hd]].
   pose proof (hn f hf). lia.
 Qed.
+
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped.
+    The unproved [PSubsetLogDepth] remains a premise. *)
+Theorem pNotEqualsNP_of_satDepthLB' : PSubsetLogDepth -> SATDepthLB -> PNotEqualsNP.
+Proof. exact (pNotEqualsNP_of_satDepthLB SATVerifier.satInNP). Qed.
 
 (** * Non-vacuity of the lower-bound shapes *)
 

@@ -15,7 +15,9 @@
    length n is the worst Run step count over the 2^n inputs of length n
    (worstTime).  The open obligation is SATMachinesSuperpolynomial; it rules
    out InP SAT (not_inP_sat_of_satMachinesSuperpolynomial), gives PNotEqualsNP
-   with SATInNP (pNotEqualsNP_of_satMachinesSuperpolynomial) and is equivalent
+   with SATInNP (pNotEqualsNP_of_satMachinesSuperpolynomial; SATInNP is
+   proved in SATVerifier.v as SATVerifier.satInNP, so
+   pNotEqualsNP_of_satMachinesSuperpolynomial' drops it) and is equivalent
    to PNotEqualsNP with CookLevin and excluded middle
    (satMachinesSuperpolynomial_iff_pNotEqualsNP).  Non-vacuity: the schema
    fails for the constant-false language, whose one-step machine has
@@ -47,6 +49,7 @@
 From Stdlib Require Import Bool Arith PeanoNat List Lia ConstructiveEpsilon.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines.
+From proofs.experiments.issue532.rocq Require SATVerifier.
 
 (* ---------- Enumeration of Boolean vectors ---------- *)
 
@@ -477,6 +480,11 @@ Proof.
   intros mem h hPNP. apply (not_inP_sat_of_satMachinesSuperpolynomial h).
   exact (inP_sat_of_pEqualsNP mem hPNP).
 Qed.
+
+(* SATInNP is proved (SATVerifier.satInNP), so the premise is dropped. *)
+Theorem pNotEqualsNP_of_satMachinesSuperpolynomial' :
+  SATMachinesSuperpolynomial -> PNotEqualsNP.
+Proof. exact (pNotEqualsNP_of_satMachinesSuperpolynomial SATVerifier.satInNP). Qed.
 
 (* With the Cook-Levin premise the obligation is equivalent to P <> NP. *)
 Theorem satMachinesSuperpolynomial_iff_pNotEqualsNP :

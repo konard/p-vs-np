@@ -4,7 +4,7 @@
 
 Everything is stated over the shared layer: the machine model (`InP`, `InNP`, `Issue532.Machines.SAT`) and the shared NAND circuit model of `Circuits.lean` (`InPPoly`, `SuperpolyLowerBound`). Two facts are proved in general.
 
-*Transfer.* A circuit lower bound, a simulation of fast algorithms by small circuits, and a size bound together exclude a fast algorithm (`lower_bound_transfer`, `no_fast_algorithm`). For the machine model the simulation is the known theorem P ⊆ P/poly, used only as the named hypothesis `PSubsetPPoly`. With it, `sat_lower_bound_separates` proves `SATCircuitLowerBound → PNotEqualsNP` (also given `SATInNP`), and `explicit_lower_bound_separates` proves `ExplicitNPLowerBound → PNotEqualsNP`.
+*Transfer.* A circuit lower bound, a simulation of fast algorithms by small circuits, and a size bound together exclude a fast algorithm (`lower_bound_transfer`, `no_fast_algorithm`). For the machine model the simulation is the known theorem P ⊆ P/poly, used only as the named hypothesis `PSubsetPPoly`. With it, `sat_lower_bound_separates` proves `SATCircuitLowerBound → PNotEqualsNP` (also given `SATInNP`; since `SATInNP` is proved in `SATVerifier` as `SATVerifier.satInNP`, `sat_lower_bound_separates'` needs only `PSubsetPPoly`), and `explicit_lower_bound_separates` proves `ExplicitNPLowerBound → PNotEqualsNP`.
 
 *Shannon counting.* For the shared model, the following is machine-checked for all `n, g`: if `(g+1)·((n+g)²)^g < 2^(2^n)`, then some Boolean function on `n` bits has no circuit with at most `g` NAND gates (`shannon_circuits`). The argument uses words, truth tables and a pigeonhole principle, all proved from scratch. The counting core now lives in `Circuits.lean`, where `exists_superpolyLowerBound` also turns it into a language with a superpolynomial lower bound.
 
@@ -63,7 +63,9 @@ def ExplicitNPLowerBound : Prop := ∃ L : Language, InNP L ∧ SuperpolyLowerBo
 | `ExplicitNPLowerBoundFor` (def) | Schema: the same for an arbitrary class `NPClass` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `explicitNPLowerBound_iff_for` | `ExplicitNPLowerBound ↔ ExplicitNPLowerBoundFor InNP` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `explicit_of_sat` | Given `SATInNP`, `SATCircuitLowerBound → ExplicitNPLowerBound` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
+| `explicit_of_sat'` | `SATCircuitLowerBound → ExplicitNPLowerBound`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`) | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `sat_lower_bound_separates` | Conditional theorem: `SATInNP → PSubsetPPoly → SATCircuitLowerBound → PNotEqualsNP` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
+| `sat_lower_bound_separates'` | Conditional theorem: `PSubsetPPoly → SATCircuitLowerBound → PNotEqualsNP` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it; `PSubsetPPoly` remains a named hypothesis) | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `explicit_lower_bound_separates` | Conditional theorem: `PSubsetPPoly → ExplicitNPLowerBound → PNotEqualsNP` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `explicit_lower_bound_not_inPPoly` | Without any hypothesis: the obligation gives an `InNP` language outside `InPPoly` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `explicit_lower_bound_separatesFor` | Schema version: the obligation for a class plus a simulation gives a function in the class that no fast algorithm computes | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
@@ -120,6 +122,7 @@ def ExplicitNPLowerBound : Prop := ∃ L : Language, InNP L ∧ SuperpolyLowerBo
 Proved conditionals:
 
 * `sat_lower_bound_separates (mem : SATInNP) (hP : PSubsetPPoly) (h : SATCircuitLowerBound) : PNotEqualsNP`.
+* `sat_lower_bound_separates' (hP : PSubsetPPoly) (h : SATCircuitLowerBound) : PNotEqualsNP` (`SATInNP` is proved in `SATVerifier`, so it is not a premise).
 * `explicit_lower_bound_separates (hP : PSubsetPPoly) (h : ExplicitNPLowerBound) : PNotEqualsNP`.
 * Without the simulation hypothesis, `explicit_lower_bound_not_inPPoly` gives the weaker conclusion NP ⊄ P/poly.
 

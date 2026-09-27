@@ -17,7 +17,11 @@
    (exists_noPolyBounded).  The open obligation NoPolyBoundedUNSATProofSystem
    gives ~ InP SAT, P <> NP given SATInNP, and is equivalent to NP <> coNP
    given the named known theorems CookReckhowNP, NPClosedUnderReductions,
-   SATInNP and SATHard (noPolyBounded_iff_npNeCoNP).
+   SATInNP and SATHard (noPolyBounded_iff_npNeCoNP).  SATInNP is proved in
+   SATVerifier.v (SATVerifier.satInNP), so pNotEqualsNP_of_noPolyBounded',
+   npNeCoNP_of_noPolyBounded', pNotEqualsNP_via_coNP' and
+   noPolyBounded_iff_npNeCoNP' drop that premise; SATHard, CookReckhowNP and
+   NPClosedUnderReductions remain named hypotheses.
 
    Verdict: resolution refuted in full strength as a polynomial method
    (Haken 1985, cited, not formalized); Cook's program developed to an open
@@ -44,6 +48,7 @@
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines.
+From proofs.experiments.issue532.rocq Require SATVerifier.
 
 (* ---------- SAT core ---------- *)
 
@@ -701,6 +706,10 @@ Proof.
   intros mem h hp. exact (not_inP_sat_of_noPolyBounded h (inP_sat_of_pEqualsNP mem hp)).
 Qed.
 
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem pNotEqualsNP_of_noPolyBounded' : NoPolyBoundedUNSATProofSystem -> PNotEqualsNP.
+Proof. exact (pNotEqualsNP_of_noPolyBounded SATVerifier.satInNP). Qed.
+
 (** Known theorem, not mechanised here: every NP language has a polynomially
     bounded machine proof system (Cook and Reckhow, J. Symbolic Logic 44(1),
     1979).  The converse direction is proved (inNP_of_polyBounded). *)
@@ -728,11 +737,23 @@ Proof.
   intros mem hcr h heq. destruct (hcr _ (proj1 (heq SAT) mem)) as [P hP]. exact (h P hP).
 Qed.
 
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped.
+    [CookReckhowNP] remains a named hypothesis. *)
+Theorem npNeCoNP_of_noPolyBounded' : CookReckhowNP ->
+  NoPolyBoundedUNSATProofSystem -> ~ NPEqualsCoNP.
+Proof. exact (npNeCoNP_of_noPolyBounded SATVerifier.satInNP). Qed.
+
 Theorem pNotEqualsNP_via_coNP : SATInNP -> CookReckhowNP ->
   NoPolyBoundedUNSATProofSystem -> PNotEqualsNP.
 Proof.
   intros mem hcr h. apply pNotEqualsNP_of_npNeCoNP. exact (npNeCoNP_of_noPolyBounded mem hcr h).
 Qed.
+
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped.
+    [CookReckhowNP] remains a named hypothesis. *)
+Theorem pNotEqualsNP_via_coNP' : CookReckhowNP ->
+  NoPolyBoundedUNSATProofSystem -> PNotEqualsNP.
+Proof. exact (pNotEqualsNP_via_coNP SATVerifier.satInNP). Qed.
 
 (** Converse (proved from named hypotheses).  A polynomially bounded system
     for UNSAT gives NP = coNP, given SAT's NP-hardness and closure of NP under
@@ -759,3 +780,10 @@ Proof.
   - exact (npNeCoNP_of_noPolyBounded mem hcr).
   - intros hne P hP. exact (hne (npEqualsCoNP_of_polyBounded hard hclosed P hP)).
 Qed.
+
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped.
+    [SATHard], [CookReckhowNP] and [NPClosedUnderReductions] remain named
+    hypotheses. *)
+Theorem noPolyBounded_iff_npNeCoNP' : SATHard -> CookReckhowNP ->
+  NPClosedUnderReductions -> (NoPolyBoundedUNSATProofSystem <-> ~ NPEqualsCoNP).
+Proof. exact (noPolyBounded_iff_npNeCoNP SATVerifier.satInNP). Qed.

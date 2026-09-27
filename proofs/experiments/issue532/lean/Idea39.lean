@@ -1,4 +1,5 @@
 import proofs.experiments.issue532.lean.Machines
+import proofs.experiments.issue532.lean.SATVerifier
 
 /-!
 # Issue #532, Idea 39: proof-system scope (lower bounds and p-simulation)
@@ -40,7 +41,9 @@ Machine part (shared model of `Issue532.Machines`):
 * Proved: a polynomially bounded system puts its language in NP
   (`inNP_of_crPolyBounded`); every language in P has one
   (`crPolyBounded_of_inP`); hence `pNotEqualsNP_of_allTautSystemsSuperpolynomial`
-  (from SAT ∈ NP alone).  With the named known theorem `CookReckhow`
+  (from SAT ∈ NP alone). `SATInNP` is proved in `SATVerifier.lean`
+  (`SATVerifier.satInNP`), so `pNotEqualsNP_of_allTautSystemsSuperpolynomial'`
+  and `npNeCoNP_of_not_inNP_taut'` drop that premise.  With the named known theorem `CookReckhow`
   (obligation ↔ NP ≠ coNP), `pNotEqualsNP_via_cookReckhow` concludes through
   `pNotEqualsNP_of_npNeCoNP`.
 * Non-vacuity: the schema `AllCRSystemsSuperpolynomialFor` fails for the
@@ -512,9 +515,18 @@ theorem pNotEqualsNP_of_allTautSystemsSuperpolynomial (mem : SATInNP)
     (h : AllTautSystemsSuperpolynomial) : PNotEqualsNP := fun hp =>
   not_inP_sat_of_allTautSystemsSuperpolynomial h (inP_sat_of_pEqualsNP mem hp)
 
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem pNotEqualsNP_of_allTautSystemsSuperpolynomial'
+    (h : AllTautSystemsSuperpolynomial) : PNotEqualsNP :=
+  pNotEqualsNP_of_allTautSystemsSuperpolynomial SATVerifier.satInNP h
+
 /-- `TAUT ∉ NP` gives NP ≠ coNP, given SAT ∈ NP (proved). -/
 theorem npNeCoNP_of_not_inNP_taut (mem : SATInNP) (h : ¬ InNP TAUT) : ¬ NPEqualsCoNP :=
   fun heq => h ((heq SAT).mp mem)
+
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem npNeCoNP_of_not_inNP_taut' (h : ¬ InNP TAUT) : ¬ NPEqualsCoNP :=
+  npNeCoNP_of_not_inNP_taut SATVerifier.satInNP h
 
 /-- Known theorem, not mechanised here: every Cook–Reckhow system for `TAUT`
 is superpolynomial iff NP ≠ coNP (S. A. Cook and R. A. Reckhow, "The relative

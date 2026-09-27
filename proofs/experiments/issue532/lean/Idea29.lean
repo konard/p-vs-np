@@ -1,4 +1,5 @@
 import proofs.experiments.issue532.lean.Machines
+import proofs.experiments.issue532.lean.SATVerifier
 
 /-!
 # Issue #532, Idea 29: reduction chains and polynomial composition
@@ -23,7 +24,10 @@ obligation of that route, stated in the machine model, is
 and `satReducesToP_iff_inP_sat` proves it is *equivalent* to `InP SAT`.  It
 yields P = NP only under the named hypothesis `SATHard` (the hardness half of
 Cook–Levin, not mechanised here): `pEqualsNP_of_satReducesToP`;
-`satReducesToP_iff_pEqualsNP` needs `CookLevin`.  Non-vacuity:
+`satReducesToP_iff_pEqualsNP` needs `CookLevin`.  Conversely, refuting it gives
+P ≠ NP: `pNotEqualsNP_of_not_satReducesToP` takes `SATInNP` as a premise, and
+`pNotEqualsNP_of_not_satReducesToP'` drops it, since `SATInNP` is proved in
+`SATVerifier.lean` (`SATVerifier.satInNP`).  Non-vacuity:
 `not_forall_reducesToP` shows that not every language reduces to P.  Nothing
 here decides P vs NP.
 
@@ -493,6 +497,10 @@ theorem satReducesToP_iff_pEqualsNP (hCL : CookLevin) : SATReducesToP ↔ PEqual
 theorem pNotEqualsNP_of_not_satReducesToP (mem : SATInNP) (h : ¬ SATReducesToP) :
     PNotEqualsNP :=
   fun hp => h (satReducesToP_iff_inP_sat.mpr (inP_sat_of_pEqualsNP mem hp))
+
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem pNotEqualsNP_of_not_satReducesToP' (h : ¬ SATReducesToP) : PNotEqualsNP :=
+  pNotEqualsNP_of_not_satReducesToP SATVerifier.satInNP h
 
 /-- A chain `SAT → L₁ → L₂` ending in P discharges the obligation. -/
 theorem satReducesToP_of_chain {L₁ L₂ : Language} (h1 : PolyReduces SAT L₁)

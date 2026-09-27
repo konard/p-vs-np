@@ -13,7 +13,10 @@
    the transfer WorstToAverage L delta := AvgPolyDec L delta -> InP L; budget
    zero is exactly P (avgPolyDec_zero_iff); the transfer for SAT gives InP SAT
    and, with SATHard, P = NP (pEqualsNP_of_worstToAverage); refuting it gives
-   P <> NP given SATInNP (pNotEqualsNP_of_not_worstToAverage); some language
+   P <> NP given SATInNP (pNotEqualsNP_of_not_worstToAverage; SATInNP is
+   proved in SATVerifier.v as SATVerifier.satInNP, so
+   worstToAverage_sat_of_pEqualsNP' and pNotEqualsNP_of_not_worstToAverage'
+   drop that premise); some language
    has no average-case decider with one error per length
    (exists_not_avgPolyDec).
 
@@ -32,6 +35,7 @@
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines.
+From proofs.experiments.issue532.rocq Require SATVerifier.
 
 (* Every bit string of length n. *)
 Fixpoint allInputs (n : nat) : list (list bool) :=
@@ -368,11 +372,21 @@ Proof.
   intros mem hp delta. exact (worstToAverage_of_inP _ (inP_sat_of_pEqualsNP mem hp) delta).
 Qed.
 
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem worstToAverage_sat_of_pEqualsNP' : PEqualsNP ->
+  forall delta, WorstToAverage SAT delta.
+Proof. exact (worstToAverage_sat_of_pEqualsNP SATVerifier.satInNP). Qed.
+
 (** Conditional theorem (proved).  Refuting the transfer for SAT at any
     budget proves P <> NP (given SAT in NP). *)
 Theorem pNotEqualsNP_of_not_worstToAverage : SATInNP -> forall delta,
   ~ WorstToAverage SAT delta -> PNotEqualsNP.
 Proof. intros mem delta h hp. exact (h (worstToAverage_sat_of_pEqualsNP mem hp delta)). Qed.
+
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem pNotEqualsNP_of_not_worstToAverage' : forall delta,
+  ~ WorstToAverage SAT delta -> PNotEqualsNP.
+Proof. exact (pNotEqualsNP_of_not_worstToAverage SATVerifier.satInNP). Qed.
 
 (* ---------- Non-vacuity: a language far from every machine ---------- *)
 

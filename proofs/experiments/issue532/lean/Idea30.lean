@@ -1,4 +1,5 @@
 import proofs.experiments.issue532.lean.Circuits
+import proofs.experiments.issue532.lean.SATVerifier
 
 /-!
 # Issue #532, Idea 30: unrestricted circuit lower bounds (transfer and counting)
@@ -26,8 +27,10 @@ language is not known to be in NP. The open obligations are
 `SATCircuitLowerBound` (SAT needs superpolynomial circuits) and
 `ExplicitNPLowerBound` (some NP language does). With `PSubsetPPoly` (and
 `SATInNP` for the SAT version) each gives `PNotEqualsNP`
-(`sat_lower_bound_separates`, `explicit_lower_bound_separates`). Nothing here
-proves such a bound. Natural proofs, relativization and algebrization constrain
+(`sat_lower_bound_separates`, `explicit_lower_bound_separates`). `SATInNP` is
+proved in `SATVerifier.lean` (`SATVerifier.satInNP`), so `explicit_of_sat'` and
+`sat_lower_bound_separates'` drop that premise; `PSubsetPPoly` remains a named
+hypothesis. Nothing here proves such a bound. Natural proofs, relativization and algebrization constrain
 how it could be proved.
 -/
 
@@ -108,12 +111,22 @@ theorem explicitNPLowerBound_iff_for : ExplicitNPLowerBound ↔ ExplicitNPLowerB
 theorem explicit_of_sat (mem : SATInNP) (h : SATCircuitLowerBound) : ExplicitNPLowerBound :=
   ⟨SAT, mem, h⟩
 
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem explicit_of_sat' (h : SATCircuitLowerBound) : ExplicitNPLowerBound :=
+  explicit_of_sat SATVerifier.satInNP h
+
 /-- **Conditional theorem (SAT form).** Given the membership half of
 Cook–Levin and the known theorem P ⊆ P/poly as named hypotheses, a
 superpolynomial circuit lower bound for SAT gives P ≠ NP. -/
 theorem sat_lower_bound_separates (mem : SATInNP) (hP : PSubsetPPoly)
     (h : SATCircuitLowerBound) : PNotEqualsNP :=
   pNotEqualsNP_of_superpoly_sat mem hP h
+
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped.
+`PSubsetPPoly` remains a named hypothesis. -/
+theorem sat_lower_bound_separates' (hP : PSubsetPPoly) (h : SATCircuitLowerBound) :
+    PNotEqualsNP :=
+  sat_lower_bound_separates SATVerifier.satInNP hP h
 
 /-- **Conditional theorem.** Given P ⊆ P/poly as a named hypothesis, an NP
 language with a superpolynomial circuit lower bound gives P ≠ NP. -/

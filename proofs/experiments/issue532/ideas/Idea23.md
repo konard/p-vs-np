@@ -15,7 +15,12 @@ proof system whose verifier is a polynomial-time machine. The files prove
 that it implies `¬ InP SAT`, that with SAT ∈ NP it implies `PNotEqualsNP`,
 and that with the named known theorems (Cook–Reckhow, Cook–Levin, closure
 of NP under reductions) it is equivalent to NP ≠ coNP
-(`noPolyBounded_iff_npNeCoNP`). The abstract schema
+(`noPolyBounded_iff_npNeCoNP`). SAT ∈ NP (`SATInNP`) is proved in
+`SATVerifier` (`SATVerifier.satInNP`), so the primed versions drop that
+premise: the obligation implies `PNotEqualsNP` with no other premise
+(`pNotEqualsNP_of_noPolyBounded'`), and the equivalence needs only
+`SATHard`, `CookReckhowNP` and `NPClosedUnderReductions`
+(`noPolyBounded_iff_npNeCoNP'`). The abstract schema
 `NoPolyBoundedProofSystemFor Efficient`, with a free efficiency predicate,
 is kept for the abstract results.
 
@@ -71,13 +76,17 @@ research log records the core step of resolution: from `P ∨ R` and
 * `NoPolyBoundedMachineProofSystem L := ∀ P : MachineProofSystem L, ¬ P.PolyBounded`.
 * **Open obligation:**
   `NoPolyBoundedUNSATProofSystem := NoPolyBoundedMachineProofSystem (complement SAT)`.
-* Known theorems, named hypotheses (never assumed as axioms):
+* Known theorems, named hypotheses (never assumed as axioms), except
+  `SATInNP`, which is proved (see the last item):
   * `CookReckhowNP := ∀ L, InNP L → ∃ P : MachineProofSystem L, P.PolyBounded`
     (Cook–Reckhow 1979);
   * `NPClosedUnderReductions := ∀ L L', PolyReduces L L' → InNP L' → InNP L`
     (Karp 1972);
-  * `SATInNP` and `SATHard` (the two halves of Cook–Levin, from the shared
-    layer).
+  * `SATHard` (the hardness half of Cook–Levin, from the shared layer);
+  * `SATInNP` (the membership half of Cook–Levin, from the shared layer) is
+    not a hypothesis: it is proved in `SATVerifier.lean` / `SATVerifier.v`
+    (`SATVerifier.satInNP`). The unprimed theorems still take it as a
+    premise; the primed ones do not.
 
 ## 3. What is machine-checked
 
@@ -103,11 +112,14 @@ research log records the core step of resolution: from `P ∨ R` and
 | `exists_noPolyBounded` | Non-vacuity: some language has no polynomially bounded machine proof system. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `not_inP_sat_of_noPolyBounded` | `NoPolyBoundedUNSATProofSystem → ¬ InP SAT`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `pNotEqualsNP_of_noPolyBounded` | `SATInNP → NoPolyBoundedUNSATProofSystem → PNotEqualsNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `pNotEqualsNP_of_noPolyBounded'` | `NoPolyBoundedUNSATProofSystem → PNotEqualsNP`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`). | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `CookReckhowNP`, `NPClosedUnderReductions` (defs) | Known theorems, not mechanised here: every NP language has a polynomially bounded machine proof system; NP is closed under reductions. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `polyReduces_complement` | A reduction from `L` to `L'` is one from `complement L` to `complement L'`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `npNeCoNP_of_noPolyBounded`, `pNotEqualsNP_via_coNP` | With `SATInNP` and `CookReckhowNP`, the obligation gives `¬ NPEqualsCoNP`, hence `PNotEqualsNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `npNeCoNP_of_noPolyBounded'`, `pNotEqualsNP_via_coNP'` | With `CookReckhowNP` alone (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it), the obligation gives `¬ NPEqualsCoNP`, hence `PNotEqualsNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `npEqualsCoNP_of_polyBounded` | With `SATHard` and `NPClosedUnderReductions`, a polynomially bounded system for `complement SAT` gives `NPEqualsCoNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `noPolyBounded_iff_npNeCoNP` | Under the four named hypotheses, `NoPolyBoundedUNSATProofSystem ↔ ¬ NPEqualsCoNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `noPolyBounded_iff_npNeCoNP'` | Under `SATHard`, `CookReckhowNP` and `NPClosedUnderReductions` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it), `NoPolyBoundedUNSATProofSystem ↔ ¬ NPEqualsCoNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 
 The Rocq names are the Lean names, with these Rocq-specific differences:
 
@@ -248,8 +260,9 @@ What is **not** formalized:
   not formalized.
 * The Cook–Reckhow direction "NP ⊆ bounded proof systems"
   (`CookReckhowNP`), closure of NP under reductions
-  (`NPClosedUnderReductions`) and the Cook–Levin halves (`SATInNP`,
-  `SATHard`). These are named hypotheses. The direction "bounded system ⇒
+  (`NPClosedUnderReductions`) and the hardness half of Cook–Levin
+  (`SATHard`). These are named hypotheses. The membership half (`SATInNP`)
+  is proved in `SATVerifier` (`SATVerifier.satInNP`). The direction "bounded system ⇒
   NP" is proved (`inNP_of_polyBounded`).
 
 ## 6. How far the idea can be pushed toward P vs NP
@@ -262,11 +275,12 @@ What is **not** formalized:
 * **Toward P ≠ NP: developed to an open obligation.**
   **Exact remaining obligation:** `NoPolyBoundedUNSATProofSystem`, that is,
   `∀ P : MachineProofSystem (complement SAT), ¬ P.PolyBounded`. The files
-  prove `NoPolyBoundedUNSATProofSystem → ¬ InP SAT`, and with `SATInNP`
-  it gives `PNotEqualsNP` (`pNotEqualsNP_of_noPolyBounded`). With the named
-  hypotheses `SATInNP`, `SATHard`, `CookReckhowNP` and
-  `NPClosedUnderReductions` it is equivalent to `¬ NPEqualsCoNP`
-  (`noPolyBounded_iff_npNeCoNP`). This is stronger than P ≠ NP as far as
+  prove `NoPolyBoundedUNSATProofSystem → ¬ InP SAT`, and, since `SATInNP`
+  is proved in `SATVerifier`, `NoPolyBoundedUNSATProofSystem → PNotEqualsNP`
+  with no other premise (`pNotEqualsNP_of_noPolyBounded'`). With the named
+  hypotheses `SATHard`, `CookReckhowNP` and `NPClosedUnderReductions` it is
+  equivalent to `¬ NPEqualsCoNP` (`noPolyBounded_iff_npNeCoNP'`; the
+  unprimed `noPolyBounded_iff_npNeCoNP` also takes `SATInNP`). This is stronger than P ≠ NP as far as
   is known, because P = NP implies NP = coNP but the converse is open.
   `lower_bound_excludes_efficient_decider` is the abstract skeleton of
   "NP ≠ coNP implies P ≠ NP".

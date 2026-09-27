@@ -1,4 +1,5 @@
 import proofs.experiments.issue532.lean.Machines
+import proofs.experiments.issue532.lean.SATVerifier
 
 /-!
 # Issue #532, Idea 33: average-case to worst-case transfer
@@ -32,7 +33,10 @@ Main results (all general, for every language `L` and every length `n`):
   exactly P (`avgPolyDec_zero_iff`); the transfer for SAT with an
   average-case decider gives `InP SAT` and, with `SATHard`, P = NP
   (`pEqualsNP_of_worstToAverage`); refuting it gives P ≠ NP
-  (`pNotEqualsNP_of_not_worstToAverage`); and some language has no
+  (`pNotEqualsNP_of_not_worstToAverage`, which takes `SATInNP`;
+  `worstToAverage_sat_of_pEqualsNP'` and `pNotEqualsNP_of_not_worstToAverage'`
+  drop that premise, since `SATInNP` is proved in `SATVerifier.lean` as
+  `SATVerifier.satInNP`); and some language has no
   average-case decider with one error per length (`exists_not_avgPolyDec`).
 
 Verdict: "average-case success implies worst-case success" is refuted as an
@@ -365,11 +369,21 @@ theorem worstToAverage_sat_of_pEqualsNP (mem : SATInNP) (hp : PEqualsNP) (δ : N
     WorstToAverage SAT δ :=
   worstToAverage_of_inP (inP_sat_of_pEqualsNP mem hp) δ
 
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem worstToAverage_sat_of_pEqualsNP' (hp : PEqualsNP) (δ : Nat → Nat) :
+    WorstToAverage SAT δ :=
+  worstToAverage_sat_of_pEqualsNP SATVerifier.satInNP hp δ
+
 /-- **Conditional theorem (proved).**  Refuting the transfer for SAT at any
 budget proves P ≠ NP (given SAT ∈ NP). -/
 theorem pNotEqualsNP_of_not_worstToAverage (mem : SATInNP) {δ : Nat → Nat}
     (h : ¬ WorstToAverage SAT δ) : PNotEqualsNP :=
   fun hp => h (worstToAverage_sat_of_pEqualsNP mem hp δ)
+
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem pNotEqualsNP_of_not_worstToAverage' {δ : Nat → Nat}
+    (h : ¬ WorstToAverage SAT δ) : PNotEqualsNP :=
+  pNotEqualsNP_of_not_worstToAverage SATVerifier.satInNP h
 
 /-! ## Non-vacuity: a language far from every machine -/
 

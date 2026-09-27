@@ -19,8 +19,10 @@
    (~ InPPoly SAT) and NPNotInPPoly (NP not in P/poly), stated over the
    shared machine and circuit models.  With SATInNP and the known theorem
    PSubsetPPoly as named hypotheses they give PNotEqualsNP
-   (pNotEqualsNP_of_satNotInPPoly, pNotEqualsNP_of_npNotInPPoly).  Neither
-   obligation is proved.
+   (pNotEqualsNP_of_satNotInPPoly, pNotEqualsNP_of_npNotInPPoly).  SATInNP
+   is proved in SATVerifier.v (SATVerifier.satInNP), so npNotInPPoly_of_sat'
+   and pNotEqualsNP_of_satNotInPPoly' drop that premise; PSubsetPPoly remains
+   a named hypothesis.  Neither obligation is proved.
 
    Differences from Lean: the escape statements are pointwise (no function
    extensionality); unaryDiag is computable (it diagonalises with the
@@ -32,6 +34,7 @@
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines Circuits.
+From proofs.experiments.issue532.rocq Require SATVerifier.
 
 (* ---------- Advice machines ---------- *)
 
@@ -338,6 +341,10 @@ Qed.
 Theorem npNotInPPoly_of_sat : SATInNP -> SATNotInPPoly -> NPNotInPPoly.
 Proof. intros mem h. exists SAT. split; [exact mem | exact h]. Qed.
 
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem npNotInPPoly_of_sat' : SATNotInPPoly -> NPNotInPPoly.
+Proof. exact (npNotInPPoly_of_sat SATVerifier.satInNP). Qed.
+
 (** Conditional theorem.  With the known theorem P in P/poly as the named
     hypothesis [PSubsetPPoly], NP not in P/poly gives P <> NP. *)
 Theorem pNotEqualsNP_of_npNotInPPoly : PSubsetPPoly -> NPNotInPPoly -> PNotEqualsNP.
@@ -356,6 +363,11 @@ Proof.
   intros mem hP h hEq.
   exact (not_inP_of_not_inPPoly hP SAT h (inP_sat_of_pEqualsNP mem hEq)).
 Qed.
+
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped.
+    [PSubsetPPoly] remains a named hypothesis. *)
+Theorem pNotEqualsNP_of_satNotInPPoly' : PSubsetPPoly -> SATNotInPPoly -> PNotEqualsNP.
+Proof. exact (pNotEqualsNP_of_satNotInPPoly SATVerifier.satInNP). Qed.
 
 (** The schema theorem, instantiated at the shared classes. *)
 Theorem nonuniform_lower_bound_separates : PSubsetPPoly -> NPNotInPPoly ->

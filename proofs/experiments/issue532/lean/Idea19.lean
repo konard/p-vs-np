@@ -1,4 +1,5 @@
 import proofs.experiments.issue532.lean.Circuits
+import proofs.experiments.issue532.lean.SATVerifier
 
 /-!
 # Issue #532, Idea 19: advice and nonuniformity
@@ -35,8 +36,11 @@ converse direction is developed to the open obligations `SATNotInPPoly`
 (`¬ InPPoly SAT`) and `NPNotInPPoly` (NP ⊄ P/poly), stated over the shared
 machine and circuit models. With `SATInNP` and the known theorem
 `PSubsetPPoly` as named hypotheses they give `PNotEqualsNP`
-(`pNotEqualsNP_of_satNotInPPoly`, `pNotEqualsNP_of_npNotInPPoly`). Neither is
-proved. Core Lean only.
+(`pNotEqualsNP_of_satNotInPPoly`, `pNotEqualsNP_of_npNotInPPoly`). `SATInNP`
+is proved in `SATVerifier.lean` (`SATVerifier.satInNP`), so
+`npNotInPPoly_of_sat'` and `pNotEqualsNP_of_satNotInPPoly'` drop that premise;
+`PSubsetPPoly` remains a named hypothesis. Neither obligation is proved. Core
+Lean only.
 -/
 
 namespace Issue532.Idea19
@@ -316,6 +320,10 @@ theorem satNotInPPoly_iff_superpoly : SATNotInPPoly ↔ SuperpolyLowerBound SAT 
 theorem npNotInPPoly_of_sat (mem : SATInNP) (h : SATNotInPPoly) : NPNotInPPoly :=
   ⟨SAT, mem, h⟩
 
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem npNotInPPoly_of_sat' (h : SATNotInPPoly) : NPNotInPPoly :=
+  npNotInPPoly_of_sat SATVerifier.satInNP h
+
 /-- **Conditional theorem.** With the known theorem P ⊆ P/poly as the named
 hypothesis `PSubsetPPoly`, NP ⊄ P/poly gives P ≠ NP. -/
 theorem pNotEqualsNP_of_npNotInPPoly (hP : PSubsetPPoly) (h : NPNotInPPoly) : PNotEqualsNP := by
@@ -328,6 +336,12 @@ named hypotheses, `¬ InPPoly SAT` gives P ≠ NP. -/
 theorem pNotEqualsNP_of_satNotInPPoly (mem : SATInNP) (hP : PSubsetPPoly)
     (h : SATNotInPPoly) : PNotEqualsNP :=
   pNotEqualsNP_of_superpoly_sat mem hP (satNotInPPoly_iff_superpoly.mp h)
+
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped.
+`PSubsetPPoly` remains a named hypothesis. -/
+theorem pNotEqualsNP_of_satNotInPPoly' (hP : PSubsetPPoly) (h : SATNotInPPoly) :
+    PNotEqualsNP :=
+  pNotEqualsNP_of_satNotInPPoly SATVerifier.satInNP hP h
 
 /-- The schema theorem, instantiated at the shared classes. -/
 theorem nonuniform_lower_bound_separates (hP : PSubsetPPoly) (h : NPNotInPPoly) :

@@ -15,7 +15,9 @@
    model, the open obligation AllTautSystemsSuperpolynomial for
    TAUT = complement SAT, the proved links to NP (inNP_of_crPolyBounded,
    crPolyBounded_of_inP), the conditional theorems towards P <> NP and
-   NP <> coNP, the known theorem as a named premise CookReckhow, and
+   NP <> coNP (SATInNP is proved in SATVerifier.v as SATVerifier.satInNP,
+   so pNotEqualsNP_of_allTautSystemsSuperpolynomial' and
+   npNeCoNP_of_not_inNP_taut' drop that premise), the known theorem as a named premise CookReckhow, and
    non-vacuity of the schema AllCRSystemsSuperpolynomialFor
    (crSchema_nontrivial).
 
@@ -40,6 +42,7 @@
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines.
+From proofs.experiments.issue532.rocq Require SATVerifier.
 
 Theorem tested :
   exists weak strong : bool -> Prop,
@@ -524,9 +527,18 @@ Proof.
   exact (not_inP_sat_of_allTautSystemsSuperpolynomial h (inP_sat_of_pEqualsNP mem hp)).
 Qed.
 
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem pNotEqualsNP_of_allTautSystemsSuperpolynomial' :
+  AllTautSystemsSuperpolynomial -> PNotEqualsNP.
+Proof. exact (pNotEqualsNP_of_allTautSystemsSuperpolynomial SATVerifier.satInNP). Qed.
+
 (* TAUT outside NP gives NP <> coNP, given SAT in NP. *)
 Theorem npNeCoNP_of_not_inNP_taut : SATInNP -> ~ InNP TAUT -> ~ NPEqualsCoNP.
 Proof. intros mem h heq; exact (h (proj1 (heq SAT) mem)). Qed.
+
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem npNeCoNP_of_not_inNP_taut' : ~ InNP TAUT -> ~ NPEqualsCoNP.
+Proof. exact (npNeCoNP_of_not_inNP_taut SATVerifier.satInNP). Qed.
 
 (** Known theorem, not mechanised here: every Cook-Reckhow system for TAUT is
     superpolynomial iff NP <> coNP (S. A. Cook and R. A. Reckhow, "The

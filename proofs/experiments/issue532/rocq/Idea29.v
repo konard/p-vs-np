@@ -21,7 +21,11 @@
     [satReducesToP_iff_inP_sat] proves it equivalent to [InP SAT].  It yields
     P = NP only under the named premise [SATHard]
     ([pEqualsNP_of_satReducesToP]); [satReducesToP_iff_pEqualsNP] needs
-    [CookLevin].  Non-vacuity: [not_forall_reducesToP].  Nothing here decides
+    [CookLevin].  Conversely, refuting it gives P <> NP:
+    [pNotEqualsNP_of_not_satReducesToP] takes [SATInNP] as a premise, and
+    [pNotEqualsNP_of_not_satReducesToP'] drops it, since [SATInNP] is proved
+    in [SATVerifier.v] ([SATVerifier.satInNP]).  Non-vacuity:
+    [not_forall_reducesToP].  Nothing here decides
     P vs NP.
 
     The explicit polynomials [Poly] ([eval n = coef * (n + 1) ^ deg], the
@@ -36,6 +40,7 @@
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines.
+From proofs.experiments.issue532.rocq Require SATVerifier.
 
 (** ** Explicit polynomials *)
 
@@ -555,6 +560,10 @@ Proof.
   intros mem h hp. apply h. apply satReducesToP_iff_inP_sat.
   exact (inP_sat_of_pEqualsNP mem hp).
 Qed.
+
+(** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped. *)
+Theorem pNotEqualsNP_of_not_satReducesToP' : ~ SATReducesToP -> PNotEqualsNP.
+Proof. exact (pNotEqualsNP_of_not_satReducesToP SATVerifier.satInNP). Qed.
 
 (** A chain [SAT -> L1 -> L2] ending in P discharges the obligation. *)
 Theorem satReducesToP_of_chain : forall L1 L2,

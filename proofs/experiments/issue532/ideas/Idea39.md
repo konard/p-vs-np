@@ -23,7 +23,10 @@ superpolynomial lower bound. The files prove, without the Cook–Reckhow theorem
 that a polynomially bounded system puts its language in NP
 (`inNP_of_crPolyBounded`) and that every language in P has one
 (`crPolyBounded_of_inP`). So the obligation gives `SAT ∉ P`, and with `SATInNP`
-it gives `PNotEqualsNP` (`pNotEqualsNP_of_allTautSystemsSuperpolynomial`). The
+it gives `PNotEqualsNP` (`pNotEqualsNP_of_allTautSystemsSuperpolynomial`).
+`SATInNP` is not a hypothesis: it is proved in the shared model as
+`SATVerifier.satInNP`, and the primed theorem
+`pNotEqualsNP_of_allTautSystemsSuperpolynomial'` drops that premise. The
 converse direction, NP ≠ coNP ⇒ obligation, uses the Cook–Reckhow theorem as
 the named hypothesis `CookReckhow`. Nothing here proves the obligation.
 
@@ -115,6 +118,8 @@ whose steps compose correctly only along p-simulations.
 | `not_inP_sat_of_allTautSystemsSuperpolynomial` | the obligation gives `¬ InP SAT` with no hypotheses | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `pNotEqualsNP_of_allTautSystemsSuperpolynomial` | conditional theorem: `SATInNP → AllTautSystemsSuperpolynomial → PNotEqualsNP` | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `npNeCoNP_of_not_inNP_taut` | given `SATInNP`, `TAUT ∉ NP` gives NP ≠ coNP | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `pNotEqualsNP_of_allTautSystemsSuperpolynomial'` | `AllTautSystemsSuperpolynomial → PNotEqualsNP`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`) | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `npNeCoNP_of_not_inNP_taut'` | `TAUT ∉ NP` gives NP ≠ coNP, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`) | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `CookReckhow` (def) | named known theorem (Cook–Reckhow 1979): obligation ↔ NP ≠ coNP | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `npNeCoNP_of_allTautSystemsSuperpolynomial`, `pNotEqualsNP_via_cookReckhow` | given `CookReckhow`, the obligation gives NP ≠ coNP and P ≠ NP | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `allTautSystemsSuperpolynomial_of_npNeCoNP` | given `CookReckhow`, NP ≠ coNP gives the obligation | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
@@ -227,7 +232,10 @@ model. The proved consequences are:
 - `not_inP_sat_of_allTautSystemsSuperpolynomial`: the obligation gives
   `¬ InP SAT` with no hypotheses. If SAT were in P, `TAUT` would be in P
   (`inP_complement`), and `crPolyBounded_of_inP` would give a bounded system.
-- `pNotEqualsNP_of_allTautSystemsSuperpolynomial (mem : SATInNP) h : PNotEqualsNP`.
+- `pNotEqualsNP_of_allTautSystemsSuperpolynomial (mem : SATInNP) h : PNotEqualsNP`,
+  and its primed form `pNotEqualsNP_of_allTautSystemsSuperpolynomial' h :
+  PNotEqualsNP`, which drops `mem` because `SATInNP` is proved
+  (`SATVerifier.satInNP`).
 - With the named known theorem `CookReckhow`, the obligation is equivalent to
   NP ≠ coNP (`npNeCoNP_of_allTautSystemsSuperpolynomial`,
   `allTautSystemsSuperpolynomial_of_npNeCoNP`), which implies `P ≠ NP` but is

@@ -95,8 +95,10 @@ general circuit size); the formal files do not prove this refutation.
 | `satFormulaLowerBound_iff_for` | The obligation is the schema at `slice SAT`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 | `NPNotInPolyFormulas` | Open obligation: some `InNP` language has no polynomial-size formulas. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 | `npNotInPolyFormulas_of_sat` | Conditional (honest conclusion): with `SATInNP`, `SATFormulaLowerBound → NPNotInPolyFormulas`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `npNotInPolyFormulas_of_sat'` | `SATFormulaLowerBound → NPNotInPolyFormulas`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 | `PSubsetPolyFormulas` | Definition of the unproved P ⊆ NC¹-type hypothesis (never assumed). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 | `pNotEqualsNP_of_satFormulaLowerBound` | Conditional: `SATInNP → PSubsetPolyFormulas → SATFormulaLowerBound → PNotEqualsNP`. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
+| `pNotEqualsNP_of_satFormulaLowerBound'` | Conditional: `PSubsetPolyFormulas → SATFormulaLowerBound → PNotEqualsNP` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it; `PSubsetPolyFormulas` remains an unproved hypothesis). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 | `satFormulaLowerBound_iff_doubleRail` | The obligation equals the double-rail monotone bound for SAT. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 | `sat_slice_not_monotone` | SAT's length-2 slice is not monotone (`00` is the empty formula, `10` the empty clause). | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
 | `sat_monotone_lower_bound_trivial` | `MonotoneSuperpolyLowerBoundFor (slice SAT)` holds, for the trivial reason above. | [Lean](../lean/Idea10.lean) | [Rocq](../rocq/Idea10.v) |
@@ -113,7 +115,8 @@ Lean's lowercase ones). The assignment `i ↦ (i == 0)` is written with
 constructively by a case split on the value of the formula at the
 all-false assignment, where Lean uses `Classical.byContradiction`.
 `slice`, `SAT`, `SATInNP` and `InNP` come from the shared `Machines.v`
-and `Circuits.v`.
+and `Circuits.v`. `SATInNP` is proved in `SATVerifier.lean` / `SATVerifier.v`
+(`SATVerifier.satInNP`), so the primed theorems drop that premise.
 
 ## 4. Complete argument
 
@@ -225,11 +228,12 @@ of the specific function that these counterexamples lack.
   general lower bound for an NP family; on the machine model this is
   `SATFormulaLowerBound`, and `satFormulaLowerBound_iff_doubleRail`
   restates it without negations, as a monotone bound for a partial function.
-* **Proved (conditional):** `npNotInPolyFormulas_of_sat` (with `SATInNP`, the
-  obligation gives `NPNotInPolyFormulas`) and
-  `pNotEqualsNP_of_satFormulaLowerBound` (P ≠ NP, but only with the extra
+* **Proved (conditional):** `npNotInPolyFormulas_of_sat'` (the obligation
+  gives `NPNotInPolyFormulas`; `SATInNP` is proved in `SATVerifier`, so no
+  premise is needed besides the obligation) and
+  `pNotEqualsNP_of_satFormulaLowerBound'` (P ≠ NP, but only with the extra
   hypothesis `PSubsetPolyFormulas`, which is not known and widely believed
-  false).
+  false). The unprimed versions take `SATInNP` as a premise.
 * **Proved (monotone bound is uninformative for SAT):** the slices of `SAT`
   are not monotone, so `MonotoneSuperpolyLowerBoundFor (slice SAT)` holds
   for a trivial reason (`sat_monotone_lower_bound_trivial`).

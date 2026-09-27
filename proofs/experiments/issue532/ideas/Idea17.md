@@ -16,7 +16,9 @@ at each length) is proved equivalent to `¬ InP L`
 (`allMachinesSuperpolynomial_iff_not_inP`). The open obligation
 `SATMachinesSuperpolynomial` is this instance for `Issue532.Machines.SAT`: it
 is exactly SAT ∉ P, gives P != NP from `SATInNP`
-(`pNotEqualsNP_of_satMachinesSuperpolynomial`), and is equivalent to
+(`pNotEqualsNP_of_satMachinesSuperpolynomial`; `SATInNP` is proved in
+`SATVerifier`, so `pNotEqualsNP_of_satMachinesSuperpolynomial'` needs no
+premise besides the obligation), and is equivalent to
 P != NP under the named Cook–Levin hypothesis
 (`satMachinesSuperpolynomial_iff_pNotEqualsNP`). It is therefore the
 original problem, not a weaker one.
@@ -103,6 +105,7 @@ complexity-class statement fails.
 | `satMachinesSuperpolynomial_iff_for` | The obligation is the schema at `machineModel SAT`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
 | `satMachinesSuperpolynomial_iff_not_inP` | `SATMachinesSuperpolynomial ↔ ¬ InP SAT`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
 | `pNotEqualsNP_of_satMachinesSuperpolynomial` | Conditional: `SATInNP → SATMachinesSuperpolynomial → PNotEqualsNP`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `pNotEqualsNP_of_satMachinesSuperpolynomial'` | `SATMachinesSuperpolynomial → PNotEqualsNP`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`). | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
 | `satMachinesSuperpolynomial_iff_pNotEqualsNP` | With `CookLevin`: `SATMachinesSuperpolynomial ↔ PNotEqualsNP`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
 | `worstTime_emptyMachine` | The empty machine decides the constant-false language with worst-case cost 1 at every length (machine form of `enumeration_cost_is_not_problem_cost`). | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
 | `const_false_not_superpolynomial` | Non-vacuity (false side): the machine schema fails for the constant-false language. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
@@ -232,8 +235,9 @@ counting and growth facts of Section 3 are machine-checked.
   `AllAlgorithmsSuperpolynomialFor` at `machineModel SAT` (all total
   machine deciders of `Issue532.Machines.SAT`, cost = worst-case `Run`
   steps). It is proved equivalent to `¬ InP SAT`
-  (`satMachinesSuperpolynomial_iff_not_inP`), gives P != NP from `SATInNP`
-  (`pNotEqualsNP_of_satMachinesSuperpolynomial`) and is equivalent to
+  (`satMachinesSuperpolynomial_iff_not_inP`), implies P != NP with no other premise
+  (`pNotEqualsNP_of_satMachinesSuperpolynomial'`, using the proved
+  `SATVerifier.satInNP`) and is equivalent to
   P != NP under `CookLevin`. The obligation is therefore equivalent to the
   original problem, not weaker.
 * **Non-vacuity.** The machine schema fails for the constant-false language

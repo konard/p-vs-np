@@ -92,6 +92,8 @@ error"*. This is the exact point that fails.
 | `pEqualsNP_of_worstToAverage` | with `SATHard`, the same data give `PEqualsNP` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
 | `worstToAverage_sat_of_pEqualsNP` | with `SATInNP`, `PEqualsNP` gives `WorstToAverage SAT δ` for every `δ` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
 | `pNotEqualsNP_of_not_worstToAverage` | with `SATInNP`, `¬ WorstToAverage SAT δ` gives `PNotEqualsNP` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `worstToAverage_sat_of_pEqualsNP'` | `PEqualsNP` gives `WorstToAverage SAT δ` for every `δ`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`) | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `pNotEqualsNP_of_not_worstToAverage'` | `¬ WorstToAverage SAT δ` gives `PNotEqualsNP`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`) | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
 | `exists_language_far_from_family` | for an injective code of a family of languages, some language differs from each member on both one-bit extensions of its code | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
 | `exists_not_avgPolyDec`, `worstToAverage_nontrivial` | non-vacuity: some language has no machine average-case decider with budget one | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
 
@@ -224,7 +226,9 @@ average-case lower bound (for P != NP).
 for a polynomial `p`, together with a matching distribution. For the uniform
 distribution on words its machine instance is `WorstToAverage SAT δ`, and the
 files prove `WorstToAverage SAT δ → AvgPolyDec SAT δ → InP SAT` and
-`¬ WorstToAverage SAT δ → PNotEqualsNP` (given `SATInNP`). This instance is
+`¬ WorstToAverage SAT δ → PNotEqualsNP` (the primed form
+`pNotEqualsNP_of_not_worstToAverage'` has no `SATInNP` premise, since
+`SATInNP` is proved as `SATVerifier.satInNP`). This instance is
 deliberately **not** labelled an open obligation. Under the shared CNF
 encoding most words of each length decode to formulas containing the empty
 clause, so SAT is plausibly easy on average under the uniform distribution

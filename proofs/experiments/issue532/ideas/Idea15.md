@@ -81,9 +81,12 @@ and appears only as an explicit hypothesis.
 | `satDepthLB_iff_for` | `SATDepthLB ↔ DepthLBFor (slice SAT)`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `satSizeLB_implies_satDepthLB` | `SATFormulaSizeLB → SATDepthLB`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `npNotInLogDepth_of_satDepthLB` | Conditional (honest conclusion): `SATInNP → SATDepthLB → NPNotInLogDepth`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `npNotInLogDepth_of_satDepthLB'` | `SATDepthLB → NPNotInLogDepth`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`). | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `npNotInLogDepth_of_satFormulaSizeLB` | Conditional: `SATInNP → SATFormulaSizeLB → NPNotInLogDepth`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `npNotInLogDepth_of_satFormulaSizeLB'` | `SATFormulaSizeLB → NPNotInLogDepth`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`). | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `PSubsetLogDepth` | Definition of the unproved P ⊆ NC¹ hypothesis (never assumed). | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `pNotEqualsNP_of_satDepthLB` | Conditional: `SATInNP → PSubsetLogDepth → SATDepthLB → PNotEqualsNP`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
+| `pNotEqualsNP_of_satDepthLB'` | Conditional: `PSubsetLogDepth → SATDepthLB → PNotEqualsNP` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it; `PSubsetLogDepth` remains an unproved hypothesis). | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `andPow_sizeLB` | Non-vacuity (true side): `FormulaSizeLBFor andPow`, where `andPow n` is the AND of `2^n` variables. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `andPow_depthLB` | Non-vacuity (true side): `DepthLBFor andPow`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
 | `var0_not_depthLB` | Non-vacuity (false side): the depth schema fails for the family `ρ ↦ ρ 0`. | [Lean](../lean/Idea15.lean) | [Rocq](../rocq/Idea15.v) |
@@ -99,7 +102,9 @@ constructors are capitalised (`Var`, `Neg`, `Conj`, `Disj` for Lean's
 `seq 0 (2 ^ n)` (Lean: `List.range (2 ^ n)`) using `NoDup_incl_length`,
 and decides membership in `vars f` with `in_dec` where Lean splits cases
 classically. `slice`, `SAT`, `SATInNP`, `InNP` and `PNotEqualsNP` come
-from the shared `Machines.v` and `Circuits.v`.
+from the shared `Machines.v` and `Circuits.v`. `SATInNP` is proved in
+`SATVerifier.lean` / `SATVerifier.v` (`SATVerifier.satInNP`), so the primed
+theorems drop that premise.
 
 ## 4. Complete argument
 
@@ -183,10 +188,11 @@ is far beyond current techniques.
   examples for all `d`; size lower bounds imply depth lower bounds.
 * **Refuted (general):** "a deep formula for `g` shows that `g` needs depth"
   and "equal size implies equal depth" (`same_function_different_depth`).
-* **Proved (conditional):** `npNotInLogDepth_of_satDepthLB` and
-  `npNotInLogDepth_of_satFormulaSizeLB` (with `SATInNP`, NP ⊄ NC¹);
-  `pNotEqualsNP_of_satDepthLB` (P ≠ NP only with the unproved
-  `PSubsetLogDepth`).
+* **Proved (conditional):** `npNotInLogDepth_of_satDepthLB'` and
+  `npNotInLogDepth_of_satFormulaSizeLB'` (the obligation gives NP ⊄ NC¹;
+  `SATInNP` is proved in `SATVerifier`, so it is not a premise);
+  `pNotEqualsNP_of_satDepthLB'` (P ≠ NP only with the unproved
+  `PSubsetLogDepth`). The unprimed versions take `SATInNP` as a premise.
 * **Proved (non-vacuity):** the schemas hold for the explicit family
   `andPow` (a function of `2^n` variables, so its "`n`" is not its number of
   inputs) and fail for `ρ ↦ ρ 0`.

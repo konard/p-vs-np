@@ -31,8 +31,11 @@ polynomial `c·(n+1)^d`.
 * **Open obligation** (Lean `SATReducesToP`):
   `∃ L' : Language, PolyReduces SAT L' ∧ InP L'`.
 * Known theorems enter only as named hypotheses of the shared layer:
-  `SATHard := NPHard SAT`, `SATInNP := InNP SAT`, and
-  `CookLevin := NPComplete SAT` (both together). None of them is proved here.
+  `SATHard := NPHard SAT` and `CookLevin := NPComplete SAT` (membership and
+  hardness together). Neither is proved here. The membership half
+  `SATInNP := InNP SAT` is proved in `SATVerifier.lean` / `SATVerifier.v`
+  (`SATVerifier.satInNP`); `pNotEqualsNP_of_not_satReducesToP` still takes
+  it as a premise, and `pNotEqualsNP_of_not_satReducesToP'` drops it.
 
 **Explicit polynomials.**
 
@@ -83,6 +86,7 @@ machine model.
 | `pEqualsNP_of_satReducesToP` | `SATHard → SATReducesToP → PEqualsNP` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `satReducesToP_iff_pEqualsNP` | `CookLevin → (SATReducesToP ↔ PEqualsNP)` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `pNotEqualsNP_of_not_satReducesToP` | `SATInNP → ¬ SATReducesToP → PNotEqualsNP` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `pNotEqualsNP_of_not_satReducesToP'` | `¬ SATReducesToP → PNotEqualsNP`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`) | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `satReducesToP_of_chain` | A chain `SAT ≤ L₁ ≤ L₂` with `InP L₂` discharges the obligation | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `PolyMapFor.comp` / `polymap_comp` | Schema: composition of bounded maps is bounded (explicit bounds) | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `comp_time_poly_for` | Schema: time of `f` then `g` is polynomial in the input size | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
@@ -103,8 +107,8 @@ Where the Rocq name differs from the Lean name, the first column gives both
 because the Rocq file does not use classical logic to produce the `bool`
 decider; `inPFor_of_inP` computes the step count with `stepCount` where Lean
 uses `Classical.choose`.
-Not machine-checked in either language: any concrete NP-complete reduction and the Cook–Levin theorem, which enters
-only through the named hypotheses `SATHard`, `SATInNP` and `CookLevin`.
+Not machine-checked in either language: any concrete NP-complete reduction and the hardness half of the Cook–Levin theorem, which enters
+only through the named hypotheses `SATHard` and `CookLevin`. The membership half, `SATInNP`, is proved in `SATVerifier` (`SATVerifier.satInNP`).
 
 ## 4. Complete argument
 
@@ -146,8 +150,8 @@ table with the decider table in the same way. `inP_of_chain` combines it with
 
 So "`SAT` reduces to something in P" carries *no* information beyond
 "`SAT ∈ P`". Under `SATHard` (every NP language reduces to SAT), `InP SAT`
-gives `PEqualsNP` by `inP_of_reduces`; under `SATInNP`, `¬ InP SAT` gives
-`PNotEqualsNP`. The obligation is not trivially true for every language:
+gives `PEqualsNP` by `inP_of_reduces`; since `SATInNP` holds (it is proved
+in `SATVerifier`), `¬ InP SAT` gives `PNotEqualsNP`. The obligation is not trivially true for every language:
 `not_forall_reducesToP` exhibits the diagonal language `Diag`, which is not
 in P (`diag_not_inP`) and hence reduces to nothing in P.
 
@@ -165,7 +169,7 @@ counted, `inPFor_every` shows `InPFor` holds for every language.
 * L. A. Levin, "Universal sequential search problems", *Problems of Information Transmission*, 1973 (Russian original). Independent discovery of NP-completeness.
 * Standard textbook facts (for example Arora–Barak, *Computational Complexity: A Modern Approach*, 2009): P is closed under polynomial-time many-one reductions; if any NP-complete problem is in P then P = NP.
 
-Not formalized here: any concrete NP-complete reduction, in particular the Cook–Levin theorem, which appears only as the named hypotheses `SATHard`, `SATInNP` and `CookLevin`. Idea 28 formalizes one concrete reduction (Tseitin, formula-SAT ≤ 3-SAT) together with its size bounds.
+Not formalized here: any concrete NP-complete reduction, in particular the hardness half of the Cook–Levin theorem, which appears only as the named hypotheses `SATHard` and `CookLevin`. The membership half (`SATInNP`) is proved in `SATVerifier` (`SATVerifier.satInNP`). Idea 28 formalizes one concrete reduction (Tseitin, formula-SAT ≤ 3-SAT) together with its size bounds.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
@@ -180,8 +184,10 @@ By `satReducesToP_iff_inP_sat` it is equivalent to `InP SAT`. It implies
 `PEqualsNP` under the named hypothesis `SATHard`
 (`pEqualsNP_of_satReducesToP`), and is equivalent to `PEqualsNP` under
 `CookLevin` (`satReducesToP_iff_pEqualsNP`). Its negation implies
-`PNotEqualsNP` under `SATInNP` (`pNotEqualsNP_of_not_satReducesToP`). These
-hypotheses are the known Cook–Levin theorem; they are not proved here. The
+`PNotEqualsNP` with no further premise (`pNotEqualsNP_of_not_satReducesToP'`;
+the unprimed version takes `SATInNP`, which is proved in `SATVerifier`).
+The hypotheses `SATHard` and `CookLevin` are the hardness half and the whole
+of the known Cook–Levin theorem; they are not proved here. The
 only content a "reduce NP to P" argument can add is the explicit reduction
 and the explicit decider (`satReducesToP_of_chain` accepts any finite chain).
 Both must satisfy:

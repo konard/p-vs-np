@@ -1,4 +1,5 @@
 import proofs.experiments.issue532.lean.Circuits
+import proofs.experiments.issue532.lean.SATVerifier
 
 /-!
 # Issue #532, Idea 15: circuit depth versus size
@@ -33,6 +34,10 @@ and `SATDepthLB`; `satSizeLB_implies_satDepthLB` relates them.
 * It does not give P ≠ NP: `pNotEqualsNP_of_satDepthLB` needs in addition
   `PSubsetLogDepth` (every language in P has logarithmic-depth formulas, a
   P ⊆ NC¹-type statement that is open and not assumed anywhere).
+* `npNotInLogDepth_of_satDepthLB'`, `npNotInLogDepth_of_satFormulaSizeLB'`,
+  `pNotEqualsNP_of_satDepthLB'`: the same without the `SATInNP` premise,
+  which is proved in `SATVerifier.lean` (`SATVerifier.satInNP`).
+  `PSubsetLogDepth` remains a premise.
 * Non-vacuity of the shapes: `andPow_sizeLB` and `andPow_depthLB` (a family
   that reads `2 ^ n` variables satisfies both), `var0_not_depthLB` (a family
   computed by one leaf satisfies neither).
@@ -281,9 +286,17 @@ obligation for SAT gives `NPNotInLogDepth`. -/
 theorem npNotInLogDepth_of_satDepthLB (mem : SATInNP) (h : SATDepthLB) : NPNotInLogDepth :=
   ⟨SAT, mem, h⟩
 
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem npNotInLogDepth_of_satDepthLB' (h : SATDepthLB) : NPNotInLogDepth :=
+  npNotInLogDepth_of_satDepthLB SATVerifier.satInNP h
+
 theorem npNotInLogDepth_of_satFormulaSizeLB (mem : SATInNP) (h : SATFormulaSizeLB) :
     NPNotInLogDepth :=
   npNotInLogDepth_of_satDepthLB mem (satSizeLB_implies_satDepthLB h)
+
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped. -/
+theorem npNotInLogDepth_of_satFormulaSizeLB' (h : SATFormulaSizeLB) : NPNotInLogDepth :=
+  npNotInLogDepth_of_satFormulaSizeLB SATVerifier.satInNP h
 
 /--
 Not known, and not assumed anywhere: every language in P has formulas of
@@ -305,6 +318,12 @@ theorem pNotEqualsNP_of_satDepthLB (mem : SATInNP) (hPL : PSubsetLogDepth) (h : 
   obtain ⟨f, hf, hd⟩ := hc n
   have := hn f hf
   omega
+
+/-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped.
+The unproved `PSubsetLogDepth` remains a premise. -/
+theorem pNotEqualsNP_of_satDepthLB' (hPL : PSubsetLogDepth) (h : SATDepthLB) :
+    PNotEqualsNP :=
+  pNotEqualsNP_of_satDepthLB SATVerifier.satInNP hPL h
 
 /-! ## Non-vacuity of the lower-bound shapes -/
 
