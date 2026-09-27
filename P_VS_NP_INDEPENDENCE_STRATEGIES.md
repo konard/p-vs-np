@@ -55,9 +55,9 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - **Empirical Resilience**: 50+ years of failed attempts by brilliant researchers
 - **Finite Combinatorics**: P vs NP is fundamentally about finite computation, which can behave differently in different models
 
-**Arguments Against Independence:**
+**Considerations and Limits of Familiar Methods:**
 - **Arithmetic Nature**: P = NP has a Σ⁰₂ clocked-SAT formulation, and P ≠ NP is Π⁰₂. Their truth is preserved between a transitive ground model and its set-forcing extensions; this does not settle independence from ZFC
-- **Finite Character**: Questions about Turing machines running in polynomial time are "finitary" and thus less likely to be independent
+- **Finite Character**: Questions about Turing machines running in polynomial time are finitary, which motivates direct proof attempts but does not guarantee a proof in ZFC
 - **No Known Mechanism**: Unlike CH (involves infinite sets directly), P vs NP is about bounded computation
 - **Search Limitation**: Machines and polynomial clocks can be enumerated, but verifying that one candidate decides SAT correctly on **every** input is a universal condition. Enumeration alone gives no decision procedure for P vs NP
 
