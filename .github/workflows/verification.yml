@@ -34,6 +34,9 @@ jobs:
     - name: Check Plotnikov refutation assumptions
       run: python3 -m unittest discover -s experiments/issue577 -p 'test_*.py' -v
 
+    - name: Check issue 7 independence claims
+      run: python3 experiments/issue579/check_claims.py
+
     - name: Detect changed files
       id: changes
       run: |
@@ -123,6 +126,8 @@ jobs:
           lake build
           echo "✓ Lean build completed successfully!"
           echo ""
+          lean experiments/issue7_shoenfield_absoluteness.lean
+          lean experiments/issue7_undecidability_formalization.lean
           bash experiments/issue571/check.sh
           lake test || echo "No tests defined"
           python3 experiments/issue570/check_contradiction.py --lean

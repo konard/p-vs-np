@@ -10,6 +10,8 @@ This document provides a comprehensive catalog of solution strategies for formal
 
 **Key Distinction**: "Undecidable" here refers to **meta-mathematical independence** (unprovability within a formal system), not algorithmic undecidability (non-computability). The P vs NP question is a well-formed mathematical statement about complexity classes, and this document explores strategies to test whether it might be independent of ZFC or other foundational systems.
 
+For a clocked SAT decider, P = NP has the arithmetic form `∃ machine, clock ∀ input, correct finite computation`, a Σ⁰₂ formula; P ≠ NP is Π⁰₂. Forcing preserves arithmetic truth between a transitive ground model and its set-forcing extensions. Whether either side is provable in ZFC remains open: invariance under forcing does not establish provability. See [Aaronson, *P ?= NP*, section 3.1 and footnote 24](https://www.scottaaronson.com/papers/pnp.pdf).
+
 ---
 
 ## 1. Theoretical Foundations
@@ -54,10 +56,10 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - **Finite Combinatorics**: P vs NP is fundamentally about finite computation, which can behave differently in different models
 
 **Arguments Against Independence:**
-- **Arithmetic Nature**: P vs NP is a Π₂⁰ statement (∀∃ quantifiers over natural numbers), which by Shoenfield's absoluteness theorem is absolute across all models of ZFC with the same ordinals
+- **Arithmetic Nature**: P = NP has a Σ⁰₂ clocked-SAT formulation, and P ≠ NP is Π⁰₂. Their truth is preserved between a transitive ground model and its set-forcing extensions; this does not settle independence from ZFC
 - **Finite Character**: Questions about Turing machines running in polynomial time are "finitary" and thus less likely to be independent
 - **No Known Mechanism**: Unlike CH (involves infinite sets directly), P vs NP is about bounded computation
-- **Computability**: The problem is decidable in principle (one could enumerate all polynomial-time TMs and check)
+- **Search Limitation**: Machines and polynomial clocks can be enumerated, but verifying that one candidate decides SAT correctly on **every** input is a universal condition. Enumeration alone gives no decision procedure for P vs NP
 
 **Consensus**: Most complexity theorists believe P vs NP is *not* independent, but the question remains open and worth investigating.
 
@@ -75,8 +77,8 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   1. Define forcing conditions as partial assignments to Boolean formulas
   2. Construct a generic filter G that provides solutions to all SAT instances
   3. In M[G], attempt to make polynomial-time algorithm accessible via the generic
-- **Challenge**: SAT solvability is a Π₂⁰ property, absolute across forcing extensions
-- **Verdict**: Likely impossible due to absoluteness of arithmetic statements
+- **Challenge**: P = NP is Σ⁰₂ in the clocked-SAT formulation; ordinary forcing cannot change its arithmetic truth over the ground model
+- **Verdict**: This truth-changing forcing plan cannot establish independence; the general independence question stays open
 
 **Strategy A2: Forcing Over Non-Standard Models**
 - **Approach**: Work with models containing non-standard integers
@@ -99,7 +101,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 
 ### 2.2 Inner Model Theory
 
-**Goal**: Construct inner models of ZFC where P vs NP has definite answer.
+**Goal**: Study the interpretation of P vs NP in inner models of ZFC.
 
 **Strategy A4: Constructible Universe L**
 - **Approach**: Examine whether P vs NP has definite answer in Gödel's L
@@ -185,8 +187,8 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - **Known Results**:
   - PA can formalize Turing machines and polynomial-time
   - Paris-Harrington theorem shows PA cannot prove certain combinatorial statements
-- **Challenge**: P vs NP is Π₂⁰, provable or refutable in PA if true/false
-- **Verdict**: PA should be able to resolve P vs NP (by completeness of arithmetic), but this doesn't rule out independence from ZFC in principle
+- **Challenge**: The Σ⁰₂/Π⁰₂ classification alone gives no PA proof of either side. Logical completeness equates provability with truth in all models of a theory, not truth in the standard natural numbers alone
+- **Verdict**: Provability or independence from PA and ZFC remain unresolved
 
 **Strategy B3: Reverse Mathematics**
 - **Approach**: Determine which axioms are needed to prove P ≠ NP
@@ -421,12 +423,12 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 **Strategy F1: Forcing with Bounded Arithmetic Side Conditions**
 - **Approach**: Use forcing while preserving bounded arithmetic
 - **Method**:
-  1. Define forcing that respects Π₂⁰ statements
-  2. Attempt to force complexity class relationships without affecting P vs NP
+  1. Define forcing that respects arithmetic statements
+  2. Study complexity class relationships without assuming their truth can be changed by set forcing
   3. Show that P vs NP is invariant across such forcing extensions
-  4. Argue this suggests independence via under-determination
-- **Challenge**: Shoenfield absoluteness prevents this approach
-- **Verdict**: Theoretically interesting, likely blocked by absoluteness
+  4. Identify what this invariance says about this forcing method
+- **Challenge**: Arithmetic absoluteness blocks changing P vs NP by ordinary set forcing
+- **Verdict**: Useful limit on this method; it gives no verdict on ZFC independence
 
 ### 7.2 Proof Mining and Synthesis
 
@@ -527,7 +529,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 ### 9.2 Medium-Term Research (1-2 years)
 
 **Strategic Directions:**
-1. **If Shoenfield absoluteness is insurmountable:**
+1. **Given arithmetic invariance under ordinary forcing:**
    - Focus on proof complexity and practical unprovability
    - Study minimal proof length for P ≠ NP
    - Investigate barriers systematically
@@ -544,12 +546,10 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 
 ### 9.3 Long-Term Vision (3+ years)
 
-**Scenario 1: Independence Unlikely**
-- Conclude P vs NP is not independent based on:
-  - Shoenfield absoluteness
-  - Arithmetic nature of statement
-  - Lack of plausible mechanism
-- **Outcome**: Strengthen belief in P ≠ NP, focus on direct proof
+**Scenario 1: Independence Remains Open**
+- Record which model-construction methods preserve arithmetic truth
+- Investigate provability with explicit theories and proof predicates
+- **Outcome**: Sharpen both direct-proof and independence research
 
 **Scenario 2: Independence Plausible**
 - Find evidence for independence via:
@@ -570,13 +570,10 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 
 ### 10.1 Fundamental Barriers
 
-**Challenge 1: Shoenfield Absoluteness**
-- **Problem**: Π₂⁰ statements (including P vs NP) are absolute across models
-- **Implication**: P vs NP has same truth value in all models of ZFC with same ordinals
-- **Potential Loopholes**:
-  - Non-standard models with different ordinals
-  - Arithmetic may not fully capture complexity
-  - Formalization might involve higher-order arithmetic
+**Challenge 1: Arithmetic Absoluteness**
+- **Problem**: Set forcing preserves arithmetic truth between a transitive ground model and its extension
+- **Implication**: Forcing cannot change the answer to P vs NP over such a ground model
+- **Scope**: This does not compare all models of ZFC, especially arbitrary nonstandard models, or decide provability in ZFC
 
 **Challenge 2: Computational Nature**
 - **Problem**: P vs NP is about actual computation, not set-theoretic constructions
@@ -636,17 +633,17 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - Formally prove independence using forcing or inner models
 - **Impact**: Revolutionary, reshapes complexity theory and foundations
 
-### 11.2 Negative Results (Not Independent)
+### 11.2 Limits of Methods and Possible Resolution
 
 **Success Level 1: Rule Out Approaches**
 - Prove that specific strategies cannot show independence
 - Strengthen Shoenfield-style absoluteness results
-- **Impact**: Focus research on direct proof of P ≠ NP
+- **Impact**: Identify the limits of these strategies while leaving independence research open
 
 **Success Level 2: Identify Decidability**
 - Show that weak theories can resolve P vs NP
-- Demonstrate proof must exist (even if not constructively)
-- **Impact**: Shift focus to finding actual proof
+- Establish a proof or refutation in a specified theory
+- **Impact**: Determine the status relative to that theory
 
 **Success Level 3: Constructive Resolution**
 - While investigating independence, discover proof of P ≠ NP
@@ -743,7 +740,7 @@ This document has cataloged **30+ distinct strategies** across six major categor
    - May show independence from weak theories even if not from ZFC
 
 2. **Non-Standard Models**
-   - Potential loophole in Shoenfield absoluteness
+   - Requires careful treatment outside the transitive forcing-extension setting
    - Understudied in complexity theory context
    - Could reveal model-dependence in non-standard interpretation
 
