@@ -217,9 +217,14 @@ jobs:
               # Shared semantics must be compiled before its consumers.
               rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
               rocq compile -Q . '' proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v
+              # The issue #532 machine and circuit layers are imported by the idea files.
+              rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
+              rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
               find . -name "*.v" -type f \
                 ! -path './proofs/complexity/rocq/Complexity.v' \
                 ! -path './proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v' \
+                ! -path './proofs/experiments/issue532/rocq/Machines.v' \
+                ! -path './proofs/experiments/issue532/rocq/Circuits.v' \
                 ! -path './experiments/issue572/Independent.v' \
                 ! -path './experiments/issue574/PolynomialRegression.v' | while read -r file; do
                 echo "Checking: $file"
