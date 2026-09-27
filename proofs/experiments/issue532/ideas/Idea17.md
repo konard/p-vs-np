@@ -91,7 +91,7 @@ complexity-class statement fails.
 | `exists_threshold` | For all `c, k` there is `N` with `c*(n+1)^k < 2^n` for every `n ≥ N`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
 | `enumeration_not_polynomial` | For all `c, k` there is `N` such that for all `n ≥ N`, both the enumeration length and the worst-case scan cost exceed `c*(n+1)^k`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
 | `enumeration_cost_is_not_problem_cost` | For all `n`, the scan cost of the always-false predicate is `2^n`, yet brute force returns the same answer as the constant `false` procedure. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
-| `AllAlgorithmsSuperpolynomialFor` (def) | Schema (renamed from `AllAlgorithmsSuperpolynomial`; Rocq: same name): every correct algorithm of the model exceeds every polynomial at arbitrarily large lengths. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `AllAlgorithmsSuperpolynomialFor` (def) | Schema (renamed from `AllAlgorithmsSuperpolynomial` in both files): every correct algorithm of the model exceeds every polynomial at arbitrarily large lengths. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
 | `superpolynomial_excludes_poly` | If the obligation holds for a model, no correct algorithm of it is polynomially bounded. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
 | `one_slow_algorithm_is_not_a_lower_bound` | In a model with a `2^n` algorithm and a cost-1 algorithm, the first exceeds every polynomial infinitely often, yet the schema fails. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
 | `polyEval_eq` | `polyEval c k n = (Polynomial.mk c k).eval n`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
@@ -111,6 +111,37 @@ complexity-class statement fails.
 
 The counting theorems use explicit counts; the machine part uses `Run`
 step counts of the shared model (`Issue532.Machines`).
+
+Rocq-specific differences:
+
+- `runTime` is computable in Rocq.
+  - `haltsAt m c t` decides whether `m` halts after exactly `t` steps
+    (`haltsAt_iff`).
+  - `runTime m h x` finds that `t` by the axiom-free linear search
+    `constructive_indefinite_ground_description_nat` of
+    `Stdlib.ConstructiveEpsilon`.
+  - The search needs a proof `h : Halts m` that `m` halts on every input, so
+    `runTime` and `worstTime` take `h` as an extra argument. Lean instead
+    returns 0 on non-halting inputs by classical choice.
+  - `runTime_eq` shows that the value does not depend on `h`.
+- In `machineModel L`, the algorithms are the pairs `{m | TotalDecider m L}`,
+  because the cost needs the halting proof, and `correct := fun _ => True`.
+  `SATMachinesSuperpolynomial` quantifies over `m` and `h : TotalDecider m SAT`
+  as in Lean, with cost `worstTime m (totalDecider_halts m SAT h)`.
+- Three theorems take excluded middle `(forall P : Prop, P \/ ~ P)` as an
+  explicit premise:
+  - `allMachinesSuperpolynomial_iff_not_inP`
+  - `satMachinesSuperpolynomial_iff_not_inP`
+  - `satMachinesSuperpolynomial_iff_pNotEqualsNP`
+
+  Lean uses `Classical.byContradiction` in the same direction. The other
+  direction is proved without the premise (`allMachinesSuperpolynomial_not_inP`,
+  `not_inP_sat_of_satMachinesSuperpolynomial`).
+- `diag_superpolynomial` is proved by a direct pointwise diagonal. For each
+  `m`, `c`, `k`, `N`, the code of the pair `(m, c + N, k)` is an input of
+  length at least `N` on which `m` cannot halt within the polynomial. The proof
+  does not go through the classical equivalence with `¬ InP Diag`.
+- The Rocq file uses no axioms.
 
 ## 4. Complete argument
 
@@ -207,8 +238,10 @@ counting and growth facts of Section 3 are machine-checked.
   original problem, not weaker.
 * **Non-vacuity.** The machine schema fails for the constant-false language
   and holds for the diagonal language `Diag` (`machine_schema_nontrivial`).
-* **Caveats.** `runTime` and `worstTime` are noncomputable (classical
-  choice of the halting time), but determined by `Run` (`runTime_eq`).
+* **Caveats.** In Lean `runTime` and `worstTime` are noncomputable
+  (classical choice of the halting time). In Rocq they are computed by a
+  linear search, given a halting proof. In both files they are determined by
+  `Run` (`runTime_eq`).
   Polynomial time here means the worst case over words of each length, which
   matches `DecidesWithin`/`InP` of the shared model.
 * **Barriers.** A proof that argues "every algorithm must in effect enumerate"
@@ -247,10 +280,12 @@ From the repository root:
 
 ```sh
 lake env lean proofs/experiments/issue532/lean/Idea17.lean
+rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea17.v
 rm -f proofs/experiments/issue532/rocq/Idea17.vo proofs/experiments/issue532/rocq/Idea17.vok \
       proofs/experiments/issue532/rocq/Idea17.vos proofs/experiments/issue532/rocq/Idea17.glob \
       proofs/experiments/issue532/rocq/.Idea17.aux
 ```
 
-Both commands print nothing on success.
+All commands print nothing on success.

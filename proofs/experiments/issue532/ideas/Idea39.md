@@ -120,13 +120,33 @@ whose steps compose correctly only along p-simulations.
 | `allTautSystemsSuperpolynomial_of_npNeCoNP` | given `CookReckhow`, NP ≠ coNP gives the obligation | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `emptyMachine_run`, `inP_const_false`, `const_false_not_allSuperpolynomial` | non-vacuity: the schema fails for the constant-false language | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 | `encVerifier`, `encVerifier_injective`, `verifierLanguage`, `verifierLanguage_eq` | verifier programs are countable, and each system determines its language | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
-| `exists_allSuperpolynomial`, `crSchema_nontrivial` | non-vacuity: the schema holds for some language (Cantor) and fails for another | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
+| `exists_allSuperpolynomial`, `crSchema_nontrivial` | non-vacuity: the schema holds for some language (Cantor; in Rocq a direct diagonal, `crDiag_allSuperpolynomial`) and fails for another | [Lean](../lean/Idea39.lean) | [Rocq](../rocq/Idea39.v) |
 
 Helper lemmas `succ_le_two_pow`, `lt_two_pow_self`, `linear_lt_exp` and
 `dyadic_bracket` are proved in both files. The definitions `Poly`, `System`,
 `PSim`, `LowerBound`, `PolyBounded`, `SuperpolyLB`, `weakSys`, `strongSys` and
-`SuperpolyAllSystemsFor` appear in both files (the Rocq file still uses the pre-refactor name `SuperpolyAllSystems`; the intended Rocq names of the machine part are the Lean names). Rocq uses `peval`/`pcomp` for Lean's
-`Poly.eval`/`Poly.comp`. All proofs are constructive.
+`SuperpolyAllSystemsFor` appear in both files, and the machine part has the
+same names in both. Rocq uses `peval`/`pcomp` for Lean's `Poly.eval`/`Poly.comp`.
+
+Rocq-specific differences. The Rocq file uses no axioms. Four Lean proofs use
+classical logic: `superpolyLB_iff_forall_not_polyBounded`,
+`allCRSystemsSuperpolynomial_iff`, `allCRSystemsSuperpolynomial_of_not_inNP`
+and `allTautSystemsSuperpolynomial_of_not_inNP`. In Rocq each of these takes
+excluded middle `(forall P : Prop, P \/ ~ P)` as an explicit premise. The
+directions that need no premise are `superpoly_not_bounded` and
+`allCRSystemsSuperpolynomial_not_polyBounded` (Rocq only).
+
+`verifierLanguage` is a predicate `Word -> Prop` in Rocq, not a classically
+decided `Language`. So `verifierLanguage_eq` is stated pointwise:
+`L x = true <-> verifierLanguage (verifier P) x`.
+
+`exists_allSuperpolynomial` has the same statement in both files but a
+different proof in Rocq. Instead of Cantor over `verifierLanguage`, it uses a
+direct pointwise diagonal `crDiag`, built over the codes `encVerifierPoly v Q`
+of (verifier, polynomial) pairs. On such a code `x`, `crDiag` rejects exactly
+when `v` accepts `x` within `Q(n + Q(n) + 1)` steps with some proof of
+length at most `Q(n)`, where `n` is the length of `x`. The main result is `crDiag_allSuperpolynomial` (Rocq
+only), which says every Cook–Reckhow system for `crDiag` is superpolynomial.
 
 ## 4. Complete argument
 
@@ -260,8 +280,10 @@ From the repository root:
 
 ```bash
 lake env lean proofs/experiments/issue532/lean/Idea39.lean
+rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea39.v
 rm -f proofs/experiments/issue532/rocq/Idea39.{vo,vok,vos,glob} proofs/experiments/issue532/rocq/.Idea39.aux
 ```
 
-Both commands print nothing on success.
+All commands print nothing on success.

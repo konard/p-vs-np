@@ -75,8 +75,8 @@ def ERNotPolyBounded : Prop :=
 | `NotPolyBoundedFor` (def) | Schema: a refutation system `D` is not polynomially bounded on the CNFs that SAT rejects | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `ERNotPolyBounded` (def) | Open obligation: extended resolution is not polynomially bounded on the CNFs that `SAT` rejects | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `erNotPolyBounded_iff_for` | `ERNotPolyBounded ↔ NotPolyBoundedFor ERDerives` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
-| `ERPolyBounded` (def), `erNotPolyBounded_iff` | `ERNotPolyBounded ↔ ¬ ERPolyBounded` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
-| `erNotPolyBounded_iff_family` | The obligation holds iff some family meets `ERSuperpolyLowerBoundFor` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `ERPolyBounded` (def), `erNotPolyBounded_iff` | `ERNotPolyBounded ↔ ¬ ERPolyBounded` (Rocq: given excluded middle; the forward direction without it is `erNotPolyBounded_not_polyBounded`) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `erNotPolyBounded_iff_family` | The obligation holds iff some family meets `ERSuperpolyLowerBoundFor` (Rocq: given a choice principle; the backward direction without it is `erNotPolyBounded_of_family`) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `ResDerives`, `erDerives_of_res` | Resolution derivations are extended-resolution derivations | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `ResNotPolyBounded` (def) | Resolution is not polynomially bounded (known, Haken 1985; not mechanised) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `resNotPolyBounded_of_er` | Conditional theorem: `ERNotPolyBounded → ResNotPolyBounded` (the honest conclusion) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
@@ -87,7 +87,16 @@ def ERNotPolyBounded : Prop :=
 | `oneStep_not_notPolyBounded` | Non-vacuity: the schema fails for a system deriving `[]` in one step | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `emptyClause_not_superpoly` | Non-vacuity: `ERSuperpolyLowerBoundFor` fails for the family `fun _ => [[]]` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 
-No axioms are used, and there is no `sorry`/`Admitted`. In Rocq the `ERDerives` constructors are named `er_start`, `er_res`, `er_ext`.
+No axioms are used, and there is no `sorry`/`Admitted`.
+
+Rocq-specific differences:
+
+- Constructor names: the `ERDerives` constructors are `er_start`, `er_res` and `er_ext`, and the `ResDerives` constructors are `res_start` and `res_res`.
+- Shadowed CNF syntax: the file keeps its own CNF syntax, which shadows the syntax of `Machines.v`. The machine versions are written qualified, for example `Machines.evalCNF`.
+- `erNotPolyBounded_iff`: Lean proves the backward direction with `Classical.byContradiction`. In Rocq the theorem instead takes excluded middle `(forall P : Prop, P \/ ~ P)` as an explicit premise.
+- `erNotPolyBounded_iff_family`: Lean builds the family with `Classical.choose`. In Rocq the theorem instead takes an explicit premise: a choice principle for `nat`-indexed families of CNFs, `forall P : nat -> CNF -> Prop, (forall n, exists phi, P n phi) -> exists f, forall n, P n (f n)`.
+- Directions without premises: for both theorems above, the direction that needs no premise is also proved on its own, as `erNotPolyBounded_not_polyBounded` and `erNotPolyBounded_of_family`.
+- `sat_contra`: proved by `vm_compute` instead of `decide`.
 
 ## 4. Complete argument
 
@@ -169,7 +178,9 @@ From the repository root:
 
 ```sh
 lake env lean proofs/experiments/issue532/lean/Idea28.lean
+rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea28.v
 ```
 
-Both commands print nothing on success. Remove the generated Rocq artifacts (`.vo`, `.vok`, `.vos`, `.glob`, `.aux`) afterwards.
+All commands print nothing on success. Remove the generated Rocq artifacts (`.vo`, `.vok`, `.vos`, `.glob`, `.aux`) afterwards.
