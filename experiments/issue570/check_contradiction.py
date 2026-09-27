@@ -56,6 +56,12 @@ if __name__ == "__main__":
     parser.add_argument("--rocq", action="store_true", help="check only Rocq")
     args = parser.parse_args()
     if args.lean or not args.rocq:
-        rejected(LEAN, LEAN_CONTRADICTION, ["lean"])
+        subprocess.run(["lake", "build", "proofs.complexity.lean.Complexity"], cwd=ROOT, check=True)
+        rejected(LEAN, LEAN_CONTRADICTION, ["lake", "env", "lean"])
     if args.rocq or not args.lean:
-        rejected(ROCQ, ROCQ_CONTRADICTION, ["rocq", "compile"])
+        subprocess.run(
+            ["rocq", "compile", "-Q", ".", "", "proofs/complexity/rocq/Complexity.v"],
+            cwd=ROOT,
+            check=True,
+        )
+        rejected(ROCQ, ROCQ_CONTRADICTION, ["rocq", "compile", "-Q", ".", ""])
