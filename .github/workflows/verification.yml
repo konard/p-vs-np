@@ -25,6 +25,9 @@ jobs:
     - name: Check Gubin audit for unproved assumptions
       run: python3 scripts/check_gubin_audit.py
 
+    - name: Test attempt structure checker
+      run: python3 -m unittest scripts.test_check_attempt_structure -v
+
     - name: Check exact Gubin paper LP witness
       run: python3 experiments/issue578/check_paper_lp.py
 
