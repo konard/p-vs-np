@@ -1,4 +1,5 @@
 import proofs.experiments.issue532.lean.Circuits
+import proofs.experiments.issue532.lean.Idea16
 
 /-!
 # Idea 41: Williams' algorithmic method in the shared model
@@ -13,8 +14,9 @@ For general circuits (`C = P/poly`) the algorithm is an open problem.
 This file states the method for general NAND circuits over the shared model:
 
 * `InNTIME`, `InNEXP`, `NEXPSubsetPPoly`: nondeterministic time with `Run`
-  step counts and paired certificates, the class NEXP, and the statement
-  `NEXP ⊆ P/poly` over `Issue532.Circuits`.
+  step counts and paired certificates (clocked, as in `Complexity.ClassNP`;
+  `inNTIME_iff_idea16` shows it is Idea 16's class), the class NEXP, and the
+  statement `NEXP ⊆ P/poly` over `Issue532.Circuits`.
 * `CircuitSAT`, `encCircuit`, `bruteCircuitSAT_correct`,
   `length_allAssignments`: circuit satisfiability as a language, and the
   exhaustive-search baseline with its `2^n` assignments.
@@ -25,7 +27,8 @@ This file states the method for general NAND circuits over the shared model:
   theorems of the proof, stated in the model and used only as explicit
   hypotheses.
 * `williams_method`: the implication `FastCircuitSAT → ¬ NEXPSubsetPPoly`
-  under those hypotheses.
+  under those hypotheses. `williams_method_idea16` takes the hierarchy theorem
+  in Idea 16's form (`nTimeHierarchy_of_idea16`).
 * `lazy_diagonal`, `nTimeHierarchy_of_lazyDiagonal`: the diagonal argument of
   Žák's hierarchy theorem, proved; what remains of `NTimeHierarchy` is a
   simulation statement, `LazyDiagonalSimulation`.
@@ -46,10 +49,13 @@ open Complexity Issue532.Machines Issue532.Circuits
 def AcceptsWithin (m : Machine) (T : Nat) (x cert : Word) : Prop :=
   ∃ t, t ≤ T ∧ Run m (pairedInput x cert) t true
 
-/-- `m` is a nondeterministic verifier for `L` with certificate length and
-running time at most `c · T(n) + c`. The constant `c` absorbs constant
-factors and finitely many short inputs. -/
+/-- `m` is a clocked nondeterministic verifier for `L` with certificate
+length and running time at most `c · T(n) + c`: it halts within that bound on
+every short certificate, and `x ∈ L` iff it accepts one. The constant `c`
+absorbs constant factors and finitely many short inputs. -/
 def VerifiesIn (m : Machine) (c : Nat) (T : Nat → Nat) (L : Language) : Prop :=
+  (∀ x cert, cert.length ≤ c * T x.length + c →
+    ∃ t b, t ≤ c * T x.length + c ∧ Run m (pairedInput x cert) t b) ∧
   ∀ x : Word, L x = true ↔
     ∃ cert : Word, cert.length ≤ c * T x.length + c ∧
       AcceptsWithin m (c * T x.length + c) x cert
@@ -57,6 +63,28 @@ def VerifiesIn (m : Machine) (c : Nat) (T : Nat → Nat) (L : Language) : Prop :
 /-- The class `NTIME(T)` over `Complexity.Machine`. -/
 def InNTIME (T : Nat → Nat) (L : Language) : Prop :=
   ∃ (m : Machine) (c : Nat), VerifiesIn m c T L
+
+/-- This is Idea 16's `NTIME(T)`, the class its hierarchy theorem is stated
+for; so the two files use one definition. -/
+theorem inNTIME_iff_idea16 (T : Nat → Nat) (L : Language) :
+    InNTIME T L ↔ Idea16.InNTIME T L := by
+  constructor
+  · rintro ⟨m, c, hhalt, hL⟩
+    refine ⟨m, c, hhalt, fun x => ?_⟩
+    rw [hL x]
+    constructor
+    · rintro ⟨cert, hc, t, ht, hr⟩
+      exact ⟨cert, t, hc, ht, hr⟩
+    · rintro ⟨cert, t, hc, ht, hr⟩
+      exact ⟨cert, hc, t, ht, hr⟩
+  · rintro ⟨m, c, hhalt, hL⟩
+    refine ⟨m, c, hhalt, fun x => ?_⟩
+    rw [hL x]
+    constructor
+    · rintro ⟨cert, t, hc, ht, hr⟩
+      exact ⟨cert, hc, t, ht, hr⟩
+    · rintro ⟨cert, hc, t, ht, hr⟩
+      exact ⟨cert, t, hc, ht, hr⟩
 
 /-- The exponential time bound `2^{n^k}`. -/
 def expBound (k : Nat) (n : Nat) : Nat := 2 ^ (n ^ k)
@@ -71,9 +99,10 @@ def NEXPSubsetPPoly : Prop := ∀ L : Language, InNEXP L → InPPoly L
 /-- `NTIME(2^n) ⊆ NEXP`. -/
 theorem inNEXP_of_inNTIME_two_pow {L : Language} (h : InNTIME (fun n => 2 ^ n) L) :
     InNEXP L := by
-  obtain ⟨m, c, hm⟩ := h
-  refine ⟨1, m, c, fun x => ?_⟩
-  simpa [expBound] using hm x
+  obtain ⟨m, c, hhalt, hm⟩ := h
+  refine ⟨1, m, c, fun x cert hc => ?_, fun x => ?_⟩
+  · simpa [expBound] using hhalt x cert (by simpa [expBound] using hc)
+  · simpa [expBound] using hm x
 
 /-! ### Non-vacuity
 
@@ -93,10 +122,10 @@ theorem eq_acceptedLanguage {m : Machine} {c : Nat} {T : Nat → Nat} {L : Langu
   funext x
   unfold acceptedLanguage
   cases hL : L x with
-  | true => exact (decide_eq_true ((h x).mp hL)).symm
+  | true => exact (decide_eq_true ((h.2 x).mp hL)).symm
   | false =>
     refine (decide_eq_false fun hx => ?_).symm
-    have := (h x).mpr hx
+    have := (h.2 x).mpr hx
     rw [hL] at this
     cases this
 
@@ -275,6 +304,18 @@ theorem not_fastCircuitSAT_of_nexpSubsetPPoly (hier : NTimeHierarchy)
     ¬ FastCircuitSAT :=
   fun fast => williams_method hier ewl speedup fast hsub
 
+/-- Idea 16 states the hierarchy theorem for every gap `(n+1)^k` with
+`k ≥ 3`; the method needs one gap. -/
+theorem nTimeHierarchy_of_idea16 (h : Idea16.NTimeHierarchy) : NTimeHierarchy := by
+  obtain ⟨L, hL, hnot⟩ := h 3 (Nat.le_refl 3)
+  exact ⟨3, L, (inNTIME_iff_idea16 _ _).mpr hL,
+    fun h' => hnot ((inNTIME_iff_idea16 _ _).mp h')⟩
+
+/-- The method with Idea 16's form of the hierarchy theorem. -/
+theorem williams_method_idea16 (hier : Idea16.NTimeHierarchy) (ewl : EasyWitnessLemma)
+    (speedup : WilliamsSpeedup) (fast : FastCircuitSAT) : ¬ NEXPSubsetPPoly :=
+  williams_method (nTimeHierarchy_of_idea16 hier) ewl speedup fast
+
 /-! ## Discharging the diagonal part of the hierarchy theorem
 
 Žák's lazy diagonalisation. The diagonal language `D` copies `L` one step
@@ -338,6 +379,16 @@ theorem williams_method_lazy (c : Nat)
     (ewl : EasyWitnessLemma) (speedup : WilliamsSpeedup) (fast : FastCircuitSAT) :
     ¬ NEXPSubsetPPoly :=
   williams_method (nTimeHierarchy_of_lazyDiagonal c sim) ewl speedup fast
+
+/-- Idea 16's form of the hierarchy theorem from the simulation statement, one
+gap `k ≥ 3` at a time: the diagonal argument is the same. -/
+theorem idea16_nTimeHierarchy_of_lazyDiagonal
+    (h : ∀ k, 3 ≤ k → LazyDiagonalSimulation (fun n => 2 ^ n) (fun n => 2 ^ n / (n + 1) ^ k)) :
+    Idea16.NTimeHierarchy := by
+  intro k hk
+  obtain ⟨D, hD, hlazy⟩ := h k hk
+  exact ⟨D, (inNTIME_iff_idea16 _ _).mp hD,
+    fun h' => not_inNTIME_of_lazyDiagonal hlazy ((inNTIME_iff_idea16 _ _).mpr h')⟩
 
 /-! ## The obligation and the separation question
 

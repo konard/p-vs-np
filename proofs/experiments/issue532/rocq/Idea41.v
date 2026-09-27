@@ -10,8 +10,9 @@
     For general circuits (P/poly) the algorithm is an open problem.
 
     - [InNTIME], [InNEXP], [NEXPSubsetPPoly]: nondeterministic time with [Run]
-      step counts and paired certificates, the class NEXP, and the statement
-      "NEXP is contained in P/poly" over [Circuits.v].
+      step counts and paired certificates (clocked, as in [Complexity.ClassNP];
+      [inNTIME_iff_idea16] shows it is Idea 16's class), the class NEXP, and
+      the statement "NEXP is contained in P/poly" over [Circuits.v].
     - [CircuitSAT], [encCircuit], [bruteCircuitSAT_correct],
       [length_allAssignments]: circuit satisfiability as a language, and the
       exhaustive-search baseline with its [2^n] assignments.
@@ -22,7 +23,10 @@
       known theorems of the proof, stated in the model and used only as
       explicit premises (never proved or assumed globally here).
     - [williams_method]: [FastCircuitSAT -> ~ NEXPSubsetPPoly] under those
-      premises.
+      premises.  [williams_method_idea16] takes the hierarchy theorem in
+      Idea 16's form ([nTimeHierarchy_of_idea16]), and
+      [idea16_nTimeHierarchy_of_lazyDiagonal] reduces that form to the
+      simulation statement below.
     - [lazy_diagonal], [nTimeHierarchy_of_lazyDiagonal]: the diagonal argument
       of Zak's hierarchy theorem, proved; what remains of [NTimeHierarchy] is
       the simulation statement [LazyDiagonalSimulation].
@@ -70,6 +74,7 @@
 From Stdlib Require Import Arith PeanoNat Lia Bool List.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines Circuits.
+From proofs.experiments.issue532.rocq Require Idea16.
 
 (** ** Nondeterministic time *)
 
@@ -78,9 +83,14 @@ From proofs.experiments.issue532.rocq Require Import Machines Circuits.
 Definition AcceptsWithin (m : Machine) (T : nat) (x cert : Word) : Prop :=
   exists t, t <= T /\ Run m (pairedInput x cert) t true.
 
-(** [m] is a nondeterministic verifier for [L] with certificate length and
-    running time at most [c * T(n) + c]. *)
+(** [m] is a clocked nondeterministic verifier for [L] with certificate
+    length and running time at most [c * T(n) + c]: it halts within that
+    bound on every short certificate, and [x] is in [L] iff it accepts one.
+    The constant [c] absorbs constant factors and finitely many short
+    inputs. *)
 Definition VerifiesIn (m : Machine) (c : nat) (T : nat -> nat) (L : Language) : Prop :=
+  (forall x cert, length cert <= c * T (length x) + c ->
+     exists t b, t <= c * T (length x) + c /\ Run m (pairedInput x cert) t b) /\
   forall x : Word, L x = true <->
     exists cert : Word, length cert <= c * T (length x) + c /\
       AcceptsWithin m (c * T (length x) + c) x cert.
@@ -88,6 +98,22 @@ Definition VerifiesIn (m : Machine) (c : nat) (T : nat -> nat) (L : Language) : 
 (** The class [NTIME(T)] over [Complexity.Machine]. *)
 Definition InNTIME (T : nat -> nat) (L : Language) : Prop :=
   exists (m : Machine) (c : nat), VerifiesIn m c T L.
+
+(** This is Idea 16's [NTIME(T)], the class its hierarchy theorem is stated
+    for; so the two files use one definition. *)
+Theorem inNTIME_iff_idea16 : forall (T : nat -> nat) (L : Language),
+  InNTIME T L <-> Idea16.InNTIME T L.
+Proof.
+  intros T L. split.
+  - intros [m [c [hhalt hL]]]. exists m, c. split; [exact hhalt |].
+    intro x. rewrite (hL x). split.
+    + intros [cert [hc [t [ht hr]]]]. exists cert, t. auto.
+    + intros [cert [t [hc [ht hr]]]]. exists cert. split; [exact hc |]. exists t. auto.
+  - intros [m [c [hhalt hL]]]. exists m, c. split; [exact hhalt |].
+    intro x. rewrite (hL x). split.
+    + intros [cert [t [hc [ht hr]]]]. exists cert. split; [exact hc |]. exists t. auto.
+    + intros [cert [hc [t [ht hr]]]]. exists cert, t. auto.
+Qed.
 
 (** The exponential time bound [2^(n^k)]. *)
 Definition expBound (k : nat) (n : nat) : nat := 2 ^ (n ^ k).
@@ -102,8 +128,11 @@ Definition NEXPSubsetPPoly : Prop := forall L : Language, InNEXP L -> InPPoly L.
 Theorem inNEXP_of_inNTIME_two_pow : forall L : Language,
   InNTIME (fun n => 2 ^ n) L -> InNEXP L.
 Proof.
-  intros L [m [c hm]]. exists 1, m, c. intro x.
-  unfold expBound. rewrite Nat.pow_1_r. exact (hm x).
+  intros L [m [c [hhalt hm]]]. exists 1, m, c.
+  assert (e : forall n, expBound 1 n = 2 ^ n) by (intro n; unfold expBound; rewrite Nat.pow_1_r; reflexivity).
+  split.
+  - intros x cert. rewrite e. exact (hhalt x cert).
+  - intro x. rewrite e. exact (hm x).
 Qed.
 
 (** *** Non-vacuity
@@ -163,7 +192,7 @@ Qed.
 Theorem eq_acceptedLanguage : forall m c T L,
   VerifiesIn m c T L -> forall x, L x = acceptedLanguage m c T x.
 Proof.
-  intros m c T L h x. pose proof (h x) as hx. pose proof (acceptedLanguage_spec m c T x) as ha.
+  intros m c T L [_ h] x. pose proof (h x) as hx. pose proof (acceptedLanguage_spec m c T x) as ha.
   destruct (L x), (acceptedLanguage m c T x); try reflexivity.
   - symmetry. apply ha. apply hx. reflexivity.
   - apply hx. apply ha. reflexivity.
@@ -454,6 +483,23 @@ Proof.
   intros hier ewl speedup hsub fast. exact (williams_method hier ewl speedup fast hsub).
 Qed.
 
+(** Idea 16 states the hierarchy theorem for every gap [(n+1)^k] with
+    [k >= 3]; the method needs one gap. *)
+Theorem nTimeHierarchy_of_idea16 : Idea16.NTimeHierarchy -> NTimeHierarchy.
+Proof.
+  intro h. destruct (h 3 (le_n 3)) as [L [hL hnot]]. exists 3, L. split.
+  - apply inNTIME_iff_idea16. exact hL.
+  - intro h'. apply hnot. apply inNTIME_iff_idea16. exact h'.
+Qed.
+
+(** The method with Idea 16's form of the hierarchy theorem. *)
+Theorem williams_method_idea16 : Idea16.NTimeHierarchy -> EasyWitnessLemma ->
+  WilliamsSpeedup -> FastCircuitSAT -> ~ NEXPSubsetPPoly.
+Proof.
+  intros hier ewl speedup fast.
+  exact (williams_method (nTimeHierarchy_of_idea16 hier) ewl speedup fast).
+Qed.
+
 (** ** Discharging the diagonal part of the hierarchy theorem
 
     Zak's lazy diagonalisation.  The diagonal language [D] copies [L] one
@@ -519,6 +565,18 @@ Theorem williams_method_lazy : forall c : nat,
 Proof.
   intros c sim ewl speedup fast.
   exact (williams_method (nTimeHierarchy_of_lazyDiagonal c sim) ewl speedup fast).
+Qed.
+
+(** Idea 16's form of the hierarchy theorem from the simulation statement,
+    one gap [k >= 3] at a time: the diagonal argument is the same. *)
+Theorem idea16_nTimeHierarchy_of_lazyDiagonal :
+  (forall k, 3 <= k ->
+     LazyDiagonalSimulation (fun n => 2 ^ n) (fun n => 2 ^ n / (n + 1) ^ k)) ->
+  Idea16.NTimeHierarchy.
+Proof.
+  intros h k hk. destruct (h k hk) as [D [hD hlazy]]. exists D. split.
+  - apply inNTIME_iff_idea16. exact hD.
+  - intro h'. apply (not_inNTIME_of_lazyDiagonal _ D hlazy). apply inNTIME_iff_idea16. exact h'.
 Qed.
 
 (** ** The obligation and the separation question *)

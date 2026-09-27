@@ -1,6 +1,6 @@
 # Idea 41 — Williams' algorithmic method (fast circuit satisfiability ⇒ circuit lower bounds)
 
-**Verdict:** Developed to an open obligation (conditional theorem proved). Williams' method turns a satisfiability algorithm into a circuit lower bound. The files state it in the shared machine model: if one machine decides satisfiability of NAND circuits with `n` inputs and `(n+1)^k` gates in `2^n / n^{ω(1)}` `Run` steps (`FastCircuitSAT`, the open obligation), then `NEXP ⊄ P/poly` (`williams_method`). Three known theorems enter as named explicit hypotheses: the nondeterministic time hierarchy (`NTimeHierarchy`), the easy-witness lemma (`EasyWitnessLemma`) and Williams' speedup construction (`WilliamsSpeedup`). The diagonal part of the hierarchy theorem is proved (`lazy_diagonal`, `nTimeHierarchy_of_lazyDiagonal`), leaving a pure simulation statement. The obligation is tied to P versus NP in both directions. `P = NP` implies it (`fastCircuitSAT_of_pEqualsNP`, proved from the membership of circuit satisfiability in NP), so refuting it would prove `P ≠ NP` (`pNotEqualsNP_of_not_fastCircuitSAT`). Proving it gives `NEXP ⊄ P/poly`, which is not known to imply `P ≠ NP`. For `ACC⁰` circuits instead of general circuits the algorithm exists, and the method gives the unconditional `NEXP ⊄ ACC⁰` (Williams 2011) and `NQP ⊄ ACC⁰` (Murray–Williams 2018), which are cited and not mechanised.
+**Verdict:** Developed to an open obligation (conditional theorem proved). Williams' method turns a satisfiability algorithm into a circuit lower bound. The files state it in the shared machine model: if one machine decides satisfiability of NAND circuits with `n` inputs and `(n+1)^k` gates in `2^n / n^{ω(1)}` `Run` steps (`FastCircuitSAT`, the open obligation), then `NEXP ⊄ P/poly` (`williams_method`). Three known theorems enter as named explicit hypotheses: the nondeterministic time hierarchy (`NTimeHierarchy`), the easy-witness lemma (`EasyWitnessLemma`) and Williams' speedup construction (`WilliamsSpeedup`). The diagonal part of the hierarchy theorem is proved (`lazy_diagonal`, `nTimeHierarchy_of_lazyDiagonal`), leaving a pure simulation statement. The hierarchy hypothesis is the one [Idea 16](Idea16.md) states: both files use one class `NTIME(T)` (`inNTIME_iff_idea16`), Idea 16's `NTimeHierarchy` gives the one used here (`nTimeHierarchy_of_idea16`, `williams_method_idea16`), and the simulation statement for every `k ≥ 3` gives Idea 16's (`idea16_nTimeHierarchy_of_lazyDiagonal`). Idea 16's statement is itself a named known theorem, not a proof, so this replaces one hypothesis by a shared one; it does not remove it. The obligation is tied to P versus NP in both directions. `P = NP` implies it (`fastCircuitSAT_of_pEqualsNP`, proved from the membership of circuit satisfiability in NP, `CircuitSATInNP`, which is a named hypothesis here), so refuting it would prove `P ≠ NP` (`pNotEqualsNP_of_not_fastCircuitSAT`). Proving it gives `NEXP ⊄ P/poly`, which is not known to imply `P ≠ NP`. For `ACC⁰` circuits instead of general circuits the algorithm exists, and the method gives the unconditional `NEXP ⊄ ACC⁰` (Williams 2011) and `NQP ⊄ ACC⁰` (Murray–Williams 2018), which are cited and not mechanised.
 
 ## 1. The idea at full strength
 
@@ -49,10 +49,14 @@ programs, `WF`, `output`, `InPPoly`).
 
 * **Nondeterministic time.** `AcceptsWithin m T x cert` means that the machine
   `m` started on `pairedInput x cert` accepts within `T` `Run` steps.
-  `VerifiesIn m c T L` means that for every `x`:
+  `VerifiesIn m c T L` says two things. First, `m` halts within
+  `c·T(|x|) + c` steps on every `pairedInput x cert` with
+  `|cert| ≤ c·T(|x|) + c`. Second, for every `x`,
   `L x = true ↔ ∃ cert, |cert| ≤ c·T(|x|) + c ∧ AcceptsWithin m (c·T(|x|) + c) x cert`.
   `InNTIME T L :≡ ∃ m c, VerifiesIn m c T L`. The constant `c` absorbs
-  constant factors and finitely many short inputs.
+  constant factors and finitely many short inputs. The clock is the one of
+  Idea 16's `InNTIME`, and `inNTIME_iff_idea16` proves that the two
+  definitions agree.
 * **NEXP and P/poly.** `expBound k n = 2^(n^k)`,
   `InNEXP L :≡ ∃ k, InNTIME (expBound k) L`, and
   `NEXPSubsetPPoly :≡ ∀ L, InNEXP L → InPPoly L`.
@@ -70,7 +74,9 @@ programs, `WF`, `output`, `InPPoly`).
   ∃ t b, t·(n+1)^c ≤ 2^n ∧ Run m (initial (encCircuit n C)) t b ∧ (b = true ↔ CircuitSatisfiable n C)`.
   The cost `t` is the `Run` step count of the machine `m`.
 * **Known theorems, stated in the model and used only as hypotheses:**
-  * `NTimeHierarchy :≡ ∃ c L, InNTIME (n ↦ 2^n) L ∧ ¬ InNTIME (n ↦ 2^n/(n+1)^c) L`;
+  * `NTimeHierarchy :≡ ∃ c L, InNTIME (n ↦ 2^n) L ∧ ¬ InNTIME (n ↦ 2^n/(n+1)^c) L`.
+    Idea 16 states the stronger `Idea16.NTimeHierarchy`, the same gap for
+    every `k ≥ 3`, and `nTimeHierarchy_of_idea16` derives this one from it;
   * `SuccinctWitnesses`: for every verifier `VerifiesIn m c (expBound k) L`
     there is `d` such that every `x ∈ L` has an accepted certificate that
     is a prefix of `truthTable ℓ W` for a well-formed circuit `W` with at
@@ -92,6 +98,10 @@ programs, `WF`, `output`, `InPPoly`).
 | `lazy_diagonal` | If `D` copies `L` one step ahead on `[l, u)` and flips `L(1^l)` at `1^u`, then `L ≠ D`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
 | `nTimeHierarchy_of_lazyDiagonal` | `LazyDiagonalSimulation (2^n) (2^n/(n+1)^c)` implies `NTimeHierarchy`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
 | `williams_method_lazy` | The method with the hierarchy theorem replaced by the simulation statement. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
+| `inNTIME_iff_idea16` | Idea 41's `InNTIME` and Idea 16's `InNTIME` are the same class. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
+| `nTimeHierarchy_of_idea16` | Idea 16's hierarchy statement implies the one used here. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
+| `williams_method_idea16` | The method with Idea 16's hierarchy statement as the hypothesis. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
+| `idea16_nTimeHierarchy_of_lazyDiagonal` | The simulation statement for every `k ≥ 3` implies Idea 16's hierarchy statement. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
 | `fastCircuitSAT_of_inP` | A polynomial-time `CircuitSAT` decider meets the obligation. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
 | `fastCircuitSAT_of_pEqualsNP` | `CircuitSATInNP` and `P = NP` imply `FastCircuitSAT`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
 | `fastCircuitSAT_of_inP_sat` | `SATHard`, `CircuitSATInNP` and `InP SAT` imply `FastCircuitSAT`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
@@ -115,8 +125,11 @@ an explicit hypothesis. No theorem in either file proves or refutes P = NP.
 
 The Rocq file uses no axioms (`Print Assumptions` reports "Closed under the
 global context" for `williams_method`, `fastCircuitSAT_of_pEqualsNP`,
-`pNotEqualsNP_of_not_fastCircuitSAT`, `lazy_diagonal`, `poly_le_two_pow` and
-`not_forall_inNTIME`). It differs from Lean in these ways:
+`pNotEqualsNP_of_not_fastCircuitSAT`, `lazy_diagonal`, `poly_le_two_pow`,
+`not_forall_inNTIME`, and for the Idea 16 bridge `inNTIME_iff_idea16`,
+`nTimeHierarchy_of_idea16`, `williams_method_idea16`,
+`idea16_nTimeHierarchy_of_lazyDiagonal` and `inNEXP_of_inNTIME_two_pow`; the
+last group is audited by `experiments/issue532_idea41/Assumptions.v`). It differs from Lean in these ways:
 
 * **`CircuitSAT` is computable.** Lean decides "the word is `encCircuit n C`
   for a well-formed satisfiable `C`" with a classical `decide`. Rocq parses
@@ -173,7 +186,12 @@ ahead on `[l, u)` and flips `L(1^l)` at `1^u`, and that `L = D`. Then
 `D(1^u) = ¬L(1^l) = ¬D(1^l)`, a contradiction (`lazy_diagonal`). So a `D`
 that follows every language of `NTIME(T')` lazily is not in `NTIME(T')`
 itself (`not_inNTIME_of_lazyDiagonal`). If such a `D` is in `NTIME(2^n)`,
-the hierarchy theorem follows (`nTimeHierarchy_of_lazyDiagonal`). What is
+the hierarchy theorem follows (`nTimeHierarchy_of_lazyDiagonal`); one such
+`D` for each `k ≥ 3` gives Idea 16's form of the theorem
+(`idea16_nTimeHierarchy_of_lazyDiagonal`). The verifiers here are clocked:
+they halt within the bound on every short certificate, as in
+`Complexity.ClassNP` and Idea 16's `InNTIME`, which is what makes the two
+classes equal. What is
 not mechanised is the machine that realizes `D`. Inside the interval it
 simulates the `i`-th verifier on `1^{n+1}` nondeterministically. At the end
 of the interval it decides `L(1^l)` by exhaustive search, which fits in the
@@ -239,6 +257,9 @@ argument: reading the input takes `poly(n)` steps, far below
     known theorems (`williams_method`);
   * the diagonal core of the nondeterministic hierarchy theorem
     (`lazy_diagonal`, `nTimeHierarchy_of_lazyDiagonal`);
+  * the identification of the hierarchy hypothesis with Idea 16's
+    (`inNTIME_iff_idea16`, `nTimeHierarchy_of_idea16`,
+    `williams_method_idea16`, `idea16_nTimeHierarchy_of_lazyDiagonal`);
   * `P = NP → FastCircuitSAT` from `CircuitSATInNP`
     (`fastCircuitSAT_of_pEqualsNP`), and hence
     `¬ FastCircuitSAT → P ≠ NP`;
@@ -254,8 +275,9 @@ argument: reading the input takes `poly(n)` steps, far below
     (`pNotEqualsNP_of_not_fastCircuitSAT`). A refutation is a lower bound
     against every machine, the same kind of statement as Idea 17's
     `AllAlgorithmsSuperpolynomial`.
-* **Known theorems used as hypotheses:** `NTimeHierarchy` (or the simulation
-  statement `LazyDiagonalSimulation`), `EasyWitnessLemma`, `WilliamsSpeedup`
+* **Known theorems used as hypotheses:** `NTimeHierarchy` (or Idea 16's
+  `Idea16.NTimeHierarchy`, or the simulation statement
+  `LazyDiagonalSimulation`), `EasyWitnessLemma`, `WilliamsSpeedup`
   and `CircuitSATInNP`. The next slices are:
   1. the universal nondeterministic simulation behind
      `LazyDiagonalSimulation`;
