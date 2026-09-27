@@ -2,12 +2,10 @@ import proofs.complexity.lean.Complexity
 /-
   WeissRefutation.lean - Refutation of Angela Weiss's 2011 P=NP attempt
 
-  This file demonstrates why Weiss's approach fails:
-  The claimed polynomial-size "macro" for KE-tableaux cannot exist in general
-  for 3-SAT, as this would imply P = NP directly.
-
-  The core problem: encoding all "closed branch" information for a worst-case
-  3-SAT instance requires exponential space, not polynomial space.
+  This file proves that the number of assignments, and the leaves of a full
+  binary cut tree, grow faster than every polynomial. These counting facts
+  alone do not establish a lower bound for a KE algorithm or a compressed
+  representation. Such a conclusion needs a separate link to the algorithm.
 -/
 
 namespace WeissRefutation2011
@@ -40,113 +38,101 @@ def isExponential (T : Nat → Nat) : Prop :=
   ∃ base : Nat, base > 1 ∧ ∀ c k : Nat, ∃ n : Nat, T n > c * n ^ k
 
 -- ============================================================
--- Key Claim 1: Tableau Branching Is Exponential
+-- Counting complete assignments
 -- ============================================================
 
 -- The number of complete variable assignments for n variables is 2^n
 def numAssignments (numVars : Nat) : Nat := 2 ^ numVars
 
--- This is indeed exponential
-theorem numAssignments_exponential : isExponential numAssignments :=
-  -- base = 2; 2^n grows faster than any polynomial c * n^k (standard analysis result)
-  ⟨2, by decide, fun c k => ⟨c + k + 2, by sorry⟩⟩
+-- For m ≥ 4, m² ≤ 2^m. We use this to bound the polynomial exponent.
+private theorem square_le_two_pow (t : Nat) :
+    (t + 4) * (t + 4) ≤ 2 ^ (t + 4) := by
+  induction t with
+  | zero => decide
+  | succ t ih =>
+    have hmul : 3 * (t + 4) ≤ (t + 4) * (t + 4) :=
+      Nat.mul_le_mul_right (t + 4) (by omega : 3 ≤ t + 4)
+    rw [show Nat.succ t + 4 = (t + 4) + 1 by omega, Nat.pow_succ]
+    have hstep : ((t + 4) + 1) * ((t + 4) + 1) ≤
+        ((t + 4) * (t + 4)) * 2 := by
+      simp only [Nat.add_mul, Nat.mul_add, Nat.one_mul, Nat.mul_one]
+      omega
+    exact Nat.le_trans hstep (Nat.mul_le_mul_right 2 ih)
+
+private theorem self_le_two_pow (c : Nat) : c ≤ 2 ^ c := by
+  induction c with
+  | zero => decide
+  | succ c ih =>
+    rw [Nat.pow_succ]
+    have hpos : 1 ≤ 2 ^ c := Nat.one_le_two_pow
+    omega
+
+-- Choose m = c + k + 8 and n = 2^m. Then
+-- c + m*k < m² ≤ 2^m, hence c*n^k ≤ 2^(c+m*k) < 2^n.
+theorem numAssignments_exponential : isExponential numAssignments := by
+  refine ⟨2, by decide, ?_⟩
+  intro c k
+  let m := c + k + 8
+  have hm : m ≥ 4 := by dsimp [m]; omega
+  have hsq : m * m ≤ 2 ^ m := by
+    have h := square_le_two_pow (m - 4)
+    simpa [Nat.sub_add_cancel hm] using h
+  have hkm : m * (k + 1) ≤ m * m :=
+    Nat.mul_le_mul_left m (by dsimp [m]; omega : k + 1 ≤ m)
+  have hless : c + m * k < 2 ^ m := by
+    have hc : c < m := by dsimp [m]; omega
+    rw [Nat.mul_add, Nat.mul_one] at hkm
+    omega
+  refine ⟨2 ^ m, ?_⟩
+  have hpow : 2 ^ (c + m * k) < 2 ^ (2 ^ m) :=
+    Nat.pow_lt_pow_of_lt (by decide) hless
+  have hcoeff : c * 2 ^ (m * k) ≤ 2 ^ (c + m * k) := by
+    rw [Nat.pow_add]
+    exact Nat.mul_le_mul_right _ (self_le_two_pow c)
+  change c * (2 ^ m) ^ k < 2 ^ (2 ^ m)
+  rw [← Nat.pow_mul]
+  exact Nat.lt_of_le_of_lt hcoeff hpow
 
 -- ============================================================
--- Key Claim 2: Correct Satisfiability Encoding Requires Exponential Info
+-- A lower bound for any particular algorithm needs an additional premise.
 -- ============================================================
 
--- A polynomial-size encoding would be a function that maps formulas to
--- a polynomial-size data structure from which satisfiability is decidable
-
--- AXIOM: No polynomial-size encoding can correctly decide 3-SAT
--- (Consequence of 3-SAT being NP-complete; stated as an axiom assuming P != NP)
-axiom no_polynomial_sat_encoding : True
+theorem enumerating_all_assignments_is_exponential (work : Nat → Nat)
+    (henumerates : ∀ n, numAssignments n ≤ work n) : isExponential work := by
+  obtain ⟨base, hbase, hcount⟩ := numAssignments_exponential
+  refine ⟨base, hbase, ?_⟩
+  intro c k
+  obtain ⟨n, hn⟩ := hcount c k
+  exact ⟨n, Nat.lt_of_lt_of_le hn (henumerates n)⟩
 
 -- ============================================================
--- Key Claim 3: The KE Cut Rule Does Not Reduce Worst-Case Complexity
+-- A full binary tree of n unconditional cuts has 2^n leaves.
 -- ============================================================
 
--- The KE rule creates 2 branches per variable; for n variables: 2^n branches
-def branchCount_after_ke_rules (numVars : Nat) : Nat := 2 ^ numVars
+def fullCutTreeLeafCount (numVars : Nat) : Nat := 2 ^ numVars
 
--- The number of branches is still exponential even with KE rules
-theorem ke_branches_still_exponential : isExponential numAssignments := by
+-- This counts a full cut tree. It does not say a KE solver must build one.
+theorem full_ke_cut_tree_exponential : isExponential fullCutTreeLeafCount := by
   exact numAssignments_exponential
 
 -- ============================================================
--- Key Claim 4: The Encoding Cannot Be Polynomial-Size in General
+-- Summary of the two counts
 -- ============================================================
 
--- THEOREM: A polynomial-size encoding for 3-SAT would be trivially satisfiable
-theorem polynomial_encoding_implies_poly_sat : True := by
-  trivial
-
--- ============================================================
--- The Circular Nature of Weiss's Claim
--- ============================================================
-
--- Weiss's argument is circular: assuming polynomial encoding = claiming 3-SAT in P
-theorem weiss_claim_is_circular :
-    (∃ encSize : Nat → Nat, isPolynomial encSize ∧ True) →
-    isPolynomial (fun n => n ^ 3) := by
-  intro ⟨_, _, _⟩
-  sorry
-
--- ============================================================
--- Resolution Lower Bounds (Related Formal Fact)
--- ============================================================
-
--- Ben-Sasson & Wigderson (1999): certain 3-SAT instances require
--- exponentially large resolution refutations.
--- KE-tableaux simulate resolution, so the same lower bounds apply.
-
--- The pigeonhole principle (PHP) requires exponential-size resolution proofs.
-axiom php_requires_exponential_refutation :
-  ∃ family : Nat → (List Bool),
-    ∀ c k : Nat, ∃ n : Nat,
-      (family n).length > c * n ^ k
-
--- ============================================================
--- Summary Theorem: Why Weiss's Approach Fails
--- ============================================================
-
--- The fundamental theorem: the three failure points
-theorem weiss_approach_fails :
-    -- (1) Tableau branches are exponential in the worst case
+theorem counting_facts_for_weiss :
+    -- Complete assignments grow exponentially.
     isExponential numAssignments ∧
-    -- (2) KE rule does not reduce the number of branches
-    isExponential numAssignments ∧
-    -- (3) No polynomial SAT encoding exists (assuming P != NP)
-    True := by
-  refine ⟨?_, ?_, trivial⟩
+    -- So do leaves of a full cut tree.
+    isExponential fullCutTreeLeafCount := by
+  constructor
   · exact numAssignments_exponential
-  · exact ke_branches_still_exponential
+  · exact full_ke_cut_tree_exponential
 
 -- ============================================================
 -- What Weiss Would Need to Prove
 -- ============================================================
 
--- For Weiss's proof to work, she would need to establish:
--- (a) The encoding size is O(n^k) for fixed k -- requires showing 3-SAT in P
--- (b) The encoding correctly computes satisfiability -- requires a correctness proof
--- (c) The encoding can be constructed in O(n^j) -- requires showing the construction
---     does not implicitly perform exponential work
-
--- None of these were established in the paper.
--- The sorry's in the proof file mark exactly these gaps.
-
--- ============================================================
--- Conclusion
--- ============================================================
-
--- Weiss's 2011 attempt fails because:
--- 1. The "macro" cannot have polynomial size for worst-case 3-SAT (information theory)
--- 2. Constructing the macro requires examining exponentially many branches
--- 3. The KE cut rule, while complete, does not polynomially bound satisfiability
--- 4. The argument is circular: polynomial macro size <-> 3-SAT in P <-> P = NP
-
--- The formalization in WeissProof.lean correctly identifies the sorry'd steps
--- as the points where no polynomial-time proof can proceed.
-
--- Weiss refutation formalized: exponential branching + circular encoding claim
+-- A lower bound for the actual KE algorithm would require a proved premise
+-- such as henumerates above, derived from its concrete operational semantics.
+-- Assignment counting does not supply that premise.
 end WeissRefutation2011
