@@ -23,14 +23,27 @@ axiom. Rocq reports both theorems as closed under the global context.
 | Closure of NP under complement if P = NP | Axiom | Theorem using the two assumptions above | It inherits the unproved P-to-NP and P-complement claims. |
 | Polynomial sums | Not in this Lean file | Admitted | Rocq arithmetic lemma; it is not used by the new membership proofs. |
 
-`PolyTimeReduction` / `poly_time_reduction` now correctly compares `L1 x`
-with `L2 (f x)`, but it bounds only the *length* of `f x`. It does not prove that
-`f` can be computed in polynomial time. Accordingly, `IsNPComplete` /
-`is_NP_complete` is only a candidate under this weaker relation. The previous
-`NPComplete_in_P_implies_P_eq_NP` / `NP_complete_in_P_implies_P_eq_NP`
-assertion was therefore removed. Restoring it requires a machine model for
-reductions and a proof that composing it with a decider preserves polynomial
-time.
+`PolyTimeReduction` / `poly_time_reduction` compares `L1 x` with `L2 (f x)`
+and requires a certified computation of `f`. A reduction program can be a
+finite instruction-table machine from the shared machine model, a structural
+bitwise-NOT scan, or the sequential composition of two such programs. Machine
+output is the contiguous binary prefix of its final tape. Each machine
+instruction, including halt, costs one step; the bitwise-NOT scan costs one
+step per bit plus one final step. The certificates bound both runtime and
+output length by expressions built from nonnegative constants, the input
+length, addition, multiplication, and substitution. Composition adds running
+times and substitutes the first output-size bound into the second bounds.
+Lean and Rocq prove identity, composition, and the bitwise-NOT reduction
+between the distinct singleton languages `{[true]}` and `{[false]}` without
+new axioms. `experiments/issue573/` preserves the old arbitrary-Boolean-map
+counterexample as a compile-rejection regression test.
+
+`IsNPComplete` / `is_NP_complete` remains a candidate in this historical toy
+framework because `InNP` / `in_NP` still has no machine runtime condition for
+its Boolean verifier. The previous `NPComplete_in_P_implies_P_eq_NP` /
+`NP_complete_in_P_implies_P_eq_NP` assertion remains removed. Restoring it
+requires a verifier model and proof that composing a reduction program with a
+decider preserves polynomial time in the same machine model.
 
 The Turing-machine records still use unrestricted natural-valued transition
 functions. Their state counts and alphabet sizes are metadata rather than
