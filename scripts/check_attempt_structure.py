@@ -1025,6 +1025,11 @@ def main():
 
     args = parser.parse_args()
 
+    if args.offline and (args.require_woeginger or args.fail_on_missing_woeginger):
+        parser.error("--offline is incompatible with strict Woeginger validation")
+    if args.path and (args.require_woeginger or args.fail_on_missing_woeginger):
+        parser.error("--path is incompatible with strict Woeginger validation")
+
     if args.path:
         # Validate a single attempt
         if not args.path.exists():
@@ -1050,12 +1055,13 @@ def main():
                 minimum_score=args.minimum_match_score,
             )
         except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
-            message = f"Warning: could not compare against Woeginger live list: {exc}"
-            if args.require_woeginger:
-                print(message, file=sys.stderr)
-                sys.exit(1)
+            strict_woeginger = args.require_woeginger or args.fail_on_missing_woeginger
+            message = f"could not compare against Woeginger live list: {exc}"
+            if strict_woeginger:
+                print(f"Error: {message}", file=sys.stderr)
+                sys.exit(2)
             if not args.quiet:
-                print(message, file=sys.stderr)
+                print(f"Warning: {message}", file=sys.stderr)
 
     if args.generate_list:
         content = generate_markdown_list(validations, args.output)
