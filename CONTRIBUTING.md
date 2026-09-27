@@ -64,9 +64,22 @@ Simply add your `.lean` file in the appropriate directory and it will be automat
 
 **Common issues to avoid:**
 - Do not use `ℕ` - use `Nat` instead (Mathlib is not configured)
-- Mathlib is not configured; avoid Mathlib-only tactics such as `norm_num`. Core Lean tactics such as `omega`, `simp`, and `decide` are available.
-- Do not use `#print "string"` - this is not valid Lean 4 syntax
+- Mathlib is not configured; avoid Mathlib-only tactics such as `norm_num`. Core Lean tactics such as `omega`, `simp`, and `decide` are available without Mathlib.
+- `#print "string"` is valid Lean 4 syntax; use `#print name` to inspect a declaration.
 - Avoid reserved keywords as field names (e.g., `from`, `to`)
+
+#### Core Lean example
+
+Save this as `CoreTactics.lean` and run `lake env lean CoreTactics.lean` from the repository root:
+
+```lean
+example (n : Nat) : n ≤ n + 1 := by omega
+example (n : Nat) : n + 0 = n := by simp
+example : 2 + 2 = 4 := by decide
+#print "supported"
+```
+
+See the [Lean tactic reference](https://lean-lang.org/doc/reference/latest/Tactic-Proofs/Tactic-Reference/) for the core tactics and their syntax.
 
 ### Rocq Guidelines
 
@@ -75,8 +88,8 @@ Add your `.v` file to the appropriate directory. Update the local `_CoqProject` 
 ### Code Quality
 
 **For formalizations demonstrating failed proof attempts:**
-- Using `sorry` (Lean) or `Admitted` (Rocq) is acceptable to mark where proofs cannot be completed
-- Add clear comments explaining why the proof fails at that point
+- Reserve `sorry` (Lean) and `Admitted` (Rocq) for unresolved historical premises in a reconstructed proof attempt. State the exact missing proposition, explain the gap in a nearby comment, and track it in the attempt README. Do not use admissions for routine proof obligations that core tactics can solve.
+- When a result depends on such a premise, prefer an explicit theorem parameter so the dependency remains visible.
 - The goal is to demonstrate the error in the original proof attempt, not to complete an impossible proof
 - State the exact proposition from the source that a named refutation disputes, including its input conditions. A counterexample must satisfy those conditions and compute the failed result.
 - Label calculations on simplified models as illustrations or conditional results. A theorem ending in True, or a proof about arbitrary objects unrelated to the paper's construction, does not establish a refutation.
