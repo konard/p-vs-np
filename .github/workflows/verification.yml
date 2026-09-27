@@ -149,6 +149,7 @@ jobs:
           lake build
           echo "✓ Lean historical sources compile successfully!"
           echo ""
+          bash experiments/issue586/check.sh
           lake env lean experiments/issue574/PolynomialRegression.lean
           lean experiments/issue7_shoenfield_absoluteness.lean
           lean experiments/issue7_undecidability_formalization.lean
