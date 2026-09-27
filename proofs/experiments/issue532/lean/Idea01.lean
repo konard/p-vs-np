@@ -1,4 +1,4 @@
-import proofs.experiments.issue532.lean.Machines
+import proofs.experiments.issue532.lean.SATVerifier
 
 /-!
 # Issue #532, Idea 01 — Exact SAT algorithm (brute force as the baseline)
@@ -27,13 +27,17 @@ What this file proves (all general, for every CNF formula and every `n`):
   theorems: `pEqualsNP_of_polySATDecider` (under the named hypothesis
   `SATHard`), `polySATDecider_of_pEqualsNP` (under `SATInNP`),
   `polySATDecider_iff` (under `CookLevin`), `pNotEqualsNP_of_not_polySATDecider`,
+  and, with the membership half proved in `SATVerifier.lean`,
+  `polySATDecider_of_pEqualsNP'`, `pNotEqualsNP_of_not_polySATDecider'`
+  (no hypothesis) and `polySATDecider_iff_of_hard` (under `SATHard` alone),
   and `polySAT_agrees_with_bruteForce` (the polynomial-time machine outputs
   exactly the brute-force answer on every encoded formula).
 * `polySATDecider_not_trivial` — non-vacuity: `InP` is not satisfied by every
   language, so the obligation is a genuine constraint on `SAT`.
 
-The Cook–Levin theorem is not mechanised; it enters only as the explicit
-hypotheses `SATHard`, `SATInNP` or `CookLevin` of the shared layer.
+The membership half of Cook–Levin is proved (`SATVerifier.satInNP`). The
+hardness half is not mechanised; it enters only as the explicit hypothesis
+`SATHard` (or `CookLevin`) of the shared layer.
 
 Verdict: brute force is refuted as a polynomial-time algorithm (it performs
 `2^n` evaluations on every unsatisfiable input with `n` variables); the route
@@ -212,6 +216,24 @@ theorem polySATDecider_iff (hCL : CookLevin) : PolySATDecider ↔ PEqualsNP :=
 theorem pNotEqualsNP_of_not_polySATDecider (mem : SATInNP) (h : ¬ PolySATDecider) :
     PNotEqualsNP :=
   fun hp => h (polySATDecider_of_pEqualsNP mem hp)
+
+/-! ### With the membership half proved
+
+`SATVerifier.satInNP` proves `SATInNP` with an explicit verifier machine, so
+the membership hypothesis can be dropped. Only `SATHard` remains. -/
+
+/-- P = NP implies the obligation, with no hypothesis. -/
+theorem polySATDecider_of_pEqualsNP' (h : PEqualsNP) : PolySATDecider :=
+  polySATDecider_of_pEqualsNP SATVerifier.satInNP h
+
+/-- Refuting the obligation would separate P from NP, with no hypothesis. -/
+theorem pNotEqualsNP_of_not_polySATDecider' (h : ¬ PolySATDecider) : PNotEqualsNP :=
+  pNotEqualsNP_of_not_polySATDecider SATVerifier.satInNP h
+
+/-- Under the hardness half of Cook–Levin alone, the obligation is exactly
+P = NP. -/
+theorem polySATDecider_iff_of_hard (hard : SATHard) : PolySATDecider ↔ PEqualsNP :=
+  SATVerifier.inP_sat_iff_of_hard hard
 
 /-- Conditional theorem: a machine witnessing the obligation must output,
 within its polynomial budget, exactly the brute-force answer on the encoding

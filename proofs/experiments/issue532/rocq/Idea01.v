@@ -20,13 +20,16 @@
       theorems [polySATDecider_iff_polyDec], [pEqualsNP_of_polySATDecider]
       (under [SATHard]), [polySATDecider_of_pEqualsNP] (under [SATInNP]),
       [polySATDecider_iff] (under [CookLevin]),
-      [pNotEqualsNP_of_not_polySATDecider] and
-      [polySAT_agrees_with_bruteForce];
+      [pNotEqualsNP_of_not_polySATDecider],
+      [polySAT_agrees_with_bruteForce], and, with the membership half proved
+      in [SATVerifier.v], [polySATDecider_of_pEqualsNP'],
+      [pNotEqualsNP_of_not_polySATDecider'] (no premise) and
+      [polySATDecider_iff_of_hard] (under [SATHard] alone);
     - [polySATDecider_not_trivial]: [InP] is not satisfied by every language.
 
-    The Cook-Levin theorem is not mechanised; it enters only as the explicit
-    premises [SATHard], [SATInNP] or [CookLevin] of the shared layer.  No
-    axioms are used.
+    The membership half of Cook-Levin is proved ([SATVerifier.satInNP]).  The
+    hardness half is not mechanised; it enters only as the explicit premise
+    [SATHard] (or [CookLevin]) of the shared layer.  No axioms are used.
 
     Verdict: brute force is refuted as a polynomial-time algorithm; the route
     "a uniform polynomial-time SAT decider" is [InP SAT], which under
@@ -36,6 +39,7 @@
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Machines.
+From proofs.experiments.issue532.rocq Require SATVerifier.
 
 (** ** The enumeration of assignments *)
 
@@ -211,6 +215,24 @@ Proof. exact (inP_sat_iff hCL). Qed.
 Theorem pNotEqualsNP_of_not_polySATDecider (mem : SATInNP) (h : ~ PolySATDecider) :
   PNotEqualsNP.
 Proof. intro hp. exact (h (polySATDecider_of_pEqualsNP mem hp)). Qed.
+
+(** *** With the membership half proved
+
+    [SATVerifier.satInNP] proves [SATInNP] with an explicit verifier machine,
+    so the membership premise can be dropped.  Only [SATHard] remains. *)
+
+(** P = NP implies the obligation, with no premise. *)
+Theorem polySATDecider_of_pEqualsNP' (h : PEqualsNP) : PolySATDecider.
+Proof. exact (polySATDecider_of_pEqualsNP SATVerifier.satInNP h). Qed.
+
+(** Refuting the obligation would separate P from NP, with no premise. *)
+Theorem pNotEqualsNP_of_not_polySATDecider' (h : ~ PolySATDecider) : PNotEqualsNP.
+Proof. exact (pNotEqualsNP_of_not_polySATDecider SATVerifier.satInNP h). Qed.
+
+(** Under the hardness half of Cook-Levin alone, the obligation is exactly
+    P = NP. *)
+Theorem polySATDecider_iff_of_hard (hard : SATHard) : PolySATDecider <-> PEqualsNP.
+Proof. exact (SATVerifier.inP_sat_iff_of_hard hard). Qed.
 
 (** Conditional theorem: a machine witnessing the obligation outputs, within
     its polynomial budget, exactly the brute-force answer on the encoding of

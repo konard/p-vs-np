@@ -30,8 +30,8 @@ BASE = ROOT / "proofs" / "experiments" / "issue532"
 IDEAS = range(1, 42)
 # Shared machine layer; a section-3 row may name a theorem declared there.
 SHARED = {
-    "lean": [BASE / "lean" / "Machines.lean", BASE / "lean" / "Circuits.lean"],
-    "rocq": [BASE / "rocq" / "Machines.v", BASE / "rocq" / "Circuits.v"],
+    "lean": [BASE / "lean" / name for name in ("Machines.lean", "Circuits.lean", "SATVerifier.lean")],
+    "rocq": [BASE / "rocq" / name for name in ("Machines.v", "Circuits.v", "SATVerifier.v")],
 }
 
 SECTIONS = [
@@ -81,10 +81,10 @@ MACHINE_NAMES = {
 
 SHARED_IMPORT = {
     "lean": re.compile(
-        r"^import\s+proofs\.(?:complexity\.lean\.Complexity|experiments\.issue532\.lean\.(?:Machines|Circuits))\s*$",
+        r"^import\s+proofs\.(?:complexity\.lean\.Complexity|experiments\.issue532\.lean\.(?:Machines|Circuits|SATVerifier))\s*$",
         re.MULTILINE,
     ),
-    "rocq": re.compile(r"^From\s+proofs\.\S+\s+Require\s+Import\s+.*\b(?:Complexity|Machines|Circuits)\b", re.MULTILINE),
+    "rocq": re.compile(r"^From\s+proofs\.\S+\s+Require\s+Import\s+.*\b(?:Complexity|Machines|Circuits|SATVerifier)\b", re.MULTILINE),
 }
 
 DOCUMENTED = {

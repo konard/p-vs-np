@@ -10,9 +10,12 @@ polynomial-time SAT decider" is stated in the repository's shared machine
 model as the open obligation `PolySATDecider := InP SAT`, where `SAT` is the
 language of encoded satisfiable CNFs. The conditional theorems proved are:
 `PolySATDecider → PEqualsNP` under the named hypothesis `SATHard`,
-`PolySATDecider ↔ PEqualsNP` under `CookLevin`, and any machine that meets the
-obligation computes exactly the brute-force answer on every formula. The
-Cook–Levin theorem is not mechanised; it enters only as these hypotheses.
+`PolySATDecider ↔ PEqualsNP` under `SATHard` alone, and any machine that meets
+the obligation computes exactly the brute-force answer on every formula.
+`P = NP → PolySATDecider` needs no hypothesis: the membership half of
+Cook–Levin, `SATInNP`, is proved in `SATVerifier.lean` / `SATVerifier.v`
+with an explicit verifier machine. The hardness half `SATHard` is not
+mechanised; it enters only as a named hypothesis.
 
 ## 1. The idea at full strength
 
@@ -73,9 +76,13 @@ compared with its `2^n` cost.
   every input word within the bound. On encodings of formulas this is
   `∃ M p, ∀ φ, ∃ t b, t ≤ p.eval |encodeCNF φ| ∧ Run M (initial (encodeCNF φ)) t b ∧
   (b = true ↔ Satisfiable φ)` (`inP_sat_on_encodings`).
-* **Known theorems used only as named hypotheses** (shared layer, not
-  mechanised): `SATInNP := InNP SAT`, `SATHard := NPHard SAT` (every NP
-  language `PolyReduces` to `SAT`), and `CookLevin := SATInNP ∧ SATHard`.
+* **Cook–Levin, in two halves** (shared layer): `SATInNP := InNP SAT` is
+  proved (`SATVerifier.satInNP`: a 45-state verifier on `pairedInput x c`
+  halts within `5(|x|+|c|+2)²` steps with the answer
+  `evalCNF (toAssign c) (decode x)`, and certificates of length `|x|+1`
+  suffice). `SATHard := NPHard SAT` (every NP language `PolyReduces` to
+  `SAT`) is a known theorem used only as a named hypothesis, and
+  `CookLevin := SATInNP ∧ SATHard`.
 
 Why a machine model is needed: core Lean functions have no running time.
 `fun φ => bruteForce (numVars φ) φ` is already a correct Lean function
@@ -109,6 +116,10 @@ obligation is not satisfied by every language.
 | `polySATDecider_of_pEqualsNP` | `SATInNP → PEqualsNP → PolySATDecider`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `polySATDecider_iff` | `CookLevin → (PolySATDecider ↔ PEqualsNP)`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `pNotEqualsNP_of_not_polySATDecider` | `SATInNP → ¬PolySATDecider → PNotEqualsNP`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `satInNP` | `SATInNP`: an explicit verifier machine for SAT with time bound `5(n+1)²` and certificate bound `n+1`. | [SATVerifier.lean](../lean/SATVerifier.lean) | [SATVerifier.v](../rocq/SATVerifier.v) |
+| `polySATDecider_of_pEqualsNP'` | `PEqualsNP → PolySATDecider`, with no hypothesis. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `pNotEqualsNP_of_not_polySATDecider'` | `¬PolySATDecider → PNotEqualsNP`, with no hypothesis. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `polySATDecider_iff_of_hard` | `SATHard → (PolySATDecider ↔ PEqualsNP)`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `polySAT_agrees_with_bruteForce` | `PolySATDecider →` there are `M` and `p` such that for every `φ` the machine halts within `p(|enc φ|)` steps with answer `bruteForce (numVars φ) φ`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `polySATDecider_not_trivial` | Non-vacuity: `¬ ∀ L : Language, InP L` (the shared diagonal language `Diag` is not in P). | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 
@@ -116,8 +127,8 @@ Rows whose Lean link is `Machines.lean` are proved once in the shared layer
 and used here; `Idea01.lean` imports it, and `Idea01.v` imports the Rocq
 twin `Machines.v`.
 
-Not machine-checked: the Cook–Levin theorem (it appears only as the named
-hypotheses `SATHard`, `SATInNP`, `CookLevin`), any lower bound for machines
+Not machine-checked: the hardness half of the Cook–Levin theorem (it
+appears only as the named hypothesis `SATHard`, or inside `CookLevin`), any lower bound for machines
 other than brute force, and the running time of brute force on the machine
 model. The cost proved here counts formula evaluations, not machine steps.
 
@@ -165,7 +176,13 @@ under machine reductions (`inP_of_reduces`, proved in the shared layer by
 concatenating the two instruction tables), so every NP language is in P:
 `pEqualsNP_of_polySATDecider`. Conversely, if `SAT ∈ NP` (`SATInNP`) and
 P = NP, then `SAT ∈ P`. Together, under `CookLevin`, `PolySATDecider ↔ PEqualsNP`
-(`polySATDecider_iff`). Now suppose `M` and `p` witness the obligation. For a
+(`polySATDecider_iff`). The membership half is proved: the verifier of
+`SATVerifier` reads the formula in bit pairs and, one certificate bit per
+round, strikes one tick from every literal, evaluates the literals whose
+index reached zero, and marks satisfied clauses; a final pass rejects at an
+unmarked clause end (`verifier_run`, `satInNP`). So `P = NP` alone gives
+`PolySATDecider` (`polySATDecider_of_pEqualsNP'`), and under `SATHard` alone
+the obligation is equivalent to P = NP (`polySATDecider_iff_of_hard`). Now suppose `M` and `p` witness the obligation. For a
 formula `φ` let `b` be the machine's answer on `encodeCNF φ`. Then
 `b = true ↔ Satisfiable φ ↔ bruteForce (numVars φ) φ = true`, so the two
 Booleans are equal (`polySAT_agrees_with_bruteForce`). The machine therefore
@@ -218,13 +235,14 @@ At full potential the idea gives the following, all proved:
    `PolySATDecider := InP SAT`, with a lossless encoding (`decode_encode`);
 4. the connection to the separation question: `pEqualsNP_of_polySATDecider`
    (hypothesis `SATHard`), `polySATDecider_iff` (hypothesis `CookLevin`),
-   `pNotEqualsNP_of_not_polySATDecider` (hypothesis `SATInNP`);
+   `pNotEqualsNP_of_not_polySATDecider'` (no hypothesis, since `SATInNP`
+   is proved), `polySATDecider_iff_of_hard` (hypothesis `SATHard`);
 5. the reduction of any positive solution to "reproduce `bruteForce` in
    polynomially many machine steps" (`polySAT_agrees_with_bruteForce`).
 
 **Remaining obligation:** `PolySATDecider : Prop := InP SAT` (Lean and Rocq
 name). The route from it to `PEqualsNP` needs `SATHard`, which is not
-mechanised here; with `CookLevin` it is *equivalent* to P = NP, and its
+mechanised here; with `SATHard` it is *equivalent* to P = NP, and its
 negation is equivalent to P ≠ NP. So the obligation is exactly as hard as the
 original problem. It is not an easier intermediate step.
 
