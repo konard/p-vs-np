@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 14: randomized search
 
@@ -240,40 +242,124 @@ theorem poly_seeds_derandomize (sz : α → Nat) (L : α → Bool) (A : α → N
   rw [Nat.mul_mul_mul_comm, ← Nat.pow_add] at h
   exact h
 
-/-- A polynomial-time deterministic decider. -/
-def PolyDec (sz : α → Nat) (L : α → Bool) : Prop :=
-  ∃ (D : α → Bool) (t : α → Nat) (c d : Nat), (∀ x, D x = L x) ∧ ∀ x, t x ≤ c * (sz x + 1) ^ d
+/-! ## The obligations over the shared machine model
 
-/-- A polynomial-time one-sided algorithm with seeds of polynomial length `r x` (`2^(r x)` seeds). -/
-def RPDecider (sz : α → Nat) (L : α → Bool) : Prop :=
-  ∃ (A : α → Nat → Bool) (r T : α → Nat) (c d : Nat), OneSided L A (fun x => 2 ^ r x) ∧
-    ∀ x, r x ≤ c * (sz x + 1) ^ d ∧ T x ≤ c * (sz x + 1) ^ d
+A randomised decider is a `Complexity.Machine` run on `x ⊔ separator ⊔ r`
+(`Complexity.pairedInput`) for a random string `r`; its time is the step count
+of `Complexity.Run`. The random-string length is an explicit polynomial `R`
+(for RP) or `k · ⌊log₂(n+1)⌋` (for seed-compressed algorithms); it is never an
+arbitrary function of the input length, which would smuggle in advice. -/
 
-/-- A polynomial-time one-sided algorithm with only polynomially many seeds. -/
-def PolySeedRP (sz : α → Nat) (L : α → Bool) : Prop :=
-  ∃ (A : α → Nat → Bool) (s T : α → Nat) (c d : Nat), OneSided L A s ∧
-    ∀ x, s x ≤ c * (sz x + 1) ^ d ∧ T x ≤ c * (sz x + 1) ^ d
+open Complexity Issue532.Machines
 
-/-- Polynomially many seeds can be enumerated deterministically in polynomial time. -/
-theorem polySeedRP_implies_poly (sz : α → Nat) (L : α → Bool) (h : PolySeedRP sz L) : PolyDec sz L := by
-  obtain ⟨A, s, T, c, d, hA, hb⟩ := h
-  refine ⟨fun x => anySeed (s x) (A x), fun x => s x * T x, c * c, d + d, fun x => ?_, fun x => ?_⟩
-  · exact enumeration_decides L A s hA x
-  · exact (poly_seeds_derandomize sz L A s T c d c d hA (fun x => (hb x).1) (fun x => (hb x).2) x).2
+/-- The `i`-th random string of length `ℓ` (binary, least significant bit first). -/
+def seedWord : Nat → Nat → Word
+  | 0, _ => []
+  | ℓ + 1, i => (i % 2 == 1) :: seedWord ℓ (i / 2)
 
-/-- Open obligation (not assumed): `L` (e.g. SAT) has a polynomial one-sided randomized decider. -/
-def NPinRP (sz : α → Nat) (L : α → Bool) : Prop := RPDecider sz L
+theorem seedWord_length (ℓ i : Nat) : (seedWord ℓ i).length = ℓ := by
+  induction ℓ generalizing i with
+  | zero => rfl
+  | succ ℓ ih => simp [seedWord, ih]
 
-/--
-Open obligation (not assumed): seed compression for `L`, i.e. every
-polynomial one-sided algorithm can be replaced by one with polynomially many
-seeds (what a suitable pseudorandom generator would provide).
--/
-def SeedCompression (sz : α → Nat) (L : α → Bool) : Prop := RPDecider sz L → PolySeedRP sz L
+/-- Seeds `i < 2^ℓ` enumerate every random string of length `ℓ`. -/
+theorem seedWord_surjective (r : Word) : ∃ i, i < 2 ^ r.length ∧ seedWord r.length i = r := by
+  induction r with
+  | nil => exact ⟨0, by decide, rfl⟩
+  | cons b r ih =>
+    obtain ⟨i, hi, hr⟩ := ih
+    refine ⟨2 * i + (if b then 1 else 0), ?_, ?_⟩
+    · simp only [List.length_cons, Nat.pow_succ]
+      cases b <;> simp <;> omega
+    · simp only [List.length_cons, seedWord]
+      have h2 : (2 * i + (if b then 1 else 0)) / 2 = i := by cases b <;> simp <;> omega
+      rw [h2, hr]
+      cases b <;> simp <;> omega
 
-/-- Conditional theorem: `NPinRP` and `SeedCompression` together give a polynomial decider. -/
-theorem rp_sat_with_seed_compression (sz : α → Nat) (L : α → Bool)
-    (h1 : NPinRP sz L) (h2 : SeedCompression sz L) : PolyDec sz L :=
-  polySeedRP_implies_poly sz L (h2 h1)
+/-- `m` halts within `p` on input `x` with every random string of length `ℓ(|x|)`. -/
+def HaltsWithin (m : Machine) (p : Polynomial) (ℓ : Nat → Nat) : Prop :=
+  ∀ x i, ∃ t b, t ≤ p.eval (x.length + ℓ x.length + 1) ∧
+    Run m (pairedInput x (seedWord (ℓ x.length) i)) t b
+
+open Classical in
+/-- Seed `i` makes `m` accept `x`. -/
+noncomputable def seedAccepts (m : Machine) (ℓ : Nat → Nat) (x : Word) (i : Nat) : Bool :=
+  decide (∃ t, Run m (pairedInput x (seedWord (ℓ x.length) i)) t true)
+
+/-- A polynomial-time one-sided randomised machine for `L`: random strings of
+length `R(|x|)`, never accepts a no-instance, accepts a yes-instance on at least
+half of the random strings. -/
+def RPMachine (m : Machine) (p R : Polynomial) (L : Language) : Prop :=
+  HaltsWithin m p R.eval ∧ OneSided L (seedAccepts m R.eval) (fun x => 2 ^ R.eval x.length)
+
+/-- The class RP of the shared machine model. -/
+def InRP (L : Language) : Prop := ∃ (m : Machine) (p R : Polynomial), RPMachine m p R L
+
+/-- **Open obligation.** SAT has a polynomial-time one-sided randomised machine
+decider (NP ⊆ RP). -/
+def NPinRP : Prop := InRP SAT
+
+/-- Logarithmic seed length `k · ⌊log₂(n+1)⌋`. -/
+def logSeed (k n : Nat) : Nat := k * Nat.log2 (n + 1)
+
+/-- Logarithmic seeds are polynomially many: `2^(k·⌊log₂(n+1)⌋) ≤ (n+1)^k`. -/
+theorem two_pow_logSeed (k n : Nat) : 2 ^ logSeed k n ≤ (n + 1) ^ k := by
+  unfold logSeed
+  rw [Nat.mul_comm, Nat.pow_mul]
+  exact Nat.pow_le_pow_left (Nat.log2_self_le (Nat.succ_ne_zero n)) k
+
+/-- A polynomial-time one-sided randomised machine with logarithmic seeds. -/
+def PolySeedMachine (m : Machine) (p : Polynomial) (k : Nat) (L : Language) : Prop :=
+  HaltsWithin m p (logSeed k) ∧
+    OneSided L (seedAccepts m (logSeed k)) (fun x => 2 ^ logSeed k x.length)
+
+def PolySeedRP (L : Language) : Prop := ∃ (m : Machine) (p : Polynomial) (k : Nat), PolySeedMachine m p k L
+
+/-- **Open obligation.** Seed compression for `L`: a polynomial-time one-sided
+randomised machine can be replaced by one with logarithmic seeds (what a
+suitable pseudorandom generator provides). -/
+def SeedCompression (L : Language) : Prop := InRP L → PolySeedRP L
+
+/-- Known theorem, not mechanised here: a machine that tries all
+`2^(k·⌊log₂(n+1)⌋) ≤ (n+1)^k` seeds, each run within `p`, decides `L`
+deterministically in polynomial time. The mathematics is
+`logSeed_enumeration`; the missing part is the single-tape machine that
+enumerates the seeds and simulates `m`. -/
+def SeedEnumeration : Prop := ∀ L, PolySeedRP L → InP L
+
+/-- The mathematical core of `SeedEnumeration`: trying every seed gives the
+right answer, there are at most `(n+1)^k` seeds, and each run halts within
+`p(n + k·⌊log₂(n+1)⌋ + 1)` steps. -/
+theorem logSeed_enumeration {m : Machine} {p : Polynomial} {k : Nat} {L : Language}
+    (h : PolySeedMachine m p k L) (x : Word) :
+    anySeed (2 ^ logSeed k x.length) (seedAccepts m (logSeed k) x) = L x ∧
+      2 ^ logSeed k x.length ≤ (x.length + 1) ^ k ∧
+      ∀ i, ∃ t b, t ≤ p.eval (x.length + logSeed k x.length + 1) ∧
+        Run m (pairedInput x (seedWord (logSeed k x.length) i)) t b :=
+  ⟨enumeration_decides L _ _ h.2 x, two_pow_logSeed k x.length, h.1 x⟩
+
+/-- Conditional theorem: `NPinRP`, `SeedCompression SAT` and the known
+`SeedEnumeration` give a polynomial-time machine decider for SAT. -/
+theorem rp_sat_with_seed_compression (h1 : NPinRP) (h2 : SeedCompression SAT)
+    (h3 : SeedEnumeration) : PolyDec SAT :=
+  (polyDec_iff_inP SAT).mpr (h3 SAT (h2 h1))
+
+/-- With the hardness half of Cook–Levin the conclusion is P = NP. -/
+theorem rp_route_gives_pEqualsNP (h1 : NPinRP) (h2 : SeedCompression SAT)
+    (h3 : SeedEnumeration) (hard : SATHard) : PEqualsNP :=
+  pEqualsNP_of_inP_sat hard (h3 SAT (h2 h1))
+
+/-- The language a one-sided randomised machine decides is determined by the
+machine and the random-string length. -/
+noncomputable def rpLanguage (x : Machine × Polynomial) : Language :=
+  fun w => anySeed (2 ^ x.2.eval w.length) (seedAccepts x.1 x.2.eval w)
+
+/-- **Non-vacuity.** `InRP` does not hold for every language, so `NPinRP` is a
+statement about SAT, not a consequence of the definitions. -/
+theorem not_forall_inRP : ¬ ∀ L : Language, InRP L := by
+  intro hall
+  obtain ⟨L, hL⟩ := exists_language_not_in_family encMachinePoly encMachinePoly_injective rpLanguage
+  obtain ⟨m, p, R, _, hone⟩ := hall L
+  exact hL (m, R) (funext fun x => enumeration_decides L _ _ hone x)
 
 end Issue532.Idea14

@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 13: from approximation to exactness
 
@@ -125,33 +127,76 @@ theorem approx_decides_gap (opt A : α → Nat) (a num den : Nat)
     have : opt x * num ≤ a * num := Nat.mul_le_mul_right num h
     omega
 
-/-- An algorithm: its output and its running time on each input. -/
-structure Algo (α : Type) where
-  run : α → Nat
-  time : α → Nat
+/-! ## The obligation over the shared machine model
 
-/--
-Open obligation (not assumed): a polynomial-time algorithm with ratio
-`num/den` for the minimisation problem `opt`. For problems and ratios below a
-published NP-hardness-of-approximation threshold, this statement implies
-P = NP (via `approx_decides_gap` and the corresponding PCP reduction).
--/
-def PolyApprox (sz opt : α → Nat) (num den : Nat) : Prop :=
-  ∃ (A : Algo α) (c d : Nat), (∀ x, opt x ≤ A.run x ∧ A.run x * den ≤ opt x * num) ∧
-    ∀ x, A.time x ≤ c * (sz x + 1) ^ d
+An approximation algorithm is a `Complexity.Machine` that computes (in the
+sense of `Issue532.Machines.Computes`, with the step count of the run as its
+time) a binary word whose value is the approximate optimum. Instances are words
+of the shared model. -/
 
-/--
-Conditional theorem: `PolyApprox` for ratio `num/den` yields a polynomial-time
-decision procedure (with the same time bound) for every gap promise problem
-with gap larger than `num/den`.
--/
-theorem polyApprox_decides_gap (sz opt : α → Nat) (a num den : Nat)
-    (h : PolyApprox sz opt num den) (hgap : ∀ x, opt x ≤ a ∨ a * num < opt x * den) :
-    ∃ (D : α → Bool) (t : α → Nat) (c d : Nat),
-      (∀ x, D x = true ↔ opt x ≤ a) ∧ ∀ x, t x ≤ c * (sz x + 1) ^ d := by
-  obtain ⟨A, c, d, hA, hT⟩ := h
-  refine ⟨fun x => decide (A.run x * den ≤ a * num), A.time, c, d, fun x => ?_, hT⟩
-  rw [decide_eq_true_iff]
-  exact approx_decides_gap opt A.run a num den hA hgap x
+open Complexity Issue532.Machines
+
+/-- Value of a binary word, least significant bit first. -/
+def wordValue : Word → Nat
+  | [] => 0
+  | b :: w => (if b then 1 else 0) + 2 * wordValue w
+
+/-- **Open obligation.** A polynomial-time machine that outputs, for every
+instance `x`, a value `A x` with `opt x ≤ A x` and `A x · den ≤ opt x · num`
+(ratio `num/den` for the minimisation problem `opt`). For problems and ratios
+below a published NP-hardness-of-approximation threshold, this statement
+implies P = NP (via `approx_decides_gap` and the corresponding PCP reduction). -/
+def PolyApprox (opt : Word → Nat) (num den : Nat) : Prop :=
+  ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Computes m f p ∧
+    ∀ x, opt x ≤ wordValue (f x) ∧ wordValue (f x) * den ≤ opt x * num
+
+/-- Conditional theorem: `PolyApprox` for ratio `num/den` gives a
+polynomial-time machine whose output answers every gap promise problem with gap
+larger than `num/den` by the single comparison `A x · den ≤ a · num`. -/
+theorem polyApprox_decides_gap (opt : Word → Nat) (a num den : Nat)
+    (h : PolyApprox opt num den) (hgap : ∀ x, opt x ≤ a ∨ a * num < opt x * den) :
+    ∃ (m : Machine) (f : Word → Word) (p : Polynomial), Computes m f p ∧
+      ∀ x, (wordValue (f x) * den ≤ a * num ↔ opt x ≤ a) := by
+  obtain ⟨m, f, p, hm, hA⟩ := h
+  exact ⟨m, f, p, hm, approx_decides_gap opt (fun x => wordValue (f x)) a num den hA hgap⟩
+
+/-- A language as a minimisation problem: optimum `1` on members and
+`num + 1` on non-members. -/
+def optOf (L : Language) (num : Nat) (x : Word) : Nat := if L x then 1 else num + 1
+
+open Classical in
+/-- The language read off a machine's output by the threshold `num`. -/
+noncomputable def thresholdLanguage (num : Nat) (m : Machine) : Language := fun x =>
+  decide (∃ (f : Word → Word) (p : Polynomial), Computes m f p ∧ wordValue (f x) ≤ num)
+
+/-- **Non-vacuity.** For every ratio with `den ≥ 1`, some problem has no
+polynomial-time machine approximation: `PolyApprox` is not provable for every
+`opt`. -/
+theorem not_forall_polyApprox (num den : Nat) (hden : 1 ≤ den) :
+    ¬ ∀ opt : Word → Nat, PolyApprox opt num den := by
+  intro hall
+  obtain ⟨L, hL⟩ := exists_language_not_in_family encMachine
+    (fun _ _ h => encMachine_injective h) (thresholdLanguage num)
+  obtain ⟨m, f, p, hm, hA⟩ := hall (optOf L num)
+  apply hL m
+  funext x
+  have hval : (∃ (g : Word → Word) (q : Polynomial), Computes m g q ∧ wordValue (g x) ≤ num) ↔
+      wordValue (f x) ≤ num := by
+    constructor
+    · rintro ⟨g, q, hg, hgx⟩
+      rwa [computes_unique hm hg]
+    · intro hx
+      exact ⟨f, p, hm, hx⟩
+  have hden' : wordValue (f x) ≤ wordValue (f x) * den := Nat.le_mul_of_pos_right _ hden
+  obtain ⟨h1, h2⟩ := hA x
+  classical
+  unfold thresholdLanguage
+  cases hLx : L x with
+  | true =>
+    simp only [optOf, hLx, ite_true, Nat.one_mul] at h1 h2
+    exact decide_eq_true (hval.mpr (by omega))
+  | false =>
+    simp only [optOf, hLx] at h1 h2
+    exact decide_eq_false (fun hx => by have := hval.mp hx; simp at h1; omega)
 
 end Issue532.Idea13
