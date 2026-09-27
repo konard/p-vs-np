@@ -6,11 +6,13 @@ The uniform brute-force decider for CNF-SAT is proved sound and complete for
 every formula, and its cost is proved to be exactly `2^n` formula evaluations
 on every unsatisfiable formula with `n` variables, so brute force is refuted as
 a polynomial-time algorithm by a general theorem. The route "find a uniform
-polynomial-time SAT decider" is stated as the explicit open obligation
-`PolySATDecider` over a finite-table Turing machine and a lossless input
-encoding; by the Cook–Levin theorem (not formalized here) it is equivalent to
-P = NP. The conditional theorem proved is: any machine that meets the obligation
-computes exactly the brute-force answer on every formula.
+polynomial-time SAT decider" is stated in the repository's shared machine
+model as the open obligation `PolySATDecider := InP SAT`, where `SAT` is the
+language of encoded satisfiable CNFs. The conditional theorems proved are:
+`PolySATDecider → PEqualsNP` under the named hypothesis `SATHard`,
+`PolySATDecider ↔ PEqualsNP` under `CookLevin`, and any machine that meets the
+obligation computes exactly the brute-force answer on every formula. The
+Cook–Levin theorem is not mechanised; it enters only as these hypotheses.
 
 ## 1. The idea at full strength
 
@@ -49,55 +51,76 @@ compared with its `2^n` cost.
   clause. Unary variable indices are harmless for NP-completeness, since
   variables can be renamed to `0 … m−1` in polynomial time. They also make
   `numVars φ ≤ |encodeCNF φ|` hold.
-* **Machine model.** A deterministic single-tape machine has a finite
-  instruction table (`List (List Instruction)`). One instruction is executed
-  per step. `Run M c t b` means that from configuration `c`, `M` halts after
-  `t` steps with answer `b`. Polynomials are `c·(n+1)^d`. This mirrors
-  `proofs/complexity/lean/Complexity.lean`. It is re-declared locally so that
-  the file is standalone.
+* **Machine model.** The shared model of
+  `proofs/complexity/lean/Complexity.lean` and
+  `proofs/experiments/issue532/lean/Machines.lean`. A deterministic
+  single-tape machine has a finite instruction table
+  (`List (List Instruction)`). One instruction is executed per step.
+  `Run M c t b` means that from configuration `c`, `M` halts after `t` steps
+  with answer `b`. Polynomials are `c·(n+1)^d`. `InP L` holds when one machine
+  decides `L` on every word within one polynomial bound (`polyDec_iff_inP`
+  restates it with `DecidesWithin`). The CNF syntax, `bruteForce`,
+  `encodeCNF`/`decode` and the language
+  `SAT w := bruteForce (numVars (decode w)) (decode w)` are defined in that
+  shared layer, with `sat_encode : SAT (encodeCNF φ) = true ↔ Satisfiable φ`.
 * **The open claim needed for P = NP.**
 
   ```lean
-  def PolySATDecider : Prop :=
-    ∃ (M : Machine) (p : Polynomial), ∀ φ : CNF, ∃ t b,
-      t ≤ p.eval (encodeCNF φ).length ∧ Run M (initial (encodeCNF φ)) t b ∧
-        (b = true ↔ Satisfiable φ)
+  def PolySATDecider : Prop := InP SAT
   ```
 
-  The quantifiers are `∃ M ∃ p ∀ φ`. A single machine and a single polynomial
-  must work for all formulas of all sizes.
+  Unfolded, a single machine and a single polynomial must decide `SAT` on
+  every input word within the bound. On encodings of formulas this is
+  `∃ M p, ∀ φ, ∃ t b, t ≤ p.eval |encodeCNF φ| ∧ Run M (initial (encodeCNF φ)) t b ∧
+  (b = true ↔ Satisfiable φ)` (`inP_sat_on_encodings`).
+* **Known theorems used only as named hypotheses** (shared layer, not
+  mechanised): `SATInNP := InNP SAT`, `SATHard := NPHard SAT` (every NP
+  language `PolyReduces` to `SAT`), and `CookLevin := SATInNP ∧ SATHard`.
 
 Why a machine model is needed: core Lean functions have no running time.
 `fun φ => bruteForce (numVars φ) φ` is already a correct Lean function
 `CNF → Bool`. The statement "there is a correct Lean function" is therefore
 true and says nothing about efficiency. Any honest efficiency claim has to name
 a cost model with unit-cost steps of bounded power, as the finite table does.
+`polySATDecider_not_trivial` checks that the predicate `InP` of the
+obligation is not satisfied by every language.
 
 ## 3. What is machine-checked
 
 | Theorem | Informal statement | Lean | Rocq |
 | --- | --- | --- | --- |
-| `evalCNF_congr` | If `a` and `b` agree below `n` and `VarsBelow n φ`, then `evalCNF a φ = evalCNF b φ`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `evalCNF_congr` | If `a` and `b` agree below `n` and `VarsBelow n φ`, then `evalCNF a φ = evalCNF b φ`. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `length_allAssignments` | `(allAssignments n).length = 2^n` for all `n`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `mem_allAssignments_iff` | `v ∈ allAssignments n ↔ v.length = n`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `mem_allAssignments_iff` | `v ∈ allAssignments n ↔ v.length = n`. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `nodup_allAssignments` | `allAssignments n` has no repetitions. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `brute_force_sound` | `bruteForce n φ = true → Satisfiable φ`, for all `n`, `φ`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `brute_force_complete` | `VarsBelow n φ → Satisfiable φ → bruteForce n φ = true`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `bruteForce_correct` | `bruteForce (numVars φ) φ = true ↔ Satisfiable φ` for every CNF. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `brute_force_sound` | `bruteForce n φ = true → Satisfiable φ`, for all `n`, `φ`. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `brute_force_complete` | `VarsBelow n φ → Satisfiable φ → bruteForce n φ = true`. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `bruteForce_correct` | `bruteForce (numVars φ) φ = true ↔ Satisfiable φ` for every CNF. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `bruteForceCost_le` | `bruteForceCost n φ ≤ 2^n`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `bruteForceCost_unsat` | `¬Satisfiable φ → bruteForceCost n φ = 2^n` (for every `n`). | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `hardFamily_unsat` | `hardFamily n = [x0] ∧ [¬x0] ∧ ⋀_{i<n}(x_i ∨ ¬x_i)` is unsatisfiable for every `n`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `hardFamily_cost` | For `n ≥ 1`: `numVars (hardFamily n) = n`, it is unsatisfiable, and brute force spends exactly `2^n` evaluations on it. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `decode_encode`, `encode_injective` | `decode (encodeCNF φ) = φ`, so the encoding is injective. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `decode_encode`, `encode_injective` | `decode (encodeCNF φ) = φ`, so the encoding is injective. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `numVars_le_encodingLength` | `numVars φ ≤ (encodeCNF φ).length`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `bruteForceCost_le_exp_size` | `bruteForceCost (numVars φ) φ ≤ 2^{(encodeCNF φ).length}`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `PolySATDecider` (definition) | The open obligation of Section 2. It is not proved and not assumed. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `PolySATDecider` (definition) | The open obligation of Section 2, `InP SAT`. It is not proved and not assumed. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `polySATDecider_iff_polyDec` | `PolySATDecider ↔ PolyDec SAT` (explicit machine and polynomial). | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
+| `pEqualsNP_of_polySATDecider` | `SATHard → PolySATDecider → PEqualsNP`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
+| `polySATDecider_of_pEqualsNP` | `SATInNP → PEqualsNP → PolySATDecider`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
+| `polySATDecider_iff` | `CookLevin → (PolySATDecider ↔ PEqualsNP)`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
+| `pNotEqualsNP_of_not_polySATDecider` | `SATInNP → ¬PolySATDecider → PNotEqualsNP`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
 | `polySAT_agrees_with_bruteForce` | `PolySATDecider →` there are `M` and `p` such that for every `φ` the machine halts within `p(|enc φ|)` steps with answer `bruteForce (numVars φ) φ`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `polySATDecider_not_trivial` | Non-vacuity: `¬ ∀ L : Language, InP L` (the shared diagonal language `Diag` is not in P). | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
 
-Not machine-checked: the Cook–Levin theorem, the equivalence
-`PolySATDecider ↔ P = NP`, any lower bound for machines other than brute
-force, and the running time of brute force on the machine model. The cost
-proved here counts formula evaluations, not machine steps.
+Rows whose Lean link is `Machines.lean` are proved once in the shared layer
+and used here; `Idea01.lean` imports it.
+
+Not machine-checked: the Cook–Levin theorem (it appears only as the named
+hypotheses `SATHard`, `SATInNP`, `CookLevin`), any lower bound for machines
+other than brute force, and the running time of brute force on the machine
+model. The cost proved here counts formula evaluations, not machine steps.
+The Rocq file still states the obligation over its own copy of the machine
+model; porting it to the shared Rocq layer is pending.
 
 ## 4. Complete argument
 
@@ -137,13 +160,22 @@ general upper bound is `2^N` (`bruteForceCost_le_exp_size`).
 well-posed. If two formulas with different satisfiability had the same
 encoding, `PolySATDecider` would be false for a trivial reason.
 
-**Conditional theorem.** Suppose `M` and `p` witness `PolySATDecider`. For a
-formula `φ` let `b` be the machine's answer. Then
-`b = true ↔ Satisfiable φ ↔ bruteForce (numVars φ) φ = true`, so the two Booleans
-are equal. The machine therefore reproduces the exponential reference answer
-within a polynomial budget. This is the exact shape of any P = NP proof through
-SAT. The theorem uses nothing about `M` beyond the obligation, so the
-obligation is really needed.
+**Conditional theorems.** `PolySATDecider` is `InP SAT`. If `SAT` is
+NP-hard (`SATHard`), every NP language `PolyReduces` to `SAT`, and P is closed
+under machine reductions (`inP_of_reduces`, proved in the shared layer by
+concatenating the two instruction tables), so every NP language is in P:
+`pEqualsNP_of_polySATDecider`. Conversely, if `SAT ∈ NP` (`SATInNP`) and
+P = NP, then `SAT ∈ P`. Together, under `CookLevin`, `PolySATDecider ↔ PEqualsNP`
+(`polySATDecider_iff`). Now suppose `M` and `p` witness the obligation. For a
+formula `φ` let `b` be the machine's answer on `encodeCNF φ`. Then
+`b = true ↔ Satisfiable φ ↔ bruteForce (numVars φ) φ = true`, so the two
+Booleans are equal (`polySAT_agrees_with_bruteForce`). The machine therefore
+reproduces the exponential reference answer within a polynomial budget. This
+is the exact shape of any P = NP proof through SAT.
+
+**Non-vacuity.** The obligation is not a consequence of the definitions: the
+shared diagonal language `Diag` is not in P (`diag_not_inP`), so `InP` is not
+satisfied by every language (`polySATDecider_not_trivial`).
 
 **Why this does not refute the route.** The cost theorems concern brute
 force, not all algorithms. No lower bound for arbitrary machines is proved,
@@ -183,15 +215,19 @@ At full potential the idea gives the following, all proved:
 1. a uniform, correct, total decider for all CNFs (`bruteForce_correct`);
 2. an exact cost profile: `2^n` evaluations on every unsatisfiable input
    (`bruteForceCost_unsat`) and at most `2^{input length}` in general;
-3. a well-posed statement of the goal (`PolySATDecider`) with a lossless
-   encoding and an explicit machine model;
-4. the reduction of any positive solution to "reproduce `bruteForce` in
+3. a well-posed statement of the goal in the shared machine model,
+   `PolySATDecider := InP SAT`, with a lossless encoding (`decode_encode`);
+4. the connection to the separation question: `pEqualsNP_of_polySATDecider`
+   (hypothesis `SATHard`), `polySATDecider_iff` (hypothesis `CookLevin`),
+   `pNotEqualsNP_of_not_polySATDecider` (hypothesis `SATInNP`);
+5. the reduction of any positive solution to "reproduce `bruteForce` in
    polynomially many machine steps" (`polySAT_agrees_with_bruteForce`).
 
-**Remaining obligation:** `PolySATDecider` (Lean and Rocq name). By Cook–Levin
-it is *equivalent* to P = NP. Its negation is *equivalent* to P ≠ NP. So the
-obligation is exactly as hard as the original problem. It is not an easier
-intermediate step.
+**Remaining obligation:** `PolySATDecider : Prop := InP SAT` (Lean and Rocq
+name). The route from it to `PEqualsNP` needs `SATHard`, which is not
+mechanised here; with `CookLevin` it is *equivalent* to P = NP, and its
+negation is equivalent to P ≠ NP. So the obligation is exactly as hard as the
+original problem. It is not an easier intermediate step.
 
 **Barriers and evidence.**
 

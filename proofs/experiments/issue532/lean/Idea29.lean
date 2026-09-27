@@ -1,30 +1,47 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 29: reduction chains and polynomial composition
 
 **Verdict: correct tool, insufficient alone (general theorem proved).**
 
-Polynomial-time many-one (Karp) reductions compose: the explicit
-repository-style polynomials `⟨coefficient, degree⟩` with
-`eval n = coefficient * (n + 1) ^ degree` are closed under addition and
-under substitution, so the running time and output size of a chain
-`f` then `g` are again polynomially bounded, and correctness composes.
-Consequently membership in a polynomial-time class is inherited backwards
-along reductions.
+Polynomial-time many-one (Karp) reductions compose.  In the repository's
+shared machine model (`proofs/experiments/issue532/lean/Machines.lean`) a
+reduction is `PolyReduces L L'`: a finite-table machine computes the map
+within a polynomial number of `Run` steps.  This file proves that machine
+reductions form a preorder (`polyReduces_refl`, `polyReduces_trans`, via the
+concatenated table `appendMachine` in `computes_comp`), so membership in P is
+inherited backwards along whole chains (`inP_of_chain`, the shared
+`inP_of_reduces`) and any class closed under reductions that contains an
+NP-hard language contains NP (`closed_contains_np`).
 
-The same theorem shows why "reduce NP to P" is not a shortcut: reducing a
-language `L` to *some* language already decidable in polynomial time is
-*equivalent* to deciding `L` in polynomial time (`reducesToP_iff_inP`).
-Every such claimed proof therefore owes a real, polynomially bounded,
-correctness-preserving reduction, which for an NP-complete `L` is exactly
-P = NP.  Nothing here decides P vs NP.
+The same theorem shows why "reduce NP to P" is not a shortcut.  The open
+obligation of that route, stated in the machine model, is
 
-The file is standalone (Lean core only); the polynomial structure mirrors
-`Complexity.Polynomial` field for field.  Running time is an abstract cost
-function supplied together with the map; the theorems hold for every such
-cost function.
+  `SATReducesToP : Prop := ∃ L', PolyReduces SAT L' ∧ InP L'`,
+
+and `satReducesToP_iff_inP_sat` proves it is *equivalent* to `InP SAT`.  It
+yields P = NP only under the named hypothesis `SATHard` (the hardness half of
+Cook–Levin, not mechanised here): `pEqualsNP_of_satReducesToP`;
+`satReducesToP_iff_pEqualsNP` needs `CookLevin`.  Non-vacuity:
+`not_forall_reducesToP` shows that not every language reduces to P.  Nothing
+here decides P vs NP.
+
+The explicit polynomials `Poly` (`eval n = coefficient * (n + 1) ^ degree`,
+the same shape as `Complexity.Polynomial`, see `Poly.eval_toPolynomial`) are
+closed under addition and substitution.  The earlier abstract model, in which
+a map carries a declared cost function, is kept as a schema (`PolyMapFor`,
+`PolyReductionFor`, `PolyDeciderFor`, `InPFor`, `ReducesToPFor`, …);
+`inPFor_every` shows that the schema alone makes every language
+"polynomial-time", and `inPFor_of_inP` instantiates it with the machine step
+count.
 -/
 
 namespace Issue532.Idea29
+
+open Complexity Issue532.Machines
+
+/-! ## Explicit polynomials -/
 
 /-- Explicit polynomial bound `coefficient * (n + 1) ^ degree`. -/
 structure Poly where
@@ -110,9 +127,22 @@ theorem IsReduction.comp {α β γ : Type} {f : α → β} {g : β → γ}
 theorem IsReduction.id {α : Type} (L : α → Prop) : IsReduction (fun x => x) L L :=
   fun _ => Iff.rfl
 
-/-- A map with an abstract cost function and explicit polynomial bounds on its
-time and on the size of its output. -/
-structure PolyMap {α β : Type} (sa : α → Nat) (sb : β → Nat) where
+/-- The explicit polynomial as a `Complexity.Polynomial`. -/
+def Poly.toPolynomial (p : Poly) : Polynomial := ⟨p.coefficient, p.degree⟩
+
+/-- `Poly.eval` is `Complexity.Polynomial.eval`. -/
+theorem Poly.eval_toPolynomial (p : Poly) (n : Nat) : p.toPolynomial.eval n = p.eval n := rfl
+
+/-! ## Abstract cost schema
+
+A schema, not a statement about the machine model: a map or a decider carries
+a declared cost function, so nothing ties the cost to a computation.
+`inPFor_every` makes this explicit, and `inPFor_of_inP` instantiates the
+schema with the machine step count. -/
+
+/-- Schema: a map with a declared cost function and explicit polynomial bounds on
+its time and on the size of its output. -/
+structure PolyMapFor {α β : Type} (sa : α → Nat) (sb : β → Nat) where
   fn : α → β
   time : α → Nat
   timeBound : Poly
@@ -121,8 +151,8 @@ structure PolyMap {α β : Type} (sa : α → Nat) (sb : β → Nat) where
   size_le : ∀ x, sb (fn x) ≤ sizeBound.eval (sa x)
 
 /-- Running `f` then `g`: time is the sum, bounds are explicit. -/
-def PolyMap.comp {α β γ : Type} {sa : α → Nat} {sb : β → Nat} {sc : γ → Nat}
-    (f : PolyMap sa sb) (g : PolyMap sb sc) : PolyMap sa sc where
+def PolyMapFor.comp {α β γ : Type} {sa : α → Nat} {sb : β → Nat} {sc : γ → Nat}
+    (f : PolyMapFor sa sb) (g : PolyMapFor sb sc) : PolyMapFor sa sc where
   fn := fun x => g.fn (f.fn x)
   time := fun x => f.time x + g.time (f.fn x)
   timeBound := f.timeBound.add (f.sizeBound.comp g.timeBound)
@@ -141,13 +171,13 @@ def PolyMap.comp {α β γ : Type} {sa : α → Nat} {sb : β → Nat} {sc : γ 
       (g.sizeBound.eval_mono (f.size_le x))) (Poly.comp_bound _ _ _)
 
 /-- The time of a composed chain of polynomially bounded maps is polynomial. -/
-theorem comp_time_poly {α β γ : Type} {sa : α → Nat} {sb : β → Nat} {sc : γ → Nat}
-    (f : PolyMap sa sb) (g : PolyMap sb sc) :
+theorem comp_time_poly_for {α β γ : Type} {sa : α → Nat} {sb : β → Nat} {sc : γ → Nat}
+    (f : PolyMapFor sa sb) (g : PolyMapFor sb sc) :
     ∃ r : Poly, ∀ x, f.time x + g.time (f.fn x) ≤ r.eval (sa x) :=
   ⟨(f.comp g).timeBound, (f.comp g).time_le⟩
 
 /-- The identity map with zero cost. -/
-def PolyMap.ident {α : Type} (sa : α → Nat) : PolyMap sa sa where
+def PolyMapFor.ident {α : Type} (sa : α → Nat) : PolyMapFor sa sa where
   fn := fun x => x
   time := fun _ => 0
   timeBound := Poly.zero
@@ -159,41 +189,43 @@ def PolyMap.ident {α : Type} (sa : α → Nat) : PolyMap sa sa where
     simp only [Nat.pow_one, Nat.one_mul]
     exact Nat.le_succ _
 
-/-- A polynomially bounded reduction from `L` to `M`. -/
-structure PolyReduction {α β : Type} (sa : α → Nat) (sb : β → Nat)
-    (L : α → Prop) (M : β → Prop) extends PolyMap sa sb where
+/-- Schema: a polynomially bounded reduction from `L` to `M`, with declared cost. -/
+structure PolyReductionFor {α β : Type} (sa : α → Nat) (sb : β → Nat)
+    (L : α → Prop) (M : β → Prop) extends PolyMapFor sa sb where
   correct : IsReduction fn L M
 
 /-- Polynomially bounded reductions compose. -/
-def PolyReduction.comp {α β γ : Type} {sa : α → Nat} {sb : β → Nat} {sc : γ → Nat}
+def PolyReductionFor.comp {α β γ : Type} {sa : α → Nat} {sb : β → Nat} {sc : γ → Nat}
     {L : α → Prop} {M : β → Prop} {N : γ → Prop}
-    (f : PolyReduction sa sb L M) (g : PolyReduction sb sc M N) :
-    PolyReduction sa sc L N :=
-  { f.toPolyMap.comp g.toPolyMap with
+    (f : PolyReductionFor sa sb L M) (g : PolyReductionFor sb sc M N) :
+    PolyReductionFor sa sc L N :=
+  { f.toPolyMapFor.comp g.toPolyMapFor with
     correct := fun x => Iff.trans (f.correct x) (g.correct (f.fn x)) }
 
 /-- The composed reduction computes `g ∘ f`. -/
-theorem PolyReduction.comp_fn {α β γ : Type} {sa : α → Nat} {sb : β → Nat} {sc : γ → Nat}
+theorem PolyReductionFor.comp_fn {α β γ : Type} {sa : α → Nat} {sb : β → Nat} {sc : γ → Nat}
     {L : α → Prop} {M : β → Prop} {N : γ → Prop}
-    (f : PolyReduction sa sb L M) (g : PolyReduction sb sc M N) :
+    (f : PolyReductionFor sa sb L M) (g : PolyReductionFor sb sc M N) :
     (f.comp g).fn = g.fn ∘ f.fn := rfl
 
-/-- A decider with an abstract cost function and an explicit polynomial time bound. -/
-structure PolyDecider {α : Type} (sa : α → Nat) (L : α → Prop) where
+/-- Schema: a decider with a declared cost function and an explicit polynomial
+time bound. -/
+structure PolyDeciderFor {α : Type} (sa : α → Nat) (L : α → Prop) where
   decide : α → Bool
   time : α → Nat
   bound : Poly
   correct : ∀ x, L x ↔ decide x = true
   time_le : ∀ x, time x ≤ bound.eval (sa x)
 
-/-- Abstract polynomial-time class relative to a size function. -/
-def InP {α : Type} (sa : α → Nat) (L : α → Prop) : Prop :=
-  Nonempty (PolyDecider sa L)
+/-- Schema: the polynomial-time class relative to a size function and declared
+costs. -/
+def InPFor {α : Type} (sa : α → Nat) (L : α → Prop) : Prop :=
+  Nonempty (PolyDeciderFor sa L)
 
 /-- Pull a decider back along a polynomially bounded reduction. -/
-def PolyDecider.pullback {α β : Type} {sa : α → Nat} {sb : β → Nat}
+def PolyDeciderFor.pullback {α β : Type} {sa : α → Nat} {sb : β → Nat}
     {L : α → Prop} {M : β → Prop}
-    (r : PolyReduction sa sb L M) (d : PolyDecider sb M) : PolyDecider sa L where
+    (r : PolyReductionFor sa sb L M) (d : PolyDeciderFor sb M) : PolyDeciderFor sa L where
   decide := fun x => d.decide (r.fn x)
   time := fun x => r.time x + d.time (r.fn x)
   bound := r.timeBound.add (r.sizeBound.comp d.bound)
@@ -208,43 +240,263 @@ def PolyDecider.pullback {α β : Type} {sa : α → Nat} {sb : β → Nat}
     omega
 
 /-- The polynomial-time class is closed backwards under polynomial reductions. -/
-theorem inP_of_reduction {α β : Type} {sa : α → Nat} {sb : β → Nat}
+theorem inPFor_of_reduction {α β : Type} {sa : α → Nat} {sb : β → Nat}
     {L : α → Prop} {M : β → Prop}
-    (r : PolyReduction sa sb L M) (h : InP sb M) : InP sa L :=
+    (r : PolyReductionFor sa sb L M) (h : InPFor sb M) : InPFor sa L :=
   match h with
   | ⟨d⟩ => ⟨d.pullback r⟩
 
-/-- An abstract class of languages over `α` closed backwards under reductions. -/
-def ClosedUnderReductions {α : Type} (sa : α → Nat) (C : (α → Prop) → Prop) : Prop :=
-  ∀ L M, Nonempty (PolyReduction sa sa L M) → C M → C L
+/-- Schema: a class of languages over `α` closed backwards under schema
+reductions. -/
+def ClosedUnderReductionsFor {α : Type} (sa : α → Nat) (C : (α → Prop) → Prop) : Prop :=
+  ∀ L M, Nonempty (PolyReductionFor sa sa L M) → C M → C L
 
-/-- `InP` is such a class. -/
-theorem inP_closed {α : Type} (sa : α → Nat) : ClosedUnderReductions sa (InP sa) :=
+/-- `InPFor` is such a class. -/
+theorem inPFor_closed {α : Type} (sa : α → Nat) : ClosedUnderReductionsFor sa (InPFor sa) :=
   fun _ _ hr hM => match hr with
-    | ⟨r⟩ => inP_of_reduction r hM
+    | ⟨r⟩ => inPFor_of_reduction r hM
 
 /-- Any class closed under reductions that contains one language complete for a
 family contains the whole family. -/
-theorem closed_contains_family {α : Type} (sa : α → Nat) (C : (α → Prop) → Prop)
-    (hC : ClosedUnderReductions sa C) (family : (α → Prop) → Prop) (K : α → Prop)
-    (hard : ∀ L, family L → Nonempty (PolyReduction sa sa L K)) (hK : C K) :
+theorem closed_contains_family_for {α : Type} (sa : α → Nat) (C : (α → Prop) → Prop)
+    (hC : ClosedUnderReductionsFor sa C) (family : (α → Prop) → Prop) (K : α → Prop)
+    (hard : ∀ L, family L → Nonempty (PolyReductionFor sa sa L K)) (hK : C K) :
     ∀ L, family L → C L :=
   fun L hL => hC L K (hard L hL) hK
 
-/-- The open obligation of any "reduce `L` to an easy problem" argument:
-a real polynomially bounded reduction of `L` to a language already in `InP`. -/
-def ReducesToP {α : Type} (sa : α → Nat) (L : α → Prop) : Prop :=
+/-- Schema: "reduce `L` to a language in `InPFor`", over declared costs. -/
+def ReducesToPFor {α : Type} (sa : α → Nat) (L : α → Prop) : Prop :=
   ∃ (β : Type) (sb : β → Nat) (M : β → Prop),
-    Nonempty (PolyReduction sa sb L M) ∧ InP sb M
+    Nonempty (PolyReductionFor sa sb L M) ∧ InPFor sb M
 
-/-- The obligation is exactly as hard as the goal: reducing `L` to some
-polynomial-time language is equivalent to `L` itself being polynomial-time. -/
-theorem reducesToP_iff_inP {α : Type} (sa : α → Nat) (L : α → Prop) :
-    ReducesToP sa L ↔ InP sa L := by
+/-- Schema version: reducing `L` to some polynomial-time language is equivalent
+to `L` itself being polynomial-time. -/
+theorem reducesToPFor_iff_inPFor {α : Type} (sa : α → Nat) (L : α → Prop) :
+    ReducesToPFor sa L ↔ InPFor sa L := by
   constructor
   · intro ⟨_, _, _, ⟨r⟩, hM⟩
-    exact inP_of_reduction r hM
+    exact inPFor_of_reduction r hM
   · intro h
-    exact ⟨α, sa, L, ⟨{ PolyMap.ident sa with correct := IsReduction.id L }⟩, h⟩
+    exact ⟨α, sa, L, ⟨{ PolyMapFor.ident sa with correct := IsReduction.id L }⟩, h⟩
+
+/-- The schema alone is vacuous: with declared cost `0`, every language is in
+`InPFor`. -/
+theorem inPFor_every {α : Type} (sa : α → Nat) (L : α → Prop) : InPFor sa L := by
+  classical
+  exact ⟨{ decide := fun x => decide (L x), time := fun _ => 0, bound := Poly.zero,
+           correct := fun x => (decide_eq_true_iff).symm,
+           time_le := fun _ => Nat.zero_le _ }⟩
+
+/-- Instantiating the schema with the machine model: the step count of a
+polynomial-time machine is a declared cost bounded by the machine's polynomial. -/
+theorem inPFor_of_inP {L : Language} (h : InP L) :
+    InPFor List.length (fun x => L x = true) := by
+  obtain ⟨m, p, hm⟩ := (polyDec_iff_inP L).mpr h
+  exact ⟨{ decide := L, time := fun x => Classical.choose (hm x),
+           bound := ⟨p.coefficient, p.degree⟩, correct := fun _ => Iff.rfl,
+           time_le := fun x => (Classical.choose_spec (hm x)).choose_spec.1 }⟩
+
+/-! ## Reduction chains in the machine model -/
+
+/-! ### Composition of machine reductions
+
+`PolyReduces` is a preorder.  The composite reduction runs the table of the
+first machine and then the shifted table of the second (`appendMachine`); the
+second phase starts from the first machine's output tape, which agrees with
+the second machine's initial configuration up to trailing blanks. -/
+
+theorem reaches_trans {M : Machine} {c d e : Config} {t1 t2 : Nat}
+    (h1 : Reaches M c t1 d) (h2 : Reaches M d t2 e) : Reaches M c (t1 + t2) e := by
+  induction h1 with
+  | refl => simpa using h2
+  | next hs _ ih => rw [Nat.add_right_comm]; exact Reaches.next hs (ih h2)
+
+/-- A partial run of the second table is a partial run of the concatenation,
+with every state shifted by the length of the first table. -/
+theorem reaches_append_right (first : Machine) {second : Machine} {c d : Config} {t : Nat}
+    (h : Reaches second c t d) :
+    Reaches (appendMachine first second) (shiftConfig first.program.length c) t
+      (shiftConfig first.program.length d) := by
+  induction h with
+  | refl c => exact Reaches.refl _
+  | @next c c' d t hs _ ih =>
+    refine Reaches.next ?_ ih
+    unfold step at hs ⊢
+    simp only [shiftConfig]
+    rw [append_instruction_right]
+    cases hins : second.instruction c.state c.head with
+    | halt b' => rw [hins] at hs; cases hs
+    | move q w dir =>
+      rw [hins] at hs
+      cases hs
+      exact congrArg Sum.inr (moveHead_shift c _ q w dir)
+
+/-- Partial runs ignore trailing blanks. -/
+theorem reaches_of_similar {M : Machine} {c d c' : Config} {t : Nat}
+    (h : Reaches M c t d) (hs : Similar c c') : ∃ d', Reaches M c' t d' ∧ Similar d d' := by
+  induction h generalizing c' with
+  | refl c => exact ⟨c', Reaches.refl _, hs⟩
+  | next hstep _ ih =>
+    obtain ⟨e', he', hsim⟩ := (similar_step hs).2 _ hstep
+    obtain ⟨d', hd', hsd⟩ := ih hsim
+    exact ⟨d', Reaches.next he' hd', hsd⟩
+
+theorem blankPad_blanks {l : Nat} {s : List Symbol} (h : BlankPad (blanks l) s) :
+    ∃ l', s = blanks l' := by
+  induction l generalizing s with
+  | zero =>
+    induction s with
+    | nil => exact ⟨0, rfl⟩
+    | cons b s ih =>
+      obtain ⟨hb, hs⟩ := BlankPad.nil_cons h
+      obtain ⟨l', hl'⟩ := ih hs
+      exact ⟨l' + 1, by rw [hb, hl']; rfl⟩
+  | succ l ih =>
+    cases s with
+    | nil => exact ⟨0, rfl⟩
+    | cons b s =>
+      obtain ⟨hb, hs⟩ := BlankPad.cons_cons (a := Symbol.blank) (r := blanks l) h
+      obtain ⟨l', hl'⟩ := ih hs
+      exact ⟨l' + 1, by rw [← hb, hl']; rfl⟩
+
+/-- A tape holding a word followed by blanks keeps that form under
+`BlankPad`. -/
+theorem blankPad_word (w : Word) {l : Nat} {s : List Symbol}
+    (h : BlankPad (w.map Symbol.ofBool ++ blanks l) s) :
+    ∃ l', s = w.map Symbol.ofBool ++ blanks l' := by
+  induction w generalizing s with
+  | nil => simpa using blankPad_blanks h
+  | cons a w ih =>
+    cases s with
+    | nil =>
+      obtain ⟨ha, _⟩ := BlankPad.nil_cons (BlankPad.symm h)
+      cases a <;> cases ha
+    | cons b s =>
+      obtain ⟨hab, hs⟩ := BlankPad.cons_cons h
+      obtain ⟨l', hl'⟩ := ih hs
+      exact ⟨l', by rw [List.map_cons, List.cons_append, ← hab, hl']⟩
+
+theorem appendMachine_length (first second : Machine) :
+    (appendMachine first second).program.length =
+      first.program.length + second.program.length := by
+  simp [appendMachine]
+
+/-- The empty table computes the identity in zero steps. -/
+theorem computes_id : Computes ⟨[]⟩ (fun x => x) ⟨0, 0⟩ := by
+  intro x
+  refine ⟨0, initial x, Nat.zero_le _, Reaches.refl _, ?_⟩
+  cases x with
+  | nil => exact ⟨rfl, rfl, 1, rfl⟩
+  | cons a x => exact ⟨rfl, rfl, 0, by simp [initial, initialSymbols, blanks]⟩
+
+/-- **Composition of computed maps** (machine construction). -/
+theorem computes_comp {m m' : Machine} {f g : Word → Word} {p p' : Polynomial}
+    (hm : Computes m f p) (hm' : Computes m' g p') :
+    ∃ B : Polynomial, Computes (appendMachine m m') (fun x => g (f x)) B := by
+  obtain ⟨q, hq⟩ := computes_output_poly hm
+  obtain ⟨B, hB⟩ := compose_bound p p' q
+  refine ⟨B, fun x => ?_⟩
+  obtain ⟨t1, c, ht1, hr1, hs1, hl1, k, htape1⟩ := hm x
+  obtain ⟨t2, d, ht2, hr2, hs2, hl2, k2, htape2⟩ := hm' (f x)
+  have hsim := similar_initial (f x) c m.program.length hs1 hl1 k htape1
+  obtain ⟨d', hr2', hsd⟩ := reaches_of_similar (reaches_append_right m hr2) hsim
+  obtain ⟨hst, hle, hhd, hpad⟩ := hsd
+  have hpad' : BlankPad (d.head :: d.right) (d.head :: d'.right) := BlankPad.cons d.head hpad
+  have htape : d.head :: d.right = (g (f x)).map Symbol.ofBool ++ blanks k2 := htape2
+  rw [htape] at hpad'
+  obtain ⟨l', hl'⟩ := blankPad_word (g (f x)) hpad'
+  refine ⟨t1 + t2, d', ?_, reaches_trans (reaches_append m' hr1) hr2', ?_, ?_, l', ?_⟩
+  · have := polynomial_eval_mono p' (hq x)
+    have := hB x.length
+    omega
+  · rw [appendMachine_length, ← hst]
+    simp only [shiftConfig]
+    omega
+  · rw [← hle]; exact hl2
+  · have hh : d.head = d'.head := hhd
+    rw [← hh]; exact hl'
+
+/-- `PolyReduces` is reflexive. -/
+theorem polyReduces_refl (L : Language) : PolyReduces L L :=
+  ⟨⟨[]⟩, fun x => x, ⟨0, 0⟩, computes_id, fun _ => rfl⟩
+
+/-- **`PolyReduces` is transitive**: machine reductions compose. -/
+theorem polyReduces_trans {L M N : Language} (h1 : PolyReduces L M) (h2 : PolyReduces M N) :
+    PolyReduces L N := by
+  obtain ⟨m, f, p, hm, hf⟩ := h1
+  obtain ⟨m', g, p', hm', hg⟩ := h2
+  obtain ⟨B, hB⟩ := computes_comp hm hm'
+  exact ⟨appendMachine m m', fun x => g (f x), B, hB, fun x => (hf x).trans (hg (f x))⟩
+
+/-- Membership in P is inherited backwards along a two-step chain. -/
+theorem inP_of_chain {L M N : Language} (h1 : PolyReduces L M) (h2 : PolyReduces M N)
+    (hN : InP N) : InP L :=
+  inP_of_reduces (polyReduces_trans h1 h2) hN
+
+/-- A class of languages closed backwards under machine reductions. -/
+def ClosedUnderPolyReduces (C : Language → Prop) : Prop :=
+  ∀ L M, PolyReduces L M → C M → C L
+
+/-- `InP` is closed under machine reductions. -/
+theorem inP_closedUnderPolyReduces : ClosedUnderPolyReduces InP :=
+  fun _ _ hr hM => inP_of_reduces hr hM
+
+/-- NP-hardness is inherited forwards along machine reductions. -/
+theorem npHard_of_reduces {K M : Language} (hK : NPHard K) (hr : PolyReduces K M) : NPHard M :=
+  fun L hL => polyReduces_trans (hK L hL) hr
+
+/-- Any class closed under machine reductions that contains an NP-hard
+language contains all of NP. -/
+theorem closed_contains_np {C : Language → Prop} (hC : ClosedUnderPolyReduces C)
+    {K : Language} (hK : NPHard K) (hCK : C K) : ∀ L, InNP L → C L :=
+  fun L hL => hC L K (hK L hL) hCK
+
+/-- An NP-hard language in P gives P = NP. -/
+theorem pEqualsNP_of_npHard_inP {K : Language} (hK : NPHard K) (hP : InP K) : PEqualsNP :=
+  closed_contains_np inP_closedUnderPolyReduces hK hP
+
+/-- "Reduce `L` to a language already in P", in the machine model. -/
+def ReducesToP (L : Language) : Prop := ∃ L' : Language, PolyReduces L L' ∧ InP L'
+
+/-- Reducing `L` to some language in P is equivalent to `L ∈ P`. -/
+theorem reducesToP_iff_inP (L : Language) : ReducesToP L ↔ InP L :=
+  ⟨fun ⟨_, hr, hL'⟩ => inP_of_reduces hr hL', fun h => ⟨L, polyReduces_refl L, h⟩⟩
+
+/-- Non-vacuity: not every language reduces to a language in P (the shared
+diagonal language `Diag` does not). -/
+theorem not_forall_reducesToP : ¬ ∀ L : Language, ReducesToP L :=
+  fun h => diag_not_inP ((reducesToP_iff_inP Diag).mp (h Diag))
+
+/-! ## The obligation of the "reduce SAT to P" route -/
+
+/-- **Open obligation.**  A machine reduction (`PolyReduces`) from `SAT` to
+some language `L'` together with a polynomial-time machine for `L'`.  This is
+the obligation of every "reduce NP to an easy problem" argument, stated in the
+shared machine model; it is a `def … : Prop` and is never postulated. -/
+def SATReducesToP : Prop := ∃ L' : Language, PolyReduces SAT L' ∧ InP L'
+
+/-- The obligation is exactly as hard as the goal: it is equivalent to
+`InP SAT`. -/
+theorem satReducesToP_iff_inP_sat : SATReducesToP ↔ InP SAT :=
+  reducesToP_iff_inP SAT
+
+/-- Conditional theorem: under the named hypothesis `SATHard` (hardness half of
+Cook–Levin, not mechanised here) the obligation gives P = NP. -/
+theorem pEqualsNP_of_satReducesToP (hard : SATHard) (h : SATReducesToP) : PEqualsNP :=
+  pEqualsNP_of_inP_sat hard (satReducesToP_iff_inP_sat.mp h)
+
+/-- Under the named hypothesis `CookLevin` the obligation is exactly P = NP. -/
+theorem satReducesToP_iff_pEqualsNP (hCL : CookLevin) : SATReducesToP ↔ PEqualsNP :=
+  satReducesToP_iff_inP_sat.trans (inP_sat_iff hCL)
+
+/-- Refuting the obligation would separate P from NP (given `SATInNP`). -/
+theorem pNotEqualsNP_of_not_satReducesToP (mem : SATInNP) (h : ¬ SATReducesToP) :
+    PNotEqualsNP :=
+  fun hp => h (satReducesToP_iff_inP_sat.mpr (inP_sat_of_pEqualsNP mem hp))
+
+/-- A chain `SAT → L₁ → L₂` ending in P discharges the obligation. -/
+theorem satReducesToP_of_chain {L₁ L₂ : Language} (h1 : PolyReduces SAT L₁)
+    (h2 : PolyReduces L₁ L₂) (hP : InP L₂) : SATReducesToP :=
+  ⟨L₂, polyReduces_trans h1 h2, hP⟩
 
 end Issue532.Idea29
