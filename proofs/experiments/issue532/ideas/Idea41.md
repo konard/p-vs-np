@@ -113,6 +113,33 @@ Rocq. It is never assumed. `NTimeHierarchy`, `EasyWitnessLemma`,
 statements of the literature. They are not mechanised here, and every use is
 an explicit hypothesis. No theorem in either file proves or refutes P = NP.
 
+The Rocq file uses no axioms (`Print Assumptions` reports "Closed under the
+global context" for `williams_method`, `fastCircuitSAT_of_pEqualsNP`,
+`pNotEqualsNP_of_not_fastCircuitSAT`, `lazy_diagonal`, `poly_le_two_pow` and
+`not_forall_inNTIME`). It differs from Lean in these ways:
+
+* **`CircuitSAT` is computable.** Lean decides "the word is `encCircuit n C`
+  for a well-formed satisfiable `C`" with a classical `decide`. Rocq parses
+  the word with a decoder `decCircuit`. The decoder is a left inverse of
+  `encCircuit` and rejects trailing bits. Rocq then checks well-formedness
+  with the Boolean `wfFromb` and runs `bruteCircuitSAT`. `circuitSAT_encode`
+  has the Lean statement. The extra theorem `circuitSAT_iff` shows that the
+  language is exactly the Lean one.
+* **`acceptedLanguage` is computable.** It enumerates the certificates of
+  bounded length and replays each run with the step-bounded interpreter
+  `runFor` (`acceptedLanguage_spec`).
+* **`eq_acceptedLanguage` is pointwise.** Rocq has no function
+  extensionality here, so the theorem is stated as
+  `∀ x, L x = acceptedLanguage m c T x`.
+* **`not_forall_inNTIME` inlines the Cantor diagonal.**
+  `exists_language_not_in_family` concludes an inequality of functions, but
+  a verifier determines its language only pointwise. So the file carries out
+  the same diagonal directly, over the (machine, constant) encoding
+  `encMachinePoly (m, c·(n+1)^0)` with a decoder built from `decMachinePoly`.
+  The statement is the same as in Lean.
+* **`lazy_chain` takes a pointwise premise** `∀ x, L x = D x`.
+  `lazy_diagonal` keeps the Lean conclusion `L ≠ D`.
+
 ## 4. Complete argument
 
 **The method.** Assume `NEXP ⊆ P/poly` and `FastCircuitSAT`. The

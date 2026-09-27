@@ -1,8 +1,8 @@
-# Issue 532: forty fully developed ideas toward P vs NP
+# Issue 532: forty-one fully developed ideas toward P vs NP
 
 This log records forty research directions suggested by
-[issue #532](https://github.com/konard/p-vs-np/issues/532). Each idea has three
-parts:
+[issue #532](https://github.com/konard/p-vs-np/issues/532), and a forty-first
+(Williams' algorithmic method) added in review. Each idea has three parts:
 
 - a **dossier** `ideas/IdeaNN.md`, which states the idea at full strength,
   formulates it precisely, lists the machine-checked theorems, gives the
@@ -16,8 +16,18 @@ all algorithms in the stated model, and so on, not for one hand-picked
 instance. No file uses `sorry`, `admit`, `Admitted`, a new axiom, a
 `Parameter`, or a theorem whose conclusion is `True`. Open problems appear
 only as **definitions** of propositions (for example `PolySATDecider` or
-`ExplicitNPLowerBound`). They are never assumed as axioms. Conditional
-theorems take them as explicit hypotheses.
+`ExplicitNPLowerBound`). They are never assumed as axioms.
+
+An earlier revision stated these propositions with free cost functions or free
+complexity classes, so several of them were provable in one line and the
+conditional theorems that took them as hypotheses said nothing about P vs NP.
+Every open obligation is now stated over the repository's single machine model
+([`Complexity.lean`](../../complexity/lean/Complexity.lean)): a decider or
+reduction is a `Complexity.Machine`, its time is the step count of
+`Complexity.Run`, and the bound is a `Complexity.Polynomial`. The checker
+enforces this, each file proves that its obligation is not provable for every
+language (`not_forall_*`), and the review's trivialising proofs are kept as a
+regression that must fail (see [the shared model](#the-shared-model)).
 
 **Nothing here proves P = NP or P ≠ NP.** Each idea ends in one of four
 verdicts:
@@ -26,10 +36,10 @@ verdicts:
 | --- | --- | --- |
 | Refuted as a route (general theorem) | A theorem proved in both provers shows that the idea, used as a route to a polynomial SAT algorithm or to a separation, cannot work in general. | 02, 05, 06, 07, 08, 09, 17, 18, 19, 20, 26, 27, 31, 33, 35 |
 | Refuted in full strength (published theorem) + formal core | The strongest version is refuted by a published theorem (cited). Its combinatorial core is machine-checked. | 04, 10, 11, 16, 21, 23, 38 |
-| Developed to an open obligation (conditional theorem proved) | The idea is correct as far as it goes. What remains is stated as one precise proposition, and the files prove what would follow from it. | 01, 13, 14, 30, 32, 37 |
+| Developed to an open obligation (conditional theorem proved) | The idea is correct as far as it goes. What remains is stated as one precise proposition, and the files prove what would follow from it. | 01, 13, 14, 30, 32, 37, 41 |
 | Correct tool, insufficient alone (general theorem proved) | The tool is proved correct in general and is needed by any solution, but by itself it cannot decide P vs NP. The files prove why. | 03, 12, 15, 22, 24, 25, 28, 29, 34, 36, 39, 40 |
 
-## The forty ideas
+## The forty-one ideas
 
 | No. | Idea (dossier, Lean, Rocq) | Verdict | Principal machine-checked result | What remains, or why the route fails |
 | --- | --- | --- | --- | --- |
@@ -73,6 +83,7 @@ verdicts:
 | 38 | [Relativization audit](ideas/Idea38.md) ([Lean](lean/Idea38.lean), [Rocq](rocq/Idea38.v)) | Refuted in full strength | A decision tree of depth `< N` cannot decide OR on `N` oracle bits, while one nondeterministic query does. A relativizing method settles nothing that is oracle-dependent. | Baker–Gill–Solovay (cited). |
 | 39 | [Proof-system scope](ideas/Idea39.md) ([Lean](lean/Idea39.lean), [Rocq](rocq/Idea39.v)) | Correct tool | Lower bounds transfer down along p-simulation with a composed polynomial. p-simulation is a preorder. A weak lower bound is compatible with strong short proofs. | Lower bounds for every proof system (Cook–Reckhow). |
 | 40 | [Size-uniform invariants](ideas/Idea40.md) ([Lean](lean/Idea40.lean), [Rocq](rocq/Idea40.v)) | Correct tool | Additive recurrences are polynomial. Doubling recurrences are at least `2^n` and beat every polynomial. | `AdditiveSelfReduction` for SAT, which restates P = NP. |
+| 41 | [Williams' algorithmic method](ideas/Idea41.md) ([Lean](lean/Idea41.lean), [Rocq](rocq/Idea41.v)) | Open obligation | `williams_method`: in the shared model, a Circuit-SAT algorithm faster than `2^n/n^ω(1)` (`FastCircuitSAT`, over `Run`) together with three known theorems taken as explicit hypotheses (the nondeterministic time hierarchy, the easy-witness lemma, and the speedup step `WilliamsSpeedup`) refutes NEXP ⊆ P/poly. The hierarchy is derived from a lazy-diagonalisation lemma (`lazy_diagonal`, proved) plus a universal simulator (`LazyDiagonalSimulation`, an explicit hypothesis). P = NP gives `FastCircuitSAT` (proved, given `CircuitSATInNP`), so a refutation of `FastCircuitSAT` gives P ≠ NP. | `FastCircuitSAT` for general circuits is open; NEXP ⊄ P/poly is not known to give P ≠ NP. This is the only route here that turns a modest algorithmic gain into an unconditional lower bound (Williams 2011, Murray–Williams 2018, cited). |
 
 ## How the issue's questions map to the ideas
 
