@@ -98,9 +98,20 @@ axiom. No theorem in either file proves or refutes P = NP. The counting rows
 are in both files under the same names. The machine-model rows (`seedWord`,
 `HaltsWithin`, `RPMachine`, `InRP`, `PolySeedMachine`, `logSeed_enumeration`,
 `rp_sat_with_seed_compression`, `rp_route_gives_pEqualsNP`,
-`not_forall_inRP`) are Lean-only for now. The intended Rocq names are the same;
-`Idea14.v` still has the earlier abstract-cost version, including
-`polySeedRP_implies_poly`.
+`not_forall_inRP`) are also in both files under the same names, over
+`Machines.lean` and its twin `Machines.v`. The earlier abstract-cost layer
+(`PolyDec` over a free size function, `RPDecider`, `polySeedRP_implies_poly`)
+is gone from both. Rocq-specific difference: Lean's `seedAccepts m ℓ x i` is
+`noncomputable` (it decides classically whether some run accepts). The Rocq
+`seedAccepts m p ℓ x i` also takes the time bound `p`. It is computable
+because it runs `m` with the step-bounded interpreter `runFor` for the
+`p(|x| + ℓ|x| + 1)` steps that `HaltsWithin` grants. `seedAccepts_iff` shows
+that under `HaltsWithin` it holds exactly when some run accepts, which is the
+Lean predicate. So in Rocq, `rpLanguage` is indexed by triples `(m, p, R)`,
+encoded by `encRPMachine`, whose left inverse is `decRPMachine`. The
+diagonalisation in `not_forall_inRP` is pointwise. The statements of the
+obligations, of `SeedEnumeration` and of the conditional theorems are the same
+as in Lean, and the Rocq proofs use no axioms.
 
 ## 4. Complete argument
 
@@ -216,8 +227,8 @@ SAT is open and widely believed false.
   hardness has to be proved, not observed).
 * **Caveats.** `SeedEnumeration` (the enumerating machine) and `SATHard` are
   named hypotheses, not mechanised; both are standard theorems. The
-  machine-model part is Lean-only so far; `Idea14.v` keeps the earlier
-  abstract-cost version, where the declared time is not tied to execution.
+  machine-model part is in both `Idea14.lean` and `Idea14.v`. The one Rocq
+  difference is the computable, clocked `seedAccepts` described in section 3.
 
 ## 7. Failure modes this idea catches
 

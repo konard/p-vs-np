@@ -69,9 +69,18 @@ def PolyApprox (opt : Word → Nat) (num den : Nat) : Prop :=
 assumed as an axiom. No theorem in either file proves or refutes P = NP. The
 arithmetic rows are in both files under the same names. The machine-model
 statements (`wordValue`, `PolyApprox`, `polyApprox_decides_gap`, `optOf`,
-`thresholdLanguage`, `not_forall_polyApprox`) are Lean-only for now. The
-intended Rocq names are the same; `Idea13.v` still has the earlier
-abstract-cost `PolyApprox`.
+`thresholdLanguage`, `not_forall_polyApprox`) are in both files under the same
+names, over `Machines.lean` and its twin `Machines.v`. Rocq-specific
+difference: Lean's `thresholdLanguage num m` is `noncomputable` (it decides
+classically whether some function computed by `m` has value `≤ num`). The Rocq
+`thresholdLanguage num (m, p)` is computable. It runs `m` for `p(|x|)` steps
+with the interpreter `runOut` and reads the output word off the tape
+(`readBits`). `thresholdLanguage_computes` shows that it equals the threshold
+test on `f` whenever `Computes m f p`. So the Rocq diagonalisation in
+`not_forall_polyApprox` is over (machine, polynomial) pairs, encoded by
+`encMachinePoly`, and is done pointwise because the Rocq side has no function
+extensionality. The statement of `not_forall_polyApprox` is the same in both
+files, and the Rocq proofs use no axioms.
 
 ## 4. Complete argument
 

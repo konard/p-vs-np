@@ -9,9 +9,28 @@
    (countT_all), one-sided amplification (amplification_count,
    rp_amplification, one_sided_amplified), observed success is no guarantee
    (observed_success_no_guarantee), derandomization by seed enumeration and
-   its cost (enumeration_decides, poly_seeds_derandomize,
-   polySeedRP_implies_poly), and the conditional theorem
-   rp_sat_with_seed_compression.
+   its cost (enumeration_decides, poly_seeds_derandomize).
+
+   Over the shared machine model (Machines.v; a randomised machine runs on
+   pairedInput x r for a random string r, and its time is the step count of
+   Run): seedWord, seedWord_surjective, two_pow_logSeed; HaltsWithin,
+   RPMachine, InRP, PolySeedMachine, PolySeedRP; the open obligations
+   NPinRP := InRP SAT and SeedCompression; the named known theorem
+   SeedEnumeration (a premise only) with its mathematical core
+   logSeed_enumeration; the conditional theorems
+   rp_sat_with_seed_compression and rp_route_gives_pEqualsNP; and the
+   non-vacuity theorem not_forall_inRP.
+
+   Differences from Lean:
+   - The Lean seedAccepts m l x i is noncomputable (it decides classically
+     whether some run accepts).  Here seedAccepts m p l x i is computable: it
+     runs m with the step-bounded interpreter runFor for the time bound
+     p(|x| + l |x| + 1) that HaltsWithin grants.  seedAccepts_iff shows that
+     under HaltsWithin it is exactly the Lean predicate "some run accepts".
+     Accordingly rpLanguage is indexed by triples (m, p, R), encoded by
+     encRPMachine with the left inverse decRPMachine.
+   - The diagonalisation in not_forall_inRP is pointwise (Rocq has no
+     function extensionality here).  No axioms are used.
 
    Verdict: randomness changes the target class; returning to P needs an
    open derandomization step.  NPinRP and SeedCompression are definitions,
@@ -19,6 +38,7 @@
 
 From Stdlib Require Import Arith PeanoNat Lia Bool List.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
 
 Fixpoint sumTo (n : nat) (f : nat -> nat) : nat :=
   match n with 0 => 0 | S m => sumTo m f + f m end.
@@ -207,39 +227,192 @@ Proof.
     exact h.
 Qed.
 
-Definition PolyDec {T : Type} (sz : T -> nat) (L : T -> bool) : Prop :=
-  exists (D : T -> bool) (t : T -> nat) (c d : nat),
-    (forall x, D x = L x) /\ forall x, t x <= c * (sz x + 1) ^ d.
 
-Definition RPDecider {T : Type} (sz : T -> nat) (L : T -> bool) : Prop :=
-  exists (A : T -> nat -> bool) (r Tm : T -> nat) (c d : nat),
-    OneSided L A (fun x => 2 ^ r x) /\
-    forall x, r x <= c * (sz x + 1) ^ d /\ Tm x <= c * (sz x + 1) ^ d.
+(** ** The obligations over the shared machine model
 
-Definition PolySeedRP {T : Type} (sz : T -> nat) (L : T -> bool) : Prop :=
-  exists (A : T -> nat -> bool) (s Tm : T -> nat) (c d : nat),
-    OneSided L A s /\ forall x, s x <= c * (sz x + 1) ^ d /\ Tm x <= c * (sz x + 1) ^ d.
+    A randomised decider is a [Machine] run on [pairedInput x r] for a random
+    string [r]; its time is the step count of [Run].  The random-string length
+    is an explicit polynomial [R] (for RP) or [k * log2 (n+1)] (for
+    seed-compressed algorithms); it is never an arbitrary function of the
+    input length, which would smuggle in advice. *)
 
-(** Polynomially many seeds can be enumerated deterministically. *)
-Theorem polySeedRP_implies_poly : forall {T : Type} (sz : T -> nat) (L : T -> bool),
-  PolySeedRP sz L -> PolyDec sz L.
+(** The [i]-th random string of length [l] (binary, least significant bit
+    first). *)
+Fixpoint seedWord (l i : nat) : Word :=
+  match l with
+  | 0 => []
+  | S l' => Nat.eqb (i mod 2) 1 :: seedWord l' (i / 2)
+  end.
+
+Theorem seedWord_length : forall l i, length (seedWord l i) = l.
+Proof. induction l as [| l IH]; intro i; simpl; [reflexivity | rewrite IH; reflexivity]. Qed.
+
+(** Seeds [i < 2^l] enumerate every random string of length [l]. *)
+Theorem seedWord_surjective : forall r : Word,
+  exists i, i < 2 ^ length r /\ seedWord (length r) i = r.
 Proof.
-  intros T sz L [A [s [Tm [c [d [hA hb]]]]]].
-  exists (fun x => anySeed (s x) (A x)), (fun x => s x * Tm x), (c * c), (d + d). split.
-  - intro x. apply enumeration_decides. exact hA.
-  - intro x.
-    exact (proj2 (poly_seeds_derandomize sz L A s Tm c d c d hA
-      (fun y => proj1 (hb y)) (fun y => proj2 (hb y)) x)).
+  induction r as [| b r IH].
+  - exists 0. simpl. split; [lia | reflexivity].
+  - destruct IH as [i [hi hr]].
+    exists (2 * i + (if b then 1 else 0)). simpl length. rewrite Nat.pow_succ_r'.
+    split; [destruct b; lia |].
+    change (seedWord (S (length r)) (2 * i + (if b then 1 else 0))) with
+      (Nat.eqb ((2 * i + (if b then 1 else 0)) mod 2) 1 ::
+       seedWord (length r) ((2 * i + (if b then 1 else 0)) / 2)).
+    assert (hd : (2 * i + (if b then 1 else 0)) / 2 = i).
+    { rewrite Nat.mul_comm, Nat.div_add_l by lia.
+      destruct b; [change (1 / 2) with 0 | change (0 / 2) with 0]; lia. }
+    assert (hm : (2 * i + (if b then 1 else 0)) mod 2 = if b then 1 else 0).
+    { rewrite Nat.mul_comm, Nat.add_comm, Nat.Div0.mod_add. destruct b; reflexivity. }
+    rewrite hd, hm, hr. destruct b; reflexivity.
 Qed.
 
-(** Open obligation (not assumed). *)
-Definition NPinRP {T : Type} (sz : T -> nat) (L : T -> bool) : Prop := RPDecider sz L.
+(** [m] halts within [p] on input [x] with every random string of length
+    [l(|x|)]. *)
+Definition HaltsWithin (m : Machine) (p : Polynomial) (l : nat -> nat) : Prop :=
+  forall x i, exists t b, t <= evalPoly p (length x + l (length x) + 1) /\
+    Run m (pairedInput x (seedWord (l (length x)) i)) t b.
 
-(** Open obligation (not assumed): seed compression. *)
-Definition SeedCompression {T : Type} (sz : T -> nat) (L : T -> bool) : Prop :=
-  RPDecider sz L -> PolySeedRP sz L.
+(** Seed [i] makes [m] accept [x] within the time bound of [HaltsWithin]
+    (computable: the step-bounded interpreter [runFor] of Machines.v). *)
+Definition seedAccepts (m : Machine) (p : Polynomial) (l : nat -> nat) (x : Word) (i : nat) : bool :=
+  match runFor m (pairedInput x (seedWord (l (length x)) i))
+      (evalPoly p (length x + l (length x) + 1)) with
+  | Some true => true
+  | _ => false
+  end.
 
-(** Conditional theorem. *)
-Theorem rp_sat_with_seed_compression : forall {T : Type} (sz : T -> nat) (L : T -> bool),
-  NPinRP sz L -> SeedCompression sz L -> PolyDec sz L.
-Proof. intros T sz L h1 h2. apply polySeedRP_implies_poly. apply h2. exact h1. Qed.
+(** Under [HaltsWithin], [seedAccepts] is the Lean predicate "some run on
+    this seed accepts". *)
+Theorem seedAccepts_iff : forall m p l, HaltsWithin m p l -> forall x i,
+  seedAccepts m p l x i = true <->
+  exists t, Run m (pairedInput x (seedWord (l (length x)) i)) t true.
+Proof.
+  intros m p l h x i. destruct (h x i) as [t [b [ht hr]]].
+  unfold seedAccepts. rewrite (runFor_of_run _ _ _ _ hr _ ht). split.
+  - intro hb. destruct b; [exists t; exact hr | discriminate].
+  - intros [t' hr']. destruct (run_deterministic _ _ _ _ _ _ hr hr') as [_ ->].
+    reflexivity.
+Qed.
+
+(** A polynomial-time one-sided randomised machine for [L]: random strings of
+    length [R(|x|)], never accepts a no-instance, accepts a yes-instance on at
+    least half of the random strings. *)
+Definition RPMachine (m : Machine) (p R : Polynomial) (L : Language) : Prop :=
+  HaltsWithin m p (evalPoly R) /\
+  OneSided L (seedAccepts m p (evalPoly R)) (fun x => 2 ^ evalPoly R (length x)).
+
+(** The class RP of the shared machine model. *)
+Definition InRP (L : Language) : Prop :=
+  exists (m : Machine) (p R : Polynomial), RPMachine m p R L.
+
+(** Open obligation.  SAT has a polynomial-time one-sided randomised machine
+    decider (NP is contained in RP). *)
+Definition NPinRP : Prop := InRP SAT.
+
+(** Logarithmic seed length [k * log2 (n+1)]. *)
+Definition logSeed (k n : nat) : nat := k * Nat.log2 (n + 1).
+
+(** Logarithmic seeds are polynomially many. *)
+Theorem two_pow_logSeed : forall k n, 2 ^ logSeed k n <= (n + 1) ^ k.
+Proof.
+  intros k n. unfold logSeed. rewrite Nat.mul_comm, Nat.pow_mul_r.
+  apply Nat.pow_le_mono_l. apply Nat.log2_spec. lia.
+Qed.
+
+(** A polynomial-time one-sided randomised machine with logarithmic seeds. *)
+Definition PolySeedMachine (m : Machine) (p : Polynomial) (k : nat) (L : Language) : Prop :=
+  HaltsWithin m p (logSeed k) /\
+  OneSided L (seedAccepts m p (logSeed k)) (fun x => 2 ^ logSeed k (length x)).
+
+Definition PolySeedRP (L : Language) : Prop :=
+  exists (m : Machine) (p : Polynomial) (k : nat), PolySeedMachine m p k L.
+
+(** Open obligation.  Seed compression for [L]: a polynomial-time one-sided
+    randomised machine can be replaced by one with logarithmic seeds (what a
+    suitable pseudorandom generator provides). *)
+Definition SeedCompression (L : Language) : Prop := InRP L -> PolySeedRP L.
+
+(** Known theorem, not mechanised here (derandomization by enumeration, Gill
+    1977): a machine that tries all [2^(k log2 (n+1)) <= (n+1)^k] seeds, each
+    run within [p], decides [L] deterministically in polynomial time.  The
+    mathematics is [logSeed_enumeration]; the missing part is the
+    single-tape machine that enumerates the seeds and simulates [m].  Used
+    only as an explicit premise. *)
+Definition SeedEnumeration : Prop := forall L, PolySeedRP L -> InP L.
+
+(** The mathematical core of [SeedEnumeration]: trying every seed gives the
+    right answer, there are at most [(n+1)^k] seeds, and each run halts
+    within [p(n + k log2 (n+1) + 1)] steps. *)
+Theorem logSeed_enumeration : forall m p k L, PolySeedMachine m p k L ->
+  forall x,
+    anySeed (2 ^ logSeed k (length x)) (seedAccepts m p (logSeed k) x) = L x /\
+    2 ^ logSeed k (length x) <= (length x + 1) ^ k /\
+    forall i, exists t b, t <= evalPoly p (length x + logSeed k (length x) + 1) /\
+      Run m (pairedInput x (seedWord (logSeed k (length x)) i)) t b.
+Proof.
+  intros m p k L [hh ho] x. split; [| split].
+  - exact (enumeration_decides L _ _ ho x).
+  - apply two_pow_logSeed.
+  - exact (hh x).
+Qed.
+
+(** Conditional theorem: [NPinRP], [SeedCompression SAT] and the known
+    [SeedEnumeration] give a polynomial-time machine decider for SAT. *)
+Theorem rp_sat_with_seed_compression :
+  NPinRP -> SeedCompression SAT -> SeedEnumeration -> PolyDec SAT.
+Proof. intros h1 h2 h3. apply polyDec_iff_inP. exact (h3 SAT (h2 h1)). Qed.
+
+(** With the hardness half of Cook-Levin the conclusion is P = NP. *)
+Theorem rp_route_gives_pEqualsNP :
+  NPinRP -> SeedCompression SAT -> SeedEnumeration -> SATHard -> PEqualsNP.
+Proof. intros h1 h2 h3 hard. exact (pEqualsNP_of_inP_sat hard (h3 SAT (h2 h1))). Qed.
+
+(** The language a one-sided randomised machine decides is determined by the
+    machine, its time bound and the random-string length. *)
+Definition rpLanguage (x : Machine * Polynomial * Polynomial) : Language :=
+  fun w => anySeed (2 ^ evalPoly (snd x) (length w))
+    (seedAccepts (fst (fst x)) (snd (fst x)) (evalPoly (snd x)) w).
+
+(** Encoding of (machine, time bound, random-string length) triples. *)
+Definition encRPMachine (x : Machine * Polynomial * Polynomial) : Word :=
+  encMachine (fst (fst x)) ++ encNat (coefficient (snd (fst x))) ++
+  encNat (degree (snd (fst x))) ++ encNat (coefficient (snd x)) ++
+  encNat (degree (snd x)).
+
+(** Its left inverse (trailing bits are ignored). *)
+Definition decRPMachine (w : Word) : option (Machine * Polynomial * Polynomial) :=
+  obind (decMachineFront w) (fun '(m, r1) =>
+  obind (decNat r1) (fun '(c, r2) =>
+  obind (decNat r2) (fun '(k, r3) =>
+  obind (decNat r3) (fun '(c', r4) =>
+  obind (decNat r4) (fun '(k', _) =>
+  Some (m, {| coefficient := c; degree := k |},
+        {| coefficient := c'; degree := k' |})))))).
+
+Theorem decRPMachine_encRPMachine : forall x, decRPMachine (encRPMachine x) = Some x.
+Proof.
+  intros [[m [c k]] [c' k']]. unfold decRPMachine, encRPMachine. simpl.
+  rewrite decMachineFront_encMachine. simpl.
+  rewrite decNat_encNat. simpl. rewrite decNat_encNat. simpl.
+  rewrite decNat_encNat. simpl.
+  rewrite <- (app_nil_r (encNat k')), decNat_encNat. reflexivity.
+Qed.
+
+(** Non-vacuity.  [InRP] does not hold for every language, so [NPinRP] is a
+    statement about SAT, not a consequence of the definitions. *)
+Theorem not_forall_inRP : ~ (forall L : Language, InRP L).
+Proof.
+  intro hall.
+  set (L := fun w : Word => match decRPMachine w with
+                            | Some a => negb (rpLanguage a w)
+                            | None => true
+                            end).
+  destruct (hall L) as [m [p [R [_ hone]]]].
+  set (w := encRPMachine (m, p, R)).
+  pose proof (enumeration_decides L _ _ hone w) as he.
+  assert (hL : L w = negb (rpLanguage (m, p, R) w)).
+  { unfold L, w. rewrite decRPMachine_encRPMachine. reflexivity. }
+  unfold rpLanguage in hL. cbn [fst snd] in hL. rewrite he in hL.
+  destruct (L w); discriminate.
+Qed.
