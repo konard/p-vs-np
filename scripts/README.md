@@ -70,6 +70,14 @@ python3 scripts/check_attempt_structure.py --path proofs/attempts/craig-feinstei
 python3 scripts/check_attempt_structure.py --offline --generate-list --output proofs/attempts/ATTEMPTS.md
 ```
 
+`--fail-on-missing-woeginger` requires a successfully fetched and parsed
+milestone list, including when `--quiet` is set. It can also use a local HTML
+file through `--woeginger-url file:///absolute/path/to/snapshot.html`.
+`--offline` and `--path` cannot be combined with strict Woeginger flags because
+those modes skip the list comparison. Exit status 1 means that repository
+coverage is incomplete (or an attempt is structurally invalid); exit status 2
+means that the source could not be validated or the flags are incompatible.
+
 ### Output
 
 The script reports:
