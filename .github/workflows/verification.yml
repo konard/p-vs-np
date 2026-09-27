@@ -51,6 +51,11 @@ jobs:
     - name: Check Kardash 2-SAT counterexamples
       run: python3 -m unittest discover -s experiments/issue587 -p 'test_*.py' -v
 
+    - name: Check issue 588 audit inventory
+      run: |
+        python3 -m unittest discover -s experiments/issue588 -p 'test_*.py' -v
+        python3 experiments/issue588/admission_inventory.py
+
     - name: Detect changed files
       id: changes
       run: |
