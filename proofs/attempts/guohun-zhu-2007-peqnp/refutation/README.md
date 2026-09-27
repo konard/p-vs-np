@@ -1,67 +1,33 @@
-# Refutation of Guohun Zhu's 2007 P=NP Attempt
+# Zhu (2007): projector component and matching-count counterexamples
 
-This directory contains formal refutations of Guohun Zhu's 2007 claim that P=NP.
+Theorem 1(c3) claims that a projector graph of a Γ digraph with n vertices
+has at most n/4 four-cycle components. Lemma 4 separately claims an upper
+bound of n/2 **unlabeled** perfect matchings. The paper counts labeled
+matchings as exponential; the inequality 2^k > 2k alone does not challenge
+the unlabeled claim.
 
-## The Error
+[ZhuRefutation.lean](lean/ZhuRefutation.lean) constructs a six-vertex
+digraph in which every vertex has two incoming and two outgoing arcs and every
+vertex is reachable from every other. Its projector graph has three C4
+components. Thus the graph contradicts Theorem 1(c3): 3 > 6/4. The Lean
+proofs check that eight code choices yield perfect
+matchings. Under the paper's examples' convention that codes are identified
+by permuting identical components, the codes have four different weights
+0, 1, 2, 3, whereas n/2 = 3. The proof also checks that two choices
+give different cycle outcomes in the inverse digraph. The reproducible
+enumeration in [projector_witness.py](../../../../experiments/issue580/projector_witness.py)
+computes every matching and its incidence rank.
 
-**Location**: Lemma 4, page 7 of the original paper
+**Classification: concrete refutation of Theorem 1(c3), conditional result
+for Lemma 4.** The paper does not define "isomorphic" precisely enough to
+prove that its intended unlabeled quotient is exactly this code-permutation
+quotient. A complete refutation of the
+algorithm would also have to formalize the update operator in equations
+(10–11), the claimed monotonicity of the rank function, and the rule for
+selecting a representative from each class. None of those claims is proved
+or disproved here.
 
-**The Claim**: "The maximal number of unlabeled perfect matchings in a projector graph G is n/2."
-
-**Why It's Wrong**: With k independent components (where k ≤ n/4), each having 2 perfect matching choices, the number of distinct matchings is **2^k**, not 2k.
-
-## Formal Refutations
-
-### Lean (refutation/lean/ZhuRefutation.lean)
-
-Proves:
-- `correct_matching_count`: For k ≥ 2, we have 2^k > 2k
-- `exponential_vs_linear`: For n ≥ 12, we have 2^(n/4) > n/2
-- `zhu_lemma_4_is_false`: The claimed linear bound contradicts exponential growth
-
-### Rocq/Coq (refutation/rocq/ZhuRefutation.v)
-
-Proves:
-- The exponential growth property using the `lia` tactic
-- Counterexamples showing 2^k ≠ 2k for k ≥ 2
-- The impossibility of enumerating exponentially many matchings in polynomial time
-
-## Mathematical Explanation
-
-### The Counting Error
-
-If a projector graph has k components (where k ≤ n/4), and each component has 2 perfect matching choices:
-
-- **Zhu's claim**: 2 + 2 + ... + 2 (k times) = 2k matchings (LINEAR)
-- **Correct**: 2 × 2 × ... × 2 (k times) = 2^k matchings (EXPONENTIAL)
-
-### Concrete Example
-
-For n = 12 (so k = 3):
-- **Zhu's claim**: 2×3 = 6 matchings
-- **Actual**: 2^3 = 8 matchings
-
-For n = 16 (so k = 4):
-- **Zhu's claim**: 2×4 = 8 matchings
-- **Actual**: 2^4 = 16 matchings
-
-As k grows, 2^k grows exponentially while 2k grows linearly. This exponential explosion destroys the polynomial-time claim.
-
-## Additional Issues
-
-1. **No enumeration algorithm**: The paper provides recursive equations (10-11) but no proof they enumerate all matchings
-2. **Isomorphism confusion**: The "isomorphism" argument doesn't reduce the exponential count
-3. **Missing rank check**: No polynomial-time algorithm is given to systematically check the rank condition for all matchings
-
-## Conclusion
-
-The refutation shows that Zhu's approach **cannot** solve HCP in polynomial time because:
-1. The number of matchings to check is exponential, not linear
-2. No polynomial-time enumeration method exists for all such matchings
-3. The fundamental counting argument (Lemma 4) is mathematically incorrect
-
-This is a common error in P vs NP attempts: **confusing linear growth with exponential growth** in combinatorial counting.
-
----
-
-*See `../proof/` for discussion of what parts of the forward proof can be formalized.*
+The [Rocq file](rocq/ZhuRefutation.v) checks the same finite graph, three
+four-cycle components, code classes, and different cycle outcomes. Neither
+formalization defines the
+paper's rank-greedy update algorithm.

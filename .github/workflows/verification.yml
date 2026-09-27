@@ -39,6 +39,9 @@ jobs:
     - name: Check Plotnikov refutation assumptions
       run: python3 -m unittest discover -s experiments/issue577 -p 'test_*.py' -v
 
+    - name: Check semantic coverage of named refutations
+      run: python3 -m unittest discover -s experiments/issue580 -p 'test_*.py' -v
+
     - name: Check issue 7 independence claims
       run: python3 experiments/issue579/check_claims.py
 
