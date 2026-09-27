@@ -245,6 +245,16 @@ def check_idea(number: int) -> list[str]:
 
     for language in ("lean", "rocq"):
         errors.extend(check_prover_file(language, files[language], number))
+        # An idea that claims an open obligation must state it in the file,
+        # where `check_obligations` ties it to the machine model.
+        if verdict and verdict.group(1).startswith(VERDICTS[2]) and not any(
+            OBLIGATION.search(match.group("doc"))
+            for match in DOCUMENTED[language].finditer(files[language].read_text())
+        ):
+            errors.append(
+                f"Idea{number:02d}: verdict claims an open obligation but {files[language].name} "
+                "labels no definition as one"
+            )
 
     if not any(section in markdown for section in SECTIONS[2:4]):
         return errors
