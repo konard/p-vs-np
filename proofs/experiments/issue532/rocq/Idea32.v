@@ -2,6 +2,7 @@
 
    Verdict: developed to an open obligation (conditional theorem proved).
 
+   Rocq counterpart of ../lean/Idea32.lean (same theorem names and content).
    A promise algorithm for L on a promise P only has to be correct on inputs
    satisfying P.  Negative (flip_at): for every promise and language over a type
    with decidable equality, an input x outside P allows an algorithm correct on
@@ -12,13 +13,31 @@
    (compose_cost); the "into P" condition is necessary (composition_works_iff).
    For CNF: the Unique-SAT promise excludes x0 \/ x1 (not_unique_example), so
    some promise-correct algorithm is wrong on it (usat_solver_wrong); another
-   promise makes SAT trivial (trivial_promise_solver).  The open obligation is a
-   deterministic polynomial-time isolation map (IsolationObligation), which with
-   a promise solver decides SAT (isolation_solves_sat).  Nothing here decides
-   P vs NP. *)
+   promise makes SAT trivial (trivial_promise_solver).
+
+   IsolationObligationFor PolyTime is a generic schema with a free class
+   PolyTime of maps; with a free class it is met by the decider-based map
+   isolate (decider_meets_isolation).  The open obligations are stated over
+   the shared machine model (Complexity.Machine, time = step count of
+   Complexity.Run, words decoded to CNFs by Machines.decode):
+   IsolationObligation (a deterministic polynomial-time machine map into the
+   Unique-SAT promise preserving SAT) and PromiseSolver (a polynomial-time
+   machine correct for SAT on the promise).  isolation_promise_inP and
+   isolation_route_gives_pEqualsNP give InP SAT (and PEqualsNP given SATHard,
+   a named premise); isolationObligation_of_schema and
+   schema_of_isolationObligation relate the machine obligation to the schema;
+   not_forall_promise_class shows deciding on the promise is not trivial.
+
+   Differences from Lean: flip_at and the other general theorems take an
+   explicit decidable equality (and composition_works_iff a decidable promise)
+   instead of instances.  not_forall_promise_class has the Lean statement but
+   is proved by a direct diagonal over the decoder decMachinePoly and the
+   step-bounded interpreter runFor, not via Classical.  No axioms are used.
+   Nothing here decides P vs NP. *)
 
 From Stdlib Require Import Bool Arith PeanoNat List Lia.
 Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Machines.
 
 (* General promise problems *)
 
@@ -220,15 +239,20 @@ Proof.
   simpl in ha. unfold evalLit in ha. simpl in ha. destruct (a 0); discriminate.
 Qed.
 
-(* The open obligation *)
+(* The isolation schema *)
 
-Definition IsolationObligation (PolyTime : (CNF -> CNF) -> Prop) : Prop :=
+(** Generic schema (a free class [PolyTime] of maps, not a machine model): a
+    map in [PolyTime] from all CNFs into the Unique-SAT promise that preserves
+    satisfiability (a deterministic isolation).  With a free [PolyTime] it is
+    met by [isolate] (see [decider_meets_isolation]); the machine instance is
+    [IsolationObligation] below. *)
+Definition IsolationObligationFor (PolyTime : (CNF -> CNF) -> Prop) : Prop :=
   exists f : CNF -> CNF, PolyTime f /\ (forall phi, AtMostOneSolution (f phi)) /\
     forall phi, Satisfiable phi <-> Satisfiable (f phi).
 
 (* Conditional theorem: the obligation plus a promise solver gives a total SAT solver. *)
 Theorem isolation_solves_sat (PolyTime : (CNF -> CNF) -> Prop) :
-  IsolationObligation PolyTime ->
+  IsolationObligationFor PolyTime ->
   forall Alg : CNF -> bool,
     (forall phi, AtMostOneSolution phi -> (Alg phi = true <-> Satisfiable phi)) ->
     exists f : CNF -> CNF, PolyTime f /\ forall phi, Alg (f phi) = true <-> Satisfiable phi.
@@ -253,4 +277,217 @@ Proof.
     + split.
       * intro h. apply hsat in h. congruence.
       * intros (a & ha). discriminate.
+Qed.
+
+(* The obligations over the shared machine model *)
+
+(* Translation between this file's CNF and the shared CNF (Machines.CNF). *)
+
+Definition ofLit (l : Machines.Lit) : Lit := mkLit (Machines.var l) (Machines.pos l).
+Definition toLit (l : Lit) : Machines.Lit := Machines.mkLit (var l) (pos l).
+
+(** A shared-layer CNF read as a CNF of this file. *)
+Definition ofM (phi : Machines.CNF) : CNF := map (fun c => map ofLit c) phi.
+(** A CNF of this file read as a shared-layer CNF. *)
+Definition toM (phi : CNF) : Machines.CNF := map (fun c => map toLit c) phi.
+
+Theorem ofClause_toClause : forall c : Clause, map ofLit (map toLit c) = c.
+Proof.
+  induction c as [| [v b] c IH]; [reflexivity |]. simpl. rewrite IH. reflexivity.
+Qed.
+
+Theorem ofM_toM : forall phi : CNF, ofM (toM phi) = phi.
+Proof.
+  induction phi as [| c phi IH]; [reflexivity |].
+  unfold ofM, toM in *. simpl. rewrite ofClause_toClause, IH. reflexivity.
+Qed.
+
+Theorem evalLit_ofLit : forall (a : Assignment) (l : Machines.Lit),
+  evalLit a (ofLit l) = Machines.evalLit a l.
+Proof.
+  intros a [v b]. unfold evalLit, ofLit, Machines.evalLit. simpl.
+  destruct (a v), b; reflexivity.
+Qed.
+
+Theorem evalClause_ofM : forall (a : Assignment) (c : Machines.Clause),
+  evalClause a (map ofLit c) = Machines.evalClause a c.
+Proof.
+  intros a c. induction c as [| l c IH]; [reflexivity |].
+  simpl. rewrite evalLit_ofLit, IH. reflexivity.
+Qed.
+
+Theorem evalCNF_ofM : forall (a : Assignment) (phi : Machines.CNF),
+  evalCNF a (ofM phi) = Machines.evalCNF a phi.
+Proof.
+  intros a phi. induction phi as [| c phi IH]; [reflexivity |].
+  unfold ofM in *. simpl. rewrite evalClause_ofM, IH. reflexivity.
+Qed.
+
+Theorem satisfiable_ofM : forall phi : Machines.CNF,
+  Satisfiable (ofM phi) <-> Machines.Satisfiable phi.
+Proof.
+  intro phi. unfold Satisfiable, Machines.Satisfiable. split;
+    intros [a ha]; exists a; [rewrite <- evalCNF_ofM | rewrite evalCNF_ofM]; exact ha.
+Qed.
+
+(* The shared SAT language, read through this file's CNF semantics. *)
+Theorem sat_iff_ofM : forall w : Word, SAT w = true <-> Satisfiable (ofM (decode w)).
+Proof.
+  intro w. rewrite sat_iff. symmetry. apply satisfiable_ofM.
+Qed.
+
+(* The promise, the obligations and the conditional theorems *)
+
+(** The Unique-SAT promise on words: the decoded formula has at most one
+    solution. *)
+Definition UniquePromise (w : Word) : Prop := AtMostOneSolution (ofM (decode w)).
+
+(** Open obligation (deterministic isolation).  A polynomial-time machine map
+    [g] on words ([Computes m g p]: the step count of the machine's run is at
+    most [evalPoly p |w|]) that sends every word into the Unique-SAT promise
+    and preserves [SAT].  Valiant-Vazirani (1986) gives only a randomized map
+    with this property; the obligation asks for a deterministic one. *)
+Definition IsolationObligation : Prop :=
+  exists (m : Machine) (g : Word -> Word) (p : Polynomial), Computes m g p /\
+    (forall w, UniquePromise (g w)) /\ forall w, SAT w = SAT (g w).
+
+(** Open obligation (Unique-SAT solver).  A polynomial-time machine that
+    decides [SAT] correctly on every word in the Unique-SAT promise. *)
+Definition PromiseSolver : Prop :=
+  exists (d : Machine) (p : Polynomial), DecidesOn d p UniquePromise SAT.
+
+(* Conditional theorem.  Deterministic isolation plus a Unique-SAT promise
+   solver puts SAT in P (machine composition inP_of_promise_reduction). *)
+Theorem isolation_promise_inP : IsolationObligation -> PromiseSolver -> InP SAT.
+Proof.
+  intros [m [g [p [hm [hinto hpres]]]]] [d [q hd]].
+  exact (inP_of_promise_reduction SAT SAT UniquePromise m d g p q hm hinto hpres hd).
+Qed.
+
+(* Conditional theorem.  With NP-hardness of SAT (SATHard, a named premise:
+   the hard half of Cook-Levin), the two obligations give P = NP. *)
+Theorem isolation_route_gives_pEqualsNP :
+  SATHard -> IsolationObligation -> PromiseSolver -> PEqualsNP.
+Proof.
+  intros hard hI hS. exact (pEqualsNP_of_inP_sat hard (isolation_promise_inP hI hS)).
+Qed.
+
+(* A total polynomial-time SAT decider is in particular a promise solver. *)
+Theorem promiseSolver_of_inP : InP SAT -> PromiseSolver.
+Proof.
+  intro h. destruct (proj2 (polyDec_iff_inP SAT) h) as [m [p hd]].
+  exists m, p. intros x _. exact (hd x).
+Qed.
+
+(* Under deterministic isolation, the promise problem is exactly as hard as SAT. *)
+Theorem promiseSolver_iff_inP : IsolationObligation -> (PromiseSolver <-> InP SAT).
+Proof.
+  intro hI. split; [exact (isolation_promise_inP hI) | exact promiseSolver_of_inP].
+Qed.
+
+(* The machine obligation is the schema with machine-computable maps *)
+
+(** [f] is realised on words by a polynomial-time machine: some machine map
+    [g] satisfies [decode (g w) = f (decode w)] (read through [ofM]) on every
+    word. *)
+Definition RealizedOnWords (f : CNF -> CNF) : Prop :=
+  exists (m : Machine) (g : Word -> Word) (p : Polynomial), Computes m g p /\
+    forall w, ofM (decode (g w)) = f (ofM (decode w)).
+
+(** [f] is realised on encodings by a polynomial-time machine: some machine
+    map [g] satisfies [decode (g (encodeCNF phi)) = f phi] (read through
+    [ofM]/[toM]). *)
+Definition RealizedOnEncodings (f : CNF -> CNF) : Prop :=
+  exists (m : Machine) (g : Word -> Word) (p : Polynomial), Computes m g p /\
+    forall phi, ofM (decode (g (encodeCNF (toM phi)))) = f phi.
+
+Theorem bool_eq_of_iff : forall a b : bool, (a = true <-> b = true) -> a = b.
+Proof.
+  intros [] [] h; try reflexivity.
+  - symmetry. apply h. reflexivity.
+  - apply h. reflexivity.
+Qed.
+
+(* The schema instantiated with maps realised by machines on words gives the
+   machine obligation. *)
+Theorem isolationObligation_of_schema :
+  IsolationObligationFor RealizedOnWords -> IsolationObligation.
+Proof.
+  intros [f [[m [g [p [hm hg]]]] [hinto hpres]]].
+  exists m, g, p. split; [exact hm |]. split.
+  - intro w. unfold UniquePromise. rewrite hg. apply hinto.
+  - intro w. apply bool_eq_of_iff. rewrite !sat_iff_ofM, hg. apply hpres.
+Qed.
+
+(* The machine obligation gives the schema instantiated with maps realised by
+   machines on encodings. *)
+Theorem schema_of_isolationObligation :
+  IsolationObligation -> IsolationObligationFor RealizedOnEncodings.
+Proof.
+  intros [m [g [p [hm [hinto hpres]]]]].
+  exists (fun phi => ofM (decode (g (encodeCNF (toM phi))))). split.
+  - exists m, g, p. split; [exact hm | reflexivity].
+  - split; [intro phi; apply hinto |].
+    intro phi.
+    assert (h1 : Satisfiable phi <-> SAT (encodeCNF (toM phi)) = true).
+    { rewrite sat_encode, <- satisfiable_ofM, ofM_toM. reflexivity. }
+    rewrite h1, hpres, sat_iff_ofM. reflexivity.
+Qed.
+
+(* Non-vacuity: deciding on the promise is not trivial *)
+
+(** Pad a word into pairs [false, b]; such words decode to the empty formula. *)
+Fixpoint pad (w : Word) : Word :=
+  match w with
+  | [] => []
+  | b :: w' => false :: b :: pad w'
+  end.
+
+Fixpoint unpad (w : Word) : Word :=
+  match w with
+  | _ :: b :: r => b :: unpad r
+  | _ => []
+  end.
+
+Theorem unpad_pad : forall w : Word, unpad (pad w) = w.
+Proof. induction w as [| b w IH]; [reflexivity |]. simpl. rewrite IH. reflexivity. Qed.
+
+Theorem decodeAux_pad : forall (w : Word) (k : nat) (cur : Machines.Clause),
+  Machines.decodeAux (pad w) k cur = [].
+Proof.
+  induction w as [| b w IH]; intros k cur; [reflexivity |]. simpl. apply IH.
+Qed.
+
+(* Every padded word lies in the Unique-SAT promise. *)
+Theorem uniquePromise_pad : forall w : Word, UniquePromise (pad w).
+Proof.
+  intros w a b _ _ v hv. unfold decode in hv. rewrite decodeAux_pad in hv.
+  destruct hv.
+Qed.
+
+(* Non-vacuity.  Not every language is decided on the Unique-SAT promise by a
+   machine (in any polynomial time bound): the promise contains all padded
+   words, and a diagonal language over them escapes every machine.  The
+   diagonal runs the decoded machine for the decoded polynomial bound with the
+   interpreter runFor, so the language is defined without classical logic. *)
+Theorem not_forall_promise_class :
+  ~ (forall L : Language, exists (d : Machine) (p : Polynomial), DecidesOn d p UniquePromise L).
+Proof.
+  intro hall.
+  set (F := fun (x : Machine * Polynomial) (w : Word) =>
+    match runFor (fst x) (initial (pad w)) (evalPoly (snd x) (length (pad w))) with
+    | Some true => true
+    | _ => false
+    end).
+  set (L0 := fun w => match decMachinePoly w with Some x => negb (F x w) | None => true end).
+  destruct (hall (fun w => L0 (unpad w))) as [d [p hd]].
+  set (w := encMachinePoly (d, p)).
+  destruct (hd (pad w) (uniquePromise_pad w)) as [t [b [ht [hr hb]]]].
+  rewrite unpad_pad in hb.
+  pose proof (runFor_of_run d (initial (pad w)) t b hr _ ht) as hrun.
+  assert (hF : F (d, p) w = L0 w).
+  { unfold F. simpl fst. simpl snd. rewrite hrun, <- hb. destruct b; reflexivity. }
+  assert (hL : L0 w = negb (F (d, p) w)).
+  { unfold L0. unfold w at 1. rewrite decMachinePoly_encMachinePoly. reflexivity. }
+  rewrite hF in hL. destruct (L0 w); discriminate.
 Qed.

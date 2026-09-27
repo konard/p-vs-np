@@ -82,11 +82,19 @@ schema.
 | `logParamFPT_iff_schema` | `LogParamFPT L ↔ LogParamFPTObligationFor (MachineDecides L) steps (fun x => x.length + 1)` | [Lean](../lean/Idea37.lean) | [Rocq](../rocq/Idea37.v) |
 
 The arithmetic rows are proved in both files. The machine-model rows (from
-`logParamFPT_inP` on) are proved in Lean only so far; the intended Rocq names
-are the same, with the schema named `LogParamFPTObligationFor` as in Lean.
-The arithmetic proofs are constructive. `steps` uses classical choice, and
+`logParamFPT_inP` on) are proved in both files under the same names, with the
+schema named `LogParamFPTObligationFor`. The arithmetic proofs are
+constructive. In Lean, `steps m x` is defined for every machine by classical
+choice (and is `0` on inputs where the machine does not halt), and
 `not_forall_logParamFPT` uses the classical diagonal language of the shared
-layer.
+layer. In Rocq the algorithms of the schema are `HaltingMachine` values: a
+machine together with a proof that it halts on every word. `steps` finds the
+length of the unique halting run by a constructive search
+(`ConstructiveEpsilon`), using the exact-length interpreter `runExact`. So
+`steps_eq` and `logParamFPT_iff_schema` have the Lean statements with `Machine`
+replaced by `HaltingMachine` (`hmMachine A` is the underlying machine).
+`Print Assumptions` reports that the Rocq machine-model theorems use no
+axioms.
 
 ## 4. Complete argument
 

@@ -113,14 +113,18 @@ def ExactRoundingObligation : Prop :=
 
 The definitions `FracCover`, `IsCover`, `round`, `cost`, `halfSum`,
 `completeEdges`, `Relaxation` and `ExactRounding` are present in both files
-under the same names. The schema is `ExactRoundingObligationFor` in Lean (the
-intended Rocq name is the same). The machine-model part (the word encoding,
-`VC`, `CoverCheck`, `CoverCheckInP`, `VCHard`, `ExactRoundingObligation` and
-the last five rows) is proved in Lean only so far; the intended Rocq names are
-the same. The combinatorial proofs are constructive; `VC` and `CoverCheck` are
-classical `decide`s, and the non-vacuity theorem uses the classical diagonal
-language of the shared layer. A `decide` example checks the encoding on the
-triangle.
+under the same names. The schema is `ExactRoundingObligationFor` in both files. The machine-model
+part (the word encoding, `VC`, `CoverCheck`, `CoverCheckInP`, `VCHard`,
+`ExactRoundingObligation` and the last five rows) is proved in both files under
+the same names. The combinatorial proofs are constructive. In Lean, `VC` and
+`CoverCheck` are classical `decide`s, and the non-vacuity theorem uses the
+classical diagonal language of the shared layer. In Rocq they are computable
+Boolean functions: `VC` is a brute force over the assignments of the vertices
+`0 … vbound - 1`, via `vcGood` and `isCoverb`. The Rocq lemmas `vc_iff` and
+`coverCheck_iff` prove that these functions mean the propositions that Lean
+decides, and `Print Assumptions` reports that the Rocq machine-model theorems
+use no axioms. The encoding is checked on the triangle by a `decide` example in
+Lean and by the named `Example vc_encoding_check` in Rocq.
 The theorems are stated for arbitrary graphs, arbitrary fractional covers, and
 arbitrary instance and solution types.
 
