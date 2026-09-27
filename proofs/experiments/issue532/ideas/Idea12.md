@@ -75,37 +75,34 @@ reduction from `L` to `M` plus a polynomial decider for `M` gives one for
 | `decider_transfer` | A decider for `M` that is correct on the image of `f` gives a decider `g ∘ f` for `L`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
 | `yes_preserving_not_sufficient` | For every nontrivial `L` and yes-instance `y` of `M`, the constant map to `y` sends yes to yes but is not a reduction. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
 | `reduces_to_any_nontrivial` | Without cost bounds, every `L` reduces to every nontrivial `M`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
-| `computes_id` | The empty table computes the identity in zero steps. | [Lean](../lean/Idea12.lean) | planned: `computes_id` |
-| `computes_comp` | `Computes m f p → Computes m' g p' → ∃ B, Computes (appendMachine m m') (g ∘ f) B`. | [Lean](../lean/Idea12.lean) | planned: `computes_comp` |
-| `polyReduces_refl` | `PolyReduces L L`. | [Lean](../lean/Idea12.lean) | planned: `polyReduces_refl` |
-| `polyReduces_trans` | `PolyReduces L M → PolyReduces M N → PolyReduces L N` (machine reductions compose). | [Lean](../lean/Idea12.lean) | planned: `polyReduces_trans` |
-| `polyReduces_complement` | `PolyReduces L L' → PolyReduces (complement L) (complement L')`. | [Lean](../lean/Idea12.lean) | planned: `polyReduces_complement` |
+| `computes_id` | The empty table computes the identity in zero steps. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `computes_comp` | `Computes m f p → Computes m' g p' → ∃ B, Computes (appendMachine m m') (g ∘ f) B`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `polyReduces_refl` | `PolyReduces L L`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `polyReduces_trans` | `PolyReduces L M → PolyReduces M N → PolyReduces L N` (machine reductions compose). | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `polyReduces_complement` | `PolyReduces L L' → PolyReduces (complement L) (complement L')`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
 | `inP_of_reduces` | `PolyReduces L L' → InP L' → InP L` (shared layer). | [Machines.lean](../lean/Machines.lean) | shared `Machines.v` |
 | `poly_decider_transfer` | `PolyReduces L L' → InP L' → InP L` (restated here). | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
 | `hardness_transfer` | `PolyReduces L L' → ¬ InP L → ¬ InP L'`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
-| `sat_hardness_transfer` | `PolyReduces SAT L' → ¬ InP SAT → ¬ InP L'`. | [Lean](../lean/Idea12.lean) | planned: `sat_hardness_transfer` |
-| `diag_hardness_transfer` | `PolyReduces Diag L' → ¬ InP L'`: the hypothesis of `hardness_transfer` is satisfiable. | [Lean](../lean/Idea12.lean) | planned: `diag_hardness_transfer` |
-| `firstBit_inP` | The language "first bit is 1" is decided in one step. | [Lean](../lean/Idea12.lean) | planned: `firstBit_inP` |
-| `reduction_cost_essential` | `Diag` reduces to `firstBit` by an unrestricted map but `¬ PolyReduces Diag firstBit`. | [Lean](../lean/Idea12.lean) | planned: `reduction_cost_essential` |
-| `sat_reduction_route_iff` | `(∃ M, PolyReduces SAT M ∧ InP M) ↔ InP SAT`. | [Lean](../lean/Idea12.lean) | planned: `sat_reduction_route_iff` |
-| `pEqualsNP_of_sat_reduction_route` | `SATHard → (∃ M, PolyReduces SAT M ∧ InP M) → PEqualsNP`. | [Lean](../lean/Idea12.lean) | planned: `pEqualsNP_of_sat_reduction_route` |
-| `npHard_of_reduces` | `SATHard → PolyReduces SAT M → NPHard M`. | [Lean](../lean/Idea12.lean) | planned: `npHard_of_reduces` |
+| `sat_hardness_transfer` | `PolyReduces SAT L' → ¬ InP SAT → ¬ InP L'`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `diag_hardness_transfer` | `PolyReduces Diag L' → ¬ InP L'`: the hypothesis of `hardness_transfer` is satisfiable. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `firstBit_inP` | The language "first bit is 1" is decided in one step. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `reduction_cost_essential` | `Diag` reduces to `firstBit` by an unrestricted map but `¬ PolyReduces Diag firstBit`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `sat_reduction_route_iff` | `(∃ M, PolyReduces SAT M ∧ InP M) ↔ InP SAT`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `pEqualsNP_of_sat_reduction_route` | `SATHard → (∃ M, PolyReduces SAT M ∧ InP M) → PEqualsNP`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `npHard_of_reduces` | `SATHard → PolyReduces SAT M → NPHard M`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
 | `poly_bound_compose` | `a ≤ e(n+1)^k` and `b ≤ c(a+1)^d` imply `b ≤ c(e+1)^d (n+1)^(kd)`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
 | `poly_sum_bound` | `e(n+1)^k + C(n+1)^(kd) ≤ (e+C)(n+1)^(kd+k)`. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
-| `poly_decider_transfer_for` / `poly_decider_transfer` | Schema: a schema reduction and a schema decider give a schema decider, with explicit constants. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
-| `poly_reduction_comp_for` / `poly_reduction_comp` | Schema: schema reductions compose, with explicit constants. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
-| `hardness_transfer_for` / `hardness_transfer` | Schema version of hardness transfer. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
-| `polyDeciderFor_every` | Every language has a schema decider (declared time `0`): the schema alone is vacuous. | [Lean](../lean/Idea12.lean) | planned: `polyDeciderFor_every` |
-| `polyDeciderFor_of_inP` | `InP L → PolyDeciderFor List.length L` (schema instantiated with the step count). | [Lean](../lean/Idea12.lean) | planned: `polyDeciderFor_of_inP` |
+| `poly_decider_transfer_for` | Schema: a schema reduction and a schema decider give a schema decider, with explicit constants. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `poly_reduction_comp_for` | Schema: schema reductions compose, with explicit constants. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `hardness_transfer_for` | Schema version of hardness transfer. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `polyDeciderFor_every` | Every language has a schema decider (declared time `0`): the schema alone is vacuous. | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
+| `polyDeciderFor_of_inP` | `InP L → PolyDeciderFor List.length L` (schema instantiated with the step count). | [Lean](../lean/Idea12.lean) | [Rocq](../rocq/Idea12.v) |
 
-In Rocq, `reduction_id` and `reduction_comp` state the defining equations
-directly (`∀ x, L x = L (id x)` and `∀ x, L x = N (g (f x))`), because the
-section fixes distinct type variables; they are the same statements. The
-Rocq file still contains the abstract cost model under the old names; porting
-it to the shared Rocq machine layer, under the names marked "planned", is
-pending. Where the current Rocq name differs, the first column gives both
-(`Lean` / `Rocq`). Not machine-checked: the Cook–Levin theorem, which enters only as
-the named hypothesis `SATHard`. No theorem in either file proves or refutes
+In Rocq, `polyDeciderFor_of_inP` takes the step count from the computable
+`stepCount` (with `stepCount_of_run`) where Lean uses `Classical.choose`, and
+takes `L` as an explicit argument; the statements are the same.
+Not machine-checked: the Cook–Levin theorem, which enters only as the named
+hypothesis `SATHard`. No theorem in either file proves or refutes
 P = NP.
 
 ## 4. Complete argument

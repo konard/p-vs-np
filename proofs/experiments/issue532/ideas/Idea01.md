@@ -89,38 +89,37 @@ obligation is not satisfied by every language.
 
 | Theorem | Informal statement | Lean | Rocq |
 | --- | --- | --- | --- |
-| `evalCNF_congr` | If `a` and `b` agree below `n` and `VarsBelow n φ`, then `evalCNF a φ = evalCNF b φ`. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `evalCNF_congr` | If `a` and `b` agree below `n` and `VarsBelow n φ`, then `evalCNF a φ = evalCNF b φ`. | [Machines.lean](../lean/Machines.lean) | [Machines.v](../rocq/Machines.v) |
 | `length_allAssignments` | `(allAssignments n).length = 2^n` for all `n`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `mem_allAssignments_iff` | `v ∈ allAssignments n ↔ v.length = n`. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `mem_allAssignments_iff` | `v ∈ allAssignments n ↔ v.length = n`. | [Machines.lean](../lean/Machines.lean) | [Machines.v](../rocq/Machines.v) |
 | `nodup_allAssignments` | `allAssignments n` has no repetitions. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `brute_force_sound` | `bruteForce n φ = true → Satisfiable φ`, for all `n`, `φ`. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `brute_force_complete` | `VarsBelow n φ → Satisfiable φ → bruteForce n φ = true`. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `bruteForce_correct` | `bruteForce (numVars φ) φ = true ↔ Satisfiable φ` for every CNF. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `brute_force_sound` | `bruteForce n φ = true → Satisfiable φ`, for all `n`, `φ`. | [Machines.lean](../lean/Machines.lean) | [Machines.v](../rocq/Machines.v) |
+| `brute_force_complete` | `VarsBelow n φ → Satisfiable φ → bruteForce n φ = true`. | [Machines.lean](../lean/Machines.lean) | [Machines.v](../rocq/Machines.v) |
+| `bruteForce_correct` | `bruteForce (numVars φ) φ = true ↔ Satisfiable φ` for every CNF. | [Machines.lean](../lean/Machines.lean) | [Machines.v](../rocq/Machines.v) |
 | `bruteForceCost_le` | `bruteForceCost n φ ≤ 2^n`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `bruteForceCost_unsat` | `¬Satisfiable φ → bruteForceCost n φ = 2^n` (for every `n`). | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `hardFamily_unsat` | `hardFamily n = [x0] ∧ [¬x0] ∧ ⋀_{i<n}(x_i ∨ ¬x_i)` is unsatisfiable for every `n`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `hardFamily_cost` | For `n ≥ 1`: `numVars (hardFamily n) = n`, it is unsatisfiable, and brute force spends exactly `2^n` evaluations on it. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `decode_encode`, `encode_injective` | `decode (encodeCNF φ) = φ`, so the encoding is injective. | [Machines.lean](../lean/Machines.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `decode_encode`, `encode_injective` | `decode (encodeCNF φ) = φ`, so the encoding is injective. | [Machines.lean](../lean/Machines.lean) | [Machines.v](../rocq/Machines.v) |
 | `numVars_le_encodingLength` | `numVars φ ≤ (encodeCNF φ).length`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `bruteForceCost_le_exp_size` | `bruteForceCost (numVars φ) φ ≤ 2^{(encodeCNF φ).length}`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `PolySATDecider` (definition) | The open obligation of Section 2, `InP SAT`. It is not proved and not assumed. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `polySATDecider_iff_polyDec` | `PolySATDecider ↔ PolyDec SAT` (explicit machine and polynomial). | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
-| `pEqualsNP_of_polySATDecider` | `SATHard → PolySATDecider → PEqualsNP`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
-| `polySATDecider_of_pEqualsNP` | `SATInNP → PEqualsNP → PolySATDecider`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
-| `polySATDecider_iff` | `CookLevin → (PolySATDecider ↔ PEqualsNP)`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
-| `pNotEqualsNP_of_not_polySATDecider` | `SATInNP → ¬PolySATDecider → PNotEqualsNP`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
+| `polySATDecider_iff_polyDec` | `PolySATDecider ↔ PolyDec SAT` (explicit machine and polynomial). | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `pEqualsNP_of_polySATDecider` | `SATHard → PolySATDecider → PEqualsNP`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `polySATDecider_of_pEqualsNP` | `SATInNP → PEqualsNP → PolySATDecider`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `polySATDecider_iff` | `CookLevin → (PolySATDecider ↔ PEqualsNP)`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
+| `pNotEqualsNP_of_not_polySATDecider` | `SATInNP → ¬PolySATDecider → PNotEqualsNP`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 | `polySAT_agrees_with_bruteForce` | `PolySATDecider →` there are `M` and `p` such that for every `φ` the machine halts within `p(|enc φ|)` steps with answer `bruteForce (numVars φ) φ`. | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
-| `polySATDecider_not_trivial` | Non-vacuity: `¬ ∀ L : Language, InP L` (the shared diagonal language `Diag` is not in P). | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) (planned, same name) |
+| `polySATDecider_not_trivial` | Non-vacuity: `¬ ∀ L : Language, InP L` (the shared diagonal language `Diag` is not in P). | [Idea01.lean](../lean/Idea01.lean) | [Idea01.v](../rocq/Idea01.v) |
 
 Rows whose Lean link is `Machines.lean` are proved once in the shared layer
-and used here; `Idea01.lean` imports it.
+and used here; `Idea01.lean` imports it, and `Idea01.v` imports the Rocq
+twin `Machines.v`.
 
 Not machine-checked: the Cook–Levin theorem (it appears only as the named
 hypotheses `SATHard`, `SATInNP`, `CookLevin`), any lower bound for machines
 other than brute force, and the running time of brute force on the machine
 model. The cost proved here counts formula evaluations, not machine steps.
-The Rocq file still states the obligation over its own copy of the machine
-model; porting it to the shared Rocq layer is pending.
 
 ## 4. Complete argument
 

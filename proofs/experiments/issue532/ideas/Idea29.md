@@ -64,45 +64,46 @@ machine model.
 | `Poly.add_bound` / `add_bound` | `p(n) + q(n) ≤ (p.add q)(n)` for all `n` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `Poly.comp_bound` / `comp_bound` | `q(p(n)) ≤ (p.comp q)(n)` for all `n` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `poly_add_exists`, `poly_comp_exists` | Existential closure forms | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
-| `Poly.eval_toPolynomial` | `p.toPolynomial.eval n = p.eval n` | [Idea29.lean](../lean/Idea29.lean) | planned: `eval_toPolynomial` |
+| `Poly.eval_toPolynomial` / `eval_toPolynomial` | `p.toPolynomial.eval n = p.eval n` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `IsReduction.comp` / `reduction_comp` | `f : L ≤ M`, `g : M ≤ N` ⇒ `g ∘ f : L ≤ N` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
-| `computes_id` | The empty table computes the identity in zero steps | [Idea29.lean](../lean/Idea29.lean) | planned: `computes_id` |
-| `computes_comp` | `Computes m f p → Computes m' g p' → ∃ B, Computes (appendMachine m m') (g ∘ f) B` | [Idea29.lean](../lean/Idea29.lean) | planned: `computes_comp` |
-| `polyReduces_refl` | `PolyReduces L L` | [Idea29.lean](../lean/Idea29.lean) | planned: `polyReduces_refl` |
-| `polyReduces_trans` | `PolyReduces L M → PolyReduces M N → PolyReduces L N` | [Idea29.lean](../lean/Idea29.lean) | planned: `polyReduces_trans` |
+| `computes_id` | The empty table computes the identity in zero steps | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `computes_comp` | `Computes m f p → Computes m' g p' → ∃ B, Computes (appendMachine m m') (g ∘ f) B` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `polyReduces_refl` | `PolyReduces L L` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `polyReduces_trans` | `PolyReduces L M → PolyReduces M N → PolyReduces L N` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `inP_of_reduces` | `PolyReduces L L' → InP L' → InP L` (shared layer) | [Machines.lean](../lean/Machines.lean) | shared `Machines.v` |
-| `inP_of_chain` | `PolyReduces L M → PolyReduces M N → InP N → InP L` | [Idea29.lean](../lean/Idea29.lean) | planned: `inP_of_chain` |
-| `inP_closedUnderPolyReduces` | `InP` is closed backwards under `PolyReduces` | [Idea29.lean](../lean/Idea29.lean) | planned: `inP_closedUnderPolyReduces` |
-| `npHard_of_reduces` | `NPHard K → PolyReduces K M → NPHard M` | [Idea29.lean](../lean/Idea29.lean) | planned: `npHard_of_reduces` |
-| `closed_contains_np` | A class closed under `PolyReduces` that contains an NP-hard language contains NP | [Idea29.lean](../lean/Idea29.lean) | planned: `closed_contains_np` |
-| `pEqualsNP_of_npHard_inP` | `NPHard K → InP K → PEqualsNP` | [Idea29.lean](../lean/Idea29.lean) | planned: `pEqualsNP_of_npHard_inP` |
+| `inP_of_chain` | `PolyReduces L M → PolyReduces M N → InP N → InP L` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `inP_closedUnderPolyReduces` | `InP` is closed backwards under `PolyReduces` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `npHard_of_reduces` | `NPHard K → PolyReduces K M → NPHard M` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `closed_contains_np` | A class closed under `PolyReduces` that contains an NP-hard language contains NP | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `pEqualsNP_of_npHard_inP` | `NPHard K → InP K → PEqualsNP` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `reducesToP_iff_inP` | `ReducesToP L ↔ InP L` (machine version) | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
-| `not_forall_reducesToP` | Non-vacuity: some language (`Diag`) does not reduce to P | [Idea29.lean](../lean/Idea29.lean) | planned: `not_forall_reducesToP` |
-| `SATReducesToP` | **Open obligation**: `∃ L', PolyReduces SAT L' ∧ InP L'` | [Idea29.lean](../lean/Idea29.lean) | planned: `SATReducesToP` |
-| `satReducesToP_iff_inP_sat` | `SATReducesToP ↔ InP SAT` | [Idea29.lean](../lean/Idea29.lean) | planned: `satReducesToP_iff_inP_sat` |
-| `pEqualsNP_of_satReducesToP` | `SATHard → SATReducesToP → PEqualsNP` | [Idea29.lean](../lean/Idea29.lean) | planned: `pEqualsNP_of_satReducesToP` |
-| `satReducesToP_iff_pEqualsNP` | `CookLevin → (SATReducesToP ↔ PEqualsNP)` | [Idea29.lean](../lean/Idea29.lean) | planned: `satReducesToP_iff_pEqualsNP` |
-| `pNotEqualsNP_of_not_satReducesToP` | `SATInNP → ¬ SATReducesToP → PNotEqualsNP` | [Idea29.lean](../lean/Idea29.lean) | planned: `pNotEqualsNP_of_not_satReducesToP` |
-| `satReducesToP_of_chain` | A chain `SAT ≤ L₁ ≤ L₂` with `InP L₂` discharges the obligation | [Idea29.lean](../lean/Idea29.lean) | planned: `satReducesToP_of_chain` |
+| `not_forall_reducesToP` | Non-vacuity: some language (`Diag`) does not reduce to P | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `SATReducesToP` | **Open obligation**: `∃ L', PolyReduces SAT L' ∧ InP L'` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `satReducesToP_iff_inP_sat` | `SATReducesToP ↔ InP SAT` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `pEqualsNP_of_satReducesToP` | `SATHard → SATReducesToP → PEqualsNP` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `satReducesToP_iff_pEqualsNP` | `CookLevin → (SATReducesToP ↔ PEqualsNP)` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `pNotEqualsNP_of_not_satReducesToP` | `SATInNP → ¬ SATReducesToP → PNotEqualsNP` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `satReducesToP_of_chain` | A chain `SAT ≤ L₁ ≤ L₂` with `InP L₂` discharges the obligation | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `PolyMapFor.comp` / `polymap_comp` | Schema: composition of bounded maps is bounded (explicit bounds) | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
-| `comp_time_poly_for` / `comp_time_poly` | Schema: time of `f` then `g` is polynomial in the input size | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `comp_time_poly_for` | Schema: time of `f` then `g` is polynomial in the input size | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `PolyReductionFor.comp` / `polyred_comp` | Schema reductions compose | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `PolyReductionFor.comp_fn` / `polyred_comp_fn` | The composite computes `g ∘ f` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 | `PolyDeciderFor.pullback` / `pullback` | Schema decider for `M` + schema reduction `L ≤ M` ⇒ schema decider for `L` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
-| `inPFor_of_reduction` / `inP_of_reduction` | Schema: `L ≤ M`, `InPFor M` ⇒ `InPFor L` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
-| `inPFor_closed` / `inP_closed` | Schema: `InPFor` is closed backwards under schema reductions | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
-| `closed_contains_family_for` / `closed_contains_family` | Schema: a closed class containing a complete language contains the family | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
-| `reducesToPFor_iff_inPFor` / `reducesToP_iff_inP` | Schema: `ReducesToPFor L ↔ InPFor L` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
-| `inPFor_every` | Every language is `InPFor` (declared time `0`): the schema alone says nothing about P | [Idea29.lean](../lean/Idea29.lean) | planned: `inPFor_every` |
-| `inPFor_of_inP` | `InP L → InPFor List.length L` (schema instantiated with the step count) | [Idea29.lean](../lean/Idea29.lean) | planned: `inPFor_of_inP` |
+| `inPFor_of_reduction` | Schema: `L ≤ M`, `InPFor M` ⇒ `InPFor L` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `inPFor_closed` | Schema: `InPFor` is closed backwards under schema reductions | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `closed_contains_family_for` | Schema: a closed class containing a complete language contains the family | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `reducesToPFor_iff_inPFor` | Schema: `ReducesToPFor L ↔ InPFor L` | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `inPFor_every` | Every language is `InPFor` (declared time `0`): the schema alone says nothing about P | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
+| `inPFor_of_inP` | `InP L → InPFor List.length L` (schema instantiated with the step count) | [Idea29.lean](../lean/Idea29.lean) | [Idea29.v](../rocq/Idea29.v) |
 
-Where the current Rocq name differs from the Lean name, the first column gives
-both (`Lean` / `Rocq`); "planned" marks the intended Rocq name of a result not
-yet ported. The Rocq file still contains only the explicit-polynomial
-results and the abstract-cost development (under the old names without `For`).
-Porting the machine-model results to the shared Rocq machine layer, under the
-names marked "planned", is pending. Not machine-checked in either language:
-any concrete NP-complete reduction and the Cook–Levin theorem, which enters
+Where the Rocq name differs from the Lean name, the first column gives both
+(`Lean` / `Rocq`). Rocq-specific differences: the fields of `Poly` are named
+`coef`/`deg` (the shared `Polynomial` already uses `coefficient`/`degree`);
+`inPFor_every` takes a decision procedure `∀ x, {L x} + {¬ L x}` as a premise,
+because the Rocq file does not use classical logic to produce the `bool`
+decider; `inPFor_of_inP` computes the step count with `stepCount` where Lean
+uses `Classical.choose`.
+Not machine-checked in either language: any concrete NP-complete reduction and the Cook–Levin theorem, which enters
 only through the named hypotheses `SATHard`, `SATInNP` and `CookLevin`.
 
 ## 4. Complete argument
