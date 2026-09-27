@@ -86,45 +86,53 @@ The ⇒ direction (non-empty ⇒ satisfiable) is where the error lies. The induc
 
 **The critical gap**: In the inductive step, Kardash states that after extending from Bnt(x) (formula without clause group Tnt+1) to Ant+1(x), one can always extend the single-valued unclearable structure V¹_B to include Tnt+1. This relies on the assumption that "these clause combinations don't give any new variables to clause combinations of RB and F(Tnt+1, Ti1, Ti2, …, Tik, A)."
 
-This assumption is **unjustified** in general. Clause group Tnt+1 may contain variables that appear in many other clause groups, and the constraints imposed by all these overlapping clause combinations may be mutually contradictory even when pairwise constraints are satisfied. This is precisely the phenomenon known as **constraint propagation incompleteness**: local consistency (pairwise arc consistency) does not imply global consistency.
+This assumption is **unjustified** in general. Clause group Tnt+1 may contain variables that appear in many other clause groups, and the constraints imposed by all these overlapping clause combinations may be mutually contradictory even when pairwise constraints are satisfied. This is precisely the phenomenon known as **constraint propagation incompleteness**: local consistency (here, pairwise agreement between clause-combination tables) does not by itself imply global consistency.
 
-### The Connection to Arc Consistency
+### What Pair Cleaning Computes
 
-The pair cleaning method is exactly **arc consistency** (AC-3 algorithm) applied to a constraint satisfaction problem. It is well-known in constraint programming that:
+Pair cleaning (Definitions 3–15) builds one table for every combination of k + 1 clause groups, listing the assignments of the combination's variables that satisfy its clauses, and repeatedly deletes a row when some other table has no row agreeing with it on their common variables. In constraint programming terms this is **pairwise consistency** on the clause-combination tables. It is a local consistency method, but it is **stronger than arc consistency**: arc consistency only removes values of single variables, while pair cleaning removes rows of joint tables over up to (k + 1)·k variables. See [`refutation/README.md`](refutation/README.md#what-pair-cleaning-computes) for the full definition.
 
-- **Arc consistency is polynomial to compute**: O(ed³) where e is number of constraints and d is domain size — matching Kardash's complexity bounds
-- **Arc consistency does NOT imply satisfiability**: An arc-consistent CSP can still be unsatisfiable, and detecting this requires backtracking search
+It is well-known in constraint programming that:
 
-The classic counterexample: a 3-coloring problem on a graph that is arc-consistent but still requires exponential backtracking to determine satisfiability.
+- **Local consistency is polynomial to compute** for tables of bounded size — matching Kardash's complexity bounds
+- **Local consistency does NOT imply satisfiability in general**: an arc-consistent CSP can still be unsatisfiable (the Boolean triangle x ≠ y, y ≠ z, z ≠ x is one), and a stronger local consistency needs a proof before it can be trusted to decide a problem
 
-### Concrete Counterexample Type
+For k = 2 such a proof exists (Boolean binary relations are closed under majority; Jeavons, Cohen & Cooper 1998), and pair cleaning does decide 2-SAT. For k ≥ 3 the paper's proof is Lemma 1, and its inductive step does not hold up.
 
-Consider a 3-SAT formula that is arc-consistent (all pair-cleaning steps terminate without emptying any table) yet is unsatisfiable. Such formulas exist and are the reason why local consistency methods alone cannot solve NP-complete problems. Kardash's method would incorrectly report "satisfiable" on these instances.
+### 2-SAT: Propagation Alone Is Not Enough
+
+An earlier version of this analysis said that unit propagation and arc consistency decide 2-SAT and attributed that to Krom (1967). That is false ([issue #587](https://github.com/konard/p-vs-np/issues/587)); the formal refutation now keeps two checked counterexamples:
+
+- **(x ∨ y) ∧ (x ∨ ¬y) ∧ (¬x ∨ y) ∧ (¬x ∨ ¬y)** is unsatisfiable, yet unit propagation from the empty assignment does nothing and arc consistency with one constraint per clause removes nothing.
+- **The triangle x ≠ y, y ≠ z, z ≠ x** over Booleans is arc-consistent with full domains, yet has no solution; its CNF encoding is also a unit propagation fixpoint.
+
+A complete polynomial method for 2-SAT is the implication-graph test: a 2-CNF is unsatisfiable iff some x and ¬x lie in the same strongly connected component (Aspvall, Plass & Tarjan 1979, linear time). Krom (1967) decides 2-SAT with resolution restricted to binary clauses, and Even, Itai & Shamir (1976) combine unit propagation with decisions.
 
 ### Why the Complexity Analysis Seems Correct
 
-The complexity analysis (Section 3) of the algorithm's running time is **actually correct** — the algorithm does run in polynomial time. The error is not in the runtime bound but in the **correctness claim**: the algorithm does not correctly decide k-SAT. It computes arc consistency, which is a necessary but not sufficient condition for satisfiability.
+The complexity analysis (Section 3) of the algorithm's running time is **actually correct** — the algorithm does run in polynomial time. The error is not in the runtime bound but in the **correctness claim**: the paper does not prove that the algorithm decides k-SAT. It computes a local consistency, which is a necessary condition for satisfiability; Lemma 1's argument that it is also sufficient has a gap for k ≥ 3.
 
 ## Why This Approach Is Tempting
 
 The approach is appealing because:
 - Pair cleaning terminates quickly (polynomial iterations)
 - It correctly filters out many impossible assignments
-- For easy instances (or 2-SAT, where arc consistency is complete), it works perfectly
+- For easy instances, and for 2-SAT (where its k + 1 = 3 group tables give strong 3-consistency), it works
 - The lemma proofs appear rigorous at first glance
 
-However, the gap between local pairwise consistency and global satisfiability is fundamental and cannot be closed without exponential backtracking in the worst case.
+However, for k ≥ 3 the paper gives no valid argument that closes the gap between local pairwise consistency and global satisfiability.
 
 ## Broader Context
 
-### Arc Consistency and Constraint Satisfaction
+### Local Consistency and Constraint Satisfaction
 
 In constraint programming:
-- **Arc consistency (AC)**: For every pair of variables, remove domain values that have no consistent partner in the other variable's domain
-- **AC is polynomial**: O(n·d³) where n = variables, d = domain size
-- **AC ≠ satisfiability**: Arc-consistent instances can be unsatisfiable
+- **Arc consistency (AC)**: For every constraint, remove domain values of one variable that have no consistent partner in the other variable's domain
+- **Pairwise consistency**: For every two constraints (tables), remove tuples of one that have no tuple of the other agreeing on their common variables — this is what Kardash's pair cleaning computes on the clause-combination tables
+- **Both are polynomial** for tables of bounded size
+- **Local consistency ≠ satisfiability**: locally consistent instances can be unsatisfiable, unless the constraint language has a property (such as majority closure for Boolean binary relations) that turns local into global consistency
 
-Kardash's pair cleaning is equivalent to AC applied to the clause-combination constraint graph. The correctness claim (Theorem 1) would require that AC implies satisfiability for k-SAT, which is false for k ≥ 3.
+The correctness claim (Theorem 1) would require that pairwise consistency on (k + 1)-group tables implies satisfiability for k-SAT. The paper's proof of this (Lemma 1) is unjustified for k ≥ 3, and if it were true it would give a polynomial-time algorithm for 3-SAT.
 
 ### Why P ≠ NP Is Plausible
 
@@ -135,10 +143,10 @@ This attempt illustrates a common pattern: polynomial local consistency methods 
 In this directory, we formalize:
 
 1. **The Pair Cleaning Algorithm**: The iterative pairwise consistency procedure
-2. **Arc Consistency**: What pair cleaning actually computes
-3. **Correctness Claim**: What Kardash claimed (arc consistency implies satisfiability)
-4. **The Gap**: Why arc consistency does not imply satisfiability for k ≥ 3
-5. **The Counterexample Structure**: The type of instances where pair cleaning fails
+2. **Local Consistency**: What pair cleaning actually computes (pairwise consistency on clause-combination tables)
+3. **Correctness Claim**: What Kardash claimed (a non-empty cleaned structure implies satisfiability)
+4. **The Gap**: The unjustified inductive step of Lemma 1 for k ≥ 3
+5. **2-SAT Counterexamples**: Checked formulas showing that unit propagation and arc consistency do not decide 2-SAT, and the implication-graph cycles that refute them
 
 ## References
 
@@ -157,7 +165,9 @@ In this directory, we formalize:
 - **Arc Consistency**: Mackworth, A. K. (1977). "Consistency in networks of relations." Artificial Intelligence 8(1), 99–118.
 - **AC-3 Algorithm**: Mackworth (1977); AC-3 runs in O(ed³) time.
 - **Incompleteness of AC**: Well-known result in constraint programming — arc consistency is necessary but not sufficient for satisfiability of general CSPs.
-- **2-SAT Completeness**: For 2-SAT, unit propagation (a form of arc consistency) IS complete (Krom 1967), which is why 2-SAT ∈ P.
+- **Pairwise consistency**: Bessière, C. (2006). "Constraint propagation." In *Handbook of Constraint Programming*, ch. 3. Elsevier.
+- **Local to global consistency**: Jeavons, P., Cohen, D., & Cooper, M. C. (1998). "Constraints, consistency and closure." Artificial Intelligence 101(1–2), 251–265.
+- **2-SAT ∈ P**: Krom, M. R. (1967). "The decision problem for a class of first-order formulas in which all disjunctions are binary." Zeitschrift für mathematische Logik und Grundlagen der Mathematik 13, 15–20 (binary resolution); Even, S., Itai, A., & Shamir, A. (1976). "On the complexity of timetable and multicommodity flow problems." SIAM Journal on Computing 5(4), 691–703; Aspvall, B., Plass, M. F., & Tarjan, R. E. (1979). "A linear-time algorithm for testing the truth of certain quantified Boolean formulas." Information Processing Letters 8(3), 121–123 (implication-graph strongly connected components). Unit propagation and arc consistency alone do not decide 2-SAT.
 
 ## See Also
 

@@ -116,6 +116,11 @@ class VerificationWorkflowTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(values["lean"], "true")
 
+    def test_contributor_guide_change_runs_lean(self):
+        result, values = self.run_detector("pull_request", "CONTRIBUTING.md\n")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(values, {"lean": "true", "rocq": "false", "agda": "false"})
+
     def test_certified_checker_change_runs_both_provers(self):
         for filename in ("scripts/check_proof_status.py", "scripts/proof_status.json"):
             with self.subTest(filename=filename):

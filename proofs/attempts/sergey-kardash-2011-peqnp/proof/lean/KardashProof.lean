@@ -90,7 +90,8 @@ def isSingleValued (rs : RelationshipStructure) : Bool :=
 
 -- CLAIM (Lemma 1): Non-empty after cleaning ⟺ single-valued unclearable sub-structure exists
 -- CRITICAL: The ⇒ direction is not provable.
--- Pair cleaning (arc consistency) does not imply satisfiability for k ≥ 3.
+-- The paper does not show that a non-empty pair cleaning result implies
+-- satisfiability for k ≥ 3.
 -- sorry marks the location of the fundamental error.
 axiom kardash_lemma1 : ∀ (f : KCNF) (k : Nat),
     let rs := buildRelationshipStructure f k
@@ -107,18 +108,20 @@ axiom kardash_lemma2 : ∀ (f : KCNF) (rs : RelationshipStructure),
 
 -- CLAIM (Theorem 1): Pair cleaning result non-empty ⟺ formula is satisfiable
 -- CRITICAL: This theorem is NOT provable. sorry marks the fundamental error.
--- Pair cleaning computes arc consistency, which is necessary but not sufficient
--- for satisfiability of k-SAT when k ≥ 3.
+-- Pair cleaning is a local consistency method (pairwise consistency on the
+-- tables of clause combinations). It is necessary for satisfiability, but the
+-- paper's argument that it is sufficient for k ≥ 3 has a gap.
 theorem kardash_theorem1 (f : KCNF) (k : Nat) :
     let rs := buildRelationshipStructure f k
     let rsClean := pairCleaning rs (f.length ^ (3 * (k + 1)))
     rsClean.nonEmpty = true ↔ kSAT f := by
   sorry
-  -- REASON: The ⇒ direction fails. Pair cleaning is arc consistency.
-  -- Arc consistency is necessary but not sufficient for k-SAT (k ≥ 3).
-  -- A formula can be arc-consistent (cleaning terminates non-empty)
-  -- yet be unsatisfiable. This is a well-known result in constraint programming.
-  -- Kardash's Lemma 1 proof has an unjustified inductive step:
-  -- local pairwise consistency does not imply global satisfiability.
+  -- REASON: The ⇒ direction is not established. Pair cleaning is a local
+  -- consistency method: it keeps a row when every other table has a row that
+  -- agrees with it on common variables. Local consistency is necessary for
+  -- satisfiability; whether it is sufficient depends on the constraints
+  -- (it is for k = 2, see ../../refutation/README.md).
+  -- Kardash's Lemma 1 proof has an unjustified inductive step for k ≥ 3:
+  -- local pairwise consistency does not by itself imply global satisfiability.
 
 end KardashProofAttempt

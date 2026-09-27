@@ -51,6 +51,14 @@ attempt-name/
 
 The checker still accepts legacy root-level `ORIGINAL.*` files for older
 attempts, but `original/` is the preferred location for new work.
+An attempt is reported as complete when it has the main README, original
+markdown and source material, and both `proof/` and `refutation/` sections.
+Each section must have a README and at least one Lean (`*.lean`) or Rocq
+(`*.v`) file. An attempt with only the main README remains valid, but partial.
+Legacy root-level `lean/*.lean` and `rocq/*.v` files count toward formalization
+coverage in reports and `ATTEMPTS.md`. The checker warns about those layouts,
+including when they coexist with `proof/` or `refutation/`. Root-level files do
+not satisfy the recommended section requirements for completeness.
 
 ### Woeginger Coverage
 
