@@ -36,7 +36,7 @@ The formalizations include `sorry` (Lean) and `Admitted` (Rocq) placeholders at 
 
 **The inductive step of Lemma 1**: The claim that any non-empty cleaned structure contains a single-valued unclearable sub-structure. The proof assumes that local pairwise consistency implies global consistency, which is false in general.
 
-Specifically: when extending from Bnt(x) to Ant+1(x) by adding clause group Tnt+1, the proof asserts that the single-valued structure from the induction hypothesis can always be extended consistently. This requires that arc consistency implies satisfiability — which it does not for k ≥ 3.
+Specifically: when extending from Bnt(x) to Ant+1(x) by adding clause group Tnt+1, the proof asserts that the single-valued structure from the induction hypothesis can always be extended consistently. This requires that the local consistency computed by pair cleaning (pairwise consistency on clause-combination tables) implies satisfiability, and the paper gives no valid argument for that when k ≥ 3.
 
 ## See Also
 

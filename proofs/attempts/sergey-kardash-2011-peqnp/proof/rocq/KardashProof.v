@@ -113,7 +113,8 @@ Axiom buildRelationshipStructure : forall {k : nat}, KCNF k -> RelationshipStruc
 
 (* CLAIM (Lemma 1): Non-empty after cleaning iff satisfying single-valued structure exists *)
 (* This axiom marks the critical error in the proof. *)
-(* The => direction is unprovable: arc consistency does not imply satisfiability. *)
+(* The => direction is not established: the paper does not show that a      *)
+(* non-empty pair cleaning result implies satisfiability for k >= 3.         *)
 Axiom kardash_lemma1 : forall {k : nat} (f : KCNF k),
   let rs := buildRelationshipStructure f in
   let rsClean := pairCleaning rs (kcnf_numClauses k f ^ (3 * (k + 1))) in
@@ -143,27 +144,31 @@ Axiom kardash_lemma2 : forall {k : nat} (f : KCNF k)
   CRITICAL: This theorem is NOT provable as stated.
   The Admitted marker indicates the fundamental error in Kardash's approach.
 
-  Pair cleaning is arc consistency (AC). Arc consistency is:
-  - Polynomial to compute: correct, runs in O(ed^3) time
-  - Necessary for satisfiability: if UNSAT, pair cleaning empties a table
-  - NOT sufficient for satisfiability: AC-consistent != satisfiable for k >= 3
+  Pair cleaning is a local consistency method: pairwise consistency on the
+  tables of clause combinations, which is stronger than arc consistency on
+  single clauses. It is:
+  - Polynomial to compute: correct for fixed k
+  - Necessary for satisfiability: if pair cleaning empties a table, the
+    formula is UNSAT
+  - Not shown to be sufficient for k >= 3 (it is sufficient for k = 2, see
+    ../../refutation/README.md)
 
   Kardash's Lemma 1 proof contains an unjustified inductive step:
   when extending from Bnt(x) to Ant+1(x) by adding clause group Tnt+1,
   the proof assumes the single-valued structure from the induction hypothesis
   can always be extended. This requires that pairwise consistency implies
-  global consistency — which is false in general constraint satisfaction.
+  global consistency, which does not hold in general constraint satisfaction
+  and is not argued for these tables.
 *)
 Theorem kardash_theorem1 : forall {k : nat} (f : KCNF k),
     let rs := buildRelationshipStructure f in
     let rsClean := pairCleaning rs (kcnf_numClauses k f ^ (3 * (k + 1))) in
     rs_nonEmpty rsClean = true <-> kSAT f.
 Proof.
-  (* Cannot be proved: the => direction fails for k >= 3.
-     Arc consistency does not decide satisfiability.
-     A formula can be arc-consistent (pair cleaning terminates non-empty)
-     yet have no satisfying assignment.
-     This invalidates Kardash's Theorem 1 and the P=NP claim. *)
+  (* Not proved: the => direction rests on Lemma 1, whose inductive step
+     is unjustified for k >= 3. Local consistency (pair cleaning terminates
+     non-empty) does not by itself give a satisfying assignment.
+     Without it, Kardash's Theorem 1 and the P=NP claim are not established. *)
   Admitted.
 
 End KardashProofAttempt.
