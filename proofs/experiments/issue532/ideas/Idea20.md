@@ -11,7 +11,11 @@ polynomially many processors, for all large `n`. They also derive the
 abstract form of NC ⊆ P. Physical models escape the bound only if they fail
 the resource accounting `work ≤ time * resource`. That this accounting holds
 for every realizable device is a postulate of physics, recorded as the
-obligation `PhysicalResourceHonesty`, and it is not a mathematical theorem.
+schema `PhysicalResourceHonestyFor`, and it is not a mathematical theorem.
+For devices that are machines of the shared model the accounting is proved
+(`physicalResourceHonesty_machine`): a machine run within a polynomial `p`
+is one processor for `p(n)` steps, and it can never perform `2^n` work
+(`machine_run_not_exponential`).
 
 ## 1. The idea at full strength
 
@@ -40,9 +44,15 @@ full strength:
 * A physical run has three functions of input size: `work`, `time` and
   `resource`. It is resource honest when `work n ≤ time n * resource n` for
   all `n`.
-* The open obligation is
-  `PhysicalResourceHonesty Realizable := ∀ m, Realizable m → ResourceHonest m`.
-  `Realizable` is a predicate supplied by physics.
+* The physical postulate is the schema
+  `PhysicalResourceHonestyFor Realizable := ∀ m, Realizable m → ResourceHonest m`.
+  `Realizable` is a predicate supplied by physics, so this is a schema, not
+  a statement about the machine model.
+* Machine instance (shared model `Complexity.Machine`). A machine that
+  decides a language within a polynomial `p` (`DecidesWithin m p L`) is the
+  physical run `machinePhysicalRun p` with work `p(n)`, time `p(n)` and
+  resource `1`.
+  `MachineRealizable R := ∃ m p L, DecidesWithin m p L ∧ R = machinePhysicalRun p`.
 
 ## 3. What is machine-checked
 
@@ -60,9 +70,12 @@ full strength:
 | `exp_work_forces_superpoly_processors` | Covering `2^n` tasks needs `p * rounds ≥ 2^n`. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
 | `poly_parallel_cannot_hide_exponential_work` | For all `c k c' k'` and all `n ≥ 2^(2(cc'+k+k')+1)`, a schedule with `≤ c(n+1)^k` processors covering `2^n` tasks has more than `c'(n+1)^k'` rounds. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
 | `schedule_is_honest` | Schedules satisfy the resource accounting, with processors as the resource. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
-| `PhysicalResourceHonesty` (def) | Open (physical) obligation: every realizable run is resource honest. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
-| `physical_conditional` | Under the obligation, a realizable run with work `2^n` and polynomial time uses more than any given polynomial amount of resource, for all large `n`. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
-| `dishonest_model_collapses` | A run with work `2^n`, time 1 and resource 1 is a consistent object and is not resource honest. So the obligation is a genuine postulate. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
+| `PhysicalResourceHonestyFor` (def) | Schema (physical postulate): every run realizable in the sense of `Realizable` is resource honest. Never assumed. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
+| `physical_conditional` | Under the postulate, a realizable run with work `2^n` and polynomial time uses more than any given polynomial amount of resource, for all large `n`. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
+| `dishonest_model_collapses` | A run with work `2^n`, time 1 and resource 1 is a consistent object and is not resource honest. So the postulate is not a theorem. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
+| `machinePhysicalRun`, `MachineRealizable` (defs) | A polynomial-time machine as a physical run: work = time = `p(n)`, resource 1. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
+| `physicalResourceHonesty_machine` | `PhysicalResourceHonestyFor MachineRealizable`: the accounting holds for every machine of the shared model. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
+| `machine_run_not_exponential` | No machine-realizable run has work exactly `2^n` for every `n`. | [Idea20.lean](../lean/Idea20.lean) | [Idea20.v](../rocq/Idea20.v) |
 
 ## 4. Complete argument
 
@@ -93,7 +106,11 @@ energy, volume, precision bits). If `work ≤ time * resource`, the computation
 above applies verbatim (`physical_conditional`). A run that violates this
 accounting, doing `2^n` operations in one step with one unit of resource, is
 a perfectly consistent mathematical object (`dishonest_model_collapses`).
-Whether such runs exist is a question about physics, not mathematics.
+Whether such runs exist is a question about physics, not mathematics. For
+the shared machine model the question is settled: a machine run within `p`
+steps does `p(n)` work in `p(n)` time on one processor
+(`physicalResourceHonesty_machine`), and a polynomial is eventually below
+`2^n`, so no such run does `2^n` work (`machine_run_not_exponential`).
 
 ## 5. Known results and literature
 
@@ -118,10 +135,12 @@ Whether such runs exist is a question about physics, not mathematics.
 
 What is **not** formalized:
 
-* A PRAM, circuit or Turing machine model, and the classes NC and P.
+* A PRAM or circuit model and the class NC. The single-tape machine model
+  and P are those of the shared layer; only its sequential runs are
+  connected here.
 * Quantum query complexity: the BBBV lower bound is only cited.
-* Any physical law. `PhysicalResourceHonesty` is a definition, and no
-  instance of `Realizable` is given.
+* Any physical law. `PhysicalResourceHonestyFor` is a schema, and the only
+  instance given is `MachineRealizable`.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
@@ -134,7 +153,10 @@ What is **not** formalized:
 * **Brute force refuted.** Any algorithm whose work is `2^n`, such as
   exhaustive enumeration, needs superpolynomial `processors × time`
   (`poly_parallel_cannot_hide_exponential_work`).
-* **Remaining obligation.** `PhysicalResourceHonesty` for the real world.
+* **Remaining postulate (not an open obligation).**
+  `PhysicalResourceHonestyFor` for the realizable devices of the real world.
+  For machines of the shared model it is proved
+  (`physicalResourceHonesty_machine`).
   This is an extended Church–Turing style postulate about physics, not a
   statement of complexity theory, and it is neither equivalent to nor
   implied by P ≠ NP. Quantum mechanics fits the framework only through the

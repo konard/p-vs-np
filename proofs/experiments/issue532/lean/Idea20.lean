@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 20: parallel and physical cost models
 
@@ -20,8 +22,11 @@ processors every round has at most `p` tasks.  This file proves:
 * `physical_conditional`, `dishonest_model_collapses`: an abstract physical
   model obeys the same bound if and only if it satisfies the resource
   accounting `work ≤ time * resource`.  The requirement that every physically
-  realisable model does so is the open obligation `PhysicalResourceHonesty`,
-  a postulate about physics that is defined but not proved.
+  realisable model does so is the schema `PhysicalResourceHonestyFor`, a
+  postulate about physics that is defined but not proved;
+* machine part: runs of polynomial-time deciders of the shared model are
+  resource honest (`physicalResourceHonesty_machine`) and cannot perform
+  `2^n` work (`machine_run_not_exponential`).
 
 **Verdict.** Parallelism with polynomial resources cannot collapse
 exponential work to polynomial time.  This is a general theorem, and it
@@ -264,17 +269,18 @@ theorem schedule_is_honest (p : Nat) (s : Schedule) (h : UsesAtMost p s) :
     totalWork s ≤ s.length * p := by
   rw [Nat.mul_comm]; exact work_bound p s h
 
-/-- **Open obligation (physical, not mathematical).**  Every physically
-realisable run is resource honest.  `Realizable` is a physical predicate, so
-this can only be postulated or argued from physics; it is only defined here. -/
-def PhysicalResourceHonesty (Realizable : PhysicalRun → Prop) : Prop :=
+/-- Generic schema over a free physical predicate `Realizable`: every
+realisable run is resource honest.  `Realizable` is supplied by physics, so
+this is a postulate and not a statement of complexity theory; its machine
+instance `physicalResourceHonesty_machine` is proved below. -/
+def PhysicalResourceHonestyFor (Realizable : PhysicalRun → Prop) : Prop :=
   ∀ m, Realizable m → ResourceHonest m
 
 /-- **Conditional theorem.**  Under the obligation, a realisable run with
 work `2^n` and polynomial time uses more than any given polynomial amount of
 the resource, for all large `n`. -/
 theorem physical_conditional (Realizable : PhysicalRun → Prop)
-    (hphys : PhysicalResourceHonesty Realizable) (m : PhysicalRun) (hm : Realizable m)
+    (hphys : PhysicalResourceHonestyFor Realizable) (m : PhysicalRun) (hm : Realizable m)
     (hwork : ∀ n, m.work n = 2 ^ n) (c' k' : Nat) (htime : ∀ n, m.time n ≤ polyEval c' k' n)
     (c k : Nat) :
     ∀ n, 2 ^ (2 * (c * c' + (k + k')) + 1) ≤ n → polyEval c k n < m.resource n := by
@@ -301,5 +307,41 @@ theorem dishonest_model_collapses :
     fun _ => rfl, fun h => ?_⟩
   have := h 1
   simp at this
+
+/-! ## Machine part: sequential machines as physical runs -/
+
+section MachinePart
+
+open Complexity
+open Issue532.Machines (DecidesWithin)
+
+/-- The physical run of a machine decider clocked by `p`: work and time are
+both the step bound `p(n)` of `Complexity.Run`, on one processor. -/
+def machinePhysicalRun (p : Polynomial) : PhysicalRun := ⟨p.eval, p.eval, fun _ => 1⟩
+
+/-- The physical runs of polynomial-time machine deciders of the shared model. -/
+def MachineRealizable (R : PhysicalRun) : Prop :=
+  ∃ (m : Machine) (p : Polynomial) (L : Language), DecidesWithin m p L ∧ R = machinePhysicalRun p
+
+/-- **Machine instance of the schema (proved).**  Runs of machine deciders are
+resource honest with one processor. -/
+theorem physicalResourceHonesty_machine : PhysicalResourceHonestyFor MachineRealizable := by
+  rintro R ⟨m, p, L, _, rfl⟩ n
+  simp [machinePhysicalRun]
+
+/-- **A polynomial-time machine does not perform `2^n` work** (proved from
+`exp_beats_poly`). -/
+theorem machine_run_not_exponential (R : PhysicalRun) (hR : MachineRealizable R) :
+    ¬ ∀ n, R.work n = 2 ^ n := by
+  obtain ⟨m, p, L, _, rfl⟩ := hR
+  intro h
+  let n := 2 ^ (2 * (p.coefficient + p.degree) + 1)
+  have h1 := exp_beats_poly p.coefficient p.degree n (Nat.le_refl _)
+  have h2 := h n
+  simp only [machinePhysicalRun, Polynomial.eval] at h2
+  unfold polyEval at h1
+  omega
+
+end MachinePart
 
 end Issue532.Idea20

@@ -1,6 +1,6 @@
 # Idea 16 — Diagonalization
 
-**Verdict:** Refuted in full strength (published theorem) + formal core. Diagonalization is the correct tool for hierarchy theorems, and its abstract form is proved in general (`diag_ne`, `hierarchy_abstract`, `hierarchy_strict`). The formal core is that the argument uses only the enumeration/simulation interface, so it holds verbatim in every oracle world (`diag_relativizes`, `hierarchy_relativizes`, `diagTech_relativizing`). A relativizing technique cannot prove a statement that fails in some world (`relativizing_cannot_prove`, `diagonalization_cannot_prove`). Baker, Gill and Solovay (1975) give oracles `A` and `B` with `P^A = NP^A` and `P^B ≠ NP^B`, so pure diagonalization settles P vs NP in neither direction. The query-complexity heart of their oracle `B` is also proved (`oracle_adversary`).
+**Verdict:** Refuted in full strength (published theorem) + formal core. Diagonalization is the correct tool for hierarchy theorems, and its abstract form is proved in general (`diag_ne`, `hierarchy_abstract`, `hierarchy_strict`). The formal core is that the argument uses only the enumeration/simulation interface, so it holds verbatim in every oracle world (`diag_relativizes`, `hierarchy_relativizes`, `diagTech_relativizing`). A relativizing technique cannot prove a statement that fails in some world (`relativizing_cannot_prove`, `diagonalization_cannot_prove`). Baker, Gill and Solovay (1975) give oracles `A` and `B` with `P^A = NP^A` and `P^B ≠ NP^B`, so pure diagonalization settles P vs NP in neither direction. The query-complexity heart of their oracle `B` is also proved (`oracle_adversary`). In the shared machine model the files define oracle machines and `P^A`, `NP^A` (`InPO`, `InNPO`, `PEqualsNPO`), prove that a constant oracle gives back `InP`, `InNP` and `PEqualsNP` (`pEqualsNPO_const_iff`), state BGS as the named known theorems `BGSCollapse` and `BGSSeparation` (`bgs_no_uniform_answer`), and prove the diagonal half of the deterministic time hierarchy for machines (`diagWithin_not_decidedWithin`), unrelativized and relative to every oracle.
 
 ## 1. The idea at full strength
 
@@ -38,12 +38,43 @@ the Baker–Gill–Solovay theorem rules the idea out as a stand-alone method.
   `testLang O n := ∃ y < 2^n, O (2^n + y)`, where `2^n + y` codes the
   length-`n` string `y`.
 
-**Open obligation (definition, never assumed).**
-`NonRelativizingIngredient T real S :≡ (∀ S', T S' → S' real) ∧ T S ∧ ¬ Relativizing T`.
+**Generic schema (definition, never assumed).**
+`NonRelativizingIngredientFor T real S :≡ (∀ S', T S' → S' real) ∧ T S ∧ ¬ Relativizing T`.
 This asks for a technique that is sound in the real world, proves `S`, and
-does not relativize. With `S O := "P^O ≠ NP^O"` and `real` the empty
-oracle, it describes what any proof of P ≠ NP must contain. The
-relativized classes P^O and NP^O are not formalized here.
+does not relativize. It is a schema over a free technique `T`, not an open
+obligation: the verdict is a barrier, and the machine part below states the
+barrier itself in the shared model.
+
+**Machine part (shared model `Complexity.Machine`, `Issue532.Machines`).**
+
+* An oracle is a language `A : Oracle := Language`. An oracle machine
+  `OMachine` has the instructions of `Complexity.Instruction` plus
+  `query yes no`, which reads the bits from the head rightwards
+  (`queryWord`) and jumps to `yes` if `A` holds of them, else to `no`.
+  `ORun A m c t b` is the run relation, with the same step count as
+  `Complexity.Run`.
+* `ODecidesWithin A m p L`, `InPO A L` (P^A), `InNPO A L` (NP^A, with an
+  `OVerifier` on `pairedInput x cert` and the bounds of `ClassNP`) and
+  `PEqualsNPO A := ∀ L, InNPO A L → InPO A L`.
+* Known theorem (Baker–Gill–Solovay 1975), as named hypotheses:
+  `BGSCollapse := ∃ A, PEqualsNPO A` and
+  `BGSSeparation := ∃ B, ¬ PEqualsNPO B`.
+* Time hierarchy in the machine model. `AcceptsWithin m p w` is
+  `∃ t ≤ p(|w|), Run m (initial w) t true`, and
+  `DiagWithin p` is the diagonal language over `encMachine`:
+  `w ∈ DiagWithin p ↔ ¬ ∃ m, encMachine m = w ∧ AcceptsWithin m p w`.
+  * `TimeHierarchy := ∀ p, ∃ L, InP L ∧ ¬ ∃ m, DecidesWithin m p L`.
+  * `UniversalSimulation := ∀ p, InP (DiagWithin p)` (known theorem,
+    Hartmanis–Stearns 1965 with the Hennie–Stearns simulation).
+  * The relativized versions are `DiagWithinO`, `TimeHierarchyO A` and
+    `UniversalSimulationO`.
+* Time classes with a linear-constant slack:
+  `InDTIME T L := ∃ m c, ∀ x, ∃ t b, t ≤ c·T(|x|) + c ∧ Run m (initial x) t b ∧ b = L x`
+  and `InNTIME T L` (a verifier on `pairedInput x cert` with certificates and
+  running time at most `c·T(|x|) + c`).
+  `NTimeHierarchyGap T₁ T₂ := ∃ L, InNTIME T₂ L ∧ ¬ InNTIME T₁ L` and
+  `NTimeHierarchy := ∀ k ≥ 3, NTimeHierarchyGap (n ↦ 2^n / (n+1)^k) (n ↦ 2^n)`
+  (known theorem: Cook 1973, Seiferas–Fischer–Meyer 1978, Žák 1983).
 
 ## 3. What is machine-checked
 
@@ -67,9 +98,32 @@ relativized classes P^O and NP^O are not formalized here.
 | `testLang_one_certificate` | `testLang O n` holds iff some certificate `y < 2^n` has `O (2^n + y)`, so one query verifies it (the NP side). | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
 | `exists_unqueried` | A list of length `< m` misses some point of `a, …, a + m − 1`. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
 | `oracle_adversary` | Every decision tree with `qdepth t < 2^n` computes `testLang · n` wrongly on some oracle. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `NonRelativizingIngredientFor` (def) | Schema over a free technique: sound in the real world, proves `S`, not relativizing. Never assumed. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `orun_deterministic` | Oracle-machine runs are deterministic. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `orun_lift_iff` | An ordinary machine, lifted, runs identically against every oracle. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `run_lower_iff` | Against the constant oracle `b`, an oracle machine runs like the ordinary machine `lowerMachine b m`. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `inPO_of_inP`, `inNPO_of_inNP`, `inNPO_of_inPO` | P ⊆ P^A, NP ⊆ NP^A and P^A ⊆ NP^A for every oracle. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `inPO_const_iff`, `inNPO_const_iff`, `pEqualsNPO_const_iff` | For a constant oracle: `InPO ↔ InP`, `InNPO ↔ InNP`, `PEqualsNPO ↔ PEqualsNP`. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `pEqualsNP_of_all_oracles`, `pNotEqualsNP_of_all_oracles` | An answer that holds for every oracle holds for the real classes. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `BGSCollapse`, `BGSSeparation` (defs) | Known theorem (BGS 1975), named hypotheses: some oracle with `P^A = NP^A`, some with `P^B ≠ NP^B`. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `bgs_no_uniform_answer` | Under BGS, neither `∀ A, PEqualsNPO A` nor `∀ A, ¬ PEqualsNPO A`. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `diagonal_core` | For an injective code `e` and any acceptance relation, the diagonal language `diagLang e Acc` is not the acceptance set of any `m`. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `diagWithin_not_decidedWithin` | No machine decides `DiagWithin p` within `p` steps (diagonal half of the time hierarchy, proved). | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `UniversalSimulation`, `TimeHierarchy` (defs) | Known theorem: `DiagWithin p ∈ P`; the hierarchy `∀ p, ∃ L ∈ P` not decided within `p`. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `timeHierarchy_of_universalSimulation` | `UniversalSimulation → TimeHierarchy`. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `no_uniform_bound_of_timeHierarchy` | Under `TimeHierarchy`, no single polynomial bounds all of P. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `encOMachine_injective` | Oracle machines have an injective prefix-free encoding. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `diagWithinO_not_decidedWithin` | For every oracle `A`, no oracle machine decides `DiagWithinO A p` within `p` (the diagonal relativizes, in the machine model). | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `TimeHierarchyO`, `UniversalSimulationO` (defs) | Relativized hierarchy; known theorem: universal simulation relative to every oracle. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `timeHierarchyO_of_universalSimulationO` | `UniversalSimulationO → ∀ A, TimeHierarchyO A`. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `InDTIME`, `InNTIME`, `NTimeHierarchyGap`, `NTimeHierarchy` (defs) | Deterministic and nondeterministic time classes; the nondeterministic time hierarchy as a known theorem. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
+| `exists_not_inDTIME`, `exists_not_inNTIME` | Non-vacuity: for every `T` some language is outside `DTIME(T)` and outside `NTIME(T)`. | [Lean](../lean/Idea16.lean) | [Rocq](../rocq/Idea16.v) |
 
-`NonRelativizingIngredient` is a `def ... : Prop` in Lean and a
-`Definition ... : Prop` in Rocq. It is never assumed. The Rocq file does not
+`NonRelativizingIngredientFor`, `BGSCollapse`, `BGSSeparation`,
+`UniversalSimulation`, `UniversalSimulationO` and `NTimeHierarchy` are
+`def ... : Prop`. The last five are known theorems, not mechanised here; they
+appear only as explicit hypotheses. The intended Rocq names equal the Lean
+names; the Rocq file still has the pre-machine version. The Rocq file does not
 import `FunctionalExtensionality` or any other axiom. No theorem in either
 file proves or refutes P = NP.
 
@@ -100,8 +154,30 @@ there is a world `A` with `¬ S A` and a world `B` with `S B`. By
 `relativizing_cannot_prove`, no relativizing technique, pure
 diagonalization included, proves either one. A proof of P ≠ NP (or P = NP)
 must therefore use a property of real machines that fails for some oracle
-machines. This is `NonRelativizingIngredient`, and `ingredient_necessary`
-shows that it cannot be avoided.
+machines. This is the schema `NonRelativizingIngredientFor`, and
+`ingredient_necessary` shows that it cannot be avoided.
+
+**The barrier in the machine model.** Oracle machines are
+`Complexity.Machine` with one extra instruction. With a constant oracle the
+query is a fixed jump, so `lowerMachine b m` runs identically
+(`run_lower_iff`), and `P^A`, `NP^A` and `P^A = NP^A` collapse to `InP`,
+`InNP` and `PEqualsNP` (`pEqualsNPO_const_iff`). Hence an answer proved for
+every oracle is an answer for the real classes
+(`pEqualsNP_of_all_oracles`, `pNotEqualsNP_of_all_oracles`), and under
+the named BGS hypotheses no answer holds for every oracle
+(`bgs_no_uniform_answer`).
+
+**Time hierarchy in the machine model.** Encode machines by the injective
+prefix-free `encMachine`. The diagonal language `DiagWithin p` accepts `w`
+iff `w` is not the code of a machine that accepts `w` within `p(|w|)` steps.
+If `m` decided it within `p`, then at `w = encMachine m` acceptance within
+`p` would coincide with the diagonal's answer, which is its negation
+(`diagonal_core`, `diagWithin_not_decidedWithin`). Membership of
+`DiagWithin p` in P needs a clocked universal machine; that is the known
+theorem `UniversalSimulation`, and `timeHierarchy_of_universalSimulation`
+gives `TimeHierarchy`. The same proof, with `encOMachine`, works relative to
+every oracle (`diagWithinO_not_decidedWithin`). This is the machine-model
+form of "diagonalization relativizes".
 
 **Why the B side holds (the formalized core).** A deterministic machine
 running in time `p(n) < 2^n` is, on input `1^n`, a decision tree over the
@@ -133,8 +209,17 @@ formalized here.
 * J. Hartmanis and R. E. Stearns, "On the computational complexity of
   algorithms", Trans. AMS 117, 1965. The deterministic time hierarchy
   theorem by clocked diagonalization.
+* F. C. Hennie and R. E. Stearns, "Two-tape simulation of multitape Turing
+  machines", J. ACM 13(4), 1966. The `O(T log T)` universal simulation.
 * S. A. Cook, "A hierarchy for nondeterministic time complexity", JCSS
   7(4), 1973. The nondeterministic time hierarchy.
+* J. I. Seiferas, M. J. Fischer and A. R. Meyer, "Separating
+  nondeterministic time complexity classes", J. ACM 25(1), 1978, and
+  S. Žák, "A Turing machine time hierarchy", TCS 21(3), 1983. The
+  nondeterministic hierarchy for all time-constructible `T₁(n+1) = o(T₂(n))`.
+  These results are for multitape machines; the one-tape model here pays an
+  `O(|M|·T)`-type simulation overhead, which is why `NTimeHierarchy` keeps
+  a gap of `(n+1)^k` with `k ≥ 3` between `2^n / (n+1)^k` and `2^n`.
 * T. Baker, J. Gill and R. Solovay, "Relativizations of the P =? NP
   question", SIAM J. Comput. 4(4), 1975. Oracles `A`, `B` with
   `P^A = NP^A` and `P^B ≠ NP^B`.
@@ -168,15 +253,25 @@ formalized here.
   more than the simulation overhead. For P vs NP no universal simulator of
   one class inside the other with small overhead is known. Having one would
   already mean `NP ⊆ P`.
-* **Exact remaining obligation:** `NonRelativizingIngredient` for
-  `S O := "P^O ≠ NP^O"`. Known non-relativizing techniques
+* **Machine-level barrier:** with `P^A`, `NP^A` defined for machines
+  (`InPO`, `InNPO`), a proof that works for every oracle settles the real
+  question (`pEqualsNP_of_all_oracles`, `pNotEqualsNP_of_all_oracles`), and
+  BGS (`BGSCollapse`, `BGSSeparation`, named hypotheses) rules out both
+  answers for every oracle (`bgs_no_uniform_answer`). There is no open
+  obligation here: what a proof would have to add is the schema
+  `NonRelativizingIngredientFor` for `S O := "P^O ≠ NP^O"`, which is a
+  requirement on techniques, not a statement about machines. Known non-relativizing techniques
   (arithmetization, as in IP = PSPACE) are blocked for P vs NP by
   algebrization, and circuit-based ones by natural proofs.
 * **Scope of the model:** "relativizes" is modelled as "holds in every
   world" for statements built from oracle-extended enumerations. Real
   relativization is a property of proofs, a meta-level notion. The model
   captures the logical core used in the barrier argument: a proof that
-  applies to every world cannot establish a world-dependent statement.
+  applies to every world cannot establish a world-dependent statement. The
+  machine part makes the worlds concrete (oracle machines of the shared
+  model); the BGS construction itself and universal simulation are not
+  mechanised, and the translation from polynomial-time oracle machines to
+  decision trees used by `oracle_adversary` is informal.
 
 ## 7. Failure modes this idea catches
 

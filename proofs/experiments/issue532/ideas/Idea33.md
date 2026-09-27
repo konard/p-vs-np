@@ -9,8 +9,12 @@ the algorithm `flipOne L` errs on exactly one of the `2^n` inputs of length `n`.
 The full-strength version, a worst-case-to-average-case reduction for an
 NP-complete problem, is open. Known results show that the natural
 (non-adaptive) forms of such reductions would collapse the polynomial
-hierarchy. We state the missing step as an explicit obligation, not as an
-assumption.
+hierarchy. We state the missing step as an explicit schema
+(`WorstToAverageObligationFor`), not as an assumption, and give its instance
+in the shared machine model (`WorstToAverage`). With polynomial-time machines
+and the uniform distribution, the transfer for SAT together with an
+average-case decider gives `InP SAT`. Failure of the transfer for SAT gives
+`PNotEqualsNP`.
 
 ## 1. The idea at full strength
 
@@ -50,7 +54,17 @@ error"*. This is the exact point that fails.
   an NP-complete `L`, a class `Efficient` (polynomial time) and a budget
   `δ n = 2^n / poly(n)`, it asks for an efficient `A` with `AvgCorrect A L δ`
   to yield an efficient `B` with `WorstCorrect B L`. In the files this is
-  `WorstToAverageObligation Efficient L δ`.
+  the schema `WorstToAverageObligationFor Efficient L δ`. It quantifies over a
+  free class `Efficient`, so it is a schema, not an open obligation.
+- **Machine instance (shared model `Complexity`, `Issue532.Machines`).**
+  `machineAnswer m p x` is the answer "machine `m` accepts `x` within
+  `p(|x|)` steps".
+  `AvgPolyDec L δ := ∃ m p, (∀ x, ∃ t b, t ≤ p(|x|) ∧ Run m (initial x) t b) ∧ AvgCorrect (machineAnswer m p) L δ`
+  is a clocked machine that errs on at most `δ n` inputs of each length.
+  `WorstToAverage L δ := AvgPolyDec L δ → InP L`. The distribution is uniform
+  on the bit strings of each length. Under the shared CNF encoding most words
+  decode to formulas with an empty clause, so this is not the
+  samplable-distribution statement of the literature.
 
 ## 3. What is machine-checked
 
@@ -68,9 +82,21 @@ error"*. This is the exact point that fails.
 | `average_case_does_not_imply_worst_case` | for every `L` there is an `A` with `2^n - 1` agreements and 1 error at every `n`, wrong at every length | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
 | `worst_implies_avg` | worst-case correct ⇒ average-case correct for any budget | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
 | `avg_zero_implies_worst` | a budget of zero errors at every length ⇒ worst-case correct | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
-| `WorstToAverageObligation` (def) | the open obligation, as a `Prop` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
-| `obligation_not_automatic` | for every `L` there is a class `Efficient` with `¬ WorstToAverageObligation Efficient L (fun _ => 1)` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
-| `obligation_transfers` | the obligation plus an efficient average-case solver yields an efficient worst-case solver | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `WorstToAverageObligationFor` (def) | the abstract schema, as a `Prop` over a free class `Efficient`; never assumed | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `obligation_not_automatic` | for every `L` there is a class `Efficient` with `¬ WorstToAverageObligationFor Efficient L (fun _ => 1)` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `obligation_transfers` | the schema plus an efficient average-case solver yields an efficient worst-case solver | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `AvgPolyDec`, `WorstToAverage` (defs) | machine instance: clocked polynomial-time machine with at most `δ n` errors per length; the transfer `AvgPolyDec L δ → InP L` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `avgPolyDec_of_inP`, `inP_of_avgPolyDec_zero`, `avgPolyDec_zero_iff` | `InP L` gives `AvgPolyDec L δ` for every `δ`; `AvgPolyDec L 0 ↔ InP L` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `worstToAverage_of_inP`, `worstToAverage_zero` | the transfer holds for languages in P, and for budget zero for every language | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `inP_sat_of_worstToAverage` | `WorstToAverage SAT δ → AvgPolyDec SAT δ → InP SAT` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `pEqualsNP_of_worstToAverage` | with `SATHard`, the same data give `PEqualsNP` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `worstToAverage_sat_of_pEqualsNP` | with `SATInNP`, `PEqualsNP` gives `WorstToAverage SAT δ` for every `δ` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `pNotEqualsNP_of_not_worstToAverage` | with `SATInNP`, `¬ WorstToAverage SAT δ` gives `PNotEqualsNP` | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `exists_language_far_from_family` | for an injective code of a family of languages, some language differs from each member on both one-bit extensions of its code | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+| `exists_not_avgPolyDec`, `worstToAverage_nontrivial` | non-vacuity: some language has no machine average-case decider with budget one | [Lean](../lean/Idea33.lean) | [Rocq](../rocq/Idea33.v) |
+
+The intended Rocq names are the Lean names; the Rocq file still has the
+pre-machine version (old name `WorstToAverageObligation`, no machine part).
 
 In Lean the Boolean tests are `A x != L x` and `A x == L x`. In Rocq they are
 `negb (Bool.eqb (A x) (L x))` and `Bool.eqb (A x) (L x)`.
@@ -118,12 +144,27 @@ further ingredient.
 **The obligation is not automatic.** Let `Efficient A := ∃ x, A x ≠ L x`, the
 class of algorithms that are not exactly `L`. Then `flipOne L` is in the class
 and has at most one error per length, so the hypothesis of
-`WorstToAverageObligation Efficient L (fun _ => 1)` holds. The conclusion
+`WorstToAverageObligationFor Efficient L (fun _ => 1)` holds. The conclusion
 would need a `B` in the class with `B x = L x` for all `x`, which contradicts
 membership. So `obligation_not_automatic` shows that the obligation can hold
 only because of specific properties of `L` and of the algorithm class.
 Counting alone cannot establish it. `obligation_transfers` records that once
 the obligation is proved, it yields the worst-case solver.
+
+**Machine instance.** With a clocked machine, `machineAnswer m p` agrees
+with the machine's output on every input (`machineAnswer_eq`). So budget zero
+is exactly P (`avgPolyDec_zero_iff`), and every language in P satisfies the
+transfer. For SAT: if the transfer holds and an average-case decider exists,
+then SAT is in P (`inP_sat_of_worstToAverage`), and with SAT NP-hard, P = NP
+(`pEqualsNP_of_worstToAverage`). If P = NP, then SAT is in P and the
+transfer holds for every budget (`worstToAverage_sat_of_pEqualsNP`).
+Contrapositively, a failure of the transfer for SAT at any budget proves
+P ≠ NP (`pNotEqualsNP_of_not_worstToAverage`). The hypothesis
+`AvgPolyDec L 1` is not automatic: machines paired with polynomials have an
+injective encoding, and a language that flips the answer of each machine on
+both one-bit extensions of its own code gives every clocked machine at least
+two errors at that length (`exists_language_far_from_family`,
+`two_le_count`, `exists_not_avgPolyDec`).
 
 ## 5. Known results and literature
 
@@ -155,8 +196,9 @@ the obligation is proved, it yields the worst-case solver.
   that such reductions exist for problems believed to lie above NP. No such
   reduction is known for NP-complete problems.
 
-None of these results is formalized here. The files formalize only the
-counting counterexample and the abstract obligation.
+None of these results is formalized here. The files formalize the counting
+counterexample, the abstract schema, and its instance for machines of the
+shared model under the uniform distribution on words.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
@@ -168,11 +210,19 @@ In either direction it links the two regimes. It does **not** by itself decide
 P vs NP: it would still need an average-case algorithm (for P = NP) or an
 average-case lower bound (for P != NP).
 
-**Exact remaining obligation.** `WorstToAverageObligation Efficient L δ` with
+**Exact remaining statement.** The schema `WorstToAverageObligationFor` with
 `L` = SAT, `Efficient` = deterministic polynomial time, and `δ n = 2^n / p(n)`
-for a polynomial `p`, together with a matching distribution. With the uniform
-distribution replaced by a samplable one, the formal `allInputs` count would
-become a weighted count.
+for a polynomial `p`, together with a matching distribution. For the uniform
+distribution on words its machine instance is `WorstToAverage SAT δ`, and the
+files prove `WorstToAverage SAT δ → AvgPolyDec SAT δ → InP SAT` and
+`¬ WorstToAverage SAT δ → PNotEqualsNP` (given `SATInNP`). This instance is
+deliberately **not** labelled an open obligation. Under the shared CNF
+encoding most words of each length decode to formulas containing the empty
+clause, so SAT is plausibly easy on average under the uniform distribution
+(this is not proved here). Then `WorstToAverage SAT δ` would be about as
+hard as `InP SAT` itself, and would not be the samplable-distribution
+statement of the literature. With a samplable distribution, the formal
+`allInputs` count would become a weighted count.
 
 **Barriers.**
 - *Non-adaptive reductions*: Feigenbaum–Fortnow and Bogdanov–Trevisan show that
@@ -203,7 +253,8 @@ open problem, orthogonal to the separation itself.
   is a different problem from worst-case solvability.
 - **Family 12 (smuggling the conclusion)**: an attempt that assumes "hard
   instances are rare, hence avoidable" assumes a worst-case-to-average-case
-  reduction, which is `WorstToAverageObligation`.
+  reduction, which is `WorstToAverageObligationFor` (machine instance
+  `WorstToAverage`).
 - Audit rule: for any claimed transfer, ask for the class `Efficient`, the
   distribution, the error budget, and a proof that uses more than counting. By
   `obligation_not_automatic`, a proof that uses only counting is invalid.

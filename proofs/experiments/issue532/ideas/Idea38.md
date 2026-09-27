@@ -11,7 +11,11 @@ core of the oracle `B` for every tree and every `N`: a decision tree of depth
 `< N` cannot decide whether an `N`-bit oracle segment contains a `true`, while one
 nondeterministic query suffices. They also prove the abstract meta-theorem that a
 relativizing proof method settles no statement that holds for one oracle and fails
-for another.
+for another. In the shared machine model (with the oracle machines of Idea 16) the
+NP side is proved outright: an explicit one-query oracle machine puts the BGS test
+language in `NP^A` for every oracle `A` (`testLangO_inNPO`), and under the named
+BGS hypotheses no relativizing method proves `P^A = NP^A` or its negation for all
+oracles (`machineRelativizing_cannot_settle`).
 
 ## 1. The idea at full strength
 
@@ -52,7 +56,17 @@ proof relativizes and cannot be correct, because of the two BGS oracles.
 - Abstractly, a proof method is a predicate `Proves` on oracle-indexed
   statements `S : (Nat → Bool) → Prop`. It is `Relativizing` if
   `Proves S → ∀ O, S O`.
-- The open obligation is `NonrelativizingIngredient Proves := ∃ S O, Proves S ∧ ¬ S O`.
+- The generic schema is `NonrelativizingIngredientFor Proves := ∃ S O, Proves S ∧ ¬ S O`.
+  It quantifies over a free method `Proves`, so it is a schema, not an open
+  obligation.
+- **Machine part (shared model, oracle machines of Idea 16).** An oracle is a
+  language `A : Oracle`. `testVerifier` is an explicit oracle machine that reads
+  `pairedInput x cert` and makes one query on `x ++ true :: cert`.
+  `testLangO A x :≡ ∃ y, |y| ≤ |x| + 1 ∧ A (x ++ true :: y)` is the BGS test
+  language. The known theorem (Baker–Gill–Solovay 1975) is the named hypothesis
+  `BGSTestSeparation := ∃ B, ¬ InPO B (testLangO B)`, together with Idea 16's
+  `BGSCollapse := ∃ A, PEqualsNPO A`. A method is
+  `MachineRelativizing Proves := ∀ S, Proves S → ∀ A, S A`.
 
 ## 3. What is machine-checked
 
@@ -72,14 +86,27 @@ proof relativizes and cannot be correct, because of the two BGS oracles.
 | `relativizing_cannot_prove` | a relativizing method cannot prove a statement false for some oracle | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
 | `relativizing_cannot_decide` | if `S A` and `¬ S B`, a relativizing method proves neither `S` nor `¬ S` | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
 | `nonrelativizing_needed` | a method that settles such an `S` has a nonrelativizing ingredient | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
-| `nonrelativizing_iff` | `NonrelativizingIngredient Proves ↔ ¬ Relativizing Proves` | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
+| `NonrelativizingIngredientFor` (def) | schema: the method proves some statement that fails for some oracle; never assumed | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
+| `nonrelativizing_iff` | `NonrelativizingIngredientFor Proves ↔ ¬ Relativizing Proves` | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
+| `testVerifier_run` | the oracle machine `testVerifier` halts on `pairedInput x cert` in `2·|x| + 4` steps with answer `A (x ++ true :: cert)` | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
+| `testLangO_inNPO` | for every oracle `A`, `InNPO A (testLangO A)` (NP side of BGS, in the machine model) | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
+| `BGSTestSeparation` (def) | known theorem, not mechanised here: some oracle `B` has `testLangO B ∉ P^B` | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
+| `bgsSeparation_of_testSeparation` | `BGSTestSeparation → BGSSeparation` (Idea 16's `∃ B, ¬ PEqualsNPO B`) | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
+| `MachineRelativizing` (def) | a method over oracle-indexed machine statements relativizes | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
+| `machineRelativizing_cannot_settle` | under `BGSCollapse` and `BGSTestSeparation`, a relativizing method proves neither `PEqualsNPO` nor its negation for all oracles | [Lean](../lean/Idea38.lean) | [Rocq](../rocq/Idea38.v) |
 
 Helper lemmas `succ_le_two_pow`, `lt_two_pow_self`, `linear_lt_exp` and
 `dyadic_bracket` are proved in both files. Everything is constructive except
 `nonrelativizing_iff`, whose backward direction uses excluded middle
 (`Classical.byContradiction` in Lean, `NNPP` from `Classical_Prop` in Rocq).
 Neither file declares axioms. Both files check `orTree 2` on `single 1` by
-computation.
+computation. The Lean file imports Idea 16 for the oracle machines. The intended
+Rocq names are the Lean names; the Rocq file still has the pre-machine version
+(old name `NonrelativizingIngredient`, no machine part).
+
+**Label.** The issue's list names Idea 38 as a natural-proofs idea, but this file
+and dossier are the relativization audit (BGS). Natural proofs are treated in
+Idea 10.
 
 ## 4. Complete argument
 
@@ -130,6 +157,17 @@ successful method must prove some statement that fails for some oracle
 (`nonrelativizing_needed`), which is the definition of a nonrelativizing
 ingredient.
 
+**Step 8 (machine model).** `testVerifier` moves right across `x`, checks the
+separator, returns to the start and queries the bits `x ++ true :: cert`; this
+takes `2·|x| + 4` steps (`testVerifier_run`). With certificate bound `|x| + 1`
+this puts `testLangO A` in `NP^A` for every `A` (`testLangO_inNPO`). So an
+oracle `B` with `testLangO B ∉ P^B` (the named BGS hypothesis
+`BGSTestSeparation`) gives `¬ PEqualsNPO B` (`bgsSeparation_of_testSeparation`).
+With `BGSCollapse`, a relativizing method proves neither `PEqualsNPO` nor its
+negation for all oracles (`machineRelativizing_cannot_settle`). By Idea 16
+(`pEqualsNP_of_all_oracles`, `pNotEqualsNP_of_all_oracles`), those are the only
+routes by which an all-oracle statement reaches the real classes.
+
 ## 5. Known results and literature
 
 - T. Baker, J. Gill, R. Solovay, "Relativizations of the P =? NP question",
@@ -162,8 +200,8 @@ nondeterminism relative to `B`: at a suitable length `n`, polynomially many
 queries miss almost all of the `2^n` positions. The oracle `B` itself is cited
 from BGS, not formalized.
 
-**What remains is a precise obligation.** `NonrelativizingIngredient Proves` asks
-for a method that proves a statement false relative to some oracle. By
+**What remains is a precise requirement, not an open obligation.** The schema
+`NonrelativizingIngredientFor Proves` asks for a method that proves a statement false relative to some oracle. By
 `nonrelativizing_iff` it is equivalent to the method not being relativizing.
 Known nonrelativizing techniques include:
 
@@ -175,13 +213,14 @@ Known nonrelativizing techniques include:
   diagonalization, and uses the circuit structure, not only oracle access).
 
 Arithmetization, however, algebrizes, and Aaronson–Wigderson show that
-algebrizing techniques also cannot resolve P vs NP. So the obligation is
+algebrizing techniques also cannot resolve P vs NP. So the requirement is
 necessary but far from sufficient. It must be met by a technique that also
 escapes algebrization and natural proofs. No such technique is known.
 
 **Why it is at least as hard as the original problem.** Any proof of `P ≠ NP` or
-`P = NP` is itself a method meeting the obligation for `S O = (P^O = NP^O)`,
-by Step 7 together with the BGS oracles (cited, not formalized). The obligation is therefore a necessary condition that every
+`P = NP` is itself a method meeting the requirement for `S O = (P^O = NP^O)`,
+by Step 7 together with the BGS oracles (named hypotheses, not formalized). The
+requirement is therefore a necessary condition that every
 resolution satisfies, not a shortcut.
 
 ## 7. Failure modes this idea catches

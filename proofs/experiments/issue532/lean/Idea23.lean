@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 23: resolution and the Cook–Reckhow framework
 
@@ -10,20 +12,27 @@ Proved here, for every CNF:
   derivation from `φ` of the same clause extended by the literal `v = !b`;
 * `resolution_complete`: every unsatisfiable CNF whose variables lie in
   `vs` derives the empty clause; together, `unsat_iff_derives_empty`;
-* Cook–Reckhow: for an abstract proof system for UNSAT (sound and complete
-  verifier on proof strings), polynomial boundedness gives a short
-  certificate characterisation of UNSAT (`bounded_certificate`); an exact
-  decider gives a trivially bounded system (`fromDecider_bounded`), so the
-  obligation `NoPolyBoundedProofSystem` must restrict to efficient
-  verifiers (`unrestricted_obligation_false`); and the obligation for any
-  efficiency notion that contains the systems built from efficient deciders
-  excludes efficient exact deciders (`lower_bound_excludes_efficient_decider`).
+* Cook–Reckhow, abstract part: for an abstract proof system for UNSAT
+  (sound and complete verifier on proof strings), polynomial boundedness
+  gives a short certificate characterisation of UNSAT
+  (`bounded_certificate`); an exact decider gives a trivially bounded system
+  (`fromDecider_bounded`), so the schema `NoPolyBoundedProofSystemFor` is
+  false without an efficiency requirement (`unrestricted_obligation_false`);
+* Cook–Reckhow, machine part: a proof system is a `Complexity.VerifierProgram`
+  with a polynomial clock (`MachineProofSystem`); a polynomially bounded one
+  puts its language in NP (`inNP_of_polyBounded`); every language in P has
+  one (`proofSystem_of_inP`); some language has none
+  (`exists_noPolyBounded`).
 
 **Verdict.** Resolution is sound and complete, but refuted in full strength
 as a polynomial method: Haken (1985) proved exponential lower bounds on
 resolution refutations of the pigeonhole formulas (cited, not formalized).
-Cook's program (lower bounds for every proof system, equivalent to
-NP ≠ coNP) is developed to the open obligation `NoPolyBoundedProofSystem`.
+Cook's program is developed to the open obligation
+`NoPolyBoundedUNSATProofSystem` (no polynomially bounded machine proof system
+for `complement SAT`), which gives `¬ InP SAT` outright, P ≠ NP given
+SAT ∈ NP, and is equivalent to NP ≠ coNP given the named known theorems
+`CookReckhowNP`, `NPClosedUnderReductions` and the Cook–Levin halves
+(`noPolyBounded_iff_npNeCoNP`).
 Core Lean only.
 -/
 
@@ -481,16 +490,16 @@ theorem fromDecider_bounded (dec : CNF → Bool) (h : Decides dec) :
     obtain ⟨π, hπ⟩ := (fromDecider dec h).complete φ hu
     exact ⟨[], Nat.zero_le _, hπ⟩⟩
 
-/-- **Open obligation (Cook's program).**  No proof system satisfying the
-efficiency requirement `Efficient` (for Cook–Reckhow: a polynomial-time
-verifier) is polynomially bounded.  With that requirement this is
-equivalent to NP ≠ coNP (Cook–Reckhow 1979). -/
-def NoPolyBoundedProofSystem (Efficient : ProofSystem → Prop) : Prop :=
+/-- Generic schema over a free efficiency notion `Efficient`: no proof
+system satisfying `Efficient` is polynomially bounded.  Its truth depends on
+the choice of `Efficient` (`unrestricted_obligation_false`); the machine
+version is `NoPolyBoundedUNSATProofSystem` below. -/
+def NoPolyBoundedProofSystemFor (Efficient : ProofSystem → Prop) : Prop :=
   ∀ P, Efficient P → ¬ PolyBounded P
 
 /-- Without an efficiency requirement the obligation is false: the
 (exponential) splitting decider gives a system with empty proofs. -/
-theorem unrestricted_obligation_false : ¬ NoPolyBoundedProofSystem (fun _ => True) :=
+theorem unrestricted_obligation_false : ¬ NoPolyBoundedProofSystemFor (fun _ => True) :=
   fun h => h (fromDecider satDec satDec_correct) trivial (fromDecider_bounded satDec satDec_correct)
 
 /-- **Conditional separation.**  If systems built from efficient exact
@@ -499,8 +508,211 @@ deciders are efficient, the obligation excludes efficient exact deciders
 theorem lower_bound_excludes_efficient_decider (Efficient : ProofSystem → Prop)
     (EffDec : (CNF → Bool) → Prop)
     (hclosed : ∀ dec (h : Decides dec), EffDec dec → Efficient (fromDecider dec h))
-    (hlb : NoPolyBoundedProofSystem Efficient) :
+    (hlb : NoPolyBoundedProofSystemFor Efficient) :
     ∀ dec, Decides dec → ¬ EffDec dec :=
   fun dec h he => hlb _ (hclosed dec h he) (fromDecider_bounded dec h)
+
+/-! # Machine part: Cook–Reckhow proof systems in the shared model
+
+A proof system for a language `L` is a `Complexity.VerifierProgram` with an
+explicit polynomial clock: on every input `x` and every proof string `π` it
+halts within `timeBound` steps (in `|x| + |π|`), accepts only members of `L`,
+and accepts every member with some proof.  The CNF formulas are those of the
+shared layer (`Issue532.Machines.decode`), so UNSAT is `complement SAT`. -/
+
+section MachinePart
+
+open Complexity
+open Issue532.Machines (SAT complement InCoNP NPEqualsCoNP SATInNP SATHard NPHard
+  PolyReduces run_deterministic polyDec_iff_inP inP_complement complement_complement
+  pNotEqualsNP_of_npNeCoNP inP_sat_of_pEqualsNP DecidesWithin
+  exists_language_not_in_family encMachine encMachine_injective)
+
+/-- A Cook–Reckhow proof system for `L` in the shared machine model: a
+verifier machine that halts within the polynomial `timeBound` on every
+(input, proof) pair, is sound for `L`, and is complete for `L`. -/
+structure MachineProofSystem (L : Language) where
+  verifier : VerifierProgram
+  timeBound : Polynomial
+  halts : ∀ x π, ∃ t b, t ≤ verifier.timeLimit timeBound x π ∧ verifier.Run x π t b
+  sound : ∀ x π t, verifier.Run x π t true → L x = true
+  complete : ∀ x, L x = true → ∃ π t, verifier.Run x π t true
+
+/-- Polynomial boundedness: every member has an accepted proof of length
+polynomial in the input length. -/
+def MachineProofSystem.PolyBounded {L : Language} (P : MachineProofSystem L) : Prop :=
+  ∃ q : Polynomial, ∀ x, L x = true → ∃ π t, π.length ≤ q.eval x.length ∧ P.verifier.Run x π t true
+
+/-- Verifier runs are deterministic. -/
+theorem verifierRun_deterministic {v : VerifierProgram} {x π : Word} {t t' : Nat} {b b' : Bool}
+    (h : v.Run x π t b) (h' : v.Run x π t' b') : t = t' ∧ b = b' := by
+  cases v with
+  | ignoreCertificate m => exact run_deterministic h h'
+  | paired m => exact run_deterministic h h'
+
+/-- **A polynomially bounded machine proof system puts `L` in NP** (proved:
+the proof bound is the certificate bound, and the clock plus determinism
+bound the accepting run). -/
+theorem inNP_of_polyBounded {L : Language} (P : MachineProofSystem L) (h : P.PolyBounded) :
+    InNP L := by
+  obtain ⟨q, hq⟩ := h
+  refine ⟨{ language := L, verifier := P.verifier, timeBound := P.timeBound, certBound := q,
+            terminates := fun x π _ => P.halts x π,
+            correct := fun x => ⟨fun hx => ?_, fun ⟨π, t, _, _, hr⟩ => P.sound x π t hr⟩ }, rfl⟩
+  obtain ⟨π, t, hlen, hr⟩ := hq x hx
+  obtain ⟨t', b', ht', hr'⟩ := P.halts x π
+  obtain ⟨rfl, _⟩ := verifierRun_deterministic hr hr'
+  exact ⟨π, t, hlen, ht', hr⟩
+
+/-- **Every language in P has a polynomially bounded proof system** (proved:
+the decider ignores the proof; the empty proof suffices). -/
+theorem proofSystem_of_inP {L : Language} (h : InP L) :
+    ∃ P : MachineProofSystem L, P.PolyBounded := by
+  obtain ⟨m, p, hm⟩ := (polyDec_iff_inP L).mpr h
+  refine ⟨{ verifier := .ignoreCertificate m, timeBound := p,
+            halts := fun x _ => ?_, sound := fun x _ t hr => ?_, complete := fun x hx => ?_ },
+          ⟨⟨0, 0⟩, fun x hx => ?_⟩⟩
+  · obtain ⟨t, b, ht, hr, _⟩ := hm x
+    exact ⟨t, b, ht, hr⟩
+  · obtain ⟨t', b', _, hr', hb'⟩ := hm x
+    obtain ⟨_, rfl⟩ := run_deterministic hr hr'
+    exact hb'.symm
+  · obtain ⟨t, b, _, hr, hb⟩ := hm x
+    rw [hx] at hb
+    subst hb
+    exact ⟨[], t, hr⟩
+  · obtain ⟨t, b, _, hr, hb⟩ := hm x
+    rw [hx] at hb
+    subst hb
+    exact ⟨[], t, Nat.zero_le _, hr⟩
+
+/-- `L` has no polynomially bounded machine proof system. -/
+def NoPolyBoundedMachineProofSystem (L : Language) : Prop :=
+  ∀ P : MachineProofSystem L, ¬ P.PolyBounded
+
+/-- **Open obligation (Cook's program).**  UNSAT (`complement SAT`, over the
+CNF encoding of the shared layer) has no polynomially bounded proof system
+whose verifier is a polynomial-time machine.  With the known theorems
+`CookReckhowNP` and `NPClosedUnderReductions` and the Cook–Levin halves,
+this is equivalent to NP ≠ coNP (`noPolyBounded_iff_npNeCoNP`). -/
+def NoPolyBoundedUNSATProofSystem : Prop :=
+  NoPolyBoundedMachineProofSystem (complement SAT)
+
+/-- A language in P has a polynomially bounded system, so the property is
+not vacuously true. -/
+theorem not_noPolyBounded_of_inP {L : Language} (h : InP L) :
+    ¬ NoPolyBoundedMachineProofSystem L := by
+  obtain ⟨P, hP⟩ := proofSystem_of_inP h
+  exact fun hno => hno P hP
+
+/-- A language outside NP has no polynomially bounded system. -/
+theorem noPolyBounded_of_not_inNP {L : Language} (h : ¬ InNP L) :
+    NoPolyBoundedMachineProofSystem L :=
+  fun P hP => h (inNP_of_polyBounded P hP)
+
+/-- Injective encoding of verifier programs. -/
+def encVerifier : VerifierProgram → Word
+  | .ignoreCertificate m => false :: encMachine m
+  | .paired m => true :: encMachine m
+
+theorem encVerifier_injective (v w : VerifierProgram) (h : encVerifier v = encVerifier w) :
+    v = w := by
+  cases v <;> cases w <;> simp only [encVerifier, List.cons.injEq] at h
+  · rw [encMachine_injective h.2]
+  · cases h.1
+  · cases h.1
+  · rw [encMachine_injective h.2]
+
+open Classical in
+/-- The language whose members are the inputs with some accepted proof. -/
+noncomputable def verifierLanguage (v : VerifierProgram) : Language :=
+  fun x => decide (∃ π t, v.Run x π t true)
+
+theorem verifierLanguage_eq {L : Language} (P : MachineProofSystem L) :
+    verifierLanguage P.verifier = L := by
+  classical
+  funext x
+  simp only [verifierLanguage]
+  cases hx : L x with
+  | true => exact decide_eq_true (P.complete x hx)
+  | false =>
+    refine decide_eq_false fun ⟨π, t, hr⟩ => ?_
+    rw [P.sound x π t hr] at hx
+    cases hx
+
+/-- **Non-vacuity.**  Some language has no machine proof system at all, so
+in particular no polynomially bounded one (Cantor over encoded verifiers). -/
+theorem exists_noPolyBounded : ∃ L : Language, NoPolyBoundedMachineProofSystem L := by
+  obtain ⟨L, hL⟩ := exists_language_not_in_family encVerifier encVerifier_injective verifierLanguage
+  exact ⟨L, fun P _ => hL P.verifier (verifierLanguage_eq P)⟩
+
+/-- **Conditional theorem (proved).**  The obligation gives `¬ InP SAT`
+unconditionally: otherwise `complement SAT` is in P and has a system with
+empty proofs. -/
+theorem not_inP_sat_of_noPolyBounded (h : NoPolyBoundedUNSATProofSystem) : ¬ InP SAT :=
+  fun hs => not_noPolyBounded_of_inP (inP_complement hs) h
+
+/-- **Conditional theorem (proved).**  With SAT ∈ NP (one half of the
+Cook–Levin theorem, a named hypothesis) the obligation gives P ≠ NP. -/
+theorem pNotEqualsNP_of_noPolyBounded (mem : SATInNP) (h : NoPolyBoundedUNSATProofSystem) :
+    PNotEqualsNP :=
+  fun hp => not_inP_sat_of_noPolyBounded h (inP_sat_of_pEqualsNP mem hp)
+
+/-- Known theorem, not mechanised here: every NP language has a polynomially
+bounded machine proof system.  The verifier is the NP verifier run with a
+clock that also rejects proofs longer than the certificate bound (Cook and
+Reckhow, "The relative efficiency of propositional proof systems", J.
+Symbolic Logic 44(1), 1979).  The converse direction is proved
+(`inNP_of_polyBounded`). -/
+def CookReckhowNP : Prop :=
+  ∀ L : Language, InNP L → ∃ P : MachineProofSystem L, P.PolyBounded
+
+/-- Known theorem, not mechanised here: NP is closed under polynomial-time
+many-one reductions (Karp, "Reducibility among combinatorial problems",
+1972; Arora and Barak, "Computational Complexity", 2009, Section 2.2). -/
+def NPClosedUnderReductions : Prop :=
+  ∀ L L' : Language, PolyReduces L L' → InNP L' → InNP L
+
+/-- A reduction from `L` to `L'` is also one from the complements. -/
+theorem polyReduces_complement {L L' : Language} (h : PolyReduces L L') :
+    PolyReduces (complement L) (complement L') := by
+  obtain ⟨m, f, p, hc, hf⟩ := h
+  exact ⟨m, f, p, hc, fun x => by simp [complement, hf x]⟩
+
+/-- **Conditional theorem (proved).**  The obligation gives NP ≠ coNP, given
+SAT ∈ NP and `CookReckhowNP`; then P ≠ NP by `pNotEqualsNP_of_npNeCoNP`. -/
+theorem npNeCoNP_of_noPolyBounded (mem : SATInNP) (hcr : CookReckhowNP)
+    (h : NoPolyBoundedUNSATProofSystem) : ¬ NPEqualsCoNP := by
+  intro heq
+  obtain ⟨P, hP⟩ := hcr _ ((heq SAT).mp mem)
+  exact h P hP
+
+theorem pNotEqualsNP_via_coNP (mem : SATInNP) (hcr : CookReckhowNP)
+    (h : NoPolyBoundedUNSATProofSystem) : PNotEqualsNP :=
+  pNotEqualsNP_of_npNeCoNP (npNeCoNP_of_noPolyBounded mem hcr h)
+
+/-- **Converse (proved from named hypotheses).**  A polynomially bounded
+system for UNSAT gives NP = coNP, given SAT's NP-hardness and closure of NP
+under reductions. -/
+theorem npEqualsCoNP_of_polyBounded (hard : SATHard) (hclosed : NPClosedUnderReductions)
+    (P : MachineProofSystem (complement SAT)) (hP : P.PolyBounded) : NPEqualsCoNP := by
+  have hu : InNP (complement SAT) := inNP_of_polyBounded P hP
+  intro L
+  constructor
+  · intro hL
+    exact hclosed _ _ (polyReduces_complement (hard L hL)) hu
+  · intro hL
+    have hr := polyReduces_complement (hard _ hL)
+    rw [complement_complement] at hr
+    exact hclosed _ _ hr hu
+
+/-- **Cook–Reckhow equivalence (proved from named hypotheses).** -/
+theorem noPolyBounded_iff_npNeCoNP (mem : SATInNP) (hard : SATHard) (hcr : CookReckhowNP)
+    (hclosed : NPClosedUnderReductions) :
+    NoPolyBoundedUNSATProofSystem ↔ ¬ NPEqualsCoNP :=
+  ⟨npNeCoNP_of_noPolyBounded mem hcr,
+   fun hne P hP => hne (npEqualsCoNP_of_polyBounded hard hclosed P hP)⟩
+
+end MachinePart
 
 end Issue532.Idea23

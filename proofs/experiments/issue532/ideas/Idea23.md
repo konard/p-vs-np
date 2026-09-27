@@ -1,6 +1,6 @@
 # Idea 23 — Resolution-based SAT reasoning
 
-**Verdict:** Refuted in full strength (published theorem) + formal core
+**Verdict:** Developed to an open obligation (conditional theorem proved)
 
 Resolution with weakening is sound and complete for unsatisfiability. The
 files prove, for every CNF, that a CNF is unsatisfiable iff the empty
@@ -9,11 +9,15 @@ refuted by a published theorem: Haken (1985) proved that the pigeonhole
 formulas need exponentially large resolution refutations (cited, not
 formalized). The general version, Cook's program of proving
 superpolynomial lower bounds for every propositional proof system, is
-developed to the open obligation `NoPolyBoundedProofSystem`. With a
-polynomial-time verifier requirement this obligation is equivalent to
-NP ≠ coNP by the Cook–Reckhow theorem (cited, not formalized), and the files
-prove the abstract conditional that it excludes
-efficient exact SAT deciders.
+developed to the open obligation `NoPolyBoundedUNSATProofSystem`: UNSAT
+(`complement SAT` in the shared machine model) has no polynomially bounded
+proof system whose verifier is a polynomial-time machine. The files prove
+that it implies `¬ InP SAT`, that with SAT ∈ NP it implies `PNotEqualsNP`,
+and that with the named known theorems (Cook–Reckhow, Cook–Levin, closure
+of NP under reductions) it is equivalent to NP ≠ coNP
+(`noPolyBounded_iff_npNeCoNP`). The abstract schema
+`NoPolyBoundedProofSystemFor Efficient`, with a free efficiency predicate,
+is kept for the abstract results.
 
 ## 1. The idea at full strength
 
@@ -46,13 +50,34 @@ research log records the core step of resolution: from `P ∨ R` and
   `ProofSystem`. It has a verifier `verify : List Bool → CNF → Bool` that
   is sound (`verify π φ = true → ¬ Satisfiable φ`) and complete (every
   unsatisfiable `φ` has some accepted `π`).
-  * Cook and Reckhow also require `verify` to run in polynomial time.
-    Here that requirement is an explicit parameter `Efficient`, because no
-    machine model is formalized.
+  * Cook and Reckhow also require `verify` to run in polynomial time. In
+    the abstract part that requirement is an explicit parameter
+    `Efficient`; the machine part below makes it concrete.
 * `PolyBounded P` means there are `c, k` such that every unsatisfiable `φ`
   has an accepted proof of length at most `c (size φ + 1)^k`.
-* The open obligation is
-  `NoPolyBoundedProofSystem Efficient := ∀ P, Efficient P → ¬ PolyBounded P`.
+* The abstract schema is
+  `NoPolyBoundedProofSystemFor Efficient := ∀ P, Efficient P → ¬ PolyBounded P`.
+  It quantifies over a free predicate `Efficient`, so it is a schema, not
+  an open obligation.
+
+**Machine part (shared model `Complexity`, `Issue532.Machines`).**
+
+* A machine proof system for a language `L` is a `MachineProofSystem L`:
+  a `VerifierProgram` together with a polynomial `timeBound` such that
+  * `halts : ∀ x π, ∃ t b, t ≤ verifier.timeLimit timeBound x π ∧ verifier.Run x π t b`,
+  * `sound : ∀ x π t, verifier.Run x π t true → L x = true`,
+  * `complete : ∀ x, L x = true → ∃ π t, verifier.Run x π t true`.
+* `P.PolyBounded := ∃ q : Polynomial, ∀ x, L x = true → ∃ π t, |π| ≤ q(|x|) ∧ P.verifier.Run x π t true`.
+* `NoPolyBoundedMachineProofSystem L := ∀ P : MachineProofSystem L, ¬ P.PolyBounded`.
+* **Open obligation:**
+  `NoPolyBoundedUNSATProofSystem := NoPolyBoundedMachineProofSystem (complement SAT)`.
+* Known theorems, named hypotheses (never assumed as axioms):
+  * `CookReckhowNP := ∀ L, InNP L → ∃ P : MachineProofSystem L, P.PolyBounded`
+    (Cook–Reckhow 1979);
+  * `NPClosedUnderReductions := ∀ L L', PolyReduces L L' → InNP L' → InNP L`
+    (Karp 1972);
+  * `SATInNP` and `SATHard` (the two halves of Cook–Levin, from the shared
+    layer).
 
 ## 3. What is machine-checked
 
@@ -66,11 +91,27 @@ research log records the core step of resolution: from `P ∨ R` and
 | `unsat_iff_derives_empty` | For every CNF: `¬ Satisfiable φ ↔ Derives φ []`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `bounded_certificate` | A polynomially bounded proof system gives `c, k` with `¬ Satisfiable φ ↔ ∃ π, |π| ≤ c (size φ + 1)^k ∧ verify π φ`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `fromDecider`, `fromDecider_bounded` | From an exact decider, the system "accept any proof iff the decider says UNSAT" is sound, complete, and bounded (empty proofs suffice). | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
-| `NoPolyBoundedProofSystem` (def) | Open obligation: no proof system in the class `Efficient` is polynomially bounded. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `NoPolyBoundedProofSystemFor` (def) | Schema: no proof system in the class `Efficient` is polynomially bounded. Never assumed. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `unrestricted_obligation_false` | Without an efficiency requirement the obligation is false (use `fromDecider` with the exponential splitting decider `satDec`). | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
-| `lower_bound_excludes_efficient_decider` | If systems built from efficient exact deciders are efficient, then `NoPolyBoundedProofSystem Efficient` implies that no exact decider is efficient. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `lower_bound_excludes_efficient_decider` | If systems built from efficient exact deciders are efficient, then `NoPolyBoundedProofSystemFor Efficient` implies that no exact decider is efficient. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `MachineProofSystem` (structure) | Cook–Reckhow proof system in the machine model: polynomially clocked verifier, sound and complete; `PolyBounded` asks for polynomially short accepted proofs. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `inNP_of_polyBounded` | A polynomially bounded machine proof system for `L` gives `InNP L`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `proofSystem_of_inP` | Every `L ∈ P` has a polynomially bounded machine proof system (empty proofs). | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `NoPolyBoundedMachineProofSystem`, `NoPolyBoundedUNSATProofSystem` (defs) | Open obligation: `complement SAT` has no polynomially bounded machine proof system. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `not_noPolyBounded_of_inP`, `noPolyBounded_of_not_inNP` | The property fails for languages in P and holds for languages outside NP. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `encVerifier_injective`, `verifierLanguage_eq` | Verifier programs have an injective encoding; a proof system's verifier determines its language. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `exists_noPolyBounded` | Non-vacuity: some language has no polynomially bounded machine proof system. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `not_inP_sat_of_noPolyBounded` | `NoPolyBoundedUNSATProofSystem → ¬ InP SAT`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `pNotEqualsNP_of_noPolyBounded` | `SATInNP → NoPolyBoundedUNSATProofSystem → PNotEqualsNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `CookReckhowNP`, `NPClosedUnderReductions` (defs) | Known theorems, not mechanised here: every NP language has a polynomially bounded machine proof system; NP is closed under reductions. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `polyReduces_complement` | A reduction from `L` to `L'` is one from `complement L` to `complement L'`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `npNeCoNP_of_noPolyBounded`, `pNotEqualsNP_via_coNP` | With `SATInNP` and `CookReckhowNP`, the obligation gives `¬ NPEqualsCoNP`, hence `PNotEqualsNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `npEqualsCoNP_of_polyBounded` | With `SATHard` and `NPClosedUnderReductions`, a polynomially bounded system for `complement SAT` gives `NPEqualsCoNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `noPolyBounded_iff_npNeCoNP` | Under the four named hypotheses, `NoPolyBoundedUNSATProofSystem ↔ ¬ NPEqualsCoNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 
-The two files state the same theorems. The Rocq constructors are `d_ax`,
+The intended Rocq names are the Lean names; the Rocq file still has the
+pre-machine version (without the machine part and with the old name
+`NoPolyBoundedProofSystem`). The Rocq constructors are `d_ax`,
 `d_res` and `d_weak`, where Lean has `Derives.ax`, `Derives.res` and
 `Derives.weak`. The proof-system fields are `verify`, `ps_sound` and
 `ps_complete`, where Lean has `verify`, `sound` and `complete`.
@@ -140,6 +181,25 @@ contrapositively. Without any efficiency requirement the obligation is
 simply false (`unrestricted_obligation_false`). This is why the
 efficiency parameter is essential and cannot be dropped.
 
+**Machine part.** In the shared model the efficiency requirement is a
+polynomial clock on a `VerifierProgram`. If `P` is polynomially bounded,
+the proof bound `q` is a certificate bound, and the clock together with the
+determinism of runs bounds the accepting run, so `L ∈ NP`
+(`inNP_of_polyBounded`). Conversely a polynomial-time decider for `L`
+gives a system that ignores the proof (`proofSystem_of_inP`). Applied to
+`complement SAT`: if SAT were in P, then UNSAT would be in P and would have
+a system with empty proofs, so the obligation implies `¬ InP SAT`
+(`not_inP_sat_of_noPolyBounded`), and with SAT ∈ NP it implies P ≠ NP
+(`pNotEqualsNP_of_noPolyBounded`). With Cook–Reckhow, a bounded system
+exists for every NP language, so the obligation puts UNSAT outside NP and
+gives NP ≠ coNP (`npNeCoNP_of_noPolyBounded`). Conversely, a bounded system
+for UNSAT puts UNSAT in NP; since every coNP language reduces to UNSAT
+(complement of the Cook–Levin reduction, `polyReduces_complement`) and NP
+is closed under reductions, coNP ⊆ NP and so NP = coNP
+(`npEqualsCoNP_of_polyBounded`). The statement is not vacuous: by Cantor's
+argument over encoded verifiers, some language has no machine proof system
+at all (`exists_noPolyBounded`).
+
 ## 5. Known results and literature
 
 * J. A. Robinson, "A machine-oriented logic based on the resolution
@@ -165,9 +225,15 @@ What is **not** formalized:
 * All the lower bounds listed above.
 * The encoding of resolution as a Cook–Reckhow proof system on bit
   strings.
-* Any machine model, and hence the meaning of `Efficient`.
-* The Cook–Reckhow equivalence itself. Only the abstract certificate
-  direction and the decider direction are proved.
+* The meaning of `Efficient` in the abstract part. The machine part fixes
+  it as a polynomial clock on a verifier of the shared model, but the link
+  between the abstract CNF type and the bit-string CNF encoding of `SAT` is
+  not formalized.
+* The Cook–Reckhow direction "NP ⊆ bounded proof systems"
+  (`CookReckhowNP`), closure of NP under reductions
+  (`NPClosedUnderReductions`) and the Cook–Levin halves (`SATInNP`,
+  `SATHard`). These are named hypotheses. The direction "bounded system ⇒
+  NP" is proved (`inNP_of_polyBounded`).
 
 ## 6. How far the idea can be pushed toward P vs NP
 
@@ -177,11 +243,15 @@ What is **not** formalized:
   exponential on the pigeonhole formulas. This is a published
   unconditional theorem, about this algorithm family only.
 * **Toward P ≠ NP: developed to an open obligation.**
-  `NoPolyBoundedProofSystem Efficient`, with `Efficient` meaning a
-  polynomial-time verifier, is equivalent to NP ≠ coNP (Cook–Reckhow).
-  This is strictly stronger than P ≠ NP as far as is known, because
-  P = NP implies NP = coNP but the converse is open.
-  `lower_bound_excludes_efficient_decider` is the formal skeleton of
+  **Exact remaining obligation:** `NoPolyBoundedUNSATProofSystem`, that is,
+  `∀ P : MachineProofSystem (complement SAT), ¬ P.PolyBounded`. The files
+  prove `NoPolyBoundedUNSATProofSystem → ¬ InP SAT`, and with `SATInNP`
+  it gives `PNotEqualsNP` (`pNotEqualsNP_of_noPolyBounded`). With the named
+  hypotheses `SATInNP`, `SATHard`, `CookReckhowNP` and
+  `NPClosedUnderReductions` it is equivalent to `¬ NPEqualsCoNP`
+  (`noPolyBounded_iff_npNeCoNP`). This is stronger than P ≠ NP as far as
+  is known, because P = NP implies NP = coNP but the converse is open.
+  `lower_bound_excludes_efficient_decider` is the abstract skeleton of
   "NP ≠ coNP implies P ≠ NP".
 * **Where the program stands.** Superpolynomial lower bounds are known for
   resolution, cutting planes, bounded-depth Frege and several algebraic
@@ -212,7 +282,9 @@ What is **not** formalized:
   requirement it is false.
 * **Family 1 (assuming a lower bound).** Stating "no proof system is
   polynomially bounded" as a hypothesis and deriving P ≠ NP from it proves
-  nothing new. Here it is only the `def` `NoPolyBoundedProofSystem`.
+  nothing new. Here it is only the `def` `NoPolyBoundedUNSATProofSystem`
+(and the schema `NoPolyBoundedProofSystemFor`), never assumed; the proved
+statements are the conditionals out of it.
 
 See [COMMON_ERRORS.md](../../../attempts/COMMON_ERRORS.md).
 

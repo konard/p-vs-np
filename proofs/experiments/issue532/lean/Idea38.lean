@@ -1,3 +1,5 @@
+import proofs.experiments.issue532.lean.Idea16
+
 /-!
 # Issue #532, Idea 38: relativization audit (oracle query lower bound)
 
@@ -18,10 +20,24 @@ Baker–Gill–Solovay (BGS) oracle separation:
   method whose theorems hold relative to every oracle cannot prove a statement
   that fails relative to some oracle. If a statement holds for one oracle and fails
   for another (as BGS show for `P = NP`), neither it nor its negation has a
-  relativizing proof.
+  relativizing proof. `NonrelativizingIngredientFor` is the generic schema over a
+  free proof method.
 
-The diagonal construction of a single oracle `B` with `P^B ≠ NP^B`, and the
-oracle `A` with `P^A = NP^A`, are **not** formalized.
+Machine part, on the oracle machines of Idea 16 (`Idea16.OMachine`, which extend
+`Complexity.Machine` by a query instruction):
+
+* `testVerifier`, `testVerifier_run`, `testLangO_inNPO`: an explicit oracle
+  machine that makes one query shows `testLangO A ∈ NP^A` for every oracle `A`.
+* `BGSTestSeparation`: the BGS stage construction for `testLangO`, stated as a
+  known-theorem hypothesis. `bgsSeparation_of_testSeparation` turns it into
+  `Idea16.BGSSeparation` (`P^B ≠ NP^B`).
+* `machineRelativizing_cannot_settle`: under the BGS hypotheses, a method whose
+  theorems hold relative to every oracle proves neither `P^A = NP^A` nor its
+  negation for all oracles.
+
+The diagonal construction of the oracle `B` and the oracle `A` with
+`P^A = NP^A` are **not** formalized; they enter only as the named hypotheses
+`BGSTestSeparation` and `Idea16.BGSCollapse`.
 -/
 
 namespace Issue532.Idea38
@@ -271,9 +287,10 @@ theorem relativizing_cannot_decide (Proves : ((Nat → Bool) → Prop) → Prop)
   ⟨relativizing_cannot_prove Proves hrel S B hB,
    relativizing_cannot_prove Proves hrel (fun O => ¬ S O) A (fun h => h hA)⟩
 
-/-- **Open obligation.** A proof method with a nonrelativizing ingredient: it proves some
-statement that fails relative to some oracle. -/
-def NonrelativizingIngredient (Proves : ((Nat → Bool) → Prop) → Prop) : Prop :=
+/-- Generic schema over a free proof method `Proves` (not a machine-level statement):
+the method proves some statement that fails relative to some oracle. The
+machine-level barrier is `machineRelativizing_cannot_settle`. -/
+def NonrelativizingIngredientFor (Proves : ((Nat → Bool) → Prop) → Prop) : Prop :=
   ∃ S O, Proves S ∧ ¬ S O
 
 /-- **Nonrelativizing ingredient needed.** A method that settles an oracle-dependent
@@ -281,14 +298,14 @@ statement is not relativizing. -/
 theorem nonrelativizing_needed (Proves : ((Nat → Bool) → Prop) → Prop)
     (S : (Nat → Bool) → Prop) (A B : Nat → Bool) (hA : S A) (hB : ¬ S B)
     (hproof : Proves S ∨ Proves (fun O => ¬ S O)) :
-    NonrelativizingIngredient Proves := by
+    NonrelativizingIngredientFor Proves := by
   rcases hproof with h | h
   · exact ⟨S, B, h, hB⟩
   · exact ⟨fun O => ¬ S O, A, h, fun h' => h' hA⟩
 
-/-- `NonrelativizingIngredient` is exactly the failure of `Relativizing` (classical). -/
+/-- `NonrelativizingIngredientFor` is exactly the failure of `Relativizing` (classical). -/
 theorem nonrelativizing_iff (Proves : ((Nat → Bool) → Prop) → Prop) :
-    NonrelativizingIngredient Proves ↔ ¬ Relativizing Proves := by
+    NonrelativizingIngredientFor Proves ↔ ¬ Relativizing Proves := by
   constructor
   · rintro ⟨S, O, hS, hO⟩ hrel
     exact hO (hrel S hS O)
@@ -303,5 +320,182 @@ theorem nonrelativizing_iff (Proves : ((Nat → Bool) → Prop) → Prop) :
 
 /-- Check: depth-2 tree `orTree 2` is correct on the oracle true only at `1`. -/
 example : (orTree 2).eval (single 1) = true := by decide
+
+/-! ## Machine part: the barrier on the oracle machines of Idea 16 -/
+
+open Complexity Issue532.Machines
+open Issue532.Idea16 (Oracle OInstruction OMachine oinstruction ostep ORun orun_deterministic
+  queryWord InPO InNPO OVerifier PEqualsNPO BGSCollapse BGSSeparation)
+
+/-- The verifier for `testLangO`: scan right over `x`, overwrite the separator
+by `1`, scan back to the left end, and query the word `x ++ true :: cert`. -/
+def testVerifier : OMachine :=
+  ⟨[ [.base (.halt false), .base (.move 0 .zero .right), .base (.move 0 .one .right),
+      .base (.move 1 .one .left)],
+     [.base (.move 2 .blank .right), .base (.move 1 .zero .left), .base (.move 1 .one .left),
+      .base (.halt false)],
+     [.query 3 4, .query 3 4, .query 3 4, .query 3 4],
+     [.base (.halt true), .base (.halt true), .base (.halt true), .base (.halt true)],
+     [.base (.halt false), .base (.halt false), .base (.halt false), .base (.halt false)] ]⟩
+
+/-- The configuration with state `q`, left part `L`, and the rest of the tape `s`
+starting at the head. -/
+def hc (q : Nat) (L : List Symbol) : List Symbol → Config
+  | [] => ⟨q, L, .blank, []⟩
+  | a :: r => ⟨q, L, a, r⟩
+
+theorem moveHead_right (q q' : Nat) (L : List Symbol) (a w : Symbol) (r : List Symbol) :
+    moveHead ⟨q, L, a, r⟩ q' w .right = hc q' (w :: L) r := by
+  cases r <;> rfl
+
+/-- The left scan target: moving left onto `ys` (nearest symbol first). -/
+def lc (ys R : List Symbol) : Config :=
+  match ys with
+  | [] => ⟨1, [], .blank, R⟩
+  | a :: rest => ⟨1, rest, a, R⟩
+
+theorem ofBool_ne_sep (x : Bool) : Symbol.ofBool x ≠ .separator := by cases x <;> decide
+
+theorem scan_right (A : Oracle) (cs : List Symbol) (t : Nat) (b : Bool) :
+    ∀ (xs : List Bool) (L : List Symbol),
+      ORun A testVerifier (hc 0 ((xs.map Symbol.ofBool).reverse ++ L) (.separator :: cs)) t b →
+      ORun A testVerifier (hc 0 L (xs.map Symbol.ofBool ++ .separator :: cs)) (t + xs.length) b
+  | [], L, h => by simpa using h
+  | x :: xs, L, h => by
+    have ih := scan_right A cs t b xs (Symbol.ofBool x :: L)
+      (by simpa [List.reverse_cons, List.append_assoc] using h)
+    have hs : ostep A testVerifier (hc 0 L (Symbol.ofBool (x) :: (xs.map Symbol.ofBool ++ .separator :: cs))) =
+        .inr (hc 0 (Symbol.ofBool x :: L) (xs.map Symbol.ofBool ++ .separator :: cs)) := by
+      cases x <;> simp [hc, ostep, oinstruction, testVerifier, Symbol.ofBool, Symbol.index,
+        moveHead_right]
+    have := ORun.next hs ih
+    simpa [Nat.add_assoc, Nat.add_comm 1] using this
+
+theorem scan_left (A : Oracle) (t : Nat) (b : Bool) :
+    ∀ (ys : List Bool) (R : List Symbol),
+      ORun A testVerifier ⟨1, [], .blank, (ys.map Symbol.ofBool).reverse ++ R⟩ t b →
+      ORun A testVerifier (lc (ys.map Symbol.ofBool) R) (t + ys.length) b
+  | [], R, h => by simpa [lc] using h
+  | y :: ys, R, h => by
+    have ih := scan_left A t b ys (Symbol.ofBool y :: R)
+      (by simpa [List.reverse_cons, List.append_assoc] using h)
+    have hs : ostep A testVerifier (lc (Symbol.ofBool y :: ys.map Symbol.ofBool) R) =
+        .inr (lc (ys.map Symbol.ofBool) (Symbol.ofBool y :: R)) := by
+      cases ys <;> cases y <;> simp [lc, ostep, oinstruction, testVerifier, Symbol.ofBool,
+        Symbol.index, moveHead]
+    have := ORun.next hs ih
+    simpa [Nat.add_assoc, Nat.add_comm 1] using this
+
+theorem queryWord_bits (xs : List Bool) (r : List Symbol) :
+    queryWord (xs.map Symbol.ofBool ++ r) = xs ++ queryWord r := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih => cases x <;> simp [Symbol.ofBool, queryWord, ih]
+
+/-- The explicit run: `2·|x| + 4` steps, answer `A (x ++ true :: cert)`. -/
+theorem testVerifier_run (A : Oracle) (x cert : Word) :
+    ORun A testVerifier (pairedInput x cert) (2 * x.length + 4) (A (x ++ true :: cert)) := by
+  have hq : queryWord (x.map Symbol.ofBool ++ .one :: cert.map Symbol.ofBool) = x ++ true :: cert := by
+    have hc' := queryWord_bits cert []
+    simp only [List.append_nil] at hc'
+    rw [queryWord_bits]
+    simp [queryWord, hc']
+  -- final three steps: blank → right, query, halt
+  have hfin : ORun A testVerifier ⟨1, [], .blank, x.map Symbol.ofBool ++ .one :: cert.map Symbol.ofBool⟩
+      3 (A (x ++ true :: cert)) := by
+    have h1 : ostep A testVerifier ⟨1, [], .blank, x.map Symbol.ofBool ++ .one :: cert.map Symbol.ofBool⟩ =
+        .inr (hc 2 [.blank] (x.map Symbol.ofBool ++ .one :: cert.map Symbol.ofBool)) := by
+      simp only [ostep, oinstruction, testVerifier]
+      cases x <;> rfl
+    refine ORun.next h1 ?_
+    generalize hz : x.map Symbol.ofBool ++ .one :: cert.map Symbol.ofBool = z at hq
+    have hz' : z ≠ [] := by rw [← hz]; simp
+    obtain ⟨a, r, rfl⟩ : ∃ a r, z = a :: r := by
+      cases z with
+      | nil => exact absurd rfl hz'
+      | cons a r => exact ⟨a, r, rfl⟩
+    have h2 : ostep A testVerifier (hc 2 [.blank] (a :: r)) =
+        .inr ⟨if A (x ++ true :: cert) then 3 else 4, [.blank], a, r⟩ := by
+      simp only [hc, ostep, oinstruction, testVerifier, hq]
+      cases a <;> rfl
+    refine ORun.next h2 (ORun.halt ?_)
+    cases hA : A (x ++ true :: cert) <;> cases a <;> rfl
+  have h2 := scan_left A 3 (A (x ++ true :: cert)) x.reverse (.one :: cert.map Symbol.ofBool)
+    (by simpa [List.map_reverse] using hfin)
+  -- the separator step
+  have hsep : ostep A testVerifier (hc 0 ((x.map Symbol.ofBool).reverse ++ []) (.separator :: cert.map Symbol.ofBool)) =
+      .inr (lc (x.reverse.map Symbol.ofBool) (.one :: cert.map Symbol.ofBool)) := by
+    rw [List.map_reverse]
+    simp only [hc, ostep, oinstruction, testVerifier, List.append_nil]
+    cases (x.map Symbol.ofBool).reverse <;> rfl
+  have h3 := scan_right A (cert.map Symbol.ofBool) _ _ x [] (ORun.next hsep h2)
+  have hinit : pairedInput x cert = hc 0 [] (x.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool) := by
+    simp only [pairedInput, List.append_assoc, List.singleton_append]
+    cases x.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool <;> rfl
+  rw [hinit]
+  simp only [List.length_reverse] at h3
+  have he : 3 + x.length + 1 + x.length = 2 * x.length + 4 := by omega
+  rw [he] at h3
+  exact h3
+
+
+open Classical in
+/-- The BGS-style test language relative to `A`: some extension `x ++ true :: y`
+with `|y| ≤ |x| + 1` is in `A`. Distinct inputs `0^n` have disjoint candidate sets,
+which is what the BGS stage construction needs. -/
+noncomputable def testLangO (A : Oracle) : Language := fun x =>
+  decide (∃ y : Word, y.length ≤ x.length + 1 ∧ A (x ++ true :: y) = true)
+
+/-- **The NP side, in the machine model (proved).** For every oracle `A`,
+`testLangO A ∈ NP^A`, witnessed by the explicit oracle machine `testVerifier` making
+one query. This is the machine form of `verifier_one_query`. -/
+theorem testLangO_inNPO (A : Oracle) : InNPO A (testLangO A) := by
+  refine ⟨.paired testVerifier, ⟨4, 1⟩, ⟨1, 1⟩, fun x cert _ => ?_, fun x => ?_⟩
+  · refine ⟨2 * x.length + 4, _, ?_, testVerifier_run A x cert⟩
+    simp only [OVerifier.timeLimit, Polynomial.eval, Nat.pow_one]
+    omega
+  · constructor
+    · intro h
+      simp only [testLangO, decide_eq_true_eq] at h
+      obtain ⟨y, hy, hA⟩ := h
+      refine ⟨y, 2 * x.length + 4, ?_, ?_, ?_⟩
+      · simp only [Polynomial.eval, Nat.pow_one, Nat.one_mul]; exact hy
+      · simp only [OVerifier.timeLimit, Polynomial.eval, Nat.pow_one]; omega
+      · have := testVerifier_run A x y
+        rw [hA] at this
+        exact this
+    · rintro ⟨cert, t, hc, _, hr⟩
+      have hr' := testVerifier_run A x cert
+      have hb := (orun_deterministic hr hr').2
+      simp only [testLangO, decide_eq_true_eq]
+      exact ⟨cert, by simpa [Polynomial.eval] using hc, hb.symm⟩
+
+/-- **Known theorem, not mechanised here** (the stage construction of Baker, Gill,
+Solovay, SIAM J. Comput. 4(4), 1975, applied to the test language
+`testLangO`): there is an oracle `B` with `testLangO B ∉ P^B`. Its query-complexity
+core is `bgs_core`: a polynomial-time machine makes fewer than `2^n` queries, so at
+some input `0^n` it misses an unqueried candidate `0^n ++ true :: y`. -/
+def BGSTestSeparation : Prop := ∃ B : Oracle, ¬ InPO B (testLangO B)
+
+/-- The test separation gives the BGS separation `P^B ≠ NP^B` of the shared model. -/
+theorem bgsSeparation_of_testSeparation (h : BGSTestSeparation) : BGSSeparation := by
+  obtain ⟨B, hB⟩ := h
+  exact ⟨B, fun hP => hB (hP _ (testLangO_inNPO B))⟩
+
+/-- A proof method over machine-oracle statements relativizes if everything it
+proves holds relative to every oracle. -/
+def MachineRelativizing (Proves : (Oracle → Prop) → Prop) : Prop :=
+  ∀ S, Proves S → ∀ A, S A
+
+/-- **BGS barrier for machine statements.** Under the known BGS theorems, a
+relativizing method proves neither `P^A = NP^A` nor `P^A ≠ NP^A` as statements
+about all oracles. Its only relativizing route to the real question
+(`Idea16.pEqualsNP_of_all_oracles`, `Idea16.pNotEqualsNP_of_all_oracles`) is closed. -/
+theorem machineRelativizing_cannot_settle (Proves : (Oracle → Prop) → Prop)
+    (hrel : MachineRelativizing Proves) (h1 : BGSCollapse) (h2 : BGSTestSeparation) :
+    ¬ Proves PEqualsNPO ∧ ¬ Proves (fun A => ¬ PEqualsNPO A) := by
+  obtain ⟨A, hA⟩ := h1
+  obtain ⟨B, hB⟩ := bgsSeparation_of_testSeparation h2
+  exact ⟨fun h => hB (hrel _ h B), fun h => hrel _ h A hA⟩
 
 end Issue532.Idea38

@@ -1,7 +1,9 @@
+import proofs.experiments.issue532.lean.Machines
+
 /-!
 # Issue #532, Idea 16: diagonalization and relativization
 
-Proved for all enumerations, oracles and parameters:
+Abstract part, proved for all enumerations, oracles and parameters:
 
 * `diag_ne`, `no_enumeration_of_all`: Cantor/Turing diagonal. For every
   enumeration `e : ℕ → ℕ → Bool`, the language `diag e n = !(e n n)` differs
@@ -9,27 +11,44 @@ Proved for all enumerations, oracles and parameters:
 * `hierarchy_abstract`, `hierarchy_strict`: the abstract time-hierarchy
   argument. If a class `C` is enumerated by `e` and a universal evaluator `u`
   satisfies `u i x = e i x`, the diagonal language is decidable with one query
-  to `u` but is not in `C`. So `C` is strictly smaller than the class of
-  one-query-to-`u` languages.
+  to `u` but is not in `C`.
 * `diag_relativizes`, `hierarchy_relativizes`, `diagTech_relativizing`: both
-  arguments go through verbatim for every oracle world `O : ℕ → Bool`, because
-  they use only the enumeration/simulation interface. The technique relativizes.
+  arguments go through verbatim for every oracle world `O : ℕ → Bool`.
 * `no_relativizing_proof`, `relativizing_cannot_prove`,
   `diagonalization_cannot_prove`, `ingredient_necessary`: a statement that
-  fails in some oracle world has no relativizing proof. Baker–Gill–Solovay
-  (1975, not formalized here) give an oracle `A` with `P^A = NP^A` and an
-  oracle `B` with `P^B ≠ NP^B`. So pure diagonalization settles P vs NP in
-  neither direction.
+  fails in some oracle world has no relativizing proof.
+  `NonRelativizingIngredientFor` is the generic schema of what a proof would
+  have to add.
 * `oracle_adversary`, `testLang_one_certificate`: the query-complexity core of
-  the BGS oracle `B`. Any deterministic query algorithm (decision tree) making
-  fewer than `2^n` queries is wrong, on some oracle, about the test language
-  "some string of length `n` is in `O`". A single certificate query verifies
-  membership.
+  the BGS oracle `B`.
+
+Machine part, in the shared model `Complexity.Machine` / `Issue532.Machines`:
+
+* Oracle machines `OMachine` extend `Complexity.Machine` by a query instruction
+  (`ostep`, `ORun`). `orun_lift_iff`: ordinary machines are oracle machines
+  that never query. `run_lower_iff`: against a constant oracle an oracle machine
+  is an ordinary machine.
+* `InPO A`, `InNPO A`, `PEqualsNPO A` are `P^A`, `NP^A`, `P^A = NP^A`.
+  `inPO_const_iff`, `inNPO_const_iff`, `pEqualsNPO_const_iff`: for a constant
+  oracle they are exactly `InP`, `InNP`, `PEqualsNP`.
+  `pEqualsNP_of_all_oracles`, `pNotEqualsNP_of_all_oracles`: a relativizing
+  proof would settle the real question.
+* `BGSCollapse`, `BGSSeparation`: the Baker–Gill–Solovay theorem as named
+  known-theorem hypotheses. `bgs_no_uniform_answer`: under them, neither answer
+  holds for every oracle.
+* `diagonal_core`, `diagWithin_not_decidedWithin`: the diagonal half of the time
+  hierarchy, proved for machines with polynomial clocks.
+  `timeHierarchy_of_universalSimulation`: `TimeHierarchy` from the known
+  `UniversalSimulation`. `diagWithinO_not_decidedWithin`,
+  `timeHierarchyO_of_universalSimulationO`: the same relative to every oracle.
+* `InDTIME`, `InNTIME`, `NTimeHierarchyGap`, `NTimeHierarchy`: time classes and
+  the nondeterministic time hierarchy (known theorem, stated as a hypothesis),
+  with the non-vacuity theorems `exists_not_inDTIME`, `exists_not_inNTIME`.
 
 Verdict: pure diagonalization is refuted as a route to P vs NP, in full
-strength, by the published BGS theorem. The formal core is the proof that the
-diagonal argument relativizes. The open obligation `NonRelativizingIngredient`
-is only defined. Nothing here proves or refutes P = NP.
+strength, by the published BGS theorem (`bgs_no_uniform_answer`). The formal
+core is the proof that the diagonal argument relativizes. Nothing here proves or
+refutes P = NP.
 -/
 
 namespace Issue532.Idea16
@@ -154,12 +173,11 @@ theorem diagonalization_cannot_prove (S : World → Prop) (h : ∃ O, ¬ S O) : 
   relativizing_cannot_prove DiagTech diagTech_relativizing S h
 
 /--
-Open obligation (not assumed): a technique `T` that is sound for the real
-world `real`, proves `S`, and does not relativize. For `S O := P^O ≠ NP^O`
-and `real` the empty oracle, this is what a diagonalization-based proof of
-P ≠ NP would still have to supply.
+Generic schema over a free technique `T` (not assumed, not a machine-level
+statement): `T` is sound for the real world `real`, proves `S`, and does not
+relativize. The machine-level content of the barrier is `bgs_no_uniform_answer`.
 -/
-def NonRelativizingIngredient (T : Technique) (real : World) (S : World → Prop) : Prop :=
+def NonRelativizingIngredientFor (T : Technique) (real : World) (S : World → Prop) : Prop :=
   (∀ S', T S' → S' real) ∧ T S ∧ ¬ Relativizing T
 
 /-- Any technique that proves a world-dependent statement is non-relativizing. -/
@@ -276,5 +294,505 @@ theorem oracle_adversary (n : Nat) (t : QT) (ht : qdepth t < 2 ^ n) :
     have h1 : testLang O1 n = true :=
       (testLang_one_certificate O1 n).2 ⟨y, hy, by simp [O1]⟩
     exact ⟨O1, by rw [run_agree O0 O1 t hagree, h, h1]; decide⟩
+
+/-! # Machine part: the barrier in the shared machine model -/
+
+open Complexity Issue532.Machines
+
+/-! ## Oracle machines: a real extension of `Complexity.Machine` -/
+
+/-- An oracle is a language: the query `y` is answered by `A y`. -/
+abbrev Oracle := Language
+
+/-- An oracle-machine instruction: an ordinary `Complexity.Instruction`, or a
+query that asks the oracle about the bit word starting at the head (up to the
+first blank or separator) and moves to state `yes` or `no`. A query is one step. -/
+inductive OInstruction where
+  | base (i : Instruction)
+  | query (yes no : Nat)
+
+/-- An oracle machine: a finite instruction table, as for `Complexity.Machine`. -/
+structure OMachine where
+  program : List (List OInstruction)
+
+/-- Table lookup; a missing instruction rejects, as in `Complexity.Machine`. -/
+def oinstruction (m : OMachine) (q : Nat) (a : Symbol) : OInstruction :=
+  ((m.program[q]?).bind fun row => row[a.index]?).getD (.base (.halt false))
+
+/-- The query word: the bits from the head rightwards, up to the first blank or
+separator. -/
+def queryWord : List Symbol → Word
+  | .zero :: r => false :: queryWord r
+  | .one :: r => true :: queryWord r
+  | _ => []
+
+/-- One step of an oracle machine with oracle `A`. -/
+def ostep (A : Oracle) (m : OMachine) (c : Config) : Bool ⊕ Config :=
+  match oinstruction m c.state c.head with
+  | .base (.halt b) => .inl b
+  | .base (.move next write dir) => .inr (moveHead c next write dir)
+  | .query yes no =>
+    .inr ⟨if A (queryWord (c.head :: c.right)) then yes else no, c.left, c.head, c.right⟩
+
+/-- Halting runs of an oracle machine, with the step count `t` (as `Complexity.Run`). -/
+inductive ORun (A : Oracle) (m : OMachine) : Config → Nat → Bool → Prop where
+  | halt {c b} : ostep A m c = .inl b → ORun A m c 1 b
+  | next {c c' t b} : ostep A m c = .inr c' → ORun A m c' t b → ORun A m c (t + 1) b
+
+theorem orun_deterministic {A : Oracle} {m : OMachine} {c : Config} {t t' : Nat} {b b' : Bool}
+    (h : ORun A m c t b) (h' : ORun A m c t' b') : t = t' ∧ b = b' := by
+  induction h generalizing t' with
+  | halt hs =>
+    cases h' with
+    | halt hs' => rw [hs] at hs'; cases hs'; exact ⟨rfl, rfl⟩
+    | next hs' _ => rw [hs] at hs'; cases hs'
+  | next hs _ ih =>
+    cases h' with
+    | halt hs' => rw [hs] at hs'; cases hs'
+    | next hs' hr' =>
+      rw [hs] at hs'
+      cases hs'
+      obtain ⟨h1, h2⟩ := ih hr'
+      exact ⟨by rw [h1], h2⟩
+
+/-- Every ordinary machine is an oracle machine that never queries. -/
+def liftMachine (m : Machine) : OMachine := ⟨m.program.map (List.map OInstruction.base)⟩
+
+theorem lift_instruction (m : Machine) (q : Nat) (a : Symbol) :
+    oinstruction (liftMachine m) q a = .base (Complexity.Machine.instruction m q a) := by
+  unfold oinstruction liftMachine Complexity.Machine.instruction
+  simp only [List.getElem?_map]
+  cases m.program[q]? with
+  | none => rfl
+  | some row =>
+    simp only [Option.map_some, Option.bind_some, List.getElem?_map]
+    cases row[a.index]? <;> rfl
+
+theorem ostep_lift (A : Oracle) (m : Machine) (c : Config) :
+    ostep A (liftMachine m) c = step m c := by
+  unfold ostep step
+  rw [lift_instruction]
+  cases Complexity.Machine.instruction m c.state c.head <;> rfl
+
+/-- Runs of a lifted machine are the runs of the machine, for every oracle. -/
+theorem orun_lift_iff (A : Oracle) (m : Machine) (c : Config) (t : Nat) (b : Bool) :
+    ORun A (liftMachine m) c t b ↔ Run m c t b := by
+  constructor
+  · intro h
+    induction h with
+    | halt hs => exact .halt (by rw [← ostep_lift A]; exact hs)
+    | next hs _ ih => exact .next (by rw [← ostep_lift A]; exact hs) ih
+  · intro h
+    induction h with
+    | halt hs => exact .halt (by rw [ostep_lift]; exact hs)
+    | next hs _ ih => exact .next (by rw [ostep_lift]; exact hs) ih
+
+/-- The symbol with a given column index. -/
+def symbolOfIndex : Nat → Symbol
+  | 0 => .blank
+  | 1 => .zero
+  | 2 => .one
+  | _ => .separator
+
+theorem symbolOfIndex_index (a : Symbol) : symbolOfIndex a.index = a := by
+  cases a <;> rfl
+
+/-- Against the constant oracle `fun _ => b`, a query is an ordinary move that
+rewrites the scanned symbol and does not move. -/
+def lowerInstruction (b : Bool) (a : Symbol) : OInstruction → Instruction
+  | .base i => i
+  | .query yes no => .move (if b then yes else no) a .stay
+
+/-- The ordinary machine that simulates `m` against the constant oracle `fun _ => b`. -/
+def lowerMachine (b : Bool) (m : OMachine) : Machine :=
+  ⟨m.program.map fun row => row.mapIdx fun i oi => lowerInstruction b (symbolOfIndex i) oi⟩
+
+theorem lower_instruction (b : Bool) (m : OMachine) (q : Nat) (a : Symbol) :
+    Complexity.Machine.instruction (lowerMachine b m) q a =
+      lowerInstruction b a (oinstruction m q a) := by
+  unfold oinstruction lowerMachine Complexity.Machine.instruction
+  simp only [List.getElem?_map]
+  cases m.program[q]? with
+  | none => rfl
+  | some row =>
+    simp only [Option.map_some, Option.bind_some, List.getElem?_mapIdx]
+    cases row[a.index]? with
+    | none => rfl
+    | some oi => simp [symbolOfIndex_index]
+
+theorem step_lower (b : Bool) (m : OMachine) (c : Config) :
+    step (lowerMachine b m) c = ostep (fun _ => b) m c := by
+  unfold ostep step
+  rw [lower_instruction]
+  cases oinstruction m c.state c.head with
+  | base i => cases i <;> rfl
+  | query yes no => rfl
+
+/-- Runs against a constant oracle are runs of an ordinary machine. -/
+theorem run_lower_iff (b : Bool) (m : OMachine) (c : Config) (t : Nat) (r : Bool) :
+    Run (lowerMachine b m) c t r ↔ ORun (fun _ => b) m c t r := by
+  constructor
+  · intro h
+    induction h with
+    | halt hs => exact .halt (by rw [← step_lower]; exact hs)
+    | next hs _ ih => exact .next (by rw [← step_lower]; exact hs) ih
+  · intro h
+    induction h with
+    | halt hs => exact .halt (by rw [step_lower]; exact hs)
+    | next hs _ ih => exact .next (by rw [step_lower]; exact hs) ih
+
+/-! ## Oracle classes `P^A`, `NP^A` -/
+
+/-- `m` decides `L` with oracle `A` within the polynomial `p`. -/
+def ODecidesWithin (A : Oracle) (m : OMachine) (p : Polynomial) (L : Language) : Prop :=
+  ∀ x, ∃ t b, t ≤ p.eval x.length ∧ ORun A m (initial x) t b ∧ b = L x
+
+/-- `L ∈ P^A`. -/
+def InPO (A : Oracle) (L : Language) : Prop := ∃ (m : OMachine) (p : Polynomial), ODecidesWithin A m p L
+
+/-- Oracle verifiers, mirroring `Complexity.VerifierProgram`. -/
+inductive OVerifier where
+  | ignoreCertificate (m : OMachine)
+  | paired (m : OMachine)
+
+def OVerifier.Run (v : OVerifier) (A : Oracle) (x cert : Word) (t : Nat) (b : Bool) : Prop :=
+  match v with
+  | .ignoreCertificate m => ORun A m (initial x) t b
+  | .paired m => ORun A m (pairedInput x cert) t b
+
+def OVerifier.timeLimit (v : OVerifier) (p : Polynomial) (x cert : Word) : Nat :=
+  match v with
+  | .ignoreCertificate _ => p.eval x.length
+  | .paired _ => p.eval (x.length + cert.length + 1)
+
+/-- `L ∈ NP^A`: the fields of `Complexity.ClassNP`, with an oracle verifier. -/
+def InNPO (A : Oracle) (L : Language) : Prop :=
+  ∃ (v : OVerifier) (timeBound certBound : Polynomial),
+    (∀ x cert, cert.length ≤ certBound.eval x.length →
+      ∃ t b, t ≤ v.timeLimit timeBound x cert ∧ v.Run A x cert t b) ∧
+    ∀ x, L x = true ↔ ∃ cert t, cert.length ≤ certBound.eval x.length ∧
+      t ≤ v.timeLimit timeBound x cert ∧ v.Run A x cert t true
+
+/-- `P^A = NP^A`. -/
+def PEqualsNPO (A : Oracle) : Prop := ∀ L, InNPO A L → InPO A L
+
+/-- `P ⊆ P^A` for every oracle. -/
+theorem inPO_of_inP (A : Oracle) {L : Language} (h : InP L) : InPO A L := by
+  obtain ⟨m, p, hm⟩ := (polyDec_iff_inP L).mpr h
+  refine ⟨liftMachine m, p, fun x => ?_⟩
+  obtain ⟨t, b, ht, hr, hb⟩ := hm x
+  exact ⟨t, b, ht, (orun_lift_iff A m _ t b).mpr hr, hb⟩
+
+/-- `P^∅ = P`: against a constant oracle, oracle machines are ordinary machines. -/
+theorem inPO_const_iff (b : Bool) (L : Language) : InPO (fun _ => b) L ↔ InP L := by
+  constructor
+  · rintro ⟨m, p, hm⟩
+    refine (polyDec_iff_inP L).mp ⟨lowerMachine b m, p, fun x => ?_⟩
+    obtain ⟨t, r, ht, hr, hb⟩ := hm x
+    exact ⟨t, r, ht, (run_lower_iff b m _ t r).mpr hr, hb⟩
+  · exact inPO_of_inP _
+
+/-- `P^A ⊆ NP^A` for every oracle. -/
+theorem inNPO_of_inPO {A : Oracle} {L : Language} (h : InPO A L) : InNPO A L := by
+  obtain ⟨m, p, hm⟩ := h
+  refine ⟨.ignoreCertificate m, p, ⟨0, 0⟩, fun x _ _ => ?_, fun x => ?_⟩
+  · obtain ⟨t, b, ht, hr, _⟩ := hm x
+    exact ⟨t, b, ht, hr⟩
+  · obtain ⟨t, b, ht, hr, hb⟩ := hm x
+    constructor
+    · intro hx
+      exact ⟨[], t, Nat.zero_le _, ht, by rw [hb, hx] at hr; exact hr⟩
+    · rintro ⟨_, t', _, _, hr'⟩
+      rw [← hb, (orun_deterministic hr hr').2]
+
+def liftVerifier : VerifierProgram → OVerifier
+  | .ignoreCertificate m => .ignoreCertificate (liftMachine m)
+  | .paired m => .paired (liftMachine m)
+
+def OVerifier.lower (b : Bool) : OVerifier → VerifierProgram
+  | .ignoreCertificate m => .ignoreCertificate (lowerMachine b m)
+  | .paired m => .paired (lowerMachine b m)
+
+theorem liftVerifier_run (A : Oracle) (v : VerifierProgram) (x cert : Word) (t : Nat) (r : Bool) :
+    (liftVerifier v).Run A x cert t r ↔ v.Run x cert t r := by
+  cases v <;> exact orun_lift_iff A _ _ t r
+
+theorem liftVerifier_timeLimit (v : VerifierProgram) (p : Polynomial) (x cert : Word) :
+    (liftVerifier v).timeLimit p x cert = v.timeLimit p x cert := by
+  cases v <;> rfl
+
+theorem lower_run (b : Bool) (v : OVerifier) (x cert : Word) (t : Nat) (r : Bool) :
+    (v.lower b).Run x cert t r ↔ v.Run (fun _ => b) x cert t r := by
+  cases v <;> exact run_lower_iff b _ _ t r
+
+theorem lower_timeLimit (b : Bool) (v : OVerifier) (p : Polynomial) (x cert : Word) :
+    (v.lower b).timeLimit p x cert = v.timeLimit p x cert := by
+  cases v <;> rfl
+
+/-- `NP ⊆ NP^A` for every oracle. -/
+theorem inNPO_of_inNP (A : Oracle) {L : Language} (h : InNP L) : InNPO A L := by
+  obtain ⟨N, rfl⟩ := h
+  refine ⟨liftVerifier N.verifier, N.timeBound, N.certBound, fun x cert hc => ?_, fun x => ?_⟩
+  · obtain ⟨t, b, ht, hr⟩ := N.terminates x cert hc
+    exact ⟨t, b, by rw [liftVerifier_timeLimit]; exact ht, (liftVerifier_run A _ x cert t b).mpr hr⟩
+  · rw [N.correct x]
+    simp only [liftVerifier_timeLimit, liftVerifier_run]
+
+/-- `NP^∅ = NP`. -/
+theorem inNPO_const_iff (b : Bool) (L : Language) : InNPO (fun _ => b) L ↔ InNP L := by
+  constructor
+  · rintro ⟨v, tb, cb, hterm, hcorr⟩
+    refine ⟨⟨L, v.lower b, tb, cb, fun x cert hc => ?_, fun x => ?_⟩, rfl⟩
+    · obtain ⟨t, r, ht, hr⟩ := hterm x cert hc
+      exact ⟨t, r, by rw [lower_timeLimit]; exact ht, (lower_run b v x cert t r).mpr hr⟩
+    · rw [hcorr x]
+      simp only [lower_timeLimit, lower_run]
+  · exact inNPO_of_inNP _
+
+/-- The unrelativized question is the instance of a constant (for example the
+empty) oracle. -/
+theorem pEqualsNPO_const_iff (b : Bool) : PEqualsNPO (fun _ => b) ↔ PEqualsNP := by
+  constructor
+  · intro h L hL
+    exact (inPO_const_iff b L).mp (h L ((inNPO_const_iff b L).mpr hL))
+  · intro h L hL
+    exact (inPO_const_iff b L).mpr (h L ((inNPO_const_iff b L).mp hL))
+
+/-- A relativizing proof of `P = NP` (one valid for every oracle) proves `P = NP`. -/
+theorem pEqualsNP_of_all_oracles (h : ∀ A, PEqualsNPO A) : PEqualsNP :=
+  (pEqualsNPO_const_iff false).mp (h _)
+
+/-- A relativizing proof of `P ≠ NP` proves `P ≠ NP`. -/
+theorem pNotEqualsNP_of_all_oracles (h : ∀ A, ¬ PEqualsNPO A) : PNotEqualsNP :=
+  fun hP => h (fun _ => false) ((pEqualsNPO_const_iff false).mpr hP)
+
+/-! ## Baker–Gill–Solovay, stated in this model -/
+
+/-- **Known theorem, not mechanised here** (Baker, Gill, Solovay, "Relativizations
+of the P =? NP question", SIAM J. Comput. 4(4), 1975): there is an oracle `A` with
+`P^A = NP^A` (for example a PSPACE-complete language). -/
+def BGSCollapse : Prop := ∃ A : Oracle, PEqualsNPO A
+
+/-- **Known theorem, not mechanised here** (Baker, Gill, Solovay 1975): there is an
+oracle `B` with `P^B ≠ NP^B`. Its query-complexity core is `oracle_adversary`. -/
+def BGSSeparation : Prop := ∃ B : Oracle, ¬ PEqualsNPO B
+
+/-- **The barrier.** Given BGS, neither answer to P vs NP holds relative to every
+oracle, so no argument that is valid for every oracle settles P vs NP. -/
+theorem bgs_no_uniform_answer (h1 : BGSCollapse) (h2 : BGSSeparation) :
+    ¬ (∀ A, PEqualsNPO A) ∧ ¬ (∀ A, ¬ PEqualsNPO A) := by
+  obtain ⟨A, hA⟩ := h1
+  obtain ⟨B, hB⟩ := h2
+  exact ⟨fun h => hB (h B), fun h => h A hA⟩
+
+/-! ## The diagonal half of the time hierarchy, in the machine model -/
+
+open Classical in
+/-- The diagonal language of an injectively coded family with acceptance
+relation `Acc`: `w` is in it unless `w` is the code of a member accepting `w`. -/
+noncomputable def diagLang {M : Type} (e : M → Word) (Acc : M → Word → Prop) : Language :=
+  fun w => decide (¬ ∃ m, e m = w ∧ Acc m w)
+
+/-- **Diagonal core.** No member of the family accepts exactly `diagLang`. -/
+theorem diagonal_core {M : Type} (e : M → Word) (he : ∀ a b, e a = e b → a = b)
+    (Acc : M → Word → Prop) (m : M) : ¬ ∀ w, Acc m w ↔ diagLang e Acc w = true := by
+  intro h
+  have hw := h (e m)
+  by_cases ha : Acc m (e m)
+  · have hd := hw.mp ha
+    simp only [diagLang, decide_eq_true_eq] at hd
+    exact hd ⟨m, rfl, ha⟩
+  · have hd : ¬ diagLang e Acc (e m) = true := fun hd => ha (hw.mpr hd)
+    simp only [diagLang, decide_eq_true_eq, Classical.not_not] at hd
+    obtain ⟨m', hm', ha'⟩ := hd
+    rw [he m' m hm'] at ha'
+    exact ha ha'
+
+/-- Clocked acceptance: `m` accepts `w` within `p(|w|)` steps. -/
+def AcceptsWithin (m : Machine) (p : Polynomial) (w : Word) : Prop :=
+  ∃ t, t ≤ p.eval w.length ∧ Run m (initial w) t true
+
+/-- The clocked diagonal language for the time bound `p`. -/
+noncomputable def DiagWithin (p : Polynomial) : Language :=
+  diagLang encMachine (fun m w => AcceptsWithin m p w)
+
+theorem acceptsWithin_iff_of_decidesWithin {m : Machine} {p : Polynomial} {L : Language}
+    (h : DecidesWithin m p L) (w : Word) : AcceptsWithin m p w ↔ L w = true := by
+  obtain ⟨t, b, ht, hr, hb⟩ := h w
+  constructor
+  · rintro ⟨t', _, hr'⟩
+    rw [← hb, (run_deterministic hr hr').2]
+  · intro hL
+    exact ⟨t, ht, by rw [hb, hL] at hr; exact hr⟩
+
+/-- **Diagonal half of the deterministic time hierarchy (proved).** No machine
+decides `DiagWithin p` within the time bound `p`. -/
+theorem diagWithin_not_decidedWithin (p : Polynomial) :
+    ¬ ∃ m, DecidesWithin m p (DiagWithin p) := by
+  rintro ⟨m, hm⟩
+  exact diagonal_core encMachine (fun _ _ h => encMachine_injective h)
+    (fun m w => AcceptsWithin m p w) m (acceptsWithin_iff_of_decidesWithin hm)
+
+/-- **Known theorem, not mechanised here** (clocked universal simulation:
+Hartmanis–Stearns, "On the computational complexity of algorithms", Trans. AMS
+117, 1965; Hennie–Stearns, J. ACM 13(4), 1966): for each polynomial `p`, a
+machine can check whether `w` codes a machine `m` and simulate `m` on `w` for
+`p(|w|)` steps in polynomial time, so `DiagWithin p` is in P. -/
+def UniversalSimulation : Prop := ∀ p : Polynomial, InP (DiagWithin p)
+
+/-- **The deterministic time hierarchy for polynomial bounds, in the machine
+model:** no single polynomial bounds the running time of all of P. -/
+def TimeHierarchy : Prop :=
+  ∀ p : Polynomial, ∃ L : Language, InP L ∧ ¬ ∃ m, DecidesWithin m p L
+
+/-- The time hierarchy follows from the proved diagonal half and universal simulation. -/
+theorem timeHierarchy_of_universalSimulation (h : UniversalSimulation) : TimeHierarchy :=
+  fun p => ⟨DiagWithin p, h p, diagWithin_not_decidedWithin p⟩
+
+/-- Consequence: P has no uniform polynomial time bound. -/
+theorem no_uniform_bound_of_timeHierarchy (h : TimeHierarchy) :
+    ¬ ∃ p : Polynomial, ∀ L, InP L → ∃ m, DecidesWithin m p L := by
+  rintro ⟨p, hp⟩
+  obtain ⟨L, hL, hn⟩ := h p
+  exact hn (hp L hL)
+
+/-! ## The diagonal half relative to every oracle -/
+
+def encOInstruction : OInstruction → Word
+  | .base i => false :: encInstruction i
+  | .query yes no => true :: (encNat yes ++ encNat no)
+
+theorem encOInstruction_prefixFree : PrefixFree encOInstruction := by
+  intro a b r s h
+  cases a with
+  | base i =>
+    cases b with
+    | base j =>
+      simp only [encOInstruction, List.cons_append, List.cons.injEq, true_and] at h
+      obtain ⟨h1, h2⟩ := encInstruction_prefixFree _ _ _ _ h
+      exact ⟨by rw [h1], h2⟩
+    | query _ _ => simp [encOInstruction] at h
+  | query y n =>
+    cases b with
+    | base _ => simp [encOInstruction] at h
+    | query y' n' =>
+      simp only [encOInstruction, List.cons_append, List.cons.injEq, true_and,
+        List.append_assoc] at h
+      obtain ⟨h1, h2⟩ := encNat_prefixFree _ _ _ _ h
+      obtain ⟨h3, h4⟩ := encNat_prefixFree _ _ _ _ h2
+      exact ⟨by rw [h1, h3], h4⟩
+
+/-- The code of an oracle machine. -/
+def encOMachine (m : OMachine) : Word := encList (encList encOInstruction) m.program
+
+theorem encOMachine_injective (m m' : OMachine) (h : encOMachine m = encOMachine m') : m = m' := by
+  have := (encList_prefixFree (encList_prefixFree encOInstruction_prefixFree)) m.program
+    m'.program [] [] (by simpa [encOMachine] using h)
+  cases m; cases m'
+  simp only at this
+  rw [this.1]
+
+/-- Clocked acceptance relative to the oracle `A`. -/
+def OAcceptsWithin (A : Oracle) (m : OMachine) (p : Polynomial) (w : Word) : Prop :=
+  ∃ t, t ≤ p.eval w.length ∧ ORun A m (initial w) t true
+
+/-- The clocked diagonal language relative to `A`. -/
+noncomputable def DiagWithinO (A : Oracle) (p : Polynomial) : Language :=
+  diagLang encOMachine (fun m w => OAcceptsWithin A m p w)
+
+/-- **The diagonal half relativizes (proved for every oracle).** No oracle machine
+decides `DiagWithinO A p` with oracle `A` within `p`. -/
+theorem diagWithinO_not_decidedWithin (A : Oracle) (p : Polynomial) :
+    ¬ ∃ m, ODecidesWithin A m p (DiagWithinO A p) := by
+  rintro ⟨m, hm⟩
+  unfold DiagWithinO at hm
+  refine diagonal_core encOMachine encOMachine_injective (fun m w => OAcceptsWithin A m p w) m
+    fun w => ?_
+  obtain ⟨t, b, ht, hr, hb⟩ := hm w
+  constructor
+  · rintro ⟨t', _, hr'⟩
+    rw [← hb, (orun_deterministic hr hr').2]
+  · intro hL
+    exact ⟨t, ht, by rw [hb, hL] at hr; exact hr⟩
+
+/-- The time hierarchy relative to `A`. -/
+def TimeHierarchyO (A : Oracle) : Prop :=
+  ∀ p : Polynomial, ∃ L : Language, InPO A L ∧ ¬ ∃ m, ODecidesWithin A m p L
+
+/-- **Known theorem, not mechanised here** (the universal simulation of
+Hartmanis–Stearns 1965 makes the same queries as the simulated machine; see Baker,
+Gill, Solovay 1975, Section 1): for each oracle `A` and polynomial `p`,
+`DiagWithinO A p` is in `P^A`. -/
+def UniversalSimulationO : Prop := ∀ (A : Oracle) (p : Polynomial), InPO A (DiagWithinO A p)
+
+/-- The time hierarchy holds relative to every oracle: it is a relativizing theorem,
+which is why it cannot settle P vs NP (`bgs_no_uniform_answer`). -/
+theorem timeHierarchyO_of_universalSimulationO (h : UniversalSimulationO) :
+    ∀ A, TimeHierarchyO A :=
+  fun A p => ⟨DiagWithinO A p, h A p, diagWithinO_not_decidedWithin A p⟩
+
+/-! ## Time classes and the nondeterministic time hierarchy
+
+`T : Nat → Nat` is an arbitrary time function; `c` absorbs constant factors. -/
+
+/-- `L ∈ DTIME(T)`: a machine decides `L` within `c·T(|x|) + c` steps. -/
+def InDTIME (T : Nat → Nat) (L : Language) : Prop :=
+  ∃ (m : Machine) (c : Nat), ∀ x, ∃ t b, t ≤ c * T x.length + c ∧ Run m (initial x) t b ∧ b = L x
+
+/-- `L ∈ NTIME(T)`, in the verifier form of `Complexity.ClassNP`: a machine reading
+`pairedInput x cert` halts within `c·T(|x|) + c` steps on every certificate of length
+at most `c·T(|x|) + c`, and `x ∈ L` iff some such certificate is accepted. -/
+def InNTIME (T : Nat → Nat) (L : Language) : Prop :=
+  ∃ (m : Machine) (c : Nat),
+    (∀ x cert, cert.length ≤ c * T x.length + c →
+      ∃ t b, t ≤ c * T x.length + c ∧ Run m (pairedInput x cert) t b) ∧
+    ∀ x, L x = true ↔ ∃ cert t, cert.length ≤ c * T x.length + c ∧
+      t ≤ c * T x.length + c ∧ Run m (pairedInput x cert) t true
+
+/-- A separation of nondeterministic time classes: `NTIME(T₂) ⊄ NTIME(T₁)`. -/
+def NTimeHierarchyGap (T₁ T₂ : Nat → Nat) : Prop := ∃ L, InNTIME T₂ L ∧ ¬ InNTIME T₁ L
+
+/-- **Known theorem, not mechanised here** (nondeterministic time hierarchy: Cook,
+"A hierarchy for nondeterministic time complexity", JCSS 7(4), 1973;
+Seiferas–Fischer–Meyer, J. ACM 25(1), 1978; Žák, TCS 21(3), 1983), in the form
+used by Williams' ACC lower bound: `NTIME(2^n) ⊄ NTIME(2^n / (n+1)^k)` for every
+`k ≥ 3`. The published proofs are for multitape machines; the polynomial gap
+`(n+1)^k` with `k ≥ 3` leaves room for the `O(|M|·T)` overhead of one-tape
+universal simulation in this one-tape verifier model. -/
+def NTimeHierarchy : Prop :=
+  ∀ k : Nat, 3 ≤ k → NTimeHierarchyGap (fun n => 2 ^ n / (n + 1) ^ k) (fun n => 2 ^ n)
+
+open Classical in
+/-- The language accepted by the verifier `x.1` with constant `x.2.coefficient`. -/
+noncomputable def ntimeLanguage (T : Nat → Nat) (x : Machine × Polynomial) : Language :=
+  fun w => decide (∃ cert t, cert.length ≤ x.2.coefficient * T w.length + x.2.coefficient ∧
+    t ≤ x.2.coefficient * T w.length + x.2.coefficient ∧ Run x.1 (pairedInput w cert) t true)
+
+/-- Non-vacuity: every `NTIME(T)` misses some language. -/
+theorem exists_not_inNTIME (T : Nat → Nat) : ∃ L, ¬ InNTIME T L := by
+  classical
+  obtain ⟨L, hL⟩ := exists_language_not_in_family encMachinePoly encMachinePoly_injective
+    (ntimeLanguage T)
+  refine ⟨L, fun ⟨m, c, _, hc⟩ => hL (m, ⟨c, 0⟩) (funext fun w => ?_)⟩
+  simp only [ntimeLanguage]
+  cases hw : L w with
+  | true => exact decide_eq_true ((hc w).mp hw)
+  | false =>
+    exact decide_eq_false fun h => by rw [(hc w).mpr h] at hw; cases hw
+
+/-- Non-vacuity: every `DTIME(T)` misses some language. -/
+theorem exists_not_inDTIME (T : Nat → Nat) : ∃ L, ¬ InDTIME T L := by
+  classical
+  obtain ⟨L, hL⟩ := exists_language_not_in_family encMachinePoly encMachinePoly_injective
+    (fun x w => decide (∃ t, t ≤ x.2.coefficient * T w.length + x.2.coefficient ∧
+      Run x.1 (initial w) t true))
+  refine ⟨L, fun ⟨m, c, hm⟩ => hL (m, ⟨c, 0⟩) (funext fun w => ?_)⟩
+  obtain ⟨t, b, ht, hr, hb⟩ := hm w
+  cases hw : L w with
+  | true => exact decide_eq_true ⟨t, ht, by rw [hb, hw] at hr; exact hr⟩
+  | false =>
+    refine decide_eq_false fun ⟨t', _, hr'⟩ => ?_
+    rw [(run_deterministic hr hr').2, hw] at hb
+    cases hb
 
 end Issue532.Idea16
