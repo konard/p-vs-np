@@ -284,6 +284,7 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md](SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md) - Solution strategies for decidability testing
 - [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md) - Catalog of solution strategies for P ≠ NP
 - [P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md) - Solution strategies for testing independence
+- [PROVING_P_VS_NP_UNDECIDABILITY.md](PROVING_P_VS_NP_UNDECIDABILITY.md) - Research roadmap for investigating independence with explicit proof obligations
 
 ### Formal Verification Documentation
 - [Basic Proofs](proofs/basic/) - Foundational proofs in multiple proof assistants
