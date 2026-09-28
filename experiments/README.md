@@ -22,8 +22,9 @@ This directory contains experimental proof explorations, verification reports, a
 ### Formal Proof Attempts
 
 **Note:** Formal proof attempts have been moved to [proofs/experiments/](../proofs/experiments/) for better organization:
-- [P ≠ NP via Williams' Framework](../proofs/experiments/p_not_equal_np_proof_attempt.md)
-- [WilliamsFramework.lean formalization](../proofs/experiments/WilliamsFramework.lean)
+- [NP ⊈ P via Williams' framework (issue #10)](../proofs/experiments/issue10/README.md), with paired
+  [Lean](../proofs/experiments/issue10/lean/WilliamsFramework.lean) and
+  [Rocq](../proofs/experiments/issue10/rocq/WilliamsFramework.v) files
 
 See [proofs/experiments/README.md](../proofs/experiments/README.md) for details.
 
@@ -87,20 +88,21 @@ This honesty is essential for educational repositories about major open problems
 
 ### For Students
 
-1. **Start with:** [P ≠ NP proof attempt](../proofs/experiments/p_not_equal_np_proof_attempt.md)
-   - Read sections 1-3 for background
-   - Study section 5 for technical details
-   - Review section 6 for barriers
+1. **Start with:** [the issue #10 write-up](../proofs/experiments/issue10/README.md)
+   - How each defect of the first attempt is reproduced
+   - Williams' theorem with its real quantifiers
+   - Why the enumeration and circularity arguments fail
 
-2. **Then examine:** [WilliamsFramework.lean](../proofs/experiments/WilliamsFramework.lean)
-   - See formal structure
-   - Understand conditional results
-   - Learn proof assistant techniques
+2. **Then examine:** the paired
+   [Lean](../proofs/experiments/issue10/lean/WilliamsFramework.lean) and
+   [Rocq](../proofs/experiments/issue10/rocq/WilliamsFramework.v) files
+   - Costs are `Run` steps of the shared `Complexity.Machine`
+   - Known theorems appear as explicit hypotheses
+   - Negative tests reject zero-cost machines and malformed circuits
 
-3. **Reflect on:** Sections 7-9 of proof attempt
-   - What we learned
-   - Why it's valuable despite not succeeding
-   - Future directions
+3. **Reflect on:** the "Next ingredient to discharge" section
+   - What is proved and what is still assumed
+   - Why `FastCircuitSAT` for general circuits is the open part
 
 ### For Researchers
 
@@ -160,8 +162,9 @@ When adding new proof explorations:
 ### Formal Verification
 
 When including code:
-- Use Lean 4 for consistency with repository
-- Clearly mark axioms vs theorems
+- Use the shared `Complexity`, `Machines` and `Circuits` modules in both Lean and Rocq
+- Do not add axioms; state known theorems as explicit hypotheses
+- Tie every cost to `Run` steps of a machine, never to a free field
 - Add comments explaining purpose
 - Include check statements showing what compiles
 - Note what remains to be proven

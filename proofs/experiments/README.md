@@ -70,6 +70,12 @@ These experiments try to determine **which answer is correct**:
 
 **Challenge**: Best known circuit lower bounds are far from what's needed
 
+**Williams' algorithmic method**: [issue10/](issue10/README.md) formalizes the
+route from faster circuit-satisfiability algorithms to `NEXP ⊄ P/poly`. It
+also shows why that conclusion alone does not give `NP ⊈ P`. The paired Lean
+and Rocq files use the shared machine and circuit models and contain no
+axioms.
+
 ### 5. Algebraic Approach (GCT)
 **Goal**: Use Geometric Complexity Theory to separate complexity classes
 
