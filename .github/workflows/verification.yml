@@ -52,7 +52,9 @@ jobs:
       run: python3 -m unittest discover -s experiments/issue584 -p 'test_*.py' -v
 
     - name: Check issue 532 idea dossiers
-      run: python3 -m unittest discover -s experiments/issue532 -p 'test_*.py' -v
+      run: |
+        python3 -m unittest discover -s experiments/issue532 -p 'test_*.py' -v
+        python3 experiments/issue532/check_dossiers.py
 
     - name: Check Kardash 2-SAT counterexamples
       run: python3 -m unittest discover -s experiments/issue587 -p 'test_*.py' -v
@@ -277,6 +279,7 @@ jobs:
           proofs.p_vs_np_decidable.lean.PSubsetNP \
           proofs.p_vs_np_decidable.lean.PvsNPDecidable \
           proofs.p_not_equal_np.lean.PNotEqualNP \
+          proofs.experiments.issue532.lean.Idea01 \
           proofs.experiments.issue609.lean.PEqualsNPAttempt \
           proofs.experiments.issue609.lean.KnownBarriers
         python3 scripts/check_proof_status.py --lean
@@ -299,6 +302,7 @@ jobs:
           rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/SATVerifier.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea01.v
           rocq compile -Q . '' proofs/p_vs_np_decidable/rocq/PSubsetNP.v
           rocq compile -Q . '' proofs/p_vs_np_decidable/rocq/PvsNPDecidable.v
           rocq compile -Q . '' proofs/p_not_equal_np/rocq/PNotEqualNP.v
