@@ -30,6 +30,9 @@ jobs:
     - name: Test proof status checker
       run: python3 -m unittest scripts.test_check_proof_status -v
 
+    - name: Test issue listing script
+      run: python3 -m unittest scripts.test_list_issues -v
+
     - name: Check certified source boundary
       run: python3 scripts/check_proof_status.py
 
