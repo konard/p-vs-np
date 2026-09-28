@@ -48,6 +48,9 @@ jobs:
     - name: Check verification workflow regressions
       run: python3 -m unittest discover -s experiments/issue584 -p 'test_*.py' -v
 
+    - name: Check issue 532 idea dossiers
+      run: python3 -m unittest discover -s experiments/issue532 -p 'test_*.py' -v
+
     - name: Check Kardash 2-SAT counterexamples
       run: python3 -m unittest discover -s experiments/issue587 -p 'test_*.py' -v
 
@@ -160,6 +163,7 @@ jobs:
           lean experiments/issue7_shoenfield_absoluteness.lean
           lean experiments/issue7_undecidability_formalization.lean
           lake env lean experiments/issue572/Independent.lean
+          python3 experiments/issue532_vacuity/check.py
           bash experiments/issue571/check.sh
           if lake_test_output=$(lake test 2>&1); then
             printf '%s\n' "$lake_test_output"
@@ -219,9 +223,19 @@ jobs:
               # Shared semantics must be compiled before its consumers.
               rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
               rocq compile -Q . '' proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v
+              # The issue #532 machine and circuit layers are imported by the idea files.
+              rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
+              rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
+              # Imported by Idea01.v and Idea41.v respectively.
+              rocq compile -Q . '' proofs/experiments/issue532/rocq/SATVerifier.v
+              rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea16.v
               find . -name "*.v" -type f \
                 ! -path './proofs/complexity/rocq/Complexity.v' \
                 ! -path './proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v' \
+                ! -path './proofs/experiments/issue532/rocq/Machines.v' \
+                ! -path './proofs/experiments/issue532/rocq/Circuits.v' \
+                ! -path './proofs/experiments/issue532/rocq/SATVerifier.v' \
+                ! -path './proofs/experiments/issue532/rocq/Idea16.v' \
                 ! -path './experiments/issue572/Independent.v' \
                 ! -path './experiments/issue574/PolynomialRegression.v' | while read -r file; do
                 echo "Checking: $file"
