@@ -13,7 +13,19 @@
     {"source": "proofs/experiments/issue609/lean/KnownBarriers.lean", "theorem": "Issue609.KnownBarriers.equality_refutes_uniform", "allowed_axioms": []},
     {"source": "proofs/experiments/issue609/lean/KnownBarriers.lean", "theorem": "Issue609.KnownBarriers.constant_true_not_uniform", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue609/lean/KnownBarriers.lean", "theorem": "Issue609.KnownBarriers.constant_true_not_uniform_separation", "allowed_axioms": ["propext"]},
-    {"source": "proofs/experiments/issue609/lean/KnownBarriers.lean", "theorem": "Issue609.KnownBarriers.false_technique_counterexample", "allowed_axioms": ["propext"]}
+    {"source": "proofs/experiments/issue609/lean/KnownBarriers.lean", "theorem": "Issue609.KnownBarriers.false_technique_counterexample", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.npNotSubsetP_iff_pNotEqualsNP", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.npNotSubsetP_iff_classes_differ", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.legacy_zero_cost_is_fast", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.legacy_bound_misses_budget", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.no_one_step_circuitSAT", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.malformed_rejected", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.williams_budget_not_polynomial", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.no_bit_differs_from_all_circuits", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.npNotSubsetP_of_not_npSubsetPPoly", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.nexp_lower_bound_of_pEqualsNP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.npNotSubsetP_of_not_fastCircuitSAT", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/WilliamsFramework.lean", "theorem": "Issue10.WilliamsFramework.satisfying_input_within_certBound", "allowed_axioms": ["propext", "Quot.sound"]}
   ],
   "rocq": [
     {"source": "proofs/complexity/rocq/Complexity.v", "theorem": "Complexity.pSubsetNP", "allowed_axioms": []},
@@ -29,6 +41,18 @@
     {"source": "proofs/experiments/issue609/rocq/KnownBarriers.v", "theorem": "KnownBarriers.equality_refutes_uniform", "allowed_axioms": []},
     {"source": "proofs/experiments/issue609/rocq/KnownBarriers.v", "theorem": "KnownBarriers.constant_true_not_uniform", "allowed_axioms": []},
     {"source": "proofs/experiments/issue609/rocq/KnownBarriers.v", "theorem": "KnownBarriers.constant_true_not_uniform_separation", "allowed_axioms": []},
-    {"source": "proofs/experiments/issue609/rocq/KnownBarriers.v", "theorem": "KnownBarriers.false_technique_counterexample", "allowed_axioms": []}
+    {"source": "proofs/experiments/issue609/rocq/KnownBarriers.v", "theorem": "KnownBarriers.false_technique_counterexample", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.npNotSubsetP_iff_pNotEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.npNotSubsetP_iff_classes_differ", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.legacy_zero_cost_is_fast", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.legacy_bound_misses_budget", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.no_one_step_circuitSAT", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.malformed_rejected", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.williams_budget_not_polynomial", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.no_bit_differs_from_all_circuits", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.npNotSubsetP_of_not_npSubsetPPoly", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.nexp_lower_bound_of_pEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.npNotSubsetP_of_not_fastCircuitSAT", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/WilliamsFramework.v", "theorem": "WilliamsFramework.satisfying_input_within_certBound", "allowed_axioms": []}
   ]
 }

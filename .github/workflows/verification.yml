@@ -235,6 +235,8 @@ jobs:
               # Imported by Idea01.v and Idea41.v respectively.
               rocq compile -Q . '' proofs/experiments/issue532/rocq/SATVerifier.v
               rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea16.v
+              # Imported by proofs/experiments/issue10/rocq/WilliamsFramework.v.
+              rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
               find . -name "*.v" -type f \
                 ! -path './proofs/complexity/rocq/Complexity.v' \
                 ! -path './proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v' \
@@ -242,6 +244,7 @@ jobs:
                 ! -path './proofs/experiments/issue532/rocq/Circuits.v' \
                 ! -path './proofs/experiments/issue532/rocq/SATVerifier.v' \
                 ! -path './proofs/experiments/issue532/rocq/Idea16.v' \
+                ! -path './proofs/experiments/issue532/rocq/Idea41.v' \
                 ! -path './experiments/issue572/Independent.v' \
                 ! -path './experiments/issue574/PolynomialRegression.v' | while read -r file; do
                 echo "Checking: $file"
@@ -278,7 +281,8 @@ jobs:
           proofs.p_vs_np_decidable.lean.PvsNPDecidable \
           proofs.p_not_equal_np.lean.PNotEqualNP \
           proofs.experiments.issue609.lean.PEqualsNPAttempt \
-          proofs.experiments.issue609.lean.KnownBarriers
+          proofs.experiments.issue609.lean.KnownBarriers \
+          proofs.experiments.issue10.lean.WilliamsFramework
         python3 scripts/check_proof_status.py --lean
 
   certified-rocq:
@@ -304,6 +308,10 @@ jobs:
           rocq compile -Q . '' proofs/p_not_equal_np/rocq/PNotEqualNP.v
           rocq compile -Q . '' proofs/experiments/issue609/rocq/PEqualsNPAttempt.v
           rocq compile -Q . '' proofs/experiments/issue609/rocq/KnownBarriers.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea16.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
+          rocq compile -Q . '' proofs/experiments/issue10/rocq/WilliamsFramework.v
           python3 scripts/check_proof_status.py --rocq
     - name: Revert permissions
       if: always()
