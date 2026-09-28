@@ -28,6 +28,15 @@ These experiments try to determine **which answer is correct**:
 
 **Key Insight**: Knowing that a question is decidable doesn't tell us how to decide it! The decidability proof uses classical logic's law of excluded middle, which is non-constructive.
 
+## Williams' algorithmic method
+
+The [corrected experiment](p_not_equal_np_proof_attempt.md) records the
+conditional implication from faster Circuit-SAT to `NEXP ⊄ P/poly`, its
+explicit unproved premises, and the next machine-level obligation. The paired
+[Lean](WilliamsFramework.lean) and [Rocq](WilliamsFramework.v) regression
+files import [Idea 41](issue532/ideas/Idea41.md) instead of defining another
+circuit or runtime model. No P-versus-NP separation is claimed.
+
 ## Proof Strategies Explored
 
 ### 1. Direct Construction Approach
