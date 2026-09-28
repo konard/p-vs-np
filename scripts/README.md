@@ -21,6 +21,36 @@ python3 scripts/check_proof_status.py --rocq
 The workflow runs historical compilation and certified audits as separate
 jobs. Passing historical compilation does not change an attempt's status.
 
+## list_issues.py
+
+`list_issues.py` prints the repository's GitHub issues, excluding pull requests.
+It needs only Python 3 and network access to the GitHub REST API. The issues
+endpoint returns issues and pull requests together, so the script follows every
+`Link: rel="next"` page before it filters out pull requests. By default the
+listing is complete: all open and all closed issues, newest first. `--limit N`
+lists only the N most recently created issues, and the header then says the
+listing is partial.
+
+```bash
+python3 -m unittest scripts.test_list_issues -v
+python3 scripts/list_issues.py
+python3 scripts/list_issues.py --state open
+python3 scripts/list_issues.py --repo OWNER/NAME --limit 50
+```
+
+Unauthenticated requests share GitHub's low per-IP rate limit. When `GH_TOKEN` or
+`GITHUB_TOKEN` is set, it is sent as a bearer token and never printed; for
+example, `GH_TOKEN="$(gh auth token)" python3 scripts/list_issues.py`.
+Pagination links to another host are refused, so the token is only sent to
+`--api-url`.
+
+Exit status 0 means the listing was fetched and validated. Exit status 1 means a
+transport failure, HTTP error (including rate limits), invalid JSON, or a
+response that does not match the expected issue schema; nothing is printed on
+stdout in that case, so an unavailable response is never shown as an empty
+listing. Exit status 2 means invalid arguments. The tests serve canned API
+responses from a local HTTP server and need no network access or credentials.
+
 ## check_attempt_structure.py
 
 `check_attempt_structure.py` verifies that each attempt in `proofs/attempts/`
