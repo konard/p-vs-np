@@ -3,8 +3,9 @@ import proofs.experiments.issue532.lean.Idea41
 /-!
 # Issue 10: the Williams route to `NP ⊈ P`, over the shared model
 
-This replaces `proofs/experiments/WilliamsFramework.lean` from PR #43, which
-did not compile and whose costs were free labels. Every cost below is a number
+PR #43's first `WilliamsFramework.lean` did not compile and its costs were
+free labels. `proofs/experiments/WilliamsFramework.lean` now keeps its path for
+regression checks; this file carries the issue 10 target. Every cost below is a number
 of `Complexity.Run` steps of a finite-table `Complexity.Machine`. Circuits are
 the shared `Issue532.Circuits.Circuit`: a gate list whose length is the size
 and whose semantics is `output`. The algorithm-to-lower-bound direction is
@@ -30,7 +31,7 @@ next ingredient to discharge is `CircuitSATInNP`, the circuit-evaluating
 verifier; `satisfying_input_within_certBound` is its certificate-length half.
 -/
 
-namespace Issue10.WilliamsFramework
+namespace Issue10.NPNotSubsetP
 
 open Complexity Issue532.Machines Issue532.Circuits Issue532.Idea41
 
@@ -290,4 +291,4 @@ theorem satisfying_input_within_certBound (n : Nat) (C : Circuit)
     Nat.one_mul]
   omega
 
-end Issue10.WilliamsFramework
+end Issue10.NPNotSubsetP

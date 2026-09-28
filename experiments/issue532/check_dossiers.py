@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from check_proof_status import strip_comments_and_strings  # noqa: E402
+from check_proof_status import check_sources, source_closure, strip_comments_and_strings  # noqa: E402
 
 BASE = ROOT / "proofs" / "experiments" / "issue532"
 IDEAS = range(1, 42)
@@ -308,8 +308,22 @@ def check_log() -> list[str]:
     ]
 
 
+def check_issue532_sources(root: Path = ROOT, base: Path = BASE) -> list[str]:
+    """Audit every issue #532 proof and its transitive repository imports."""
+    entries = [
+        {"source": str(path.relative_to(root))}
+        for language, suffix in (("lean", ".lean"), ("rocq", ".v"))
+        for path in (base / language).rglob(f"*{suffix}")
+    ]
+    try:
+        return check_sources(root, source_closure(root, entries))
+    except ValueError as error:
+        return [str(error)]
+
+
 def main() -> int:
-    errors = check_log()
+    errors = check_issue532_sources()
+    errors.extend(check_log())
     for number in IDEAS:
         errors.extend(check_idea(number))
     for error in errors:

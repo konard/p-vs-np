@@ -18,8 +18,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = Path(__file__).with_name("proof_status.json")
 FORBIDDEN = {
-    "lean": re.compile(r"\b(?:sorry|admit|axiom|constant|opaque|native_decide)\b"),
-    "rocq": re.compile(r"\b(?:Admitted|admit|Axiom|Parameter|Conjecture)\b"),
+    "lean": re.compile(r"\b(?:sorry|admit|axiom|constant|opaque|native_decide|unsafe|implemented_by)\b"),
+    "rocq": re.compile(r"\b(?:Admitted|admit|Axiom|Parameter|Conjecture|Hypothesis)\b"),
 }
 
 
@@ -86,18 +86,18 @@ def local_imports(root: Path, path: Path) -> set[Path]:
             modules.extend(match.group(1).split())
     else:
         for match in re.finditer(
-            r"\bFrom\s+(proofs(?:\.[\w]+)*)\s+Require\s+(?:Import|Export)\s+([^.]*)\.", source
+            r"\bFrom\s+([A-Za-z_][\w.]*)\s+Require\s+(?:(?:Import|Export)\s+)?([^.]*)\.", source
         ):
             modules.extend(f"{match.group(1)}.{name}" for name in match.group(2).split())
-        for match in re.finditer(r"(?m)^\s*Require\s+(?:Import|Export)\s+(.+?)\.\s*$", source):
-            modules.extend(name for name in match.group(1).split() if name.startswith("proofs."))
+        for match in re.finditer(r"(?m)^\s*Require\s+(?:(?:Import|Export)\s+)?(.+?)\.\s*$", source):
+            modules.extend(match.group(1).split())
     result = set()
     for module in modules:
-        if module.startswith("proofs."):
-            dependency = root / (module.replace(".", "/") + path.suffix)
-            if not dependency.is_file():
-                raise ValueError(f"{path}: missing local import {module}")
+        dependency = root / (module.replace(".", "/") + path.suffix)
+        if dependency.is_file():
             result.add(dependency)
+        elif module.startswith(("proofs.", "experiments.")):
+            raise ValueError(f"{path}: missing local import {module}")
     return result
 
 

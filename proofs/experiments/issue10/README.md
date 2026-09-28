@@ -6,10 +6,10 @@ literally `¬ ∀ L, InNP L → InP L`. Because `P ⊆ NP` is proved
 (`Complexity.pSubsetNP`), it is equivalent to the classes differing
 (`npNotSubsetP_iff_classes_differ`).
 
-This directory replaces the PR #43 files `WilliamsFramework.lean` and
-`p_not_equal_np_proof_attempt.md`. It contains paired Lean and Rocq files with
-the same theorem names. They are built on the shared `Complexity`,
-`Issue532.Machines` and `Issue532.Circuits` modules and on Idea 41
+The paired files [`lean/NPNotSubsetP.lean`](lean/NPNotSubsetP.lean) and
+[`rocq/NPNotSubsetP.v`](rocq/NPNotSubsetP.v) use the same theorem names.
+They are built on the shared `Complexity`, `Issue532.Machines` and
+`Issue532.Circuits` modules and on Idea 41
 (`proofs/experiments/issue532/lean/Idea41.lean`,
 `proofs/experiments/issue532/ideas/Idea41.md`). Idea 41 develops Williams'
 algorithm-to-lower-bound direction.
@@ -21,7 +21,7 @@ are no axioms, `sorry` or `Admitted`.
 
 | Defect in PR #43 | Reproduction or fix |
 | --- | --- |
-| `WilliamsFramework.lean` did not compile: `Set` is undefined without Mathlib, `⟨5, by simp⟩` cannot prove the size bounds, and `P`, `NP`, `NEXP`, `CircuitSAT` and `circular_dependency_barrier` were `sorry` | The file is removed. The replacement builds with the pinned `leanprover/lean4:v4.34.1`. |
+| The first `WilliamsFramework.lean` did not compile: `Set` is undefined without Mathlib, `⟨5, by simp⟩` cannot prove the size bounds, and `P`, `NP`, `NEXP`, `CircuitSAT` and `circular_dependency_barrier` were `sorry` | PR #619 replaced it with regression checks. This directory builds with the pinned `leanprover/lean4:v4.34.1` and `rocq/rocq-prover:9.0`. |
 | `size`, `depth` and `compute` were independent fields, so any function was a "small ACC⁰ circuit" | `legacy_every_function_small`. Shared circuits are gate lists: the size is `C.length` and the semantics is `output x C`. |
 | The running time was a free label, so any solver could claim zero cost | `legacy_zero_cost_is_fast`. Shared costs count `Run` steps of a finite-table machine. `run_pos` proves every run takes at least one step. `no_one_step_circuitSAT` proves that no machine decides circuit satisfiability in one step. |
 | The bound `2^n - n^δ` was meant as `2^(n - n^δ)`, with `δ : Nat` | `legacy_bound_misread` evaluates both. `legacy_exponent_collapses` shows that `2^(n - n^δ) = 1` for every natural `δ ≥ 1`. `legacy_bound_misses_budget` shows that `2^n - n^δ` breaks the Williams budget `t·(n+1) ≤ 2^n` at arbitrarily large `n`. |
@@ -32,31 +32,26 @@ are no axioms, `sorry` or `Admitted`.
 | The enumeration diagonal (see below) | `constant_circuit_agrees` and `no_bit_differs_from_all_circuits`. |
 | The circularity claim (see below) | `williams_budget_not_polynomial`. |
 
-## The Williams route, correctly quantified
+## Relation to the Williams write-up
 
-Williams (STOC 2010; SIAM J. Comput. 42(3), 2013, Theorem 1.1) proves the
-following. Suppose that for every `k`, satisfiability of circuits with `n`
-inputs and `n^k` gates is decidable in `2^n / n^{ω(1)}` time. Then
-`NEXP ⊄ P/poly`. In the shared model this is:
+[`p_not_equal_np_proof_attempt.md`](../p_not_equal_np_proof_attempt.md), as
+corrected in PR #619, explains Williams' theorem with its real quantifiers.
+The theorem is formalized as `FastCircuitSAT` and `williams_method` in Idea 41.
+PR #619 also added the zero-cost and malformed-circuit regressions in
+[`WilliamsFramework.lean`](../WilliamsFramework.lean) and
+[`WilliamsFramework.v`](../WilliamsFramework.v).
 
-* `FastCircuitSAT`: for every `k`, one machine; for every `c`, from some length
-  on, the machine halts within `t` `Run` steps with `t·(n+1)^c ≤ 2^n`, and it
-  decides `CircuitSatisfiable` on every well-formed circuit with at most
-  `(n+1)^k` gates;
-* `williams_method`: `NTimeHierarchy → EasyWitnessLemma → WilliamsSpeedup →
-  FastCircuitSAT → ¬ NEXPSubsetPPoly` (Idea 41, re-exported here as
-  `williams_nexp_lower_bound`).
+This directory adds three things:
 
-The proof does **not** enumerate circuits and differ from each one. It runs
-the nondeterministic time hierarchy against a speedup. If `NEXP ⊆ P/poly`,
-the easy-witness lemma (Impagliazzo–Kabanets–Wigderson 2002) gives succinct
-witnesses. A verifier can then guess a small witness circuit and check a
-Succinct-3SAT instance with the fast algorithm. This puts `NTIME(2^n)` inside
-`NTIME(2^n / n^c)`, which contradicts the hierarchy.
+* the issue #10 target `NP ⊈ P`;
+* formal counterparts of the write-up's informal refutations;
+* stronger negative tests: one-step machines, and circuits without inputs.
 
-### Why the old enumeration argument fails
+## Formal refutations
 
-The old document enumerated "all circuits of size `≤ n^c`" (polynomially
+### The enumeration diagonal
+
+PR #43's original write-up enumerated "all circuits of size `≤ n^c`" (polynomially
 many) and output a bit differing from all of them on the input `x`. Two
 things are wrong:
 
@@ -68,9 +63,9 @@ things are wrong:
    from each circuit on *some* input, which is why the hierarchy theorem is
    used instead.
 
-### Why the old circularity argument fails
+### The circularity claim
 
-The old document claimed that a fast `P/poly`-SAT algorithm would solve an
+PR #43's original write-up claimed that a fast `P/poly`-SAT algorithm would solve an
 NP-complete problem efficiently, so the route is circular. Williams' budget
 is `2^n / n^{ω(1)}`, and `williams_budget_not_polynomial` proves that
 `2^n / (n+1)^c` is not polynomially bounded. A `FastCircuitSAT` machine may
@@ -86,7 +81,7 @@ as the original problem.
 
 ### Circuit classes
 
-The old documents claimed a strict ladder `ACC⁰ ⊊ TC⁰ ⊊ … ⊊ P/poly`.
+PR #43's original files claimed a strict ladder `ACC⁰ ⊊ TC⁰ ⊊ … ⊊ P/poly`.
 The known facts are narrower. `AC⁰ ⊊ ACC⁰`, because parity is outside `AC⁰`
 (Furst–Saxe–Sipser 1984; Ajtai 1983). Also `ACC⁰ ⊆ TC⁰ ⊆ NC¹ ⊆ P/poly`.
 Whether `ACC⁰ ⊊ TC⁰` or `TC⁰ ⊊ NC¹` is open. Williams' method has given
@@ -114,7 +109,7 @@ The Rocq `Legacy.Circuit` stores `compute` on `nat -> bool` instead of
 
 ## Next ingredient to discharge
 
-The premise of the route to `NP ⊈ P` is **`CircuitSATInNP`**, the
+As in the write-up, the premise of the route to `NP ⊈ P` is **`CircuitSATInNP`**, the
 circuit-evaluating verifier. `satisfying_input_within_certBound` proves that
 the certificate fits the linear bound `1·(|w|+1)`. What remains is a paired
 `Complexity.Machine` with the following properties:
@@ -137,13 +132,13 @@ statements. The obstacle is mathematical, not a proof-assistant limitation.
 Run from the repository root:
 
 ```sh
-lake build proofs.experiments.issue10.lean.WilliamsFramework
+lake build proofs.experiments.issue10.lean.NPNotSubsetP
 rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea16.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
-rocq compile -Q . '' proofs/experiments/issue10/rocq/WilliamsFramework.v
+rocq compile -Q . '' proofs/experiments/issue10/rocq/NPNotSubsetP.v
 python3 scripts/check_proof_status.py --lean
 python3 scripts/check_proof_status.py --rocq
 ```

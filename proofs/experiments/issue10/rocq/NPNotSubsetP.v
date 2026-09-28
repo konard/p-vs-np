@@ -1,6 +1,6 @@
 (** * Issue 10: the Williams route to NP not contained in P, over the shared model
 
-    The Rocq twin of [proofs/experiments/issue10/lean/WilliamsFramework.lean],
+    The Rocq twin of [proofs/experiments/issue10/lean/NPNotSubsetP.lean],
     with the same statement names.  Every cost is a number of [Run] steps of a
     finite-table [Machine]; circuits are the shared gate lists, whose length
     is the size and whose semantics is [output].  The algorithm-to-lower-bound

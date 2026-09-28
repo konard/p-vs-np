@@ -28,6 +28,21 @@ These experiments try to determine **which answer is correct**:
 
 **Key Insight**: Knowing that a question is decidable doesn't tell us how to decide it! The decidability proof uses classical logic's law of excluded middle, which is non-constructive.
 
+## Williams' algorithmic method
+
+The [corrected experiment](p_not_equal_np_proof_attempt.md) records the
+conditional implication from faster Circuit-SAT to `NEXP ⊄ P/poly`, its
+explicit unproved premises, and the next machine-level obligation. The paired
+[Lean](WilliamsFramework.lean) and [Rocq](WilliamsFramework.v) regression
+files import [Idea 41](issue532/ideas/Idea41.md) instead of defining another
+circuit or runtime model. No P-versus-NP separation is claimed.
+
+[issue10/](issue10/README.md) states the issue #10 target `NP ⊈ P` and proves,
+in paired Lean and Rocq files without axioms, the facts that the write-up
+states informally. These are: the enumeration and circularity arguments fail,
+the PR #43 cost and bound defects are real, and the certificate-length half of
+`CircuitSATInNP` holds.
+
 ## Proof Strategies Explored
 
 ### 1. Direct Construction Approach
@@ -69,12 +84,6 @@ These experiments try to determine **which answer is correct**:
 - If successful, would prove P ≠ NP (since P ⊆ P/poly)
 
 **Challenge**: Best known circuit lower bounds are far from what's needed
-
-**Williams' algorithmic method**: [issue10/](issue10/README.md) formalizes the
-route from faster circuit-satisfiability algorithms to `NEXP ⊄ P/poly`. It
-also shows why that conclusion alone does not give `NP ⊈ P`. The paired Lean
-and Rocq files use the shared machine and circuit models and contain no
-axioms.
 
 ### 5. Algebraic Approach (GCT)
 **Goal**: Use Geometric Complexity Theory to separate complexity classes
