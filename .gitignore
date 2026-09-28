@@ -142,7 +142,7 @@ vite.config.ts.timestamp-*
 .lake/
 lake-manifest.json
 
-# Coq build artifacts
+# Rocq build artifacts
 *.vo
 *.vok
 *.vos
@@ -151,7 +151,20 @@ lake-manifest.json
 Makefile.coq
 Makefile.coq.conf
 .coqdeps.d
+.lia.cache
+
+# Agda build artifacts
+*.agdai
 
 # Isabelle build artifacts
 .isabelle/
 *.thy~
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Generated reports (can be regenerated with scripts)
+attempts_report.json

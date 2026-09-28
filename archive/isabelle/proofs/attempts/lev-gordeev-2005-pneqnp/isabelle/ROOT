@@ -1,0 +1,3 @@
+session GordeevProof = Main +
+  theories
+    GordeevProof

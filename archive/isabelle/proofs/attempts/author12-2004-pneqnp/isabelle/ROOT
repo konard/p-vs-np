@@ -1,0 +1,4 @@
+session "Anand2004" = HOL +
+  options [timeout = 300, quick_and_dirty]
+  theories
+    Anand2004
