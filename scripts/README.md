@@ -11,6 +11,13 @@ declarations. After the listed modules are compiled, it queries each prover
 with `#print axioms` or `Print Assumptions` and fails if a theorem has any
 assumption outside its manifest allowance.
 
+The issue #532 dossier gate separately scans every Lean and Rocq proof file in
+that experiment and all its local imports. The certified manifest also queries
+the public SAT membership theorem and its machine-model bridges. A premise
+such as `SATHard` is a theorem parameter; it is not added to the allowed
+global axioms. Historical attempt sketches outside these import closures keep
+their admitted status.
+
 ```bash
 python3 -m unittest scripts.test_check_proof_status -v
 python3 scripts/check_proof_status.py

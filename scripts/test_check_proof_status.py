@@ -3,6 +3,7 @@
 import tempfile
 import unittest
 import re
+import json
 from pathlib import Path
 from unittest.mock import patch
 
@@ -16,6 +17,24 @@ from scripts.check_proof_status import (
 
 
 class ProofStatusTests(unittest.TestCase):
+    def test_issue532_public_results_have_assumption_policies(self):
+        manifest = json.loads((Path(__file__).with_name('proof_status.json')).read_text())
+        for language in ('lean', 'rocq'):
+            names = {entry['theorem'].split('.')[-1] for entry in manifest[language]
+                     if '/issue532/' in entry['source']}
+            self.assertTrue({
+                'satInNP', 'cookLevin_iff', 'pEqualsNP_of_inP_sat',
+                'inP_sat_of_pEqualsNP', 'inP_sat_iff', 'inP_sat_on_encodings',
+                "inP_sat_of_pEqualsNP'", 'cookLevin_iff_satHard',
+                'inP_sat_iff_of_hard', 'polySATDecider_iff_of_hard',
+            } <= names)
+            # SATHard and PEqualsNP are explicit theorem premises, not
+            # global axioms that the audit is allowed to overlook.
+            for entry in manifest[language]:
+                if '/issue532/' in entry['source']:
+                    self.assertNotIn('SATHard', entry['allowed_axioms'])
+                    self.assertNotIn('PEqualsNP', entry['allowed_axioms'])
+
     def test_false_historical_premises_are_explicit_parameters(self):
         root = Path(__file__).resolve().parents[1]
         for suffix, language in [('lean', 'lean'), ('v', 'rocq')]:
