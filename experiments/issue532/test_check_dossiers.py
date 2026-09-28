@@ -101,10 +101,74 @@ class CheckerUnitTests(unittest.TestCase):
 
 class RepositoryTests(unittest.TestCase):
     def test_every_idea_passes(self):
-        errors = check_dossiers.check_log()
+        errors = check_dossiers.check_issue532_sources()
+        errors.extend(check_dossiers.check_log())
         for number in check_dossiers.IDEAS:
             errors.extend(check_dossiers.check_idea(number))
         self.assertEqual(errors, [])
+
+
+class ImportClosureTests(unittest.TestCase):
+    def test_shared_and_transitive_mutations_are_rejected_in_both_provers(self):
+        for language, suffix, mutations in (
+            ("lean", ".lean", (
+                ("admission", "theorem hole : True := by sorry\n", "sorry"),
+                ("false axiom", "axiom falseClaim : False\n", "axiom"),
+            )),
+            ("rocq", ".v", (
+                ("admission", "Theorem hole : True. Admitted.\n", "Admitted"),
+                ("false axiom", "Axiom falseClaim : False.\n", "Axiom"),
+            )),
+        ):
+            for location in ("shared", "helper"):
+                for kind, mutation, token in mutations:
+                    with self.subTest(language=language, location=location, kind=kind), tempfile.TemporaryDirectory() as tmp:
+                        root = Path(tmp)
+                        base = root / "proofs/experiments/issue532"
+                        proof_dir = base / language
+                        proof_dir.mkdir(parents=True)
+                        helper = root / "experiments/helpers" / f"Helper{suffix}"
+                        deep = root / "experiments/helpers" / f"Deep{suffix}"
+                        helper.parent.mkdir(parents=True)
+                        deep.write_text(mutation if location == "helper" else "")
+                        if language == "lean":
+                            helper.write_text("import experiments.helpers.Deep\n")
+                            (proof_dir / "Machines.lean").write_text("import experiments.helpers.Helper\n")
+                            (proof_dir / "SATVerifier.lean").write_text(
+                                "import proofs.experiments.issue532.lean.Machines\n"
+                                + (mutation if location == "shared" else "")
+                            )
+                            (proof_dir / "Idea01.lean").write_text(
+                                "import proofs.experiments.issue532.lean.SATVerifier\n"
+                            )
+                        else:
+                            helper.write_text("From experiments.helpers Require Deep.\n")
+                            (proof_dir / "Machines.v").write_text(
+                                "From experiments.helpers Require Helper.\n"
+                            )
+                            (proof_dir / "SATVerifier.v").write_text(
+                                "From proofs.experiments.issue532.rocq Require Import Machines.\n"
+                                + (mutation if location == "shared" else "")
+                            )
+                            (proof_dir / "Idea01.v").write_text(
+                                "From proofs.experiments.issue532.rocq Require SATVerifier.\n"
+                            )
+                        errors = check_dossiers.check_issue532_sources(root, base)
+                        self.assertTrue(any(token in error for error in errors), errors)
+                        expected = "SATVerifier" if location == "shared" else "Deep"
+                        self.assertTrue(any(expected in error for error in errors), errors)
+
+    def test_historical_admissions_outside_issue532_closure_are_allowed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            base = root / "proofs/experiments/issue532"
+            proof_dir = base / "lean"
+            proof_dir.mkdir(parents=True)
+            (proof_dir / "Idea01.lean").write_text("theorem one : 1 = 1 := rfl\n")
+            historical = root / "proofs/attempts/old/Sketch.lean"
+            historical.parent.mkdir(parents=True)
+            historical.write_text("theorem old : True := by sorry\n")
+            self.assertEqual(check_dossiers.check_issue532_sources(root, base), [])
 
 
 if __name__ == "__main__":
