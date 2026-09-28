@@ -1,0 +1,4 @@
+session "CohenAttempt" = "HOL-Analysis" +
+  options [timeout = 1800, quick_and_dirty]
+  theories
+    CohenAttempt

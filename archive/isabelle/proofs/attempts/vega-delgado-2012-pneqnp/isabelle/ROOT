@@ -1,0 +1,4 @@
+session "VegaDelgado2012" = HOL +
+  options [timeout = 300, quick_and_dirty]
+  theories
+    VegaDelgado2012

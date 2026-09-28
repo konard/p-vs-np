@@ -1,0 +1,3 @@
+session Salemi2009 = HOL +
+  theories
+    Salemi3SAT

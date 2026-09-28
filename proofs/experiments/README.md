@@ -1,600 +1,208 @@
-# Experimental Proof Attempts
+# P vs NP Proof Experiments
 
-**Navigation:** [↑ Proofs](../) | [↑ P ≠ NP Proofs](../p_not_equal_np/) | [Back to Repository Root](../../README.md)
+This directory contains **experimental proof attempts** for actually solving the P vs NP problem, not just proving that it's decidable.
 
----
+## ⚠️ Important Disclaimer
 
-## Overview
+**These are PROOF ATTEMPTS, not actual proofs.** They demonstrate:
+- Various strategies that have been tried to solve P vs NP
+- Why these approaches are challenging
+- What would be required for a complete proof
+- Known barriers and limitations
 
-This directory contains rigorous experimental attempts to prove major results in complexity theory, primarily focusing on P vs NP. These are **not claimed proofs**, but rather:
+All proof files compile successfully but contain incomplete proofs (marked with `sorry` in Lean, `Admitted` in Rocq, and `oops` in Isabelle) because **we don't actually have a proof of P = NP or P ≠ NP**.
 
-- Serious explorations using state-of-the-art techniques
-- Educational demonstrations of research methodology
-- Documentation of barriers and why they prevent completion
-- Formal verification of conditional results
-- Templates for future research directions
+## Relationship to Decidability
 
-**Key Principle:** Honesty and rigor. We clearly document what we attempt, what we achieve, what we cannot do, and why.
+### What We Proved in `p_vs_np_decidable/`
+In the main decidability proofs, we showed that:
+- **P vs NP is decidable** in classical logic: `(P = NP) ∨ (P ≠ NP)`
+- The question MUST have an answer (even though we don't know which)
+- There is no "third option" beyond P = NP and P ≠ NP
 
----
+### What These Experiments Attempt
+These experiments try to determine **which answer is correct**:
+- Attempt to prove P = NP by constructing polynomial-time algorithms
+- Attempt to prove P ≠ NP by showing fundamental impossibility
+- Document known proof strategies and their limitations
 
-## Contents
+**Key Insight**: Knowing that a question is decidable doesn't tell us how to decide it! The decidability proof uses classical logic's law of excluded middle, which is non-constructive.
 
-### 1. P ≠ NP via Williams' Framework
+## Proof Strategies Explored
 
-#### [p_not_equal_np_proof_attempt.md](p_not_equal_np_proof_attempt.md)
-**Comprehensive exploration using algorithm-to-lower-bound techniques**
+### 1. Direct Construction Approach
+**Goal**: Construct a polynomial-time algorithm for an NP-complete problem (e.g., SAT)
 
-**What it contains:**
-- Full explanation of Williams' framework (2011 breakthrough)
-- Attempted extension from ACC⁰ to TC⁰ and toward P/poly
-- Detailed analysis of four major barriers encountered
-- Conditional results and insights
-- Roadmap for future research
+**Status**: INCOMPLETE
+- Requires explicit algorithm construction
+- Must prove correctness and polynomial running time
+- If successful, would prove P = NP
 
-**Key findings:**
-- ✓ Williams' framework is mathematically sound and avoids known barriers
-- ✓ Technique successfully proves NEXP ⊄ ACC⁰
-- ✗ Cannot design fast enough SAT algorithms for TC⁰ (need 2^(n-n^δ), have 2^(n-O(log n)))
-- ✗ Gap from TC⁰ to P/poly too large to bridge with current techniques
-- ✗ Fundamental circular dependency for P vs NP (need fast NP algorithms to prove no fast NP algorithms)
+**Challenge**: Finding such an algorithm is the core difficulty of the problem!
 
-**Educational value:** Demonstrates how modern techniques overcome relativization, natural proofs, and algebrization barriers, while clarifying precisely where we get stuck.
+### 2. Diagonalization Approach
+**Goal**: Use time hierarchy theorems to separate P from NP
 
-**Related:** [WilliamsFramework.lean](WilliamsFramework.lean) - Formal verification component
+**Status**: INCOMPLETE
+- Requires proving that some NP language cannot be decided in polynomial time
+- Must show impossibility for ALL polynomial-time algorithms
+- If successful, would prove P ≠ NP
 
----
+**Challenge**: Proving such a strong impossibility result is extremely difficult
 
-#### [WilliamsFramework.lean](WilliamsFramework.lean)
-**Lean 4 formalization of Williams' technique**
+### 3. Oracle Separation (Relativization)
+**Goal**: Use oracle-enhanced Turing machines to separate P from NP
 
-**What it formalizes:**
-```lean
--- Circuit complexity infrastructure
-structure Circuit
-structure CircuitClass
-def ComputedBy (L : Language) (C : CircuitClass) : Prop
+**Status**: KNOWN TO FAIL
+- Baker-Gill-Solovay (1975) proved this approach cannot work
+- There exist oracles A and B where P^A = NP^A but P^B ≠ NP^B
+- This means any proof of P vs NP must be "non-relativizing"
 
--- SAT algorithms and speedup
-structure SATAlgorithm (C : CircuitClass)
-def IsFastSATAlgorithm {C : CircuitClass} (alg : SATAlgorithm C) : Prop
+**Barrier**: Relativization barrier
 
--- Main theorem (axiomatized for components we don't have)
-axiom williams_main_theorem (C : CircuitClass) (alg : SATAlgorithm C) :
-  IsFastSATAlgorithm alg → ∃ (L : Language), L ∈ NEXP ∧ ¬(ComputedBy L C)
+### 4. Circuit Complexity Approach
+**Goal**: Prove exponential circuit lower bounds for NP-complete problems
 
--- Our conditional result
-theorem our_conditional_result :
-  (∃ (alg : SATAlgorithm TC0), IsFastSATAlgorithm alg) →
-  ∃ (L : Language), L ∈ NEXP ∧ ¬(ComputedBy L TC0)
+**Status**: INCOMPLETE
+- Requires proving that some NP problem needs exponential-size circuits
+- This is one of the hardest open problems in complexity theory
+- If successful, would prove P ≠ NP (since P ⊆ P/poly)
+
+**Challenge**: Best known circuit lower bounds are far from what's needed
+
+### 5. Algebraic Approach (GCT)
+**Goal**: Use Geometric Complexity Theory to separate complexity classes
+
+**Status**: INCOMPLETE
+- Requires deep algebraic geometry and representation theory
+- Active area of research (Mulmuley, Sohoni, et al.)
+- Extremely technical and not yet formalized
+
+**Challenge**: Even the conjectures in GCT are unproven
+
+### 6. Natural Proofs Barrier
+**Goal**: Use "natural" proof techniques
+
+**Status**: KNOWN TO FAIL (under cryptographic assumptions)
+- Razborov-Rudich (1997) showed that "natural" proof techniques cannot prove P ≠ NP
+- Natural proofs are constructive and work for large classes of functions
+- If one-way functions exist, natural proofs cannot separate P from NP
+
+**Barrier**: Natural proofs barrier
+
+## Known Barriers
+
+Three major barriers to proving P vs NP:
+
+### 1. Relativization (Baker-Gill-Solovay, 1975)
+- Oracle-based proofs don't work
+- Any proof must use non-relativizing techniques
+
+### 2. Natural Proofs (Razborov-Rudich, 1997)
+- "Natural" circuit lower bound techniques are blocked
+- Assumes existence of cryptographically strong one-way functions
+
+### 3. Algebrization (Aaronson-Wigderson, 2008)
+- Extension of relativization to algebraic computation
+- Rules out even more proof techniques
+
+**Implication**: Any successful proof of P vs NP must avoid ALL three barriers!
+
+## File Structure
+
+```
+proofs/experiments/
+├── README.md (this file)
+├── lean/
+│   └── PvsNPProofAttempt.lean
+├── rocq/
+│   └── PvsNPProofAttempt.v
+└── isabelle/
+    └── PvsNPProofAttempt.thy
 ```
 
-**Purpose:**
-- Demonstrates formal structure of Williams' approach
-- Proves conditional results are correct (given assumptions)
-- Provides infrastructure for circuit complexity in Lean
-- Educational template for complexity theory formalization
-
-**Status:** Compiles successfully in Lean 4. Uses axioms for unproven algorithmic components.
-
----
-
-## What Blocks the Proof Attempt
-
-### Primary Blocker: Algorithmic Barrier
-
-**The core problem:** We cannot design fast enough SAT algorithms.
-
-**Specifically for TC⁰ (threshold circuits):**
-- **Need:** Algorithm running in time 2^(n - n^δ) for some δ > 0
-- **Have:** At best 2^(n - O(log n)) for restricted variants
-- **Gap:** Polynomial in the exponent (enormous difference)
-
-**Why this matters:**
-- Williams' diagonalization requires time budget 2^n (for NEXP)
-- Must enumerate ~n^k circuits and test each for satisfiability
-- Need speedup beyond 2^(n-O(log n)) to stay within budget
-- Without fast SAT algorithm, diagonalization fails
-
-**Why it's hard:**
-- TC⁰ circuits are very expressive (compute majority, threshold functions)
-- Less rigid structure than ACC⁰ (where Williams succeeded)
-- Known algorithmic techniques (polynomial method, depth reduction) insufficient
-- May require fundamentally new algorithmic paradigms
-
-### Secondary Blocker: Complexity Gap
-
-**The distance problem:** TC⁰ to P/poly is huge.
-
-**Hierarchy:**
-```
-TC⁰ ⊂ TC ⊂ NC¹ ⊂ L ⊂ NL ⊂ NC ⊂ AC ⊂ P/poly
-```
-
-Each step requires:
-- New SAT algorithm design
-- Different structural properties to exploit
-- Progressively stronger speedup requirements
-
-**Current state:**
-- Williams 2011: NEXP ⊄ ACC⁰ ✓
-- Extending to TC⁰: No fast algorithm yet ✗
-- Path to P/poly: Many more steps needed ✗
-
-### Tertiary Blocker: Circular Dependency
-
-**The fundamental limitation:** For P vs NP specifically, Williams' method hits a wall.
-
-**The circularity:**
-1. To prove P ≠ NP via Williams' method, need to show NP ⊄ P/poly
-2. Showing NP ⊄ P/poly requires fast P/poly-SAT algorithm
-3. But P/poly-SAT is itself NP-complete (or harder)
-4. So we need fast algorithms for NP-complete problems...
-5. ...to prove no fast algorithms for NP-complete problems exist!
-
-**Resolution:**
-- Technique works for NEXP vs circuit classes (NEXP problems likely harder than NP)
-- May not work directly for NP vs P/poly
-- Suggests hybrid approach or different final step needed
-
-### Quaternary Blocker: Time Budget Constraints
-
-**Diagonalization efficiency problem:**
-
-**Time analysis:**
-- NEXP machines: 2^n time budget
-- Circuits to check: ~2^(n^k) possibilities (for size n^k)
-- SAT checks needed: One per circuit
-- Required speedup: Must complete all checks in 2^n time
-
-**Math:**
-```
-Total time = (# circuits) × (time per SAT check)
-           = 2^(n^k) × T_SAT
-
-For this to work:
-  2^(n^k) × T_SAT ≤ 2^n
-  ⟹ T_SAT ≤ 2^(n - n^k)
-  ⟹ Need VERY fast SAT algorithm
-```
-
-**Reality:** Current SAT algorithms nowhere near required speedup for stronger circuit classes.
-
----
-
-## Would Coq Help?
-
-### Short Answer: Not for the algorithmic barrier, yes for verification.
-
-### What Coq Could Help With:
-
-#### 1. **Formal Verification** ✓
-- Port WilliamsFramework.lean to Coq
-- Use richer library ecosystem (Mathcomp, Coq-std++)
-- Leverage existing formalizations of complexity theory
-- More mature proof automation in some areas
-
-**Benefit:** Increased confidence in conditional results, better infrastructure
-
-**Impact on proof:** None (we already know conditional results are correct)
-
-#### 2. **Complete Formalization of Williams 2011** ✓
-- Formalize the full NEXP ⊄ ACC⁰ proof
-- Build comprehensive circuit complexity library
-- Educational value for proof techniques
-
-**Benefit:** Understanding and documentation
-
-**Impact on proof:** Indirect (better understanding may inspire new approaches)
-
-#### 3. **Extracting Algorithms** ✓
-- Use Coq's extraction mechanism to generate verified SAT algorithms
-- Ensure algorithmic correctness
-
-**Benefit:** Correct implementation of any algorithms we design
-
-**Impact on proof:** Helpful but doesn't solve the core problem (we still need to DESIGN fast algorithms)
-
-### What Coq Cannot Help With:
-
-#### 1. **Designing Fast SAT Algorithms** ✗
-- This is a fundamental algorithmic research problem
-- No proof assistant can automatically discover 2^(n-n^δ) SAT algorithms
-- Requires mathematical insights not yet conceived
-- Pure creativity and research, not formalization
-
-#### 2. **Overcoming Fundamental Barriers** ✗
-- Coq can verify proofs, not create new mathematical insights
-- Circular dependency is real, not a formalization issue
-- Complexity gaps exist in reality, not in our model
-
-#### 3. **Replacing Human Ingenuity** ✗
-- Williams' 2011 breakthrough required creative algorithm design
-- Extending to TC⁰ requires similar breakthrough
-- This is open research problem, not formalization challenge
-
-### Recommendation:
-
-**Yes, use Coq (or continue with Lean), but for the right reasons:**
-
-1. **Use it to:** Formalize conditional results, build infrastructure, verify correctness
-2. **Don't expect it to:** Solve the algorithmic barriers, design fast SAT algorithms, bypass fundamental limitations
-
-**Analogy:**
-- Proof assistant is like a rigorous notebook ensuring our math is correct
-- But we still need to come up with the mathematical ideas to write in it
-- Coq can verify Williams' technique works (given assumptions)
-- Coq cannot tell us how to design faster SAT algorithms
-
-**Best practice:**
-- Formalize what we have in Coq for robustness
-- Work on algorithmic research separately
-- Use formalization to clarify exactly what algorithmic properties are needed
-- This precision might indirectly inspire algorithmic approaches
-
----
-
-## Other Approaches to Try
-
-Given the barriers with Williams' framework, what else could we explore?
-
-### 1. **Hybrid Approaches** (High Priority)
-
-#### 1.1 Williams + Geometric Complexity Theory (GCT)
-**Idea:** Combine algorithmic techniques with representation theory
-
-**Approach:**
-- Use Williams' framework for partial results (up to TC⁰ or TC)
-- Apply GCT for final steps toward P/poly
-- GCT uses different mathematical tools (representation theory, algebraic geometry)
-
-**Potential:**
-- Avoids circular dependency (GCT doesn't require fast SAT algorithms)
-- Two barrier-avoiding techniques together
-- Active research area
-
-**Status:** Highly speculative, no clear path yet
-
-**To explore:**
-1. Study GCT literature (Mulmuley-Sohoni program)
-2. Identify where Williams' results could feed into GCT framework
-3. Formalize connection between circuit lower bounds and orbit closures
-
----
-
-#### 1.2 Williams + Proof Complexity
-**Idea:** Connect SAT algorithms to proof complexity lower bounds
-
-**Approach:**
-- SAT algorithms ↔ Short proofs (duality)
-- Lower bounds on proof length ↔ Algorithm hardness
-- Use proof complexity techniques for circuit classes
-
-**Potential:**
-- Different angle on same problem
-- Rich mathematical structure
-- Connection to automatability
-
-**Status:** Theoretical connections known, practical application unclear
-
-**To explore:**
-1. Study resolution complexity for circuit formulas
-2. Investigate cutting planes proofs for arithmetic circuits
-3. Connect to bounded arithmetic
-
----
-
-### 2. **Alternative Circuit Lower Bound Techniques** (Medium Priority)
-
-#### 2.1 Approximation Method
-**Idea:** Prove lower bounds for approximate computation
-
-**Approach:**
-- Show circuits cannot even approximate NP-hard functions well
-- Easier than exact lower bounds
-- Recent progress (Rossman, Håstad, etc.)
-
-**Potential:**
-- Side-steps some barriers
-- Concrete progress possible
-
-**Status:** Active research area with some successes
-
-**To explore:**
-1. Study approximation lower bounds for specific circuit classes
-2. Connect to hardness of approximation results
-3. Explore average-case complexity
-
----
-
-#### 2.2 Monotone Circuit Lower Bounds
-**Idea:** Prove lower bounds for restricted circuit models
-
-**Approach:**
-- Focus on monotone circuits (no negation gates)
-- Known super-polynomial lower bounds for Clique, Perfect Matching
-- Try to extend techniques
-
-**Potential:**
-- More tractable than general circuits
-- Techniques might generalize
-
-**Status:** Well-studied, some strong results
-
-**To explore:**
-1. Study Razborov's monotone lower bounds
-2. Investigate recent extensions (Gálvez et al.)
-3. Try to lift monotone lower bounds to general circuits
-
----
-
-### 3. **Focus on Intermediate Results** (High Priority, Achievable)
-
-#### 3.1 Improve TC⁰-SAT Algorithms
-**Idea:** Push algorithmic frontier forward incrementally
-
-**Approach:**
-- Target: Any improvement beyond 2^(n - O(log n))
-- Even 2^(n - (log n)^2) would be publishable
-- Build on Williams' ACC⁰-SAT techniques
-
-**Potential:**
-- Concrete achievable goal
-- Publishable even if not reaching 2^(n - n^δ)
-- Incremental progress toward ultimate goal
-
-**Status:** Active research problem, some recent work
-
-**To explore:**
-1. Study depth reduction for threshold circuits
-2. Apply learning algorithms (PAC learning connections)
-3. Random restrictions and simplification
-
-**Concrete next steps:**
-1. Implement Williams' ACC⁰-SAT algorithm
-2. Attempt modifications for TC⁰ circuits
-3. Experiment with depth reduction parameters
-4. Test on concrete examples
-
----
-
-#### 3.2 Extend Williams to TC (Unbounded Depth Threshold Circuits)
-**Idea:** Target intermediate class between TC⁰ and P/poly
-
-**Approach:**
-- TC = Unbounded depth, polynomial size, threshold gates
-- Strictly contains TC⁰
-- May have exploitable structure
-
-**Potential:**
-- Significant result (NEXP ⊄ TC)
-- Closer to P/poly than TC⁰
-- Different algorithmic techniques may apply
-
-**Status:** Open problem, natural next target
-
-**To explore:**
-1. Design SAT algorithms for small-depth TC circuits
-2. Iterate depth reduction
-3. Apply parallel algorithms techniques
-
----
-
-### 4. **Meta-Complexity Approaches** (Medium Priority, Novel)
-
-#### 4.1 Study MCSP (Minimum Circuit Size Problem)
-**Idea:** Understand hardness of finding circuits
-
-**Approach:**
-- MCSP: Given function table, find smallest circuit
-- Related to Williams' technique (SAT ↔ circuit finding)
-- Prove MCSP is hard → Implications for lower bounds
-
-**Potential:**
-- Connects algorithm design to lower bounds
-- Natural worst-case problem
-- Recent interest in complexity community
-
-**Status:** Active research area
-
-**To explore:**
-1. Study MCSP hardness results
-2. Connect to Williams' framework
-3. Investigate average-case variants
-
----
-
-#### 4.2 Natural Proofs Barrier Revisited
-**Idea:** Try to constructively avoid natural proofs
-
-**Approach:**
-- Razborov-Rudich showed broad class of techniques fail
-- But relies on cryptographic assumptions
-- Can we exploit non-generic properties to avoid?
-
-**Potential:**
-- If crypto assumptions false, barrier vanishes
-- Even if true, understanding helps
-
-**Status:** Speculative
-
-**To explore:**
-1. Study natural proofs barrier in detail
-2. Identify techniques that provably avoid it
-3. Connect to Williams' method (already avoids it)
-
----
-
-### 5. **Complete Formalization Projects** (High Priority, Achievable)
-
-#### 5.1 Formalize Williams 2011 Completely
-**Goal:** Full Lean/Coq proof of NEXP ⊄ ACC⁰
-
-**Steps:**
-1. Formalize ACC⁰ circuit model
-2. Implement and verify Williams' ACC⁰-SAT algorithm
-3. Formalize diagonalization argument
-4. Connect all pieces
-
-**Value:**
-- Educational resource
-- Infrastructure for circuit complexity
-- Template for extensions
-- Confidence in technique
-
-**Feasibility:** Achievable with substantial effort (months of work)
-
----
-
-#### 5.2 Build Circuit Complexity Library
-**Goal:** Reusable Lean/Coq library for circuit lower bounds
-
-**Components:**
-- Circuit models (AC⁰, ACC⁰, TC⁰, NC, AC, P/poly)
-- Standard results (Håstad switching lemma, depth reduction)
-- Complexity classes (P, NP, PSPACE, NEXP)
-- Lower bound techniques
-
-**Value:**
-- Enables future formalization work
-- Educational tool
-- Research infrastructure
-
-**Feasibility:** Achievable, would benefit entire community
-
----
-
-### 6. **Experimental/Computational Approaches** (Low Priority, Complementary)
-
-#### 6.1 SAT Algorithm Experimentation
-**Idea:** Implement and test SAT algorithms for circuit classes
-
-**Approach:**
-1. Implement Williams' ACC⁰-SAT algorithm
-2. Test on benchmarks
-3. Try modifications for TC⁰
-4. Measure actual speedup
-
-**Value:**
-- Concrete data on algorithm performance
-- May inspire theoretical improvements
-- Educational value
-
-**Feasibility:** Achievable with programming effort
-
----
-
-#### 6.2 Circuit Lower Bound Databases
-**Idea:** Catalog known lower bounds systematically
-
-**Approach:**
-- Database of circuit classes
-- Known lower bounds for each
-- Techniques used
-- Barriers encountered
-
-**Value:**
-- Research resource
-- Identifies gaps
-- Educational tool
-
-**Feasibility:** Achievable, would benefit community
-
----
-
-## Recommended Priority Order
-
-### Immediate (Next 1-2 Months):
-1. **Improve TC⁰-SAT algorithms** - Concrete algorithmic work
-2. **Complete formalization infrastructure** - Build Lean/Coq libraries
-3. **Study hybrid approaches** - Literature review and exploration
-
-### Near-Term (3-6 Months):
-4. **Target intermediate results** - NEXP vs TC, improved algorithms
-5. **Formalize Williams 2011 completely** - Full verification
-6. **Explore proof complexity connections** - Alternative angle
-
-### Medium-Term (6-12 Months):
-7. **GCT integration attempts** - Long-term research direction
-8. **MCSP and meta-complexity** - Novel approaches
-9. **Approximation lower bounds** - Alternative targets
-
----
-
-## Relationship to Repository Framework
-
-These experiments connect to:
-
-### Formal Verification Framework
-- [proofs/p_not_equal_np/](../p_not_equal_np/) - Test Method 4 (Super-Polynomial Lower Bounds)
-- [proofs/p_not_equal_np/lean/](../p_not_equal_np/lean/) - Lean infrastructure
-
-### Strategy Documentation
-- [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](../../P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md) - Strategy 3.1 (Algorithm-to-Lower-Bound)
-
-### Core Documentation
-- [P_VS_NP_TASK_DESCRIPTION.md](../../P_VS_NP_TASK_DESCRIPTION.md) - Problem background
-- [TOOLS_AND_METHODOLOGIES.md](../../TOOLS_AND_METHODOLOGIES.md) - Available techniques
-
----
-
-## How to Use This Directory
-
-### For Students:
-1. Read [p_not_equal_np_proof_attempt.md](p_not_equal_np_proof_attempt.md) to understand modern approaches
-2. Study [WilliamsFramework.lean](WilliamsFramework.lean) for formal structure
-3. Review barriers section above to understand current limitations
-
-### For Researchers:
-1. Identify which blocker you want to tackle
-2. Choose approach from "Other Approaches to Try"
-3. Use formalizations as starting point
-4. Contribute back improvements and extensions
-
-### For Contributors:
-1. Follow same structure for new experiments
-2. Be honest about limitations
-3. Connect to existing framework
-4. Update this README with new findings
-
----
-
-## Contributing
-
-To add a new experimental proof attempt:
-
-1. Create markdown document with:
-   - Background and motivation
-   - Technical development
-   - Barriers encountered
-   - Insights gained
-   - Future directions
-
-2. Add formal verification component (Lean/Coq) if applicable
-
-3. Update this README with:
-   - Description of experiment
-   - Status and findings
-   - Connection to other work
-
-4. Submit via pull request
-
----
-
-## License
-
-All content in this directory is provided under The Unlicense (see [../../LICENSE](../../LICENSE)).
-
----
-
-## Acknowledgments
-
-This work builds on:
-- **Ryan Williams** (2011+): Algorithm-to-lower-bound breakthrough
-- **50+ years** of complexity theory research
-- **Razborov, Rudich, Aaronson, Wigderson, et al.**: Barrier results
-- **Lean and Coq communities**: Formal verification infrastructure
-
----
-
-**Navigation:** [↑ Proofs](../) | [Repository Root](../../README.md) | [Solution Strategies](../../P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md)
+Each file contains:
+- Formal definitions of complexity classes (P, NP, NP-complete)
+- Formalization of different proof strategies
+- Documentation of why each strategy is challenging
+- Incomplete proofs (with `sorry`/`Admitted`/`oops`) showing proof obligations
+
+## What Would a Complete Proof Require?
+
+### For P = NP:
+1. An explicit polynomial-time algorithm for an NP-complete problem
+2. Proof of correctness: algorithm solves the problem
+3. Proof of efficiency: algorithm runs in polynomial time
+4. Verification that this implies all NP problems are in P
+
+### For P ≠ NP:
+1. A specific NP-complete problem
+2. Proof that it's truly NP-complete
+3. Proof that NO polynomial-time algorithm exists for it
+4. This requires proving a universal negative statement (very hard!)
+
+## Why This is So Hard
+
+1. **Proving positive results (P = NP)**:
+   - Requires finding a clever algorithm
+   - Possibly discoverable by insight or machine search
+   - But no one has found such an algorithm in 50+ years
+
+2. **Proving negative results (P ≠ NP)**:
+   - Requires proving a universal impossibility
+   - Must rule out ALL possible polynomial-time algorithms
+   - Known barriers eliminate many proof techniques
+   - Considered significantly harder than positive results
+
+3. **Fundamental difficulty**:
+   - The problem asks about the limits of efficient computation
+   - It's asking "are there fundamentally hard problems?"
+   - This is both a mathematical and philosophical question
+
+## Educational Value
+
+These experiments demonstrate:
+
+1. **Difference between decidability and solvability**
+   - We know the question HAS an answer (decidability)
+   - We don't know WHAT the answer is (solvability)
+
+2. **Proof barriers in complexity theory**
+   - Not all proof strategies can work
+   - Understanding barriers guides future research
+
+3. **Formalization challenges**
+   - Even expressing what a proof would require is non-trivial
+   - Formal verification requires making intuitions precise
+
+4. **Limits of current knowledge**
+   - Using `sorry`/`Admitted`/`oops` honestly shows what we don't know
+   - Transparency about incomplete proofs is scientifically valuable
+
+## Verification
+
+All files in this directory are verified by CI to ensure they:
+- ✅ Type-check and compile successfully
+- ✅ Correctly formalize the definitions
+- ✅ Honestly mark incomplete proofs
+- ✅ Don't claim to prove what we don't know
+
+However, they do NOT prove P = NP or P ≠ NP!
+
+## Conclusion
+
+These experiments show that:
+- The P vs NP question is **decidable** (has a definite answer)
+- We can **formalize** what a proof would look like
+- Multiple **barriers** prevent many natural approaches
+- The problem remains **unsolved** despite decades of effort
+
+The gap between decidability and actual decision is the essence of the millennium problem!
+
+## References
+
+- Baker, T., Gill, J., & Solovay, R. (1975). Relativizations of the P =? NP Question.
+- Razborov, A. A., & Rudich, S. (1997). Natural Proofs.
+- Aaronson, S., & Wigderson, A. (2008). Algebrization: A New Barrier in Complexity Theory.
+- Cook, S. (1971). The Complexity of Theorem-Proving Procedures.
+- Mulmuley, K., & Sohoni, M. (2001). Geometric Complexity Theory I.

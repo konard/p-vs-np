@@ -1,0 +1,295 @@
+# Idea 17 — Enumeration accounting: exponential versus polynomial
+
+**Verdict:** Refuted as a route (general theorem)
+
+The accounting of exhaustive search is proved exactly and for every length.
+The enumeration of length-`n` Boolean vectors has exactly `2^n` entries, with
+no duplicates and none missing. Every polynomial `c * (n+1)^k` is eventually
+smaller than `2^n`, with an explicit threshold. So exhaustive enumeration is
+refuted, in general and formally, as a polynomial-time method. The files also
+prove that the idea cannot be run in the other direction. An exponential
+enumeration count is not a lower bound for the problem, because another
+algorithm may avoid enumeration entirely. The real lower-bound statement is the
+schema `AllAlgorithmsSuperpolynomialFor`. Its instance on the shared machine
+model (total deciders `Machine` for a language, worst-case `Run` step count
+at each length) is proved equivalent to `¬ InP L`
+(`allMachinesSuperpolynomial_iff_not_inP`). The open obligation
+`SATMachinesSuperpolynomial` is this instance for `Issue532.Machines.SAT`: it
+is exactly SAT ∉ P, gives P != NP from `SATInNP`
+(`pNotEqualsNP_of_satMachinesSuperpolynomial`; `SATInNP` is proved in
+`SATVerifier`, so `pNotEqualsNP_of_satMachinesSuperpolynomial'` needs no
+premise besides the obligation), and is equivalent to
+P != NP under the named Cook–Levin hypothesis
+(`satMachinesSuperpolynomial_iff_pNotEqualsNP`). It is therefore the
+original problem, not a weaker one.
+
+## 1. The idea at full strength
+
+The idea has two readings, one for each direction of the problem.
+
+* **Toward P = NP.** "Enumerate candidate certificates and check each one; if
+  the enumeration were organised cleverly enough, it would be polynomial."
+  This matches Part I item 7 of issue #532: "Repeated failure patterns can be
+  formalized and eliminated". The hidden-exponential-work pattern is one such
+  failure.
+* **Toward P != NP.** "SAT on `n` variables has `2^n` candidate assignments,
+  and `2^n` beats every polynomial, therefore SAT is not in P." This is the
+  most common argument in the repository's attempt catalogue
+  (COMMON_ERRORS family 1, "Assuming a lower bound instead of proving it").
+
+Phase 4 of the issue plan ("Encode proof templates ... counting arguments ...
+Attempt formal proofs → record exact failure points") asks for exactly this
+pair: prove the counting correctly, then record where the inference to a
+complexity-class statement fails.
+
+## 2. Precise mathematical formulation
+
+* **Candidates.** `allVecs n : List (List Bool)`, defined by
+  `allVecs 0 = [[]]` and
+  `allVecs (n+1) = map (cons false) (allVecs n) ++ map (cons true) (allVecs n)`.
+* **Brute force.** `bruteForce f n = (allVecs n).any f` for any predicate
+  `f : List Bool → Bool`.
+* **Cost model.** `searchCost f l` is the number of candidates examined by a
+  left-to-right scan that stops at the first success. The unit of cost is one
+  predicate evaluation. The cost of evaluating `f` itself is not counted, so
+  every lower bound stated with this cost is also a lower bound for any finer
+  cost model that charges at least one step per evaluation.
+* **Polynomials.** `polyEval c k n = c * (n+1)^k`. This is the
+  repository's `Complexity.Polynomial.eval` in
+  `proofs/complexity/lean/Complexity.lean` (coefficient `c`, degree `k`),
+  copied locally (`polyEval_eq` states the agreement). Every polynomial with
+  non-negative integer coefficients is bounded above by one of this form.
+* **Claims needed by the idea at full strength.**
+  1. (P = NP reading) For some polynomial, the enumeration has at most
+     `polyEval c k n` entries for all `n`. This is refuted.
+  2. (P != NP reading) "Enumeration costs `2^n`" implies "every algorithm
+     costs super-polynomially". This inference is invalid. The correct
+     statement is the schema `AllAlgorithmsSuperpolynomialFor M`, which
+     quantifies over all correct algorithms `A` in a model `M`:
+     `∀ A, correct A → ∀ c k N, ∃ n ≥ N, polyEval c k n < cost A n`.
+* **Machine model.** `TotalDecider m L :≡ ∀ x, ∃ t, Run m (initial x) t (L x)`.
+  `runTime m x` is the (unique, by `run_deterministic`) halting time of `m`
+  on `x`, `worstTime m n` the maximum of `runTime m` over `allVecs n`, and
+  `machineModel L` the model with algorithms `Machine`, correctness
+  `TotalDecider · L` and cost `worstTime`.
+* **Open obligation.**
+  `SATMachinesSuperpolynomial :≡ ∀ m, TotalDecider m SAT → ∀ c k N, ∃ n, N ≤ n ∧ polyEval c k n < worstTime m n`,
+  with `SAT = Issue532.Machines.SAT`.
+
+## 3. What is machine-checked
+
+| Theorem | Informal statement | Lean | Rocq |
+| --- | --- | --- | --- |
+| `allVecs_length` | For all `n`, `allVecs n` has length `2^n`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `mem_allVecs` | For all `n, v`: `v ∈ allVecs n` iff `v.length = n`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `allVecs_nodup` | For all `n`, `allVecs n` has no duplicates. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `bruteForce_correct` | For all `f, n`: `bruteForce f n = true` iff some length-`n` vector satisfies `f`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `searchCost_all_false` | If no element of `l` satisfies `f`, the scan examines `length l` candidates. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `searchCost_no_witness` | If no length-`n` vector satisfies `f`, the scan of `allVecs n` examines exactly `2^n` candidates. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `succ_le_two_pow`, `lt_two_pow_self` | `q+1 ≤ 2^q` and `a < 2^a` for all naturals. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `linear_lt_exp` | For all `a, q` with `q ≥ 2a+1`: `a*(q+1) < 2^q`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `dyadic_bracket` | Every `n ≥ 1` has an `L` with `2^L ≤ n < 2^(L+1)`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `exp_beats_poly` | For all `c, k` and all `n ≥ 2^(2(c+k)+1)`: `c*(n+1)^k < 2^n`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `exists_threshold` | For all `c, k` there is `N` with `c*(n+1)^k < 2^n` for every `n ≥ N`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `enumeration_not_polynomial` | For all `c, k` there is `N` such that for all `n ≥ N`, both the enumeration length and the worst-case scan cost exceed `c*(n+1)^k`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `enumeration_cost_is_not_problem_cost` | For all `n`, the scan cost of the always-false predicate is `2^n`, yet brute force returns the same answer as the constant `false` procedure. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `AllAlgorithmsSuperpolynomialFor` (def) | Schema (renamed from `AllAlgorithmsSuperpolynomial` in both files): every correct algorithm of the model exceeds every polynomial at arbitrarily large lengths. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `superpolynomial_excludes_poly` | If the obligation holds for a model, no correct algorithm of it is polynomially bounded. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `one_slow_algorithm_is_not_a_lower_bound` | In a model with a `2^n` algorithm and a cost-1 algorithm, the first exceeds every polynomial infinitely often, yet the schema fails. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `polyEval_eq` | `polyEval c k n = (Polynomial.mk c k).eval n`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `TotalDecider` (def) | `m` halts on every input with output `L x`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `runTime_eq` | A halting run of length `t` gives `runTime m x = t`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `runTime_le_worstTime`, `worstTime_le` | `worstTime m n` is the maximum of `runTime m` over the words of length `n`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `allMachinesSuperpolynomial_iff_not_inP` | For every `L`: `AllAlgorithmsSuperpolynomialFor (machineModel L) ↔ ¬ InP L`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `SATMachinesSuperpolynomial` (def) | Open obligation: every total machine decider of `SAT` has worst-case step count above every polynomial at arbitrarily large lengths. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `satMachinesSuperpolynomial_iff_for` | The obligation is the schema at `machineModel SAT`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `satMachinesSuperpolynomial_iff_not_inP` | `SATMachinesSuperpolynomial ↔ ¬ InP SAT`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `pNotEqualsNP_of_satMachinesSuperpolynomial` | Conditional: `SATInNP → SATMachinesSuperpolynomial → PNotEqualsNP`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `pNotEqualsNP_of_satMachinesSuperpolynomial'` | `SATMachinesSuperpolynomial → PNotEqualsNP`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`). | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `satMachinesSuperpolynomial_iff_pNotEqualsNP` | With `CookLevin`: `SATMachinesSuperpolynomial ↔ PNotEqualsNP`. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `worstTime_emptyMachine` | The empty machine decides the constant-false language with worst-case cost 1 at every length (machine form of `enumeration_cost_is_not_problem_cost`). | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `const_false_not_superpolynomial` | Non-vacuity (false side): the machine schema fails for the constant-false language. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `diag_superpolynomial` | Non-vacuity (true side): the machine schema holds for `Diag`, which is outside P. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+| `machine_schema_nontrivial` | The machine schema is satisfiable and refutable. | [Idea17.lean](../lean/Idea17.lean) | [Idea17.v](../rocq/Idea17.v) |
+
+The counting theorems use explicit counts; the machine part uses `Run`
+step counts of the shared model (`Issue532.Machines`).
+
+Rocq-specific differences:
+
+- `runTime` is computable in Rocq.
+  - `haltsAt m c t` decides whether `m` halts after exactly `t` steps
+    (`haltsAt_iff`).
+  - `runTime m h x` finds that `t` by the axiom-free linear search
+    `constructive_indefinite_ground_description_nat` of
+    `Stdlib.ConstructiveEpsilon`.
+  - The search needs a proof `h : Halts m` that `m` halts on every input, so
+    `runTime` and `worstTime` take `h` as an extra argument. Lean instead
+    returns 0 on non-halting inputs by classical choice.
+  - `runTime_eq` shows that the value does not depend on `h`.
+- In `machineModel L`, the algorithms are the pairs `{m | TotalDecider m L}`,
+  because the cost needs the halting proof, and `correct := fun _ => True`.
+  `SATMachinesSuperpolynomial` quantifies over `m` and `h : TotalDecider m SAT`
+  as in Lean, with cost `worstTime m (totalDecider_halts m SAT h)`.
+- Three theorems take excluded middle `(forall P : Prop, P \/ ~ P)` as an
+  explicit premise:
+  - `allMachinesSuperpolynomial_iff_not_inP`
+  - `satMachinesSuperpolynomial_iff_not_inP`
+  - `satMachinesSuperpolynomial_iff_pNotEqualsNP`
+
+  Lean uses `Classical.byContradiction` in the same direction. The other
+  direction is proved without the premise (`allMachinesSuperpolynomial_not_inP`,
+  `not_inP_sat_of_satMachinesSuperpolynomial`).
+- `diag_superpolynomial` is proved by a direct pointwise diagonal. For each
+  `m`, `c`, `k`, `N`, the code of the pair `(m, c + N, k)` is an input of
+  length at least `N` on which `m` cannot halt within the polynomial. The proof
+  does not go through the classical equivalence with `¬ InP Diag`.
+- The Rocq file uses no axioms.
+
+## 4. Complete argument
+
+**Enumeration.** Induction on `n`. For `n = 0` the list is `[[]]`: length
+`1 = 2^0`, no duplicates, and the only vector of length 0 is `[]`. For `n+1`,
+the length is `2^n + 2^n = 2^(n+1)`. A vector of length `n+1` has the form
+`b :: w` with `|w| = n`. By induction `w ∈ allVecs n`, so `b :: w` lies in
+the `false` half or the `true` half. There are no duplicates because each
+half is the image of a duplicate-free list under the injective map `cons b`,
+and the two halves differ in their first bit.
+
+**Brute force.** `List.any` is true iff some member satisfies `f`, and
+membership is exactly "has length `n`". If no member satisfies `f`, the scan
+never stops early, so it examines `length l` candidates. With
+`l = allVecs n` that number is `2^n`.
+
+**Growth theorem.** The proof uses integer arithmetic only.
+
+1. `q + 1 ≤ 2^q` by induction, so `a < 2^a`.
+2. *Linear versus exponential.* At `q = 2a+1`,
+   `a(2a+2) = a·2(a+1) ≤ a·2·2^a < 2^a·2·2^a = 2^(2a+1)`.
+   For the step `q → q+1` we have `a ≤ a(q+1) < 2^q`, hence
+   `a(q+2) = a(q+1) + a < 2^q + 2^q = 2^(q+1)`.
+3. *Dyadic bracket.* Every `n ≥ 1` satisfies `2^L ≤ n < 2^(L+1)` for some
+   `L`. This follows by induction on `n`: either `n+1` stays below
+   `2^(L+1)`, or it equals `2^(L+1)` and `L` increases by one.
+4. *Main bound.* Let `n ≥ 2^(2(c+k)+1)` and bracket `n` by `L`. Then
+   `L ≥ 2(c+k)+1`, since otherwise `n < 2^(L+1) ≤ 2^(2(c+k)+1)`. Step 2
+   with `a = c+k` gives `(c+k)(L+1) < 2^L ≤ n`, so `c + k(L+1) < n`. Next,
+   `n+1 ≤ 2^(L+1)`, which gives `(n+1)^k ≤ 2^((L+1)k)`. Finally
+   `c·(n+1)^k ≤ c·2^((L+1)k) < 2^c·2^((L+1)k) = 2^(c+(L+1)k) ≤ 2^n`.
+
+*Worked numbers.* For `c = 1, k = 2` the proved threshold is `2^7 = 128`.
+At `n = 128`: `(129)^2 = 16641` and `2^128 ≈ 3.4·10^38`. The true crossover
+is much earlier: `(n+1)^2 < 2^n` already holds from `n = 6` (`49 < 64`).
+The theorem does not claim its threshold is optimal.
+
+**Why the P != NP reading fails.**
+`enumeration_cost_is_not_problem_cost` gives an explicit example. For the
+always-false predicate, the scan costs `2^n` at every length, yet the
+question "is there a witness?" has the constant answer `false`, which a
+one-step procedure gives. `one_slow_algorithm_is_not_a_lower_bound`
+packages the same point in the abstract model: one super-polynomial algorithm
+coexists with a constant-cost correct algorithm, so the universal statement
+fails. A lower bound needs `∀ algorithms`, not `∃ a slow algorithm`.
+
+**Why the P = NP reading fails.** `enumeration_not_polynomial` shows the
+enumeration outgrows every polynomial `c*(n+1)^k`. Any claimed polynomial
+bound on an algorithm that examines all candidates is therefore false for
+every sufficiently large `n`, not just for one tested `n`. Since every
+integer polynomial is dominated by one of this form, the statement covers all
+polynomials.
+
+## 5. Known results and literature
+
+* J. Hartmanis and R. E. Stearns, "On the computational complexity of
+  algorithms", *Transactions of the AMS* 117 (1965). Time hierarchy
+  theorems. These give genuine lower bounds for *some* problems, but only by
+  diagonalization, not by counting candidates.
+* S. A. Cook, "The complexity of theorem-proving procedures", *STOC* 1971.
+  NP-completeness of SAT. It makes "SAT needs super-polynomial time"
+  equivalent to P != NP.
+* U. Schöning, "A probabilistic algorithm for k-SAT and constraint
+  satisfaction problems", *FOCS* 1999. Solves 3-SAT in about `(4/3)^n`
+  expected time. This shows concretely that `2^n` enumeration is not the
+  cost of 3-SAT.
+* R. Paturi, P. Pudlák, M. Saks, F. Zane, "An improved exponential-time
+  algorithm for k-SAT", *Journal of the ACM* 52(3) (2005). The PPSZ
+  algorithm, again strictly better than `2^n`.
+* R. Impagliazzo and R. Paturi, "On the complexity of k-SAT", *Journal of
+  Computer and System Sciences* 62(2) (2001). The Exponential Time
+  Hypothesis. It is a conjecture, not a theorem. It implies P != NP; the
+  converse implication is not known.
+* T. Baker, J. Gill, R. Solovay, "Relativizations of the P =? NP question",
+  *SIAM Journal on Computing* 4(4) (1975). Oracles relative to which P = NP
+  and P != NP.
+
+None of these results is formalized in the two files. Only the elementary
+counting and growth facts of Section 3 are machine-checked.
+
+## 6. How far the idea can be pushed toward P vs NP
+
+* **Full potential.** The idea yields an exact, formal refutation of every
+  algorithm whose cost is at least the number of candidates it examines,
+  whenever it examines them all. The same growth theorem is proved again in the
+  Idea 20 files to show that polynomially many processors cannot hide `2^n` work.
+* **Remaining obligation.** `SATMachinesSuperpolynomial`: the schema
+  `AllAlgorithmsSuperpolynomialFor` at `machineModel SAT` (all total
+  machine deciders of `Issue532.Machines.SAT`, cost = worst-case `Run`
+  steps). It is proved equivalent to `¬ InP SAT`
+  (`satMachinesSuperpolynomial_iff_not_inP`), implies P != NP with no other premise
+  (`pNotEqualsNP_of_satMachinesSuperpolynomial'`, using the proved
+  `SATVerifier.satInNP`) and is equivalent to
+  P != NP under `CookLevin`. The obligation is therefore equivalent to the
+  original problem, not weaker.
+* **Non-vacuity.** The machine schema fails for the constant-false language
+  and holds for the diagonal language `Diag` (`machine_schema_nontrivial`).
+* **Caveats.** In Lean `runTime` and `worstTime` are noncomputable
+  (classical choice of the halting time). In Rocq they are computed by a
+  linear search, given a halting proof. In both files they are determined by
+  `Run` (`runTime_eq`).
+  Polynomial time here means the worst case over words of each length, which
+  matches `DecidesWithin`/`InP` of the shared model.
+* **Barriers.** A proof that argues "every algorithm must in effect enumerate"
+  must control arbitrary algorithms.
+  * Arguments that only use the input/output behaviour of a subroutine
+    relativize. Baker–Gill–Solovay shows they cannot settle P vs NP.
+  * Counting over candidates is a property of the search space, not of the
+    algorithm. Schöning and PPSZ show that the search space size is not the
+    complexity even for k-SAT.
+  * ETH-style statements (`2^(δn)` for 3-SAT) are conjectures. Assuming
+    them is COMMON_ERRORS family 12 (smuggling the conclusion).
+
+## 7. Failure modes this idea catches
+
+* **Family 1 (assumed lower bound).** Any attempt that derives "not in P"
+  from "the natural search examines `2^n` candidates" is refuted by
+  `enumeration_cost_is_not_problem_cost` and
+  `one_slow_algorithm_is_not_a_lower_bound`. An auditor should ask where the
+  proof quantifies over *all* algorithms.
+* **Family 2 (hidden exponential work).** If a claimed polynomial algorithm
+  materialises all assignments, all subsets, or all paths, then
+  `enumeration_not_polynomial` together with `allVecs_nodup` shows that its
+  running time exceeds every polynomial from an explicit length onwards.
+* **Family 7 (counting mistakes).** `allVecs_length` and `mem_allVecs` give
+  the exact count. Attempts that count "`n^2` cases" for a search over subsets
+  can be checked against it.
+* **Family 20 (one algorithm class).** Failure of enumeration-based methods
+  is a statement about one class of algorithms. `twoAlgModel` is a
+  machine-checked instance of the gap.
+
+See [COMMON_ERRORS.md](../../../attempts/COMMON_ERRORS.md).
+
+## 8. Reproduction
+
+From the repository root:
+
+```sh
+lake env lean proofs/experiments/issue532/lean/Idea17.lean
+rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
+rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea17.v
+rm -f proofs/experiments/issue532/rocq/Idea17.vo proofs/experiments/issue532/rocq/Idea17.vok \
+      proofs/experiments/issue532/rocq/Idea17.vos proofs/experiments/issue532/rocq/Idea17.glob \
+      proofs/experiments/issue532/rocq/.Idea17.aux
+```
+
+All commands print nothing on success.
