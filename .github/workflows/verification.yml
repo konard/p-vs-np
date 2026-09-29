@@ -289,7 +289,8 @@ jobs:
           proofs.experiments.issue609.lean.PEqualsNPAttempt \
           proofs.experiments.issue609.lean.KnownBarriers \
           proofs.experiments.issue10.lean.NPNotSubsetP \
-          proofs.experiments.issue8.lean.NPSubsetP
+          proofs.experiments.issue8.lean.NPSubsetP \
+          proofs.experiments.issue7.lean.ClockedSAT
         python3 scripts/check_proof_status.py --lean
 
   certified-rocq:
@@ -321,6 +322,7 @@ jobs:
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
           rocq compile -Q . '' proofs/experiments/issue10/rocq/NPNotSubsetP.v
           rocq compile -Q . '' proofs/experiments/issue8/rocq/NPSubsetP.v
+          rocq compile -Q . '' proofs/experiments/issue7/rocq/ClockedSAT.v
           python3 scripts/check_proof_status.py --rocq
     - name: Revert permissions
       if: always()
