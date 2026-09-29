@@ -1,0 +1,18 @@
+
+(* Appended to KardashRefutation.v by check.sh. The new theorems must not
+   depend on the file's informal axioms. *)
+Print Assumptions KardashRefutation.unitPropagate_2CNF_empty.
+Print Assumptions KardashRefutation.clausewiseCSP_arcConsistent.
+Print Assumptions KardashRefutation.contradictory_cycle_unsat.
+Print Assumptions KardashRefutation.upCounterexample_unsat.
+Print Assumptions KardashRefutation.upCounterexample_unitPropagate_fixpoint.
+Print Assumptions KardashRefutation.upCounterexample_conflict_after_decision.
+Print Assumptions KardashRefutation.upCounterexample_arcConsistent.
+Print Assumptions KardashRefutation.upCounterexample_implication_refutation.
+Print Assumptions KardashRefutation.triangle_arcConsistent.
+Print Assumptions KardashRefutation.triangle_unsat.
+Print Assumptions KardashRefutation.triangleCNF_encodes.
+Print Assumptions KardashRefutation.triangleCNF_unitPropagate_fixpoint.
+Print Assumptions KardashRefutation.triangleCNF_arcConsistent.
+Print Assumptions KardashRefutation.triangleCNF_implication_refutation.
+Print Assumptions KardashRefutation.local_global_gap.

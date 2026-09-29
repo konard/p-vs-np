@@ -1,5 +1,7 @@
 # Detailed Plan for Approaching the P vs NP Problem
 
+**Language:** [English](DETAILED_SOLUTION_PLAN.md) | [Русский (Russian)](DETAILED_SOLUTION_PLAN.ru.md)
+
 **Navigation:** [↑ Back to Repository Root](README.md) | [Problem Description](P_VS_NP_TASK_DESCRIPTION.md) | [Tools & Methodologies](TOOLS_AND_METHODOLOGIES.md) | [Formal Proofs](README.md#-formal-verification)
 
 ---
