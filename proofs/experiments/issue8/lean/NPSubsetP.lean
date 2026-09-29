@@ -21,8 +21,8 @@ The file proves:
   and splitting, decides the shared `Issue532.Machines.SAT` language on every
   word (`dpllSAT_eq_SAT`). Each branch conditions its own copy of the formula,
   so there is no shared assignment trail to restore;
-* its number of recursive calls, with the short-circuit of `||`, is at most
-  `2^(|w|+1)` (`dpllSAT_calls_le`). That count is not polynomially bounded
+* its number of recursive calls, with the short-circuit of `||`, is less than
+  `2^(|w|+1)` (`dpllSAT_calls_le`). That bound is not polynomial
   (`calls_bound_not_polynomial`). This is an upper bound on one algorithm; it
   is **not** a lower bound for SAT;
 * the bridge: a `Complexity.Machine` that computes `dpllSAT` within a
