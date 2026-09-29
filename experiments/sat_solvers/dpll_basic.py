@@ -2,11 +2,11 @@
 """
 Basic DPLL SAT Solver Implementation
 
-Purpose: Educational implementation to demonstrate why SAT is hard.
+Purpose: Educational implementation of a complete SAT search algorithm.
 This implements the classic DPLL algorithm with unit propagation and
 pure literal elimination.
 
-Expected behavior: Exponential time in worst case (demonstrates the hardness).
+Its behavior on finite examples does not establish a complexity lower bound.
 
 References:
 - Davis, Putnam (1960): "A Computing Procedure for Quantification Theory"
@@ -56,7 +56,7 @@ class DPLLSolver:
     """
     DPLL SAT Solver
 
-    Demonstrates the exponential worst-case behavior that makes SAT hard.
+    Explores SAT instances with unit propagation and pure literal elimination.
     """
 
     def __init__(self):
@@ -84,8 +84,19 @@ class DPLLSolver:
         Recursive DPLL procedure.
 
         Returns True if satisfiable, False otherwise.
-        Modifies assignment in place.
+        On success, assignment holds a satisfying partial model. On failure,
+        assignment is restored to the state it had on entry.
         """
+        entry_assignment = assignment.copy()
+        if self._dpll_search(formula, assignment, depth):
+            return True
+
+        assignment.clear()
+        assignment.update(entry_assignment)
+        return False
+
+    def _dpll_search(self, formula: Formula, assignment: Dict[int, bool], depth: int) -> bool:
+        """Search one subtree; _dpll owns rollback if this subtree fails."""
         # Update statistics
         self.stats.max_depth = max(self.stats.max_depth, depth)
 
@@ -120,7 +131,6 @@ class DPLLSolver:
 
             # Check for conflict
             if any(len(c.literals) == 0 for c in simplified.clauses):
-                del assignment[var]  # Backtrack
                 return False
 
         # Check if solved after unit propagation
@@ -148,13 +158,12 @@ class DPLLSolver:
         if self._dpll(formula, assignment, depth + 1):
             return True
 
-        # Backtrack and try False
+        # The failed recursive call restored all assignments made below it.
         assignment[var] = False
         if self._dpll(formula, assignment, depth + 1):
             return True
 
-        # Both branches failed, backtrack
-        del assignment[var]
+        # Both branches failed; the enclosing _dpll call restores this frame.
         return False
 
     def _simplify(self, formula: Formula, assignment: Dict[int, bool]) -> Formula:
@@ -262,7 +271,7 @@ def create_example_formulas() -> List[Tuple[str, Formula]]:
     ], num_vars=1)))
 
     # Example 3: Pigeonhole principle (n+1 pigeons, n holes)
-    # This is UNSAT and requires exponential time for DPLL
+    # This is UNSAT; the small example does not establish a runtime lower bound.
     # For 3 pigeons, 2 holes:
     # Each pigeon must be in some hole: (p1h1 ∨ p1h2) ∧ (p2h1 ∨ p2h2) ∧ (p3h1 ∨ p3h2)
     # No two pigeons in same hole: (¬p1h1 ∨ ¬p2h1) ∧ (¬p1h1 ∨ ¬p3h1) ∧ (¬p2h1 ∨ ¬p3h1)
@@ -284,7 +293,7 @@ def create_example_formulas() -> List[Tuple[str, Formula]]:
                 var2 = (p2-1)*holes + h
                 clauses.append(Clause({-var1, -var2}))
 
-    examples.append(("Pigeonhole (3,2) [HARD UNSAT]", Formula(
+    examples.append(("Pigeonhole (3,2) [UNSAT]", Formula(
         clauses, num_vars=pigeons*holes
     )))
 
@@ -297,7 +306,7 @@ def main():
     print("DPLL SAT Solver - Educational Demonstration")
     print("=" * 70)
     print()
-    print("Purpose: Show why SAT is hard (exponential worst-case behavior)")
+    print("Purpose: Explore a basic SAT search algorithm")
     print()
 
     examples = create_example_formulas()
@@ -323,13 +332,11 @@ def main():
         print()
 
     print("Key Observations:")
-    print("1. Simple formulas solved quickly")
-    print("2. Pigeonhole principle requires exponential branching")
-    print("3. Number of decisions grows exponentially with problem size")
-    print("4. This demonstrates why SAT is hard!")
+    print("1. The solver searches for a satisfying assignment")
+    print("2. Unit propagation and pure literals can reduce the search")
+    print("3. Decisions and timing describe only these finite examples")
     print()
-    print("For P = NP to be true, we would need a fundamentally different")
-    print("algorithm that avoids this exponential explosion.")
+    print("These examples do not prove a lower bound for SAT algorithms.")
     print("=" * 70)
 
 

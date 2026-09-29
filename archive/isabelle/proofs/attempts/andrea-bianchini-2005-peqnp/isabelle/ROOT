@@ -1,0 +1,4 @@
+session "SubsetSumEncoding" = HOL +
+  options [timeout = 1800, quick_and_dirty]
+  theories
+    SubsetSumEncoding

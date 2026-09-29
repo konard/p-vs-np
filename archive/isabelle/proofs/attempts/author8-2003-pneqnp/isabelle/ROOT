@@ -1,0 +1,4 @@
+session Chen2003Attempt = HOL +
+  options [document = pdf, document_output = "output"]
+  theories
+    Chen2003Attempt

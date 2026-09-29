@@ -6,11 +6,13 @@
 
 ## Executive Summary
 
-This document presents a comprehensive catalog of formal solution strategies for testing the decidability of the "P vs NP" question. The term "decidable" here refers to whether the P vs NP problem has a definite answer in classical logic (i.e., whether "P = NP ∨ P ≠ NP" holds), as opposed to being independent of standard axiom systems like ZFC (Zermelo-Fraenkel set theory with the Axiom of Choice).
+This document presents a catalog of formal approaches to P vs NP. Here the existing "decidability" formalizations prove the classical tautology `P = NP ∨ P ≠ NP`. They do not prove either disjunct, provide an algorithm to choose one, or establish that ZFC settles the question.
 
 **Key Distinction:**
 - **"P vs NP is decidable"** (this document): The question has a definite truth value in classical logic
 - **"P vs NP is undecidable"**: The question might be independent of ZFC, similar to the Continuum Hypothesis
+
+The clocked-SAT formulation puts P = NP in Σ⁰₂ and P ≠ NP in Π⁰₂. Forcing preserves arithmetic truth between a transitive ground model and its set-forcing extensions. Whether either statement is provable in ZFC remains open; forcing invariance does not establish provability. See [Aaronson, *P ?= NP*, section 3.1 and footnote 24](https://www.scottaaronson.com/papers/pnp.pdf).
 
 This document organizes solution strategies into multiple categories, from direct logical approaches to meta-mathematical investigations, providing researchers with a systematic framework for approaching this fundamental meta-theoretical question.
 
@@ -61,7 +63,7 @@ theorem P_vs_NP_decidable : PEqualsNP ∨ ¬PEqualsNP :=
 
 **Proof Assistant Support:**
 - **Lean 4**: `Classical.em`
-- **Coq**: `classic` from `Classical_Prop`
+- **Rocq**: `classic` from `Classical_Prop`
 - **Isabelle/HOL**: Built-in classical logic
 - **Agda**: Requires postulated classical axiom
 
@@ -83,7 +85,7 @@ theorem P_vs_NP_decidable : PEqualsNP ∨ ¬PEqualsNP :=
 5. Therefore: (P = NP) ∨ (P ≠ NP)
 
 **Formalization Steps:**
-```coq
+```rocq
 Theorem decidability_by_contradiction : PEqualsNP \/ PNotEqualsNP.
 Proof.
   destruct (classic PEqualsNP) as [H | H].
@@ -281,8 +283,8 @@ theorem standard_model_decidability:
 **Approach:**
 1. Consider non-standard models of Peano Arithmetic (PA)
 2. Investigate whether "P = NP" can have different truth values in different models
-3. If all models agree, this suggests decidability
-4. If models disagree, this suggests possible independence
+3. If all models of PA agree on one side, first-order completeness yields a PA proof of that side
+4. If PA models disagree, neither side is provable in PA
 
 **Key Questions:**
 - Does "P = NP" hold in all models of PA?
@@ -308,32 +310,29 @@ theorem standard_model_decidability:
 
 ### Strategy 3.3: Forcing and Independence
 
-**Principle:** Use forcing techniques to investigate independence.
+**Principle:** Study the limits of forcing techniques for arithmetic statements.
 
 **Approach:**
-1. Attempt to construct forcing extensions where "P = NP" holds
-2. Attempt to construct forcing extensions where "P ≠ NP" holds
-3. If both are possible, P vs NP may be independent
-4. If forcing cannot change truth value, this supports decidability
+1. Encode P = NP as a clocked-SAT arithmetic sentence
+2. Check that a transitive ground model and its set-forcing extensions have the same arithmetic truth
+3. Conclude that forcing cannot flip P = NP over that ground model
+4. Keep this limit separate from the open question of ZFC provability
 
 **Key Concept:**
 Forcing is a technique used by Cohen to prove independence of the Continuum Hypothesis from ZFC.
 
 **Application:**
-- Can we force "P = NP" to be true or false?
-- What properties would such forcing extensions have?
-- Are complexity classes "forceable"?
+- Which forcing constructions preserve the standard machine encoding?
+- How does this differ from forcing results about CH?
+- What would a genuine independence proof need beyond this method?
 
 **Advantages:**
-- ✅ Direct approach to independence questions
-- ✅ Uses proven techniques from set theory
-- ✅ Could definitively resolve decidability question
+- ✅ Clarifies the reach of a standard set-theoretic technique
+- ✅ Preserves the valid arithmetic invariance result
 
 **Limitations:**
-- ⚠️ Forcing typically applies to set-theoretic statements
-- ⚠️ Complexity classes may not be forceable
-- ⚠️ Extremely technically demanding
-- ⚠️ May be inapplicable to arithmetic statements
+- ⚠️ A set-forcing extension preserves arithmetic statements such as the clocked-SAT formulation of P = NP
+- ⚠️ This cannot determine whether ZFC proves either side
 
 **References:**
 - Cohen, *Set Theory and the Continuum Hypothesis* (1966)
@@ -360,8 +359,8 @@ Forcing is a technique used by Cohen to prove independence of the Continuum Hypo
 - **Type Theory**: Various typed lambda calculi
 
 **Formal Investigation:**
-```coq
-(* In Coq with ZFC axioms *)
+```rocq
+(* In Rocq with ZFC axioms *)
 Require Import Classical_Prop.
 Require Import ClassicalDescription.
 
@@ -393,9 +392,9 @@ Qed.
 **Approach:**
 
 **Using Completeness:**
-- By Gödel's completeness theorem: A statement is provable iff it's true in all models
-- If "P vs NP is decidable" is true in all models, it's provable
-- Analyze whether all models agree
+- For a first-order theory, a sentence is provable from its axioms iff it holds in every model of those axioms
+- The disjunction `P = NP ∨ P ≠ NP` holds in every classical model, while either individual branch may fail in some models
+- Analyze whether all models of a specified theory agree on one branch
 
 **Using Incompleteness:**
 - Gödel's incompleteness shows some statements are undecidable in PA
@@ -405,7 +404,7 @@ Qed.
 **Key Insights:**
 1. Completeness theorem applies to first-order logic
 2. Incompleteness shows limits of formal systems
-3. P vs NP is a Π₂⁰ statement (two quantifier alternations)
+3. P = NP has a Σ⁰₂ clocked-SAT formulation; P ≠ NP has the Π⁰₂ negation
 
 **Decidability Analysis:**
 - Complexity of formula affects provability
@@ -574,14 +573,14 @@ fof(p_eq_np, conjecture, p_equals_np | ~p_equals_np).
 **Principle:** Combine interactive proving with automated tactics.
 
 **Approach:**
-1. Use proof assistants with strong automation (Isabelle, Lean, Coq)
+1. Use proof assistants with strong automation (Isabelle, Lean, Rocq)
 2. Apply automated tactics to decidability goal
 3. Fill gaps interactively where automation fails
 4. Verify entire proof is machine-checked
 
 **Proof Assistant Tactics:**
 - **Lean 4**: `decide`, `omega`, `simp`, `aesop`
-- **Coq**: `auto`, `tauto`, `lia`, `ring`
+- **Rocq**: `auto`, `tauto`, `lia`, `ring`
 - **Isabelle/HOL**: `auto`, `simp`, `blast`, `metis`, `sledgehammer`
 - **Agda**: Agsy proof search
 
@@ -618,15 +617,14 @@ theorem P_vs_NP_decidable : PEqualsNP ∨ ¬PEqualsNP := by
 - **Δ⁰ₙ**: Formulas both Σ⁰ₙ and Π⁰ₙ
 
 **Analysis:**
-"P = NP" can be written as:
-∀L ∈ NP. ∃M ∈ P. ∀x. (x ∈ L ↔ x ∈ L(M))
-
-This is a Π₂⁰ statement (with simplifications).
+By NP-completeness of SAT, "P = NP" can be written as:
+`∃ machine e, polynomial clock k ∀ input x, e halts within the clock and answers SAT correctly on x`.
+For fixed `e`, `k`, and `x`, the matrix is a finite computable check (SAT itself can be decided by exhaustive search). Thus P = NP is Σ⁰₂ and P ≠ NP is Π⁰₂. The displayed classification is an upper bound; quantifying over arbitrary languages without coding them as finite machines does not justify an arithmetical level.
 
 **Decidability Implications:**
 - Π₁⁰ statements are decidable given an oracle for the halting problem
-- Π₂⁰ statements are more complex
-- Some Π₂⁰ statements are independent of PA
+- Σ⁰₂ and Π⁰₂ statements have one unbounded quantifier alternation
+- Arithmetical complexity alone does not settle provability in PA or ZFC
 
 **Strategy:**
 1. Precisely locate "P = NP" in hierarchy
@@ -661,8 +659,8 @@ This is a Π₂⁰ statement (with simplifications).
 **Application:**
 1. Formalize P and NP set-theoretically
 2. Determine if "P = NP" is absolute
-3. If absolute, it has the same truth value in all models
-4. This supports decidability
+3. State which pairs of models the absoluteness theorem actually compares
+4. Keep truth invariance separate from provability or independence in a theory
 
 **Key Questions:**
 - Are complexity classes absolute?
@@ -672,7 +670,7 @@ This is a Π₂⁰ statement (with simplifications).
 **Advantages:**
 - ✅ Addresses model-dependence concerns
 - ✅ Uses set-theoretic techniques
-- ✅ Could provide strong decidability result
+- ✅ Clarifies which model-construction strategies preserve arithmetic truth
 
 **Limitations:**
 - ⚠️ Highly technical
@@ -728,7 +726,7 @@ This is a Π₂⁰ statement (with simplifications).
 
 **Approach:**
 1. Implement in Lean 4 (modern, automation)
-2. Implement in Coq (mature, extensive libraries)
+2. Implement in Rocq (mature, extensive libraries)
 3. Implement in Isabelle/HOL (classical, strong automation)
 4. Implement in Agda (dependently-typed, constructive)
 5. Compare results and identify dependencies
@@ -742,7 +740,7 @@ This is a Π₂⁰ statement (with simplifications).
 **Implementation Status:**
 ```
 ✅ Lean 4:  proofs/p_vs_np_decidable/lean/PvsNPDecidable.lean
-✅ Coq:     proofs/p_vs_np_decidable/coq/PvsNPDecidable.v
+✅ Rocq:     proofs/p_vs_np_decidable/rocq/PvsNPDecidable.v
 ✅ Isabelle: proofs/p_vs_np_decidable/isabelle/PvsNPDecidable.thy
 ✅ Agda:    proofs/p_vs_np_decidable/agda/PvsNPDecidable.agda
 ```
@@ -836,7 +834,7 @@ This proof applies the law of excluded middle...
 - Literate programming tools
 - Markdown + code blocks
 - Proof assistant documentation generators
-- Alectryon (for Coq)
+- Alectryon (for Rocq)
 
 **Advantages:**
 - ✅ Accessible to non-experts
@@ -873,7 +871,7 @@ This proof applies the law of excluded middle...
 Is there a connection between P vs NP and set-theoretic independence?
 
 **Current Understanding:**
-- Most complexity theorists believe P vs NP is decidable
+- Many complexity theorists expect a proof, but independence from ZFC is unresolved
 - No known connection to standard independent statements
 - But possibility remains open
 
@@ -910,7 +908,7 @@ Is there a connection between P vs NP and set-theoretic independence?
 4. Identify common patterns
 
 **Strategy:**
-If all similar complexity class comparisons are decidable, this suggests P vs NP is also decidable.
+Study proofs or independence results for related comparisons, while keeping their logical status separate from P vs NP.
 
 **Advantages:**
 - ✅ Builds up to main question
@@ -964,7 +962,7 @@ If determining class membership is decidable, this might imply P vs NP is decida
 **Principle:** Combine logical analysis with computational verification.
 
 **Approach:**
-1. Use proof assistants for formal logic (Lean, Coq, Isabelle)
+1. Use proof assistants for formal logic (Lean, Rocq, Isabelle)
 2. Use ATP/SMT for automated verification (Z3, E, Vampire)
 3. Use computational tools to verify specific instances
 4. Synthesize results
@@ -984,7 +982,7 @@ If determining class membership is decidable, this might imply P vs NP is decida
 
 **Tools Integration:**
 - Lean ↔ TPTP translation
-- Coq + Hammer (connection to ATPs)
+- Rocq + Hammer (connection to ATPs)
 - Isabelle Sledgehammer (integrated ATP)
 
 **Advantages:**
@@ -1076,7 +1074,7 @@ Use empirical insights to:
 
 **Tasks:**
 - ✅ **Week 1**: Review existing formalizations in `proofs/p_vs_np_decidable/`
-- ✅ **Week 2**: Verify all four proof assistants (Lean, Coq, Isabelle, Agda)
+- ✅ **Week 2**: Verify all four proof assistants (Lean, Rocq, Isabelle, Agda)
 - ✅ **Week 3**: Add documentation and comments
 - ✅ **Week 4**: Write tutorial materials
 
@@ -1200,13 +1198,13 @@ This document presents a comprehensive catalog of solution strategies for formal
 ### Key Findings
 
 **Primary Result:**
-In classical logic, P vs NP is decidable via the law of excluded middle. This is already formalized and verified in four proof assistants (Lean 4, Coq, Isabelle/HOL, Agda).
+Classical logic proves `P = NP ∨ P ≠ NP` by excluded middle. The repository's formalizations of this tautology do not prove which side holds or whether ZFC proves one side.
 
 **Open Questions:**
 1. Is P vs NP decidable *constructively* (without classical axioms)?
 2. Is P vs NP independent of ZFC (like the Continuum Hypothesis)?
-3. What is the minimal axiom system required to prove decidability?
-4. Can we classify P vs NP precisely in the arithmetical hierarchy?
+3. What axioms, if any, prove P = NP or P ≠ NP?
+4. Can we refine the Σ⁰₂/Π⁰₂ upper bounds for these formulations?
 
 **Recommended Approaches:**
 
@@ -1235,7 +1233,7 @@ In classical logic, P vs NP is decidable via the law of excluded middle. This is
 
 ### Final Note
 
-The decidability of P vs NP (in the meta-mathematical sense) is a foundational question that connects logic, computability theory, complexity theory, and the philosophy of mathematics. This document provides a roadmap for systematically investigating this question through formal methods, with the ultimate goal of understanding the logical status of one of mathematics' most important open problems.
+Whether a specified theory proves either side of P vs NP is a foundational question connecting logic and complexity theory. The classical disjunction is immediate; the proof-theoretic status of either side remains open. This document provides a roadmap for investigating that status through formal methods.
 
 ---
 

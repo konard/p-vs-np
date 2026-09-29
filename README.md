@@ -1,10 +1,36 @@
 # P vs NP: Educational Research Repository
 
+**Language:** [English](README.md) | [Русский (Russian)](README.ru.md)
+
+---
+
 **An Educational Resource for Researchers and Students**
 
-*Last Updated: October 2025*
+*Last Updated: September 2026*
 
 This repository contains extensive educational documentation for studying the P versus NP problem, one of the seven Clay Mathematics Institute Millennium Prize Problems.
+
+## 🎯 Current formalization scope
+
+**P ⊆ NP is checked for the repository's [finite-machine model](proofs/complexity/README.md).** Its programs are finite instruction tables, costs count actual transitions, and NP certificates have polynomial length bounds. The proof converts a P machine into a verifier that ignores its certificate. Equivalence of this implementation to every conventional machine model has not been formalized here.
+
+See formal proofs in multiple proof assistants:
+- [Lean 4 proof](proofs/p_vs_np_decidable/lean/PSubsetNP.lean)
+- [Rocq proof](proofs/p_vs_np_decidable/rocq/PSubsetNP.v)
+- [Agda proof](proofs/p_vs_np_decidable/agda/PSubsetNP.agda)
+- [Detailed documentation](proofs/p_vs_np_decidable/README.md)
+
+> **Note:** Isabelle/HOL proofs have been archived to [`./archive/isabelle/`](archive/isabelle/). Lean, Rocq, and the shared-model Agda files are checked in CI.
+
+**❓ THE QUESTION: Is NP ⊆ P true?**
+
+For P = NP to be true, we need **both**:
+1. P ⊆ NP (proved in the stated finite-machine model)
+2. NP ⊆ P (❓ **unknown**)
+
+The remaining question is whether every language in NP also belongs to P. The classical statement `P = NP ∨ P ≠ NP` does not decide which side holds.
+
+**Model warning:** The older P=NP example in [`proofs/p_eq_np/`](proofs/p_eq_np/) and the archived Isabelle files use separate toy encodings. Their checked results must not be read as statements about the finite-machine P and NP definitions above or the Clay problem.
 
 ## Overview
 
@@ -85,13 +111,14 @@ The P versus NP problem asks whether every problem whose solution can be quickly
 
 ### 🔬 Formal Verification
 
-The repository includes formal verification frameworks in multiple proof assistants (Lean 4, Coq, Isabelle/HOL, and Agda) organized into the following categories:
+The repository includes formal verification frameworks in multiple proof assistants (Lean 4, Rocq, and Agda) organized into the following categories:
+
+> **Note:** Isabelle/HOL support has been sunset. Existing Isabelle proofs are archived in [`./archive/isabelle/`](archive/isabelle/) for reference.
 
 #### Tutorial Proofs for Learning Proof Assistants (`proofs/basic/`)
 Bootstrap proof files demonstrating foundational formal verification concepts and serving as templates:
 - **[proofs/basic/lean/Basic.lean](proofs/basic/lean/Basic.lean)** - Lean 4 foundational proofs
-- **[proofs/basic/coq/Basic.v](proofs/basic/coq/Basic.v)** - Coq foundational proofs
-- **[proofs/basic/isabelle/Basic.thy](proofs/basic/isabelle/Basic.thy)** - Isabelle/HOL foundational proofs
+- **[proofs/basic/rocq/Basic.v](proofs/basic/rocq/Basic.v)** - Rocq foundational proofs
 - **[proofs/basic/agda/Basic.agda](proofs/basic/agda/Basic.agda)** - Agda foundational proofs
 
 These files serve as tutorials for researchers learning to use proof assistants and provide CI validation that the formal verification infrastructure is working correctly.
@@ -100,29 +127,52 @@ These files serve as tutorials for researchers learning to use proof assistants 
 The repository contains four distinct proof frameworks exploring different aspects of the P vs NP problem:
 
 1. **[P = NP Formalization](proofs/p_eq_np/)** (`proofs/p_eq_np/`)
-   - Framework for verifying hypothetical proofs that P equals NP
-   - Implements four test methods for validating P = NP claims
-   - Available in Lean, Coq, and Isabelle/HOL
+   - Historical toy-model framework for hypothetical P=NP claims; it does not use the shared machine semantics
+   - Its examples and tests do not establish the Clay P versus NP statement
+   - Available in Lean and Rocq
 
 2. **[P ≠ NP Formalization](proofs/p_not_equal_np/)** (`proofs/p_not_equal_np/`)
-   - Framework for verifying proofs that P does not equal NP
+   - Conditional criteria for proofs that P does not equal NP in the shared machine model
    - See [detailed documentation](proofs/p_not_equal_np/README.md)
-   - Includes four mathematically equivalent test methods
-   - Available in Lean, Coq, Isabelle/HOL, and Agda
+   - SAT membership and NP-completeness are premises, not established results
+   - Available in Lean, Rocq, and Agda
 
-3. **[Classical Tautology: (P = NP) ∨ (P ≠ NP)](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
+3. **[P ⊆ NP Formal Proof & Classical Tautology](proofs/p_vs_np_decidable/)** (`proofs/p_vs_np_decidable/`)
+   - **Contains the P ⊆ NP proof for the finite-machine model** ([detailed documentation](proofs/p_vs_np_decidable/README.md))
    - Formalizes that P vs NP has a definite answer in classical logic via law of excluded middle
    - See [detailed documentation](proofs/p_vs_np_decidable/README.md)
-   - **Note:** This is NOT "decidability" in the algorithmic sense, but the classical tautology that (P=NP) ∨ (P≠NP) holds
-   - Available in Lean, Coq, Isabelle/HOL, and Agda
+   - **Note:** "Decidable" here means the classical tautology that (P=NP) ∨ (P≠NP) holds, NOT algorithmic decidability
+   - **The key question:** Does NP ⊆ P hold?
+   - Available in Lean, Rocq, and Agda
 
 4. **[Possible Independence from ZFC](proofs/p_vs_np_undecidable/)** (`proofs/p_vs_np_undecidable/`)
-   - Framework for reasoning about potential independence from ZFC (meta-mathematical exploration)
+   - Conditional schema for an explicitly supplied proof relation; no ZFC independence result is claimed
    - See [detailed documentation](proofs/p_vs_np_undecidable/README.md)
    - Explores whether P vs NP could be independent of standard axiom systems
-   - Available in Lean, Coq, Isabelle/HOL, and Agda
+   - Available in Lean, Rocq, and Agda
 
-All proof files are automatically verified by GitHub Actions workflows to ensure correctness. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
+#### Historical P vs NP Proof Attempts (`proofs/attempts/`)
+
+The repository includes formal analysis of historical claimed proofs of P vs NP, documenting where each attempt failed:
+
+1. **[Ted Swart (1986/87) - P=NP via Linear Programming](proofs/attempts/ted-swart-1986-87-peqnp/)** (`proofs/attempts/ted-swart-1986-87-peqnp/`)
+   - Entry #1 on [Woeginger's list](https://wscor.win.tue.nl/woeginger/P-versus-NP.htm)
+   - Claimed polynomial-size LP formulations for Hamiltonian cycle
+   - Refuted by Yannakakis (STOC 1988): symmetric LP formulations require exponential size
+   - See [detailed documentation](proofs/attempts/ted-swart-1986-87-peqnp/README.md)
+   - Formalized in Lean and Rocq
+
+Lean and Rocq files and the shared-model Agda files are checked by GitHub Actions. The other Agda files and archived Isabelle files are historical examples outside this CI check. [![Formal Verification Suite](https://github.com/konard/p-vs-np/actions/workflows/verification.yml/badge.svg)](https://github.com/konard/p-vs-np/actions/workflows/verification.yml)
+
+**What the badge means:** On `main`, CI compiles the Lean and Rocq sources and checks only the listed shared-model Agda files. Compilation accepts `sorry`, `Admitted`, and axioms, so it does not certify every theorem in those files. Pull requests run the prover jobs selected by changed files; a skipped job provides no proof check for that PR.
+
+| Status | Scope | Guarantee |
+|---|---|---|
+| Certified result | The specific Lean and Rocq conclusions in [the result manifest](scripts/proof_status.json) | CI scans each source and its local imports for admissions and unproved declarations, then checks `#print axioms` or `Print Assumptions` against the listed allowed logical axioms. The claim still has only the scope of its formal model and explicit theorem premises. |
+| Historical sketch | The [attempt catalog](proofs/attempts/ATTEMPTS.md) and other unlisted formalizations | CI may compile the file, but admissions and assumptions may remain. A `refutation/` path alone does not mean its conclusion is proved. |
+| Outside current check | Other Agda files and archived Isabelle files | The workflow does not check them. |
+
+For the audited conclusions, run `python3 scripts/check_proof_status.py` for the source boundary, then `python3 scripts/check_proof_status.py --lean` or `--rocq` after building the corresponding prover files. The manifest states every approved assumption by name. No certified conclusion establishes P = NP or P ≠ NP.
 
 ## Key Highlights
 
@@ -234,6 +284,7 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md](SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md) - Solution strategies for decidability testing
 - [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md) - Catalog of solution strategies for P ≠ NP
 - [P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md) - Solution strategies for testing independence
+- [PROVING_P_VS_NP_UNDECIDABILITY.md](PROVING_P_VS_NP_UNDECIDABILITY.md) - Research roadmap for investigating independence with explicit proof obligations
 
 ### Formal Verification Documentation
 - [Basic Proofs](proofs/basic/) - Foundational proofs in multiple proof assistants
@@ -241,6 +292,8 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [P ≠ NP Framework](proofs/p_not_equal_np/README.md) - Framework for verifying P ≠ NP proofs
 - [Classical Tautology](proofs/p_vs_np_decidable/README.md) - Formalization that (P=NP) ∨ (P≠NP) holds in classical logic
 - [Possible Independence from ZFC](proofs/p_vs_np_undecidable/README.md) - Framework for meta-mathematical independence reasoning
+- [Historical Proof Attempts](proofs/attempts/) - Formal analysis of failed P vs NP attempts
+  - [Ted Swart (1986/87)](proofs/attempts/ted-swart-1986-87-peqnp/README.md) - P=NP via linear programming (refuted by Yannakakis)
 
 All documents are interlinked - you can navigate between them using hyperlinks within each file.
 
