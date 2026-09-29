@@ -166,6 +166,155 @@ theorem encCircuit_injective {n n' : Nat} {C C' : Circuit}
   obtain ⟨hC, _⟩ := encList_prefixFree encGate_prefixFree _ _ [] [] (by simpa using h)
   exact ⟨hn, hC⟩
 
+/-! ### Executable decoding of the exact circuit encoding -/
+
+/-- Read a unary natural, leaving the unconsumed suffix. -/
+def decNat : Word → Option (Nat × Word)
+  | [] => none
+  | false :: r => some (0, r)
+  | true :: r => do
+      let (n, rest) ← decNat r
+      pure (n + 1, rest)
+
+theorem decNat_encNat (n : Nat) (r : Word) :
+    decNat (encNat n ++ r) = some (n, r) := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [encNat, decNat, ih]
+
+/-- Read the two unary wire indices of one NAND gate. -/
+def decGate (w : Word) : Option ((Nat × Nat) × Word) := do
+  let (i, r) ← decNat w
+  let (j, rest) ← decNat r
+  pure ((i, j), rest)
+
+theorem decGate_encGate (g : Nat × Nat) (r : Word) :
+    decGate (encGate g ++ r) = some (g, r) := by
+  obtain ⟨i, j⟩ := g
+  simp [decGate, encGate, List.append_assoc, decNat_encNat]
+
+/-- The list marker consumes at least one bit per gate, so input length is
+enough recursion fuel even if a gate decoder fails to make progress. -/
+def decListFuel {α : Type} (d : Word → Option (α × Word)) : Nat → Word →
+    Option (List α × Word)
+  | 0, _ => none
+  | _ + 1, [] => none
+  | _ + 1, false :: r => some ([], r)
+  | f + 1, true :: r => do
+      let (a, r₁) ← d r
+      let (l, r₂) ← decListFuel d f r₁
+      pure (a :: l, r₂)
+
+def decList {α : Type} (d : Word → Option (α × Word)) (w : Word) :
+    Option (List α × Word) := decListFuel d w.length w
+
+theorem length_lt_encList {α : Type} (e : α → Word) (l : List α) :
+    l.length < (encList e l).length := by
+  induction l with
+  | nil => simp [encList]
+  | cons a l ih => simp only [encList, List.length_cons, List.length_append]; omega
+
+theorem decListFuel_encList {α : Type} (e : α → Word)
+    (d : Word → Option (α × Word))
+    (hd : ∀ a r, d (e a ++ r) = some (a, r))
+    (l : List α) (r : Word) (fuel : Nat) (hf : l.length < fuel) :
+    decListFuel d fuel (encList e l ++ r) = some (l, r) := by
+  induction l generalizing fuel with
+  | nil =>
+      cases fuel with
+      | zero => omega
+      | succ f => rfl
+  | cons a l ih =>
+      cases fuel with
+      | zero => omega
+      | succ f =>
+          have hf' : l.length < f := by simp at hf; omega
+          simp [decListFuel, encList, List.append_assoc, hd, ih f hf']
+
+theorem decList_encList {α : Type} (e : α → Word)
+    (d : Word → Option (α × Word))
+    (hd : ∀ a r, d (e a ++ r) = some (a, r))
+    (l : List α) (r : Word) :
+    decList d (encList e l ++ r) = some (l, r) := by
+  unfold decList
+  apply decListFuel_encList e d hd
+  have h := length_lt_encList e l
+  simp only [List.length_append]
+  omega
+
+/-- Decode the whole word; the final equality rejects trailing bits as well
+as any noncanonical encoding. -/
+def decCircuit (w : Word) : Option (Nat × Circuit) := do
+  let (n, r) ← decNat w
+  let (C, _) ← decList decGate r
+  if w = encCircuit n C then some (n, C) else none
+
+theorem decCircuit_encCircuit (n : Nat) (C : Circuit) :
+    decCircuit (encCircuit n C) = some (n, C) := by
+  have hlist := decList_encList encGate decGate decGate_encGate C []
+  simp at hlist
+  simp [decCircuit, encCircuit, decNat_encNat, hlist]
+
+theorem decCircuit_sound {w : Word} {n : Nat} {C : Circuit}
+    (h : decCircuit w = some (n, C)) : w = encCircuit n C := by
+  unfold decCircuit at h
+  cases hn : decNat w with
+  | none => simp [hn] at h
+  | some nr =>
+      obtain ⟨n₀, r⟩ := nr
+      simp only [hn] at h
+      cases hc : decList decGate r with
+      | none => simp [hc] at h
+      | some cr =>
+          obtain ⟨C₀, rest⟩ := cr
+          simp [hc] at h
+          obtain ⟨heq, rfl, rfl⟩ := h
+          exact heq
+
+/-- Check that every gate reads only an earlier wire. This also rejects a
+gate on zero inputs before any wire has been produced. -/
+def wfFromb : Nat → Circuit → Bool
+  | _, [] => true
+  | N, (i, j) :: C => decide (i < N) && decide (j < N) && wfFromb (N + 1) C
+
+theorem wfFromb_iff (N : Nat) (C : Circuit) :
+    wfFromb N C = true ↔ WFfrom N C := by
+  induction C generalizing N with
+  | nil => simp [wfFromb, WFfrom]
+  | cons g C ih =>
+      obtain ⟨i, j⟩ := g
+      simp [wfFromb, WFfrom, ih, and_assoc]
+
+/-- Parsing and well-formedness together, with failure on malformed words. -/
+def checkCircuit (w : Word) : Bool :=
+  match decCircuit w with
+  | none => false
+  | some (n, C) => wfFromb n C
+
+theorem checkCircuit_iff (w : Word) :
+    checkCircuit w = true ↔ ∃ n C, w = encCircuit n C ∧ WF n C := by
+  constructor
+  · intro h
+    cases hd : decCircuit w with
+    | none => simp [checkCircuit, hd] at h
+    | some nc =>
+        obtain ⟨n, C⟩ := nc
+        have hw := decCircuit_sound hd
+        have hWF : WF n C := (wfFromb_iff n C).mp (by simpa [checkCircuit, hd] using h)
+        exact ⟨n, C, hw, hWF⟩
+  · rintro ⟨n, C, rfl, hwf⟩
+    simpa [checkCircuit, decCircuit_encCircuit] using (wfFromb_iff n C).mpr hwf
+
+/-- The intermediate wire list has exactly one new bit per gate. -/
+theorem wires_length (x : Word) (C : Circuit) :
+    (wires x C).length = x.length + C.length := by
+  induction C generalizing x with
+  | nil => simp [wires]
+  | cons g C ih =>
+      obtain ⟨i, j⟩ := g
+      simp [wires, ih]
+      omega
+
 /-- Some input of length `n` makes `C` output `true`. -/
 def CircuitSatisfiable (n : Nat) (C : Circuit) : Prop :=
   ∃ x : Word, x.length = n ∧ output x C = true
@@ -187,6 +336,67 @@ theorem circuitSAT_encode (n : Nat) (C : Circuit) :
     exact ⟨hw, hs⟩
   · rintro ⟨hw, hs⟩
     exact ⟨n, C, rfl, hw, hs⟩
+
+/-- Finite certificate check. The word is decoded exactly, malformed and
+forward-wire circuits are rejected, and a certificate must have exactly `n`
+bits. `output` is the same NAND evaluator used by `CircuitSatisfiable`. -/
+def verifyCircuit (w cert : Word) : Bool :=
+  match decCircuit w with
+  | none => false
+  | some (n, C) => wfFromb n C && decide (cert.length = n) && output cert C
+
+theorem verifyCircuit_spec (w cert : Word) :
+    verifyCircuit w cert = true ↔
+      ∃ n C, decCircuit w = some (n, C) ∧ WF n C ∧
+        cert.length = n ∧ output cert C = true := by
+  unfold verifyCircuit
+  cases hd : decCircuit w with
+  | none => simp
+  | some nc =>
+      obtain ⟨n, C⟩ := nc
+      simp only [Bool.and_eq_true, decide_eq_true_iff]
+      constructor
+      · rintro ⟨⟨hwf, hlen⟩, hout⟩
+        exact ⟨n, C, rfl, (wfFromb_iff n C).mp hwf, hlen, hout⟩
+      · rintro ⟨n', C', hdec, hwf, hlen, hout⟩
+        have heq : (n, C) = (n', C') := Option.some.inj hdec
+        cases heq
+        exact ⟨⟨(wfFromb_iff n C).mpr hwf, hlen⟩, hout⟩
+
+theorem circuitSAT_iff_verifyCircuit (w : Word) :
+    CircuitSAT w = true ↔ ∃ cert, verifyCircuit w cert = true := by
+  classical
+  unfold CircuitSAT
+  rw [decide_eq_true_iff]
+  constructor
+  · rintro ⟨n, C, rfl, hwf, cert, hlen, hout⟩
+    exact ⟨cert, (verifyCircuit_spec _ _).mpr
+      ⟨n, C, decCircuit_encCircuit n C, hwf, hlen, hout⟩⟩
+  · rintro ⟨cert, hcert⟩
+    obtain ⟨n, C, hd, hwf, hlen, hout⟩ := (verifyCircuit_spec _ _).mp hcert
+    exact ⟨n, C, decCircuit_sound hd, hwf, cert, hlen, hout⟩
+
+/-- Encoded instance size bounds both the declared number of inputs and the
+number of gates. No machine runtime bound follows from this statement. -/
+theorem decCircuit_data_bounds {w : Word} {n : Nat} {C : Circuit}
+    (h : decCircuit w = some (n, C)) :
+    n + 1 ≤ w.length ∧ C.length + 1 ≤ w.length := by
+  have hw := decCircuit_sound h
+  have hc := length_lt_encList encGate C
+  have hnat : ∀ k, (encNat k).length = k + 1 := by
+    intro k
+    induction k with
+    | zero => rfl
+    | succ k ih => simp [encNat, ih]
+  rw [hw]
+  simp only [encCircuit, List.length_append, hnat n]
+  omega
+
+theorem verifyCircuit_cert_bound {w cert : Word}
+    (h : verifyCircuit w cert = true) : cert.length ≤ w.length := by
+  obtain ⟨n, C, hd, _, hlen, _⟩ := (verifyCircuit_spec w cert).mp h
+  have hb := (decCircuit_data_bounds hd).1
+  omega
 
 /-- **Known theorem, not mechanised here.** Circuit satisfiability is in NP:
 the certificate is a satisfying input and the verifier evaluates the circuit

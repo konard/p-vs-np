@@ -131,13 +131,16 @@ global context" for `williams_method`, `fastCircuitSAT_of_pEqualsNP`,
 `idea16_nTimeHierarchy_of_lazyDiagonal` and `inNEXP_of_inNTIME_two_pow`; the
 last group is audited by `experiments/issue532_idea41/Assumptions.v`). It differs from Lean in these ways:
 
-* **`CircuitSAT` is computable.** Lean decides "the word is `encCircuit n C`
-  for a well-formed satisfiable `C`" with a classical `decide`. Rocq parses
-  the word with a decoder `decCircuit`. The decoder is a left inverse of
-  `encCircuit` and rejects trailing bits. Rocq then checks well-formedness
-  with the Boolean `wfFromb` and runs `bruteCircuitSAT`. `circuitSAT_encode`
-  has the Lean statement. The extra theorem `circuitSAT_iff` shows that the
-  language is exactly the Lean one.
+* **`CircuitSAT` is computable in Rocq.** Lean still defines the language by
+  a classical `decide`, but now has the same exact decoder `decCircuit` and
+  Boolean `wfFromb` check as Rocq. In both provers, `verifyCircuit` checks a
+  bounded-length certificate and evaluates the shared NAND circuit.
+  `circuitSAT_iff_verifyCircuit` proves that this executable check recognizes
+  exactly the language. The decoder is a left inverse of `encCircuit` and
+  rejects trailing bits. Rocq's `CircuitSAT` uses the decoder,
+  well-formedness check, and `bruteCircuitSAT`; `circuitSAT_iff` shows it is
+  exactly the Lean language. The `verifyCircuit` function is not yet a
+  shared-model `Machine` with a proved polynomial `Run` bound.
 * **`acceptedLanguage` is computable.** It enumerates the certificates of
   bounded length and replays each run with the step-bounded interpreter
   `runFor` (`acceptedLanguage_spec`).
@@ -281,7 +284,8 @@ argument: reading the input takes `poly(n)` steps, far below
   and `CircuitSATInNP`. The next slices are:
   1. the universal nondeterministic simulation behind
      `LazyDiagonalSimulation`;
-  2. the circuit-evaluating verifier behind `CircuitSATInNP`.
+  2. the finite-machine implementation and polynomial runtime proof for the
+     now-specified circuit verifier behind `CircuitSATInNP`.
   The easy-witness lemma and the speedup construction are long proofs and
   are not attempted here.
 * **For `P ≠ NP`** the method would need an NP-level version: a lower bound
