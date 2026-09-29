@@ -343,8 +343,6 @@ theorem dpllSAT_eq_SAT (w : Word) : dpllSAT w = SAT w := by
   apply Bool.eq_iff_iff.2
   rw [dpllSAT_iff, sat_iff]
 
-theorem dpllSAT_eq : dpllSAT = SAT := funext dpllSAT_eq_SAT
-
 /-- On encodings the answer is satisfiability of the formula. -/
 theorem dpllSAT_encode (φ : CNF) : dpllSAT (encodeCNF φ) = true ↔ Satisfiable φ := by
   rw [dpllSAT_eq_SAT]
@@ -441,7 +439,10 @@ theorem npSubsetP_of_dpll_machine (hard : SATHard) {m : Machine} {p : Polynomial
 /-- Conversely, `NP ⊆ P` yields such a machine; no `SATHard` is needed here. -/
 theorem dpll_machine_of_npSubsetP (h : NPSubsetP) :
     ∃ (m : Machine) (p : Polynomial), DecidesWithin m p dpllSAT := by
-  rw [dpllSAT_eq]
-  exact (polyDec_iff_inP SAT).2 (inP_sat_of_pEqualsNP Issue532.SATVerifier.satInNP h)
+  obtain ⟨m, p, hm⟩ :=
+    (polyDec_iff_inP SAT).2 (inP_sat_of_pEqualsNP Issue532.SATVerifier.satInNP h)
+  refine ⟨m, p, fun x => ?_⟩
+  obtain ⟨t, b, ht, hr, hb⟩ := hm x
+  exact ⟨t, b, ht, hr, hb.trans (dpllSAT_eq_SAT x).symm⟩
 
 end Issue8.NPSubsetP
