@@ -51,6 +51,11 @@ polynomial `Run` bound for that solver is equivalent to `NP ⊆ P` given
 `SATHard`. The corrected [`NP ⊆ P` write-up](np_subset_p_proof_attempt.md)
 replaces PR #41's documents and lists their corrections.
 
+[issue568/](issue568/README.md) begins the constructive Cook–Levin bridge
+over the shared machine. Its paired Lean and Rocq proofs equate locally
+checked, bounded configuration traces with `Run` and bound their represented
+tape span. The CNF encoding and reduction machine remain open.
+
 [issue7/](issue7/README.md) states the clocked-SAT sentence behind issue #7's
 independence question. Its paired Lean and Rocq files prove a clock lemma and
 that the Σ⁰₂ form `∃ m p, ∀ x, clockCheck m p x = true` is `InP SAT`. Given
