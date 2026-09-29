@@ -46,7 +46,9 @@ jobs:
       run: python3 -m unittest discover -s experiments/issue580 -p 'test_*.py' -v
 
     - name: Check issue 7 independence claims
-      run: python3 experiments/issue579/check_claims.py
+      run: |
+        python3 experiments/issue579/check_claims.py
+        bash experiments/issue7/check_claims_mutations.sh
 
     - name: Check verification workflow regressions
       run: python3 -m unittest discover -s experiments/issue584 -p 'test_*.py' -v
