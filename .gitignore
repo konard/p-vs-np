@@ -150,6 +150,7 @@ lake-manifest.json
 .*.aux
 Makefile.coq
 Makefile.coq.conf
+.Makefile.coq.d
 .coqdeps.d
 .lia.cache
 .nia.cache
