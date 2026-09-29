@@ -8,7 +8,9 @@ record and tools to re-run the checks locally.
 - `verify_audit.sh` runs every regression check for the 18 defects, grouped as
   `python`, `lean`, `rocq`, and `agda`. It runs all groups when called without
   arguments. A requested group fails if its tool is missing. Without a local
-  `agda` binary, the Agda group uses the Docker image pinned by CI.
+  `agda` binary, the Agda group uses the Docker image pinned by CI. The Lean
+  group includes the contributor guide check, which requires `lake`. The Rocq
+  group builds the root `_CoqProject` in dependency order, as CI does.
 - `admission_inventory.py` recomputes the audit's admission counts, excluding
   comments and string literals. `test_admission_inventory.py` tests it.
 

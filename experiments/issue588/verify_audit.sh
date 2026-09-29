@@ -38,14 +38,15 @@ run_python() {
   step python3 experiments/issue579/check_claims.py                           # 579
   step python3 -m unittest discover -s experiments/issue584 -p 'test_*.py' -v # 584
   step python3 -m unittest discover -s experiments/issue587 -p 'test_*.py' -v # 587
-  step python3 experiments/issue585/check_guidance.py                         # 585
   step python3 scripts/check_attempt_structure.py --offline --quiet           # 581 582
   step python3 -m unittest discover -s experiments/issue588 -p 'test_*.py' -v
+  step python3 -m unittest experiments.issue611.test_rocq_project -v          # 611
   step python3 experiments/issue588/admission_inventory.py
 }
 
 run_lean() {
   require lake lean
+  step python3 experiments/issue585/check_guidance.py                         # 585
   step bash experiments/issue575/check.sh                                     # 575
   step lake build
   step bash experiments/issue586/check.sh                                     # 586
@@ -62,18 +63,10 @@ run_lean() {
 
 run_rocq() {
   require rocq rocq
-  # Shared semantics must be compiled before its consumers, as in CI.
-  step rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
-  step rocq compile -Q . '' proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v
-  while IFS= read -r file; do
-    step rocq compile -Q . '' "$file"
-  done < <(find . -name '*.v' -type f \
-    ! -path './proofs/complexity/rocq/Complexity.v' \
-    ! -path './proofs/p_vs_np_undecidable/rocq/PvsNPUndecidable.v' \
-    ! -path './experiments/issue572/Independent.v' \
-    ! -path './experiments/issue574/PolynomialRegression.v' | sort)
-  step rocq compile -Q . '' experiments/issue572/Independent.v                # 572
-  step rocq compile -Q . '' experiments/issue574/PolynomialRegression.v       # 574
+  require make rocq
+  step python3 -m unittest experiments.issue611.test_rocq_project -v
+  step rocq makefile -f _CoqProject -o Makefile.coq
+  step make -f Makefile.coq
   step python3 experiments/issue570/check_contradiction.py --rocq             # 570
   step bash experiments/issue573/check.sh --rocq                              # 573
   step bash experiments/issue587/check.sh --rocq                              # 587

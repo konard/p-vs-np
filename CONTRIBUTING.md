@@ -83,7 +83,7 @@ See the [Lean tactic reference](https://lean-lang.org/doc/reference/latest/Tacti
 
 ### Rocq Guidelines
 
-Add your `.v` file to the appropriate directory. Update the local `_CoqProject` file if one exists.
+Add your `.v` file to the appropriate directory and list it in the root `_CoqProject` file. The Rocq build uses this file to compile imports before their users. Check that the list is complete with `python3 -m unittest experiments.issue611.test_rocq_project`.
 
 ### Code Quality
 
@@ -102,7 +102,7 @@ Add your `.v` file to the appropriate directory. Update the local `_CoqProject` 
 The workflow compiles Lean and Rocq proof files, and checks the listed shared-model Agda files. Compilation permits admissions and axioms. The separate certified-result audit runs `scripts/check_proof_status.py` against the conclusions in `scripts/proof_status.json` and fails on admissions or unapproved assumptions.
 
 - Lean compilation: `lake build`
-- Rocq compilation: `rocq compile`
+- Rocq compilation: `rocq makefile -f _CoqProject -o Makefile.coq && make -f Makefile.coq`
 - Certified source check: `python3 scripts/check_proof_status.py`
 - Certified assumption check after building: `python3 scripts/check_proof_status.py --lean` or `--rocq`
 
