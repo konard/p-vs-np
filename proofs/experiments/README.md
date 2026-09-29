@@ -37,6 +37,12 @@ explicit unproved premises, and the next machine-level obligation. The paired
 files import [Idea 41](issue532/ideas/Idea41.md) instead of defining another
 circuit or runtime model. No P-versus-NP separation is claimed.
 
+[issue10/](issue10/README.md) states the issue #10 target `NP ⊈ P` and proves,
+in paired Lean and Rocq files without axioms, the facts that the write-up
+states informally. These are: the enumeration and circularity arguments fail,
+the PR #43 cost and bound defects are real, and the certificate-length half of
+`CircuitSATInNP` holds.
+
 ## Proof Strategies Explored
 
 ### 1. Direct Construction Approach

@@ -284,7 +284,8 @@ jobs:
           proofs.p_not_equal_np.lean.PNotEqualNP \
           proofs.experiments.issue532.lean.Idea01 \
           proofs.experiments.issue609.lean.PEqualsNPAttempt \
-          proofs.experiments.issue609.lean.KnownBarriers
+          proofs.experiments.issue609.lean.KnownBarriers \
+          proofs.experiments.issue10.lean.NPNotSubsetP
         python3 scripts/check_proof_status.py --lean
 
   certified-rocq:
@@ -311,6 +312,10 @@ jobs:
           rocq compile -Q . '' proofs/p_not_equal_np/rocq/PNotEqualNP.v
           rocq compile -Q . '' proofs/experiments/issue609/rocq/PEqualsNPAttempt.v
           rocq compile -Q . '' proofs/experiments/issue609/rocq/KnownBarriers.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea16.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
+          rocq compile -Q . '' proofs/experiments/issue10/rocq/NPNotSubsetP.v
           python3 scripts/check_proof_status.py --rocq
     - name: Revert permissions
       if: always()

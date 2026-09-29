@@ -23,7 +23,19 @@
     {"source": "proofs/experiments/issue609/lean/KnownBarriers.lean", "theorem": "Issue609.KnownBarriers.equality_refutes_uniform", "allowed_axioms": []},
     {"source": "proofs/experiments/issue609/lean/KnownBarriers.lean", "theorem": "Issue609.KnownBarriers.constant_true_not_uniform", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue609/lean/KnownBarriers.lean", "theorem": "Issue609.KnownBarriers.constant_true_not_uniform_separation", "allowed_axioms": ["propext"]},
-    {"source": "proofs/experiments/issue609/lean/KnownBarriers.lean", "theorem": "Issue609.KnownBarriers.false_technique_counterexample", "allowed_axioms": ["propext"]}
+    {"source": "proofs/experiments/issue609/lean/KnownBarriers.lean", "theorem": "Issue609.KnownBarriers.false_technique_counterexample", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.npNotSubsetP_iff_pNotEqualsNP", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.npNotSubsetP_iff_classes_differ", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.legacy_zero_cost_is_fast", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.legacy_bound_misses_budget", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.no_one_step_circuitSAT", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.malformed_rejected", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.williams_budget_not_polynomial", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.no_bit_differs_from_all_circuits", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.npNotSubsetP_of_not_npSubsetPPoly", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.nexp_lower_bound_of_pEqualsNP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.npNotSubsetP_of_not_fastCircuitSAT", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.satisfying_input_within_certBound", "allowed_axioms": ["propext", "Quot.sound"]}
   ],
   "rocq": [
     {"source": "proofs/complexity/rocq/Complexity.v", "theorem": "Complexity.pSubsetNP", "allowed_axioms": []},
@@ -49,6 +61,18 @@
     {"source": "proofs/experiments/issue609/rocq/KnownBarriers.v", "theorem": "KnownBarriers.equality_refutes_uniform", "allowed_axioms": []},
     {"source": "proofs/experiments/issue609/rocq/KnownBarriers.v", "theorem": "KnownBarriers.constant_true_not_uniform", "allowed_axioms": []},
     {"source": "proofs/experiments/issue609/rocq/KnownBarriers.v", "theorem": "KnownBarriers.constant_true_not_uniform_separation", "allowed_axioms": []},
-    {"source": "proofs/experiments/issue609/rocq/KnownBarriers.v", "theorem": "KnownBarriers.false_technique_counterexample", "allowed_axioms": []}
+    {"source": "proofs/experiments/issue609/rocq/KnownBarriers.v", "theorem": "KnownBarriers.false_technique_counterexample", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.npNotSubsetP_iff_pNotEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.npNotSubsetP_iff_classes_differ", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.legacy_zero_cost_is_fast", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.legacy_bound_misses_budget", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.no_one_step_circuitSAT", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.malformed_rejected", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.williams_budget_not_polynomial", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.no_bit_differs_from_all_circuits", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.npNotSubsetP_of_not_npSubsetPPoly", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.nexp_lower_bound_of_pEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.npNotSubsetP_of_not_fastCircuitSAT", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.satisfying_input_within_certBound", "allowed_axioms": []}
   ]
 }
