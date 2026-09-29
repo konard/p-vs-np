@@ -43,6 +43,14 @@ states informally. These are: the enumeration and circularity arguments fail,
 the PR #43 cost and bound defects are real, and the certificate-length half of
 `CircuitSATInNP` holds.
 
+[issue8/](issue8/README.md) states the issue #8 target `NP ⊆ P`, the opposite
+direction. Its paired Lean and Rocq files prove a DPLL solver correct for the
+shared SAT language, including PR #41's issue #610 regression formula, and
+bound its calls by `2^(|w|+1)`, which is not polynomial. They also prove that a
+polynomial `Run` bound for that solver is equivalent to `NP ⊆ P` given
+`SATHard`. The corrected [`NP ⊆ P` write-up](np_subset_p_proof_attempt.md)
+replaces PR #41's documents and lists their corrections.
+
 ## Proof Strategies Explored
 
 ### 1. Direct Construction Approach

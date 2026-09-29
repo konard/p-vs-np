@@ -35,7 +35,21 @@
     {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.npNotSubsetP_of_not_npSubsetPPoly", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.nexp_lower_bound_of_pEqualsNP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
     {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.npNotSubsetP_of_not_fastCircuitSAT", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
-    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.satisfying_input_within_certBound", "allowed_axioms": ["propext", "Quot.sound"]}
+    {"source": "proofs/experiments/issue10/lean/NPNotSubsetP.lean", "theorem": "Issue10.NPNotSubsetP.satisfying_input_within_certBound", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.npSubsetP_iff_pEqualsNP", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.npSubsetP_iff_classes_equal", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.npSubsetP_iff_inP_sat", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.npSubsetP_iff_candidate", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.issue610_sat", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.dpll_correct", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.dpllSAT_eq_SAT", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.dpllSAT_issue610", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.dpllSAT_empty_clause", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.dpllSAT_calls_le", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.calls_bound_not_polynomial", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.candidate_of_dpll_machine", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.npSubsetP_of_dpll_machine", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.dpll_machine_of_npSubsetP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]}
   ],
   "rocq": [
     {"source": "proofs/complexity/rocq/Complexity.v", "theorem": "Complexity.pSubsetNP", "allowed_axioms": []},
@@ -73,6 +87,20 @@
     {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.npNotSubsetP_of_not_npSubsetPPoly", "allowed_axioms": []},
     {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.nexp_lower_bound_of_pEqualsNP", "allowed_axioms": []},
     {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.npNotSubsetP_of_not_fastCircuitSAT", "allowed_axioms": []},
-    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.satisfying_input_within_certBound", "allowed_axioms": []}
+    {"source": "proofs/experiments/issue10/rocq/NPNotSubsetP.v", "theorem": "NPNotSubsetP.satisfying_input_within_certBound", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.npSubsetP_iff_pEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.npSubsetP_iff_classes_equal", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.npSubsetP_iff_inP_sat", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.npSubsetP_iff_candidate", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.issue610_sat", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.dpll_correct", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.dpllSAT_eq_SAT", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.dpllSAT_issue610", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.dpllSAT_empty_clause", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.dpllSAT_calls_le", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.calls_bound_not_polynomial", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.candidate_of_dpll_machine", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.npSubsetP_of_dpll_machine", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.dpll_machine_of_npSubsetP", "allowed_axioms": []}
   ]
 }
