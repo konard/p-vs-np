@@ -45,9 +45,10 @@
       new [circuitSAT_iff] shows that [CircuitSAT] is exactly the Lean
       language: [CircuitSAT w = true] iff
       [exists n C, w = encCircuit n C /\ WF n C /\ CircuitSatisfiable n C].
-      New helpers: [decGate], [decCircuit], [decNat_sound], [decGate_sound],
-      [decListFuel_sound], [decCircuit_encCircuit], [decCircuit_sound],
-      [wfFromb], [wfFromb_iff].
+      The Lean file now also has an exact [decCircuit], [wfFromb], and a
+      [verifyCircuit] certificate check. Both checks are proved equivalent
+      to the shared language, while only Rocq's [CircuitSAT] itself is
+      executable.
     - [acceptedLanguage] is computable.  Lean uses a classical [decide] of
       "some certificate of length at most [c * T n + c] is accepted within
       [c * T n + c] steps".  Here the certificates of bounded length are
@@ -336,6 +337,26 @@ Proof.
   rewrite !andb_true_iff, !Nat.ltb_lt, IH. tauto.
 Qed.
 
+(** Parse and check well-formedness, rejecting every malformed word. *)
+Definition checkCircuit (w : Word) : bool :=
+  match decCircuit w with
+  | None => false
+  | Some (n, C) => wfFromb n C
+  end.
+
+Theorem checkCircuit_iff : forall w,
+  checkCircuit w = true <-> exists n C, w = encCircuit n C /\ WF n C.
+Proof.
+  intro w. unfold checkCircuit. destruct (decCircuit w) as [[n C]|] eqn:hd.
+  - rewrite wfFromb_iff. split.
+    + intro h. exists n, C. auto using decCircuit_sound.
+    + intros [n' [C' [heq hwf]]].
+      rewrite heq, decCircuit_encCircuit in hd. injection hd as <- <-.
+      exact hwf.
+  - split; [discriminate |].
+    intros [n [C [heq _]]]. rewrite heq, decCircuit_encCircuit in hd. discriminate.
+Qed.
+
 (** Some input of length [n] makes [C] output [true]. *)
 Definition CircuitSatisfiable (n : nat) (C : Circuit) : Prop :=
   exists x : Word, length x = n /\ output x C = true.
@@ -398,6 +419,51 @@ Proof.
     exists n, C. split; [exact hw |]. apply circuitSAT_encode. rewrite <- hw.
     unfold CircuitSAT. rewrite hd. exact h.
   - intros [n [C [-> h]]]. apply circuitSAT_encode. exact h.
+Qed.
+
+(** A finite certificate check using the exact decoder and the NAND evaluator.
+    This is not yet a [Machine] with a proved [Run] bound. *)
+Definition verifyCircuit (w cert : Word) : bool :=
+  match decCircuit w with
+  | None => false
+  | Some (n, C) => wfFromb n C && Nat.eqb (length cert) n && output cert C
+  end.
+
+Theorem verifyCircuit_spec : forall w cert,
+  verifyCircuit w cert = true <->
+    exists n C, decCircuit w = Some (n, C) /\ WF n C /\
+      length cert = n /\ output cert C = true.
+Proof.
+  intros w cert. unfold verifyCircuit.
+  destruct (decCircuit w) as [[n C]|] eqn:hd.
+  - rewrite !andb_true_iff, Nat.eqb_eq, wfFromb_iff.
+    split.
+    + intros [[hwf hlen] hout]. exists n, C. auto.
+    + intros [n' [C' [hdec [hwf [hlen hout]]]]].
+      injection hdec as <- <-. auto.
+  - split; [discriminate |].
+    intros [n [C [hdec _]]]. discriminate.
+Qed.
+
+Theorem circuitSAT_iff_verifyCircuit : forall w,
+  CircuitSAT w = true <-> exists cert, verifyCircuit w cert = true.
+Proof.
+  intro w. rewrite circuitSAT_iff. split.
+  - intros [n [C [heq [hwf [cert [hlen hout]]]]]].
+    exists cert. apply verifyCircuit_spec.
+    exists n, C. rewrite heq. repeat split; auto using decCircuit_encCircuit.
+  - intros [cert h]. apply verifyCircuit_spec in h.
+    destruct h as [n [C [hd [hwf [hlen hout]]]]].
+    exists n, C. repeat split; auto using decCircuit_sound.
+    exists cert. auto.
+Qed.
+
+(** Each NAND gate extends the wire list by exactly one bit. *)
+Theorem wires_length : forall (x : Word) (C : Circuit),
+  length (wires x C) = length x + length C.
+Proof.
+  intros x C. revert x. induction C as [| [i j] C IH]; intro x; simpl; [lia |].
+  rewrite IH, length_app. simpl. lia.
 Qed.
 
 (** Known theorem, not mechanised here.  Circuit satisfiability is in NP:
@@ -618,6 +684,24 @@ Qed.
 
 Theorem length_encNat : forall i, length (encNat i) = i + 1.
 Proof. induction i as [| i IH]; simpl; [reflexivity | rewrite IH; reflexivity]. Qed.
+
+(** Parsed input and gate counts are bounded by the encoded word length. *)
+Theorem decCircuit_data_bounds : forall w n C,
+  decCircuit w = Some (n, C) ->
+  n + 1 <= length w /\ length C + 1 <= length w.
+Proof.
+  intros w n C hd. pose proof (decCircuit_sound _ _ _ hd) as hw.
+  pose proof (length_encList encGate C) as hc.
+  rewrite hw. unfold encCircuit. rewrite length_app, length_encNat. lia.
+Qed.
+
+Theorem verifyCircuit_cert_bound : forall w cert,
+  verifyCircuit w cert = true -> length cert <= length w.
+Proof.
+  intros w cert h. apply verifyCircuit_spec in h.
+  destruct h as [n [C [hd [_ [hlen _]]]]].
+  pose proof (decCircuit_data_bounds _ _ _ hd) as [hb _]. lia.
+Qed.
 
 (** In a well-formed circuit every gate reads a wire below [N + |C|]. *)
 Theorem wfFrom_bound : forall (N : nat) (C : Circuit), WFfrom N C ->

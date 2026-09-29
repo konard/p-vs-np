@@ -3,6 +3,8 @@
 experiments/issue532_idea41/Assumptions.v
 experiments/issue532_primes/Assumptions.v
 experiments/issue532_satverifier/Assumptions.v
+experiments/issue567/Assumptions.v
+experiments/issue567/DecoderRegression.v
 experiments/issue572/Independent.v
 experiments/issue574/CheckLemmas.v
 experiments/issue574/CheckShared.v
@@ -236,6 +238,7 @@ proofs/experiments/issue532/rocq/Idea38.v
 proofs/experiments/issue532/rocq/Idea39.v
 proofs/experiments/issue532/rocq/Idea40.v
 proofs/experiments/issue532/rocq/Idea41.v
+proofs/experiments/issue567/rocq/ResidualKey.v
 proofs/experiments/issue532/rocq/Machines.v
 proofs/experiments/issue532/rocq/SATVerifier.v
 proofs/experiments/issue568/rocq/Tableau.v

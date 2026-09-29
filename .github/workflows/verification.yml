@@ -171,6 +171,7 @@ jobs:
           bash experiments/issue586/check.sh
           python3 experiments/issue585/check_guidance.py
           lake env lean experiments/issue574/PolynomialRegression.lean
+          lake env lean experiments/issue567/DecoderRegression.lean
           lean experiments/issue7_shoenfield_absoluteness.lean
           lean experiments/issue7_undecidability_formalization.lean
           lake env lean experiments/issue572/Independent.lean
@@ -261,6 +262,8 @@ jobs:
           proofs.experiments.issue568.lean.Tableau \
           proofs.experiments.issue609.lean.PEqualsNPAttempt \
           proofs.experiments.issue609.lean.KnownBarriers \
+          proofs.experiments.issue532.lean.Idea41 \
+          proofs.experiments.issue567.lean.ResidualKey \
           proofs.experiments.issue10.lean.NPNotSubsetP \
           proofs.experiments.issue8.lean.NPSubsetP \
           proofs.experiments.issue7.lean.ClockedSAT
@@ -294,6 +297,7 @@ jobs:
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea16.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
+          rocq compile -Q . '' proofs/experiments/issue567/rocq/ResidualKey.v
           rocq compile -Q . '' proofs/experiments/issue10/rocq/NPNotSubsetP.v
           rocq compile -Q . '' proofs/experiments/issue8/rocq/NPSubsetP.v
           rocq compile -Q . '' proofs/experiments/issue7/rocq/ClockedSAT.v
