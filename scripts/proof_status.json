@@ -49,7 +49,22 @@
     {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.calls_bound_not_polynomial", "allowed_axioms": ["propext", "Quot.sound"]},
     {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.candidate_of_dpll_machine", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
     {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.npSubsetP_of_dpll_machine", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
-    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.dpll_machine_of_npSubsetP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]}
+    {"source": "proofs/experiments/issue8/lean/NPSubsetP.lean", "theorem": "Issue8.NPSubsetP.dpll_machine_of_npSubsetP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.runFor_iff", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_iff", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockedSAT_iff_polyDec", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockedSAT_iff_inP_sat", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockedSAT_of_pEqualsNP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.pEqualsNP_of_clockedSAT", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockedSAT_iff_pEqualsNP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.not_clockedSAT_iff", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.pNotEqualsNP_of_pi2", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.pi2_of_pNotEqualsNP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.per_machine_form_holds", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_rejectAll_empty_clause", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_rejectAll_empty_cnf", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.rejectAll_defeated", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_zero_clock", "allowed_axioms": ["propext"]}
   ],
   "rocq": [
     {"source": "proofs/complexity/rocq/Complexity.v", "theorem": "Complexity.pSubsetNP", "allowed_axioms": []},
@@ -101,6 +116,21 @@
     {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.calls_bound_not_polynomial", "allowed_axioms": []},
     {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.candidate_of_dpll_machine", "allowed_axioms": []},
     {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.npSubsetP_of_dpll_machine", "allowed_axioms": []},
-    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.dpll_machine_of_npSubsetP", "allowed_axioms": []}
+    {"source": "proofs/experiments/issue8/rocq/NPSubsetP.v", "theorem": "NPSubsetP.dpll_machine_of_npSubsetP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.runFor_iff", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_iff", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockedSAT_iff_polyDec", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockedSAT_iff_inP_sat", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockedSAT_of_pEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.pEqualsNP_of_clockedSAT", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockedSAT_iff_pEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.not_clockedSAT_iff", "allowed_axioms": ["Classical_Prop.classic"]},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.pNotEqualsNP_of_pi2", "allowed_axioms": ["Classical_Prop.classic"]},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.pi2_of_pNotEqualsNP", "allowed_axioms": ["Classical_Prop.classic"]},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.per_machine_form_holds", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_rejectAll_empty_clause", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_rejectAll_empty_cnf", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.rejectAll_defeated", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_zero_clock", "allowed_axioms": []}
   ]
 }

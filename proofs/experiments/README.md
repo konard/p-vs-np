@@ -51,6 +51,13 @@ polynomial `Run` bound for that solver is equivalent to `NP ⊆ P` given
 `SATHard`. The corrected [`NP ⊆ P` write-up](np_subset_p_proof_attempt.md)
 replaces PR #41's documents and lists their corrections.
 
+[issue7/](issue7/README.md) states the clocked-SAT sentence behind issue #7's
+independence question. Its paired Lean and Rocq files prove a clock lemma and
+that the Σ⁰₂ form `∃ m p, ∀ x, clockCheck m p x = true` is `InP SAT`. Given
+`SATHard`, it is equivalent to `PEqualsNP`, and its Π⁰₂ negation is equivalent
+to `PNotEqualsNP`. They also prove that the per-machine quantifier order holds
+outright. Nothing about ZFC provability is claimed.
+
 ## Proof Strategies Explored
 
 ### 1. Direct Construction Approach
