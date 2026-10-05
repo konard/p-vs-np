@@ -1,9 +1,9 @@
 import proofs.experiments.issue626.lean.NandCompiler
 import proofs.experiments.issue626.lean.Window
 
-/-! An executable bounded simulation candidate. The compiler is proved correct
-for expressions, and the tape-window semantics is proved correct for `Run`.
-The encoding relation between these two layers is a separate obligation. -/
+/-! The executable bounded NAND compiler, with wire and polynomial-size proofs.
+`Correctness.lean` proves that its encoded rows follow the shared `Run`
+semantics and derives P ⊆ P/poly. -/
 
 namespace Issue626.Simulation
 open Complexity Issue532.Circuits Issue626.NandCompiler

@@ -21,8 +21,8 @@
    UniformSATAdvice := UniformAdvice SAT; inP_sat_of_uniformSATAdvice and
    pEqualsNP_of_uniformSATAdvice derive InP SAT and PEqualsNP from it,
    not_uniformSATAdvice_of_superpoly shows that a superpolynomial circuit
-   lower bound for SAT refutes it (given the named known theorem
-   PSubsetPPoly), not_forall_uniformAdvice is the non-vacuity check, and
+   lower bound for SAT refutes it (using the proved theorem
+   pSubsetPPoly), not_forall_uniformAdvice is the non-vacuity check, and
    uniformPolyAdviceFor_of_uniformAdvice instantiates the schema
    UniformPolyAdviceFor.
 
@@ -438,19 +438,19 @@ Proof.
 Qed.
 
 (** Uniform advice is in particular non-uniform advice: with the known
-    theorem PSubsetPPoly, the language has polynomial-size circuits. *)
-Theorem inPPoly_of_uniformAdvice : PSubsetPPoly -> forall L : Language,
+    theorem pSubsetPPoly, the language has polynomial-size circuits. *)
+Theorem inPPoly_of_uniformAdvice : forall L : Language,
   UniformAdvice L -> InPPoly L.
-Proof. intros hP L h. exact (hP L (inP_of_uniformAdvice L h)). Qed.
+Proof. intros L h. exact (pSubsetPPoly L (inP_of_uniformAdvice L h)). Qed.
 
 (** Refutation route.  A superpolynomial circuit lower bound for SAT
-    (together with the known theorem PSubsetPPoly) refutes the open
+    (together with the known theorem pSubsetPPoly) refutes the open
     obligation. *)
-Theorem not_uniformSATAdvice_of_superpoly : PSubsetPPoly ->
+Theorem not_uniformSATAdvice_of_superpoly :
   SuperpolyLowerBound SAT -> ~ UniformSATAdvice.
 Proof.
-  intros hP h hU.
-  exact (not_inPPoly_of_superpoly SAT h (inPPoly_of_uniformAdvice hP SAT hU)).
+  intros h hU.
+  exact (not_inPPoly_of_superpoly SAT h (inPPoly_of_uniformAdvice SAT hU)).
 Qed.
 
 (** Non-vacuity.  Some language has no uniform polynomial advice. *)

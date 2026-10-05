@@ -256,3 +256,6 @@ proofs/experiments/issue532/rocq/CircuitModel.v
 proofs/experiments/issue626/rocq/NandCompiler.v
 proofs/experiments/issue626/rocq/Window.v
 proofs/experiments/issue626/rocq/Simulation.v
+proofs/experiments/issue626/rocq/Correctness.v
+experiments/issue626/CompilerRegression.v
+experiments/issue626/SimulationRegression.v

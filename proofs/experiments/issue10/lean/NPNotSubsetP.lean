@@ -250,11 +250,11 @@ theorem no_bit_differs_from_all_circuits (x : Word) (hx : 0 < x.length) (b : Boo
 /-- `NP ⊆ P/poly`. -/
 def NPSubsetPPoly : Prop := ∀ L : Language, InNP L → InPPoly L
 
-/-- The PR #43 bridge with its hidden premise made explicit: `NP ⊄ P/poly`
-gives `NP ⊈ P` given the known theorem `P ⊆ P/poly`. -/
-theorem npNotSubsetP_of_not_npSubsetPPoly (hP : PSubsetPPoly) (h : ¬ NPSubsetPPoly) :
+/-- The PR #43 bridge using the proved inclusion: `NP ⊄ P/poly`
+gives `NP ⊈ P` by the theorem `pSubsetPPoly`. -/
+theorem npNotSubsetP_of_not_npSubsetPPoly (h : ¬ NPSubsetPPoly) :
     NPNotSubsetP :=
-  fun hsub => h fun L hL => hP L (hsub L hL)
+  fun hsub => h fun L hL => pSubsetPPoly L (hsub L hL)
 
 /-- Williams' method, stated for `NEXP`: this is the lower bound it yields,
 not `NP ⊄ P/poly`. -/

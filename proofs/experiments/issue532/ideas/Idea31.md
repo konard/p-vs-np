@@ -9,7 +9,7 @@ As a *route to a uniform polynomial-time algorithm*, the idea is refuted in gene
 1. **Size.** The advice is exponential. Even parity, which is in P, needs a decision tree with `2^n` leaves (`parity_tree_leaves`).
 2. **Uniformity.** Advice can encode anything. Every length-only language has one-bit advice, i.e. a one-node tree at every length. For *every* enumeration of uniform deciders, some such language is decided by none of them (`advice_beyond_uniform`).
 
-So a family of small objects, one per length, is not an algorithm. Closing the gap is the open obligation `UniformSATAdvice`, stated in the shared machine model: a polynomial-time `Complexity.Machine` attaches length-indexed advice to the input, and a polynomial-time machine decides SAT from the input with its advice. Meeting it puts SAT in P (`inP_sat_of_uniformSATAdvice`), so with `SATHard` it gives P = NP (`pEqualsNP_of_uniformSATAdvice`). A superpolynomial circuit lower bound for SAT refutes it, given the known theorem `PSubsetPPoly` (`not_uniformSATAdvice_of_superpoly`). The obligation is not vacuous: some language has no uniform polynomial advice (`not_forall_uniformAdvice`). Uniform advice is thus a uniform algorithm in disguise, and nothing here decides P vs NP.
+So a family of small objects, one per length, is not an algorithm. Closing the gap is the open obligation `UniformSATAdvice`, stated in the shared machine model: a polynomial-time `Complexity.Machine` attaches length-indexed advice to the input, and a polynomial-time machine decides SAT from the input with its advice. Meeting it puts SAT in P (`inP_sat_of_uniformSATAdvice`), so with `SATHard` it gives P = NP (`pEqualsNP_of_uniformSATAdvice`). A superpolynomial circuit lower bound for SAT refutes it, using the proved theorem `pSubsetPPoly` (`not_uniformSATAdvice_of_superpoly`). The obligation is not vacuous: some language has no uniform polynomial advice (`not_forall_uniformAdvice`). Uniform advice is thus a uniform algorithm in disguise, and nothing here decides P vs NP.
 
 ## 1. The idea at full strength
 
@@ -81,8 +81,8 @@ def UniformSATAdvice : Prop := UniformAdvice Machines.SAT
 | `inP_of_uniformAdvice` | `UniformAdvice L → InP L` (promise reduction) | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
 | `inP_sat_of_uniformSATAdvice` | `UniformSATAdvice → InP SAT` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
 | `pEqualsNP_of_uniformSATAdvice` | `SATHard → UniformSATAdvice → PEqualsNP` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
-| `inPPoly_of_uniformAdvice` | `PSubsetPPoly → UniformAdvice L → InPPoly L` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
-| `not_uniformSATAdvice_of_superpoly` | `PSubsetPPoly → SuperpolyLowerBound SAT → ¬ UniformSATAdvice` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `inPPoly_of_uniformAdvice` | `UniformAdvice L → InPPoly L` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
+| `not_uniformSATAdvice_of_superpoly` | `SuperpolyLowerBound SAT → ¬ UniformSATAdvice` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
 | `not_forall_uniformAdvice` | Non-vacuity: some language has no uniform polynomial advice | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
 | `uniformPolyAdviceFor_of_uniformAdvice` | The machine version instantiates the schema `UniformPolyAdviceFor` | [Idea31.lean](../lean/Idea31.lean) | [Idea31.v](../rocq/Idea31.v) |
 
@@ -104,7 +104,7 @@ The machine-model rows have the same names in Rocq, and implicit Lean arguments 
 
 **The obligation is the whole problem.** `uniform_advice_decides` shows that, in the schema, the combined map `x ↦ decode (gen |x|) x` is itself a decider. In the machine model this becomes a real algorithm. The machine `m` maps `x` to `adviceWord (adv |x|) x` within `p` steps. Every such image satisfies the promise of `d`, and `unpack` recovers `x`, so `SAT x = SAT (unpack (m x))`. `Machines.inP_of_promise_reduction` composes the two machines into a polynomial-time decider (`inP_of_uniformAdvice`). Conversely, if `L ∈ P`, empty advice works: the prepending machine writes the single bit `0` and a decider for `L` runs after skipping it. That construction is not mechanised, so the converse is only argued here. So `UniformSATAdvice` is equivalent to SAT ∈ P, and advice gives no leverage toward P vs NP beyond the uniform algorithm it hides.
 
-**Link to circuits.** Since the advice is uniform, a language with `UniformAdvice` is in P, and with the known theorem `PSubsetPPoly` (Circuits) it is in P/poly (`inPPoly_of_uniformAdvice`). By `superpoly_iff_not_inPPoly`, a superpolynomial circuit lower bound for SAT therefore refutes `UniformSATAdvice` (`not_uniformSATAdvice_of_superpoly`).
+**Link to circuits.** Since the advice is uniform, a language with `UniformAdvice` is in P, and with the proved theorem `pSubsetPPoly` (Circuits) it is in P/poly (`inPPoly_of_uniformAdvice`). By `superpoly_iff_not_inPPoly`, a superpolynomial circuit lower bound for SAT therefore refutes `UniformSATAdvice` (`not_uniformSATAdvice_of_superpoly`).
 
 **Non-vacuity.** `Machines.exists_not_inP` gives a language outside P. By `inP_of_uniformAdvice` it has no uniform advice, so `UniformAdvice` is not true of every language (`not_forall_uniformAdvice`).
 
@@ -112,7 +112,7 @@ The machine-model rows have the same names in Rocq, and implicit Lean arguments 
 
 * R. M. Karp, R. J. Lipton, "Some connections between nonuniform and uniform complexity classes", STOC 1980. Introduced advice classes such as P/poly. It also shows that if NP ⊆ P/poly, the polynomial hierarchy collapses to its second level.
 * The fact that P/1 contains undecidable (unary) languages is standard textbook material (e.g. Arora–Barak, *Computational Complexity: A Modern Approach*, 2009, Ch. 6). The diagonal argument above is the core of it.
-* P/poly equals the class of languages with polynomial-size circuit families. Formalizing this equivalence, and P ⊆ P/poly, is outside this file (see Idea 30).
+* P/poly equals the class of languages with polynomial-size circuit families. The advice/circuit equivalence is outside this file. P ⊆ P/poly is proved by `Circuits.pSubsetPPoly` (issue #626).
 * C. E. Shannon (1949) and O. B. Lupanov (1958): most functions need circuits of size about `2^n/n`, and every function has circuits of that size. Only the decision-tree analogue (`2^n` leaves, and the advice pigeonhole) is formalized here. Circuit-size asymptotics are not formalized.
 * L. Adleman (1978): BPP ⊆ P/poly. This shows that advice can absorb randomness. Not formalized.
 
@@ -128,7 +128,7 @@ Mechanised consequences:
 
 * `inP_sat_of_uniformSATAdvice : UniformSATAdvice → InP Machines.SAT`, with no further hypotheses.
 * `pEqualsNP_of_uniformSATAdvice : Machines.SATHard → UniformSATAdvice → PEqualsNP`. The hypothesis `SATHard` is the hardness half of Cook–Levin, a known theorem that is not mechanised.
-* `not_uniformSATAdvice_of_superpoly : Circuits.PSubsetPPoly → Circuits.SuperpolyLowerBound Machines.SAT → ¬ UniformSATAdvice`. The hypothesis `PSubsetPPoly` is the known inclusion P ⊆ P/poly, not mechanised.
+* `not_uniformSATAdvice_of_superpoly : Circuits.SuperpolyLowerBound Machines.SAT → ¬ UniformSATAdvice`. The inclusion P ⊆ P/poly is proved and used internally.
 * `not_forall_uniformAdvice`: the class is not everything.
 * `uniformPolyAdviceFor_of_uniformAdvice`: the machine version instantiates the schema `UniformPolyAdviceFor`, with `Uniform` the generators whose advice a polynomial-time machine can attach.
 
@@ -155,8 +155,11 @@ Relation to other ideas: Idea 19 (uniform vs non-uniform) and Idea 30 (circuit l
 From the repository root:
 
 ```sh
-lake env lean proofs/experiments/issue532/lean/Idea31.lean
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea31.v
+lake build
+rocq makefile -f _CoqProject -o Makefile.coq
+make -f Makefile.coq
+python3 scripts/check_proof_status.py --lean
+python3 scripts/check_proof_status.py --rocq
 ```
 
-Both commands print nothing on success. Remove the generated Rocq artifacts (`.vo`, `.vok`, `.vos`, `.glob`, `.aux`) afterwards.
+The assumption checks audit the listed results and their import closures.

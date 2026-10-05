@@ -14,8 +14,7 @@ model of `Circuits` (`Circuit`, `wires`, `output`, `WF`, `InPPoly`,
 * *Transfer* (`lower_bound_transfer`, `no_fast_algorithm`): a circuit lower
   bound, a simulation of fast algorithms by small circuits, and a size bound
   together exclude a fast algorithm. For the machine model the simulation is
-  the known theorem `PSubsetPPoly` (P ⊆ P/poly), used only as a named
-  hypothesis.
+  the proved theorem `pSubsetPPoly` (P ⊆ P/poly).
 * *Shannon counting*: the counting core (`words`, `allBool`, `fnOfTable`,
   `uncovered_table`, `shannon_codes`, `shannon_circuits`) now lives in
   `Circuits.lean` over the shared circuit model; this file keeps the concrete
@@ -25,12 +24,12 @@ model of `Circuits` (`Circuit`, `wires`, `output`, `WF`, `InPPoly`,
 Counting is non-explicit: it never names the hard function, and its hard
 language is not known to be in NP. The open obligations are
 `SATCircuitLowerBound` (SAT needs superpolynomial circuits) and
-`ExplicitNPLowerBound` (some NP language does). With `PSubsetPPoly` (and
+`ExplicitNPLowerBound` (some NP language does). Using the proved `pSubsetPPoly` (and
 `SATInNP` for the SAT version) each gives `PNotEqualsNP`
 (`sat_lower_bound_separates`, `explicit_lower_bound_separates`). `SATInNP` is
 proved in `SATVerifier.lean` (`SATVerifier.satInNP`), so `explicit_of_sat'` and
-`sat_lower_bound_separates'` drop that premise; `PSubsetPPoly` remains a named
-hypothesis. Nothing here proves such a bound. Natural proofs, relativization and algebrization constrain
+`sat_lower_bound_separates'` drop that premise; the inclusion is proved in
+issue #626. Nothing here proves such a bound. Natural proofs, relativization and algebrization constrain
 how it could be proved.
 -/
 
@@ -81,11 +80,11 @@ theorem no_fast_algorithm {Algorithm : Type} (computes : Algorithm → Language)
   rw [← e]
   exact simulation a ha
 
-/-- For the machine model: under `PSubsetPPoly`, a language with a
+/-- For the machine model: using `pSubsetPPoly`, a language with a
 superpolynomial circuit lower bound is not in P. -/
-theorem not_inP_of_superpoly (hP : PSubsetPPoly) (f : Language)
+theorem not_inP_of_superpoly (f : Language)
     (h : SuperpolyLowerBound f) : ¬ InP f :=
-  not_inP_of_not_inPPoly hP (superpoly_excludes_poly_circuits f h)
+  not_inP_of_not_inPPoly (superpoly_excludes_poly_circuits f h)
 
 /-! ## The open obligations -/
 
@@ -116,26 +115,26 @@ theorem explicit_of_sat' (h : SATCircuitLowerBound) : ExplicitNPLowerBound :=
   explicit_of_sat SATVerifier.satInNP h
 
 /-- **Conditional theorem (SAT form).** Given the membership half of
-Cook–Levin and the known theorem P ⊆ P/poly as named hypotheses, a
+Cook–Levin and the proved theorem P ⊆ P/poly, a
 superpolynomial circuit lower bound for SAT gives P ≠ NP. -/
-theorem sat_lower_bound_separates (mem : SATInNP) (hP : PSubsetPPoly)
+theorem sat_lower_bound_separates (mem : SATInNP)
     (h : SATCircuitLowerBound) : PNotEqualsNP :=
-  pNotEqualsNP_of_superpoly_sat mem hP h
+  pNotEqualsNP_of_superpoly_sat mem h
 
 /-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped.
-`PSubsetPPoly` remains a named hypothesis. -/
-theorem sat_lower_bound_separates' (hP : PSubsetPPoly) (h : SATCircuitLowerBound) :
+The proved inclusion is used internally. -/
+theorem sat_lower_bound_separates' (h : SATCircuitLowerBound) :
     PNotEqualsNP :=
-  sat_lower_bound_separates SATVerifier.satInNP hP h
+  sat_lower_bound_separates SATVerifier.satInNP h
 
-/-- **Conditional theorem.** Given P ⊆ P/poly as a named hypothesis, an NP
+/-- **Conditional theorem.** Using the proved inclusion P ⊆ P/poly, an NP
 language with a superpolynomial circuit lower bound gives P ≠ NP. -/
-theorem explicit_lower_bound_separates (hP : PSubsetPPoly)
+theorem explicit_lower_bound_separates
     (h : ExplicitNPLowerBound) : PNotEqualsNP := by
   obtain ⟨L, hL, hlb⟩ := h
-  exact pNotEqualsNP_of_superpoly hP hL hlb
+  exact pNotEqualsNP_of_superpoly hL hlb
 
-/-- The weaker, unconditional-on-`PSubsetPPoly` reading: the obligation
+/-- The direct lower-bound reading: the obligation
 exhibits an NP language outside P/poly. -/
 theorem explicit_lower_bound_not_inPPoly (h : ExplicitNPLowerBound) :
     ∃ L, InNP L ∧ ¬ InPPoly L := by

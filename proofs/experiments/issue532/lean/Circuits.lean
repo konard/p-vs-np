@@ -1,5 +1,6 @@
 import proofs.experiments.issue532.lean.Machines
 import proofs.experiments.issue532.lean.CircuitModel
+import proofs.experiments.issue626.lean.Correctness
 
 /-!
 # Issue #532: a shared circuit model and the bridge to the machine model
@@ -14,9 +15,9 @@ size is the number of gates, and its output is computed by `output`.
   P/poly and a superpolynomial circuit lower bound, which are complementary.
 * `PSubsetPPoly`: every language in P has polynomial-size circuits
   (Savage 1972; Pippenger–Fischer 1979; Arora–Barak Theorem 6.6). It is a
-  known theorem that this file does **not** prove; every use is an explicit
-  hypothesis named `PSubsetPPoly`.
-* `pNotEqualsNP_of_superpoly_sat`: under `SATInNP` and `PSubsetPPoly`, a
+  proved theorem `pSubsetPPoly`, imported from the bounded NAND simulation
+  in issue #626.
+* `pNotEqualsNP_of_superpoly_sat`: using `SATInNP` and the proved inclusion, a
   superpolynomial circuit lower bound for SAT gives P ≠ NP.
 * Circuit requirements are imposed only at positive input lengths: a
   well-formed circuit on `0` inputs is empty and outputs `false`, and counting
@@ -33,6 +34,9 @@ size is the number of gates, and its output is computed by `output`.
 namespace Issue532.Circuits
 
 open Complexity Issue532.Machines
+
+/-- Bounded machine simulation proves the shared inclusion P ⊆ P/poly. -/
+theorem pSubsetPPoly : PSubsetPPoly := Issue626.Simulation.pSubsetPPoly
 
 /-- A superpolynomial circuit lower bound: for every polynomial some positive
 input length defeats every circuit of that size (see `InPPoly` for why the
@@ -65,21 +69,21 @@ theorem superpoly_iff_not_inPPoly (L : Language) : SuperpolyLowerBound L ↔ ¬ 
     intro hne
     exact hx ⟨x, hlen, hne⟩
 
-/-- A language outside P/poly is outside P, given `PSubsetPPoly`. -/
-theorem not_inP_of_not_inPPoly (hP : PSubsetPPoly) {L : Language} (h : ¬ InPPoly L) :
+/-- A language outside P/poly is outside P, by `pSubsetPPoly`. -/
+theorem not_inP_of_not_inPPoly {L : Language} (h : ¬ InPPoly L) :
     ¬ InP L :=
-  fun hL => h (hP L hL)
+  fun hL => h (pSubsetPPoly L hL)
 
 /-- **Bridge.** A superpolynomial circuit lower bound for SAT gives P ≠ NP,
-using the membership half of Cook–Levin and `PSubsetPPoly`. -/
-theorem pNotEqualsNP_of_superpoly_sat (mem : SATInNP) (hP : PSubsetPPoly)
+using the membership half of Cook–Levin and the proved inclusion `pSubsetPPoly`. -/
+theorem pNotEqualsNP_of_superpoly_sat (mem : SATInNP)
     (h : SuperpolyLowerBound SAT) : PNotEqualsNP := fun hEq =>
-  not_inP_of_not_inPPoly hP ((superpoly_iff_not_inPPoly SAT).mp h) (inP_sat_of_pEqualsNP mem hEq)
+  not_inP_of_not_inPPoly ((superpoly_iff_not_inPPoly SAT).mp h) (inP_sat_of_pEqualsNP mem hEq)
 
 /-- The same bridge for any NP language. -/
-theorem pNotEqualsNP_of_superpoly (hP : PSubsetPPoly) {L : Language} (mem : InNP L)
+theorem pNotEqualsNP_of_superpoly {L : Language} (mem : InNP L)
     (h : SuperpolyLowerBound L) : PNotEqualsNP := fun hEq =>
-  not_inP_of_not_inPPoly hP ((superpoly_iff_not_inPPoly L).mp h) (hEq L mem)
+  not_inP_of_not_inPPoly ((superpoly_iff_not_inPPoly L).mp h) (hEq L mem)
 
 
 /-! ## Sanity check: constant languages are in P/poly

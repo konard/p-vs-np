@@ -243,9 +243,9 @@ Qed.
 
 Definition NPSubsetPPoly : Prop := forall L : Language, InNP L -> InPPoly L.
 
-(** The PR #43 bridge with its hidden premise made explicit. *)
-Theorem npNotSubsetP_of_not_npSubsetPPoly : PSubsetPPoly -> ~ NPSubsetPPoly -> NPNotSubsetP.
-Proof. intros hP h hsub. apply h. intros L hL. exact (hP L (hsub L hL)). Qed.
+(** The PR #43 bridge, using the proved inclusion [pSubsetPPoly]. *)
+Theorem npNotSubsetP_of_not_npSubsetPPoly : ~ NPSubsetPPoly -> NPNotSubsetP.
+Proof. intros h hsub. apply h. intros L hL. exact (pSubsetPPoly L (hsub L hL)). Qed.
 
 (** Williams' method yields NEXP not contained in P/poly, not the NP
     statement. *)
