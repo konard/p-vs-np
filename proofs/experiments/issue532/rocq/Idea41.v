@@ -461,10 +461,7 @@ Qed.
 (** Each NAND gate extends the wire list by exactly one bit. *)
 Theorem wires_length : forall (x : Word) (C : Circuit),
   length (wires x C) = length x + length C.
-Proof.
-  intros x C. revert x. induction C as [| [i j] C IH]; intro x; simpl; [lia |].
-  rewrite IH, length_app. simpl. lia.
-Qed.
+Proof. exact Circuits.wires_length. Qed.
 
 (** Known theorem, not mechanised here.  Circuit satisfiability is in NP:
     the certificate is a satisfying input and the verifier evaluates the

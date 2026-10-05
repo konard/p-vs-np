@@ -218,12 +218,6 @@ theorem overlong_rejected (cert : Word) (bound : Nat) (h : bound < cert.length) 
     rw [encodeCertificate_present cert bound h] at hs
     cases hs
 
-private theorem ticks_length (n : Nat) : (ticks n).length = 2 * n := by
-  induction n <;> simp_all [ticks]; omega
-
-private theorem encodeLit_length (l : Lit) : (encodeLit l).length = 2 * l.var + 2 := by
-  simp [encodeLit, ticks_length]
-
 /-- Exact bit length, including unary variable identifiers and delimiters. -/
 theorem encode_certificateCNF_length (start bound : Nat) :
     (encodeCNF (certificateCNF start bound)).length =

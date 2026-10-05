@@ -1228,6 +1228,13 @@ Fixpoint encodeCNF (phi : CNF) : list bool :=
   | c :: phi' => encodeClause c ++ encodeCNF phi'
   end.
 
+(** The literal encoding charges two bits for every unary variable tick. *)
+Theorem ticks_length : forall n, length (ticks n) = 2 * n.
+Proof. induction n; simpl; lia. Qed.
+
+Theorem encodeLit_length : forall l, length (encodeLit l) = 2 * var l + 2.
+Proof. intro l. unfold encodeLit. rewrite length_app, ticks_length. simpl. lia. Qed.
+
 Fixpoint decodeAux (w : list bool) (k : nat) (cur : Clause) : CNF :=
   match w with
   | true :: true :: rest => decodeAux rest (S k) cur

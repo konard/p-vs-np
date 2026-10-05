@@ -137,6 +137,31 @@ theorem wire_append_lt (x : List Bool) (b : Bool) (i : Nat) (h : i < x.length) :
     wire (x ++ [b]) i = wire x i := by
   simp [wire, List.getD_eq_getElem?_getD, List.getElem?_append_left h]
 
+/-- The SAT assignment view and circuit wire view use the same bit vector. -/
+theorem toAssign_wire (w : Word) (i : Nat) : toAssign w i = wire w i := by
+  induction w generalizing i with
+  | nil => rfl
+  | cons b w ih => cases i <;> simp [toAssign, wire, List.getD, ih]
+
+/-- Each NAND gate appends exactly one wire. -/
+theorem wires_length (x : Word) (C : Circuit) :
+    (wires x C).length = x.length + C.length := by
+  induction C generalizing x with
+  | nil => simp [wires]
+  | cons g C ih =>
+    obtain ⟨i, j⟩ := g
+    simp [wires, ih]
+    omega
+
+/-- Appending gates preserves every earlier wire. -/
+theorem wire_wires_lt (x : Word) (C : Circuit) (i : Nat) (hi : i < x.length) :
+    wire (wires x C) i = wire x i := by
+  induction C generalizing x with
+  | nil => rfl
+  | cons g C ih =>
+    obtain ⟨j, k⟩ := g
+    rw [wires, ih _ (by simp; omega), wire_append_lt _ _ _ hi]
+
 /-- The circuit `[(0,0), (0,n)]` outputs `true` on every input of positive length. -/
 theorem output_const_true (x : Word) (hx : 0 < x.length) :
     output x [(0, 0), (0, x.length)] = true := by

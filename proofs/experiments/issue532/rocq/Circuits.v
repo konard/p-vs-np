@@ -190,6 +190,28 @@ Theorem wire_append_lt : forall (x : list bool) (b : bool) (i : nat),
   i < length x -> wire (x ++ [b]) i = wire x i.
 Proof. intros x b i h. unfold wire. apply app_nth1. exact h. Qed.
 
+(** The SAT assignment view and circuit wire view use the same bit vector. *)
+Theorem toAssign_wire : forall w i, toAssign w i = wire w i.
+Proof.
+  intro w. induction w as [|b w IH]; intros [|i]; cbn [toAssign wire]; auto.
+Qed.
+
+(** Each NAND gate appends exactly one wire. *)
+Theorem wires_length : forall (x : Word) (C : Circuit),
+  length (wires x C) = length x + length C.
+Proof.
+  intros x C. revert x. induction C as [| [i j] C IH]; intro x; simpl; [lia |].
+  rewrite IH, length_app. simpl. lia.
+Qed.
+
+(** Appending gates preserves every earlier wire. *)
+Theorem wire_wires_lt : forall x C i, i < length x -> wire (wires x C) i = wire x i.
+Proof.
+  intros x C. revert x. induction C as [|[j k] C IH]; intros x i hi; [reflexivity|].
+  cbn [wires]. rewrite IH; [apply wire_append_lt; exact hi|].
+  rewrite length_app. simpl. lia.
+Qed.
+
 (** The circuit [[(0,0); (0,n)]] outputs [true] on every input of positive
     length. *)
 Theorem output_const_true : forall x : Word, 0 < length x ->

@@ -142,8 +142,9 @@ Proof.
     + intros i hi j hj hai haj. rewrite (h i hi hai), (h j hj haj). reflexivity.
 Qed.
 
+(** Retain the existing name while sharing the encoding proof. *)
 Lemma ticks_length : forall n, length (ticks n) = 2 * n.
-Proof. induction n; simpl; lia. Qed.
+Proof. exact Machines.ticks_length. Qed.
 
 Lemma clause_encoded_size : forall c bound,
   (forall l, In l c -> var l < bound) ->

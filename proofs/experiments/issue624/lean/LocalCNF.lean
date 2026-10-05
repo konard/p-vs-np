@@ -130,9 +130,6 @@ theorem oneHot_models (a : Assignment) (base size : Nat) :
   · rintro ⟨v, hv, hav, h⟩
     exact ⟨⟨v, hv, hav⟩, fun i hi j hj hai haj => (h i hi hai).trans (h j hj haj).symm⟩
 
-private theorem ticks_length (n : Nat) : (ticks n).length = 2 * n := by
-  induction n <;> simp_all [ticks]; omega
-
 private theorem clause_encoded_size (c : Clause) (bound : Nat)
     (h : ∀ l ∈ c, l.var < bound) :
     (encodeClause c).length ≤ 2 * (1 + c.length * (bound + 1)) := by

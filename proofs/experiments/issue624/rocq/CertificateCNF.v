@@ -233,11 +233,12 @@ Proof.
   rewrite (encodeCertificate_present cert bound h) in hs. discriminate.
 Qed.
 
+(** Retain the module's existing names while sharing the encoding proofs. *)
 Lemma ticks_length : forall n, length (ticks n) = 2 * n.
-Proof. induction n; simpl; lia. Qed.
+Proof. exact Machines.ticks_length. Qed.
 
 Lemma encodeLit_length : forall l, length (encodeLit l) = 2 * var l + 2.
-Proof. intro l. unfold encodeLit. rewrite length_app, ticks_length. simpl. lia. Qed.
+Proof. exact Machines.encodeLit_length. Qed.
 
 (** Count the unary variable identifiers, literal tokens, and delimiters. *)
 Theorem encode_certificateCNF_length : forall start bound,

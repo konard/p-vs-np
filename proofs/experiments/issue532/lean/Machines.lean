@@ -958,6 +958,13 @@ def encodeCNF : CNF → List Bool
   | [] => []
   | c :: φ => encodeClause c ++ encodeCNF φ
 
+/-- The literal encoding charges two bits for every unary variable tick. -/
+theorem ticks_length (n : Nat) : (ticks n).length = 2 * n := by
+  induction n <;> simp_all [ticks]; omega
+
+theorem encodeLit_length (l : Lit) : (encodeLit l).length = 2 * l.var + 2 := by
+  simp [encodeLit, ticks_length]
+
 def decodeAux : List Bool → Nat → Clause → CNF
   | true :: true :: rest, k, cur => decodeAux rest (k + 1) cur
   | false :: p :: rest, k, cur => decodeAux rest 0 (cur ++ [⟨k, p⟩])

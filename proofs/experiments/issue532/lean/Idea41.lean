@@ -307,13 +307,7 @@ theorem checkCircuit_iff (w : Word) :
 
 /-- The intermediate wire list has exactly one new bit per gate. -/
 theorem wires_length (x : Word) (C : Circuit) :
-    (wires x C).length = x.length + C.length := by
-  induction C generalizing x with
-  | nil => simp [wires]
-  | cons g C ih =>
-      obtain ⟨i, j⟩ := g
-      simp [wires, ih]
-      omega
+    (wires x C).length = x.length + C.length := Circuits.wires_length x C
 
 /-- Some input of length `n` makes `C` output `true`. -/
 def CircuitSatisfiable (n : Nat) (C : Circuit) : Prop :=
