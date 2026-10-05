@@ -105,6 +105,40 @@ Example malformed_edge : ~ Tableau.Tableau.localTrace Tableau.Tableau.moveThenAc
   [initial []; Tableau.Tableau.wrongSuccessor].
 Proof. exact Tableau.Tableau.wrong_successor_rejected. Qed.
 
+Lemma emptyInputRun : forall x,
+  exists t, t <= 2 /\ Run Tableau.Tableau.moveThenAccept (initial x) t
+    (match x with [] => true | _ :: _ => false end).
+Proof.
+  intros [|b rest].
+  - exists 2. split; [lia|].
+    eapply run_next; [reflexivity|]. apply run_halt. reflexivity.
+  - exists 1. split; [lia|]. apply run_halt. destruct b; reflexivity.
+Qed.
+
+Definition emptyInputNP : ClassNP.
+Proof.
+  refine {| np_language := fun x => match x with [] => true | _ :: _ => false end;
+            np_verifier := ignoreCertificate Tableau.Tableau.moveThenAccept;
+            np_timeBound := {| coefficient := 2; degree := 0 |};
+            np_certBound := {| coefficient := 0; degree := 0 |} |}.
+  - intros x cert _. destruct (emptyInputRun x) as [t [ht hr]].
+    exists t, (match x with [] => true | _ :: _ => false end). split; assumption.
+  - intro x. split.
+    + intro hx. destruct (emptyInputRun x) as [t [ht hr]].
+      exists [], t. split; [reflexivity|]. split; [exact ht|].
+      rewrite hx in hr. exact hr.
+    + intros [cert [t [_ [_ hr]]]].
+      destruct (emptyInputRun x) as [u [_ hu]].
+      pose proof (run_deterministic _ _ _ _ _ _ hr hu) as [_ hb]. symmetry. exact hb.
+Defined.
+
+Example good_successor_model : VerifierTableau emptyInputNP [] (encodeCertificate [])
+  [initial []; Tableau.Tableau.goodSuccessor].
+Proof. repeat split; reflexivity. Qed.
+Example wrong_successor_nonmodel : ~ VerifierTableau emptyInputNP [] (encodeCertificate [])
+  [initial []; Tableau.Tableau.wrongSuccessor].
+Proof. apply wrong_successor_not_model. reflexivity. Qed.
+
 Print Assumptions certificateCNF_models.
 Print Assumptions encodeCertificate_models.
 Print Assumptions decode_encodeCertificate.

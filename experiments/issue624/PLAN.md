@@ -54,6 +54,6 @@ whole-manifest assumption audits passed; see [ASSUMPTIONS.md](ASSUMPTIONS.md).
 passed all seven checks on `dcdf2267009c7ce3aee3261df2668d52e3df2cb4`.
 Its creation time, 2026-10-05 09:32:24 UTC, is after that commit's
 09:31:44 UTC timestamp. This checkpoint records the tested proof sources;
-subsequent documentation changes are checked by the PR's latest CI run.
+subsequent changes are checked by the PR's latest CI run.
 Publication and readiness are tracked on [PR #630](https://github.com/konard/p-vs-np/pull/630),
 whose description contains no issue-closing reference.

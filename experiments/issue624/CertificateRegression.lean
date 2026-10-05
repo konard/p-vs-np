@@ -95,6 +95,40 @@ example : ¬ Represents (encodeCertificate [true, false]) 0 [true, false] 1 :=
 example : ¬ Issue568.Tableau.LocalTrace Issue568.Tableau.moveThenAccept true
     [initial [], Issue568.Tableau.wrongSuccessor] := Issue568.Tableau.wrong_successor_rejected
 
+-- The bad-edge predicate also has a concrete, nonvacuous NP witness.
+private theorem emptyInputRun (x : Word) :
+    ∃ t, t ≤ 2 ∧ Run Issue568.Tableau.moveThenAccept (initial x) t x.isEmpty := by
+  cases x with
+  | nil => exact ⟨2, by decide, Run.next rfl (Run.halt rfl)⟩
+  | cons b rest =>
+    refine ⟨1, by decide, Run.halt ?_⟩
+    cases b <;> rfl
+
+private def emptyInputNP : ClassNP where
+  language := List.isEmpty
+  verifier := .ignoreCertificate Issue568.Tableau.moveThenAccept
+  timeBound := ⟨2, 0⟩
+  certBound := ⟨0, 0⟩
+  terminates := fun x _ _ => by
+    obtain ⟨t, ht, hr⟩ := emptyInputRun x
+    exact ⟨t, x.isEmpty, ht, hr⟩
+  correct := by
+    intro x
+    constructor
+    · intro hx
+      obtain ⟨t, ht, hr⟩ := emptyInputRun x
+      exact ⟨[], t, by simp, ht, hx ▸ hr⟩
+    · rintro ⟨_, t, _, _, hr⟩
+      obtain ⟨u, _, hu⟩ := emptyInputRun x
+      exact ((run_deterministic hr hu).2).symm
+
+example : VerifierTableau emptyInputNP [] (encodeCertificate [])
+    [initial [], Issue568.Tableau.goodSuccessor] := by
+  exact ⟨by decide, rfl, by decide, Issue568.Tableau.two_step_accepts⟩
+example : ¬ VerifierTableau emptyInputNP [] (encodeCertificate [])
+    [initial [], Issue568.Tableau.wrongSuccessor] :=
+  wrong_successor_not_model _ _ _ rfl
+
 #print axioms certificateCNF_models
 #print axioms encodeCertificate_models
 #print axioms decode_encodeCertificate

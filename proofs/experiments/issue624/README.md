@@ -85,6 +85,9 @@ encoding lengths. Concrete all-accepting and all-rejecting `ClassNP` witnesses
 exercise both verifier constructors. Clock probes distinguish a decoded empty
 certificate from a one-bit certificate at the same capacity. The bad-edge
 case reuses `wrong_successor_rejected`, even though its final row accepts.
+A concrete NP witness for the empty-input language has a valid two-row model
+and rejects the same trace after replacing its successor with the bad row.
+This exercises the new predicate with a zero certificate bound and clock two.
 
 The rejecting-verifier and wrong-successor results concern **the semantic
 `VerifierTableau` predicate**. The certificate CNF alone is always satisfiable;
