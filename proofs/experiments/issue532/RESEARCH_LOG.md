@@ -39,6 +39,23 @@ verdicts:
 | Developed to an open obligation (conditional theorem proved) | The idea is correct as far as it goes. What remains is stated as one precise proposition, and the files prove what would follow from it. | 01, 13, 14, 23, 30, 32, 37, 39, 41 |
 | Correct tool, insufficient alone (general theorem proved) | The tool is proved correct in general and is needed by any solution, but by itself it cannot decide P vs NP. The files prove why. | 03, 12, 15, 22, 24, 25, 28, 29, 34, 36, 40 |
 
+## Cook–Levin prerequisites (#624, October 2026)
+
+The paired [certificate fragment](../issue624/README.md) now represents every
+polynomially bounded, variable-length certificate with presence/value cells,
+suffix-closed blanks, and a forced absent sentinel. Its model-extraction and
+representation theorems are certified, and its actual `encodeCNF` bit length
+is `8B² + 14B + 4` at offset zero. Both `VerifierProgram` constructors are
+connected to #568's existing `LocalTrace`, preserving the decoded certificate's
+actual length and acceptance clock. A uniform polynomial clock and tape-cell
+envelope support the future rectangular tableau.
+
+This is **known theorem mechanized** for the prerequisites. The transition
+and acceptance constraints have not yet been encoded into CNF, and no
+polynomial-time single-tape reduction machine has been proved. `SATHard`
+remains an explicit premise of the Idea bridges; #624 remains open. See the
+[paired assumption reports](../../../experiments/issue624/ASSUMPTIONS.md).
+
 ## The forty-one ideas
 
 | No. | Idea (dossier, Lean, Rocq) | Verdict | Principal machine-checked result | What remains, or why the route fails |

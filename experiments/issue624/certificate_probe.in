@@ -1,0 +1,18 @@
+From Stdlib Require Import List Bool Arith Lia.
+From proofs.experiments.issue624.rocq Require Import CertificateCNF.
+Import ListNotations Complexity.Complexity Machines CertificateCNF.
+
+(** Interactive diagnostic: expose the literal evaluations that [cbn] leaves
+    folded, then finish the same clause decomposition used in the proof. *)
+Goal forall a start n,
+  evalCNF a (certificateCNF start (S n)) = true <->
+  (a (2 * start + 1) = false \/ a (2 * start) = true) /\
+  (a (2 * (start + 1)) = false \/ a (2 * start) = true) /\
+  evalCNF a (certificateCNF (start + 1) n) = true.
+Proof.
+  intros a start n. cbn [certificateCNF evalCNF evalClause evalLit var pos].
+  Show.
+  unfold evalLit. cbn [var pos].
+  destruct (a (2 * start + 1)), (a (2 * start)), (a (2 * (start + 1))),
+    (evalCNF a (certificateCNF (start + 1) n)); simpl; intuition congruence.
+Qed.

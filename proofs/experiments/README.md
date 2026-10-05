@@ -56,6 +56,14 @@ over the shared machine. Its paired Lean and Rocq proofs equate locally
 checked, bounded configuration traces with `Run` and bound their represented
 tape span. The CNF encoding and reduction machine remain open.
 
+[issue624/](issue624/README.md) certifies the variable-length certificate CNF
+fragment, including suffix-closed blanks, a forced bound sentinel, and the
+exact encoded bit length with unary variable identifiers. Its paired semantic
+interface connects decoded certificates to #568's `LocalTrace` for both
+verifier constructors, using the actual certificate-dependent clock, and
+proves a uniform polynomial clock and cell envelope. The transition CNF and
+polynomial-time reduction machine are still required for `SATHard`.
+
 [issue7/](issue7/README.md) states the clocked-SAT sentence behind issue #7's
 independence question. Its paired Lean and Rocq files prove a clock lemma and
 that the Σ⁰₂ form `∃ m p, ∀ x, clockCheck m p x = true` is `InP SAT`. Given
