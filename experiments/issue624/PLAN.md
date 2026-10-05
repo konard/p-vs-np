@@ -34,11 +34,26 @@ polynomial-time function machine. A smaller PR must not close #624.
 - [x] Review the complete diff and document exact completed/open scope in the
   README, research log, and PR description. No restricted-verifier theorem,
   exponential search, or unchecked model import may stand in for hardness.
-- [ ] Fetch/merge the default branch as needed, commit validated atomic steps,
+- [x] Fetch/merge the default branch as needed, commit validated atomic steps,
   push only `issue-624-0b9b9b6c5d75`, and update existing PR #630.
-- [ ] Check CI run timestamps and head SHA, preserve/analyze any failed logs,
+- [x] Check CI run timestamps and head SHA, preserve/analyze any failed logs,
   fix actionable failures, then mark the reviewed PR ready and verify clean
   git status. Do not mark #624 fixed unless its full endpoint is present.
 
 Experiments use finite inputs. Stress probes, if needed, must have finite
 input and memory/stack limits. No background process may be left unfinished.
+
+## Validated checkpoint
+
+The certificate CNF and semantic verifier interface are complete. All four
+unchecked construction items above remain open, including the rest of slice 1.
+The complete local Lean, Rocq, Agda, and Python workflow checks passed. Both
+whole-manifest assumption audits passed; see [ASSUMPTIONS.md](ASSUMPTIONS.md).
+
+[CI run 37290702071](https://github.com/konard/p-vs-np/actions/runs/37290702071)
+passed all seven checks on `dcdf2267009c7ce3aee3261df2668d52e3df2cb4`.
+Its creation time, 2026-10-05 09:32:24 UTC, is after that commit's
+09:31:44 UTC timestamp. This checkpoint records the tested proof sources;
+subsequent documentation changes are checked by the PR's latest CI run.
+Publication and readiness are tracked on [PR #630](https://github.com/konard/p-vs-np/pull/630),
+whose description contains no issue-closing reference.
