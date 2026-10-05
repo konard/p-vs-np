@@ -312,6 +312,17 @@ argument: reading the input takes `poly(n)` steps, far below
 
 ## 8. Reproduction
 
+Issue 625 adds a paired finite-machine **syntax** slice:
+`Issue567.CircuitSyntax.circuitSyntaxMachine_run` (Lean) and
+`CircuitSyntax.circuitSyntaxMachine_run` (Rocq) recognize precisely the
+`encCircuit` grammar in `|x| + 1` steps, for every paired input. This is not
+`CircuitSATInNP`: valid syntax can still contain forward wires, and certificate
+length and gate evaluation remain to be implemented.
+`circuitSATInNP_of_verifier_run` assembles the NP record from the full
+machine's polynomial run theorem as an explicit hypothesis. It does not
+discharge membership. The original `CircuitSATInNP` arguments are retained.
+See [the remaining obligations](../../../../experiments/issue625/README.md).
+
 From the repository root:
 
 ```sh

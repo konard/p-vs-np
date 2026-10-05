@@ -1,0 +1,4 @@
+import proofs.experiments.issue532.lean.Idea41
+
+-- Acceptance target from issue #625; this fails while membership is open.
+example : Issue532.Idea41.CircuitSATInNP := Issue532.Idea41.circuitSATInNP

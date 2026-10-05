@@ -1,0 +1,4 @@
+From proofs.experiments.issue532.rocq Require Import Idea41.
+
+(* Acceptance target from issue #625; this fails while membership is open. *)
+Example membership_target : CircuitSATInNP := circuitSATInNP.

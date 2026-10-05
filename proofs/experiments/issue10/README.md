@@ -119,6 +119,17 @@ the certificate fits the linear bound `1·(|w|+1)`. What remains is a paired
 3. It evaluates `C` gate by gate.
 4. It halts within a polynomial number of `Run` steps.
 
+The paired `Issue567.CircuitSyntax`/`CircuitSyntax` modules now implement
+recognition of the exact encoding grammar by a six-state machine. They prove
+termination on all paired inputs in exactly `|x| + 1` steps. This discharges
+syntax recognition only; input counts and gate indices are not returned as
+decoded data, and wire bounds, certificate length and NAND evaluation remain
+unchecked by that machine. `circuitSATInNP_of_verifier_run` packages membership
+once the full evaluator's bounded run theorem is supplied as an explicit
+hypothesis. The unconditional target still fails in
+`python3 experiments/issue625/check_membership.py`, so the `mem` arguments
+remain necessary. See [the investigation](../../../experiments/issue625/README.md).
+
 `Issue532.SATVerifier` is the model for such a proof. After that, the next
 known theorem in Williams' chain is `LazyDiagonalSimulation` (the universal
 nondeterministic simulation behind `NTimeHierarchy`). Neither ingredient

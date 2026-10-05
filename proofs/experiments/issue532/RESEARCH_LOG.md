@@ -258,6 +258,18 @@ is Idea 34, which needs `lake build proofs.complexity.lean.Complexity` first.
 
 ## Verification log
 
+Issue 625 input-validation slice (2026-10-05). A six-state circuit syntax
+machine now recognizes exactly `encCircuit` on the paired input model, with
+an exact `|x| + 1` instruction count, including the halt. Lean and Rocq prove
+the same recognition, decoder equivalence, termination and run-correctness
+statements. The syntax results are known theorems mechanized, not NP
+membership. A forward wire has valid syntax, and the new regression makes
+that distinction explicit. The paired NP-record assembly theorem still takes
+the full evaluating machine's polynomial run theorem as a parameter.
+The unconditional `circuitSATInNP` target remains absent in both provers;
+the `mem` parameters in Idea 41 and issue 10 remain in place. Details and
+reproduction are in [`experiments/issue625`](../../../experiments/issue625/README.md).
+
 Fourth round (2026-09-27, after the review). Every open obligation was moved
 onto the shared machine model, `SATInNP` was proved, and Idea 41 was added and
 connected to Idea 16.
