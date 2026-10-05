@@ -4,7 +4,7 @@
 
 Everything is stated over the shared layer: the machine model (`InP`, `InNP`, `Issue532.Machines.SAT`) and the shared NAND circuit model of `Circuits.lean` (`InPPoly`, `SuperpolyLowerBound`). Two facts are proved in general.
 
-*Transfer.* A circuit lower bound, a simulation of fast algorithms by small circuits, and a size bound together exclude a fast algorithm (`lower_bound_transfer`, `no_fast_algorithm`). For the machine model the simulation is the known theorem P ⊆ P/poly, used only as the named hypothesis `PSubsetPPoly`. With it, `sat_lower_bound_separates` proves `SATCircuitLowerBound → PNotEqualsNP` (also given `SATInNP`; since `SATInNP` is proved in `SATVerifier` as `SATVerifier.satInNP`, `sat_lower_bound_separates'` needs only `PSubsetPPoly`), and `explicit_lower_bound_separates` proves `ExplicitNPLowerBound → PNotEqualsNP`.
+*Transfer.* A circuit lower bound, a simulation of fast algorithms by small circuits, and a size bound together exclude a fast algorithm (`lower_bound_transfer`, `no_fast_algorithm`). For the machine model the simulation is the proved theorem `Circuits.pSubsetPPoly`, backed by the [issue #626](../../issue626/README.md) simulation. With it, `sat_lower_bound_separates` proves `SATCircuitLowerBound → PNotEqualsNP` (also given `SATInNP`; since `SATInNP` is proved in `SATVerifier` as `SATVerifier.satInNP`, `sat_lower_bound_separates'` needs only the open lower bound), and `explicit_lower_bound_separates` proves `ExplicitNPLowerBound → PNotEqualsNP`.
 
 *Shannon counting.* For the shared model, the following is machine-checked for all `n, g`: if `(g+1)·((n+g)²)^g < 2^(2^n)`, then some Boolean function on `n` bits has no circuit with at most `g` NAND gates (`shannon_circuits`). The argument uses words, truth tables and a pigeonhole principle, all proved from scratch. The counting core now lives in `Circuits.lean`, where `exists_superpolyLowerBound` also turns it into a language with a superpolynomial lower bound.
 
@@ -25,7 +25,7 @@ At full strength, the idea is the classical program for proving P ≠ NP through
 * Circuits. A circuit is a NAND straight-line program `C : List (ℕ × ℕ)`. Gate `(i,j)` appends `¬(wᵢ ∧ wⱼ)` to the wire list, which starts with the input `x`. The output is the last wire. `WF n C` means that gate `k` reads only wires `< n + k`. The size of `C` is its length.
 * `InPPoly L :≡ ∃ p, ∀ n, 0 < n → ∃ C, WF n C ∧ |C| ≤ p(n) ∧ ∀ x, |x| = n → output x C = L x` (shared, `Circuits.lean`).
 * `SuperpolyLowerBound L :≡ ∀ p, ∃ n, 0 < n ∧ ∀ C, WF n C → |C| ≤ p(n) → ∃ x, |x| = n ∧ output x C ≠ L x` (shared). The condition `0 < n` matters. A circuit with no inputs and no gates has no output wire, so without it every language that accepts the empty word would trivially have a "lower bound" at `n = 0`.
-* `PSubsetPPoly :≡ ∀ L, InP L → InPPoly L`. This is a known theorem (Savage 1972; Pippenger–Fischer 1979), not mechanised here, and it is used only as a named hypothesis.
+* `PSubsetPPoly :≡ ∀ L, InP L → InPPoly L`. The theorem `pSubsetPPoly` proves it in both Lean and Rocq by bounded machine simulation (issue #626).
 
 Here polynomials are `p(n) = c·(n+1)^k`.
 
@@ -42,6 +42,7 @@ def ExplicitNPLowerBound : Prop := ∃ L : Language, InNP L ∧ SuperpolyLowerBo
 
 | Theorem | Informal statement | Lean | Rocq |
 | --- | --- | --- | --- |
+| `pSubsetPPoly` | Proved inclusion `∀ L, InP L → InPPoly L`, by bounded NAND simulation (issue #626). | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
 | `lower_bound_transfer` | Lower bound + simulation + size bound ⇒ no fast algorithm | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `words_length` | `#words of length s over m letters = m^s` | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
 | `mem_words` | `words alph s` is exactly the words of length `s` over `alph` | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
@@ -57,16 +58,16 @@ def ExplicitNPLowerBound : Prop := ∃ L : Language, InNP L ∧ SuperpolyLowerBo
 | `four_bit_function_needs_three_gates` | Instance `n = 4`, `g = 2` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `superpoly_excludes_poly_circuits` | Superpolynomial lower bound ⇒ no polynomial-size circuits | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `no_fast_algorithm` | Simulation hypothesis + lower bound ⇒ no fast algorithm computes `f` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `not_inP_of_superpoly` | Given `PSubsetPPoly`, a superpolynomial lower bound excludes `InP` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
+| `not_inP_of_superpoly` | Using `pSubsetPPoly`, a superpolynomial lower bound excludes `InP` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `SATCircuitLowerBound` (def) | Open obligation: `SuperpolyLowerBound SAT` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `ExplicitNPLowerBound` (def) | Open obligation: some `InNP` language has a superpolynomial circuit lower bound | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `ExplicitNPLowerBoundFor` (def) | Schema: the same for an arbitrary class `NPClass` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `explicitNPLowerBound_iff_for` | `ExplicitNPLowerBound ↔ ExplicitNPLowerBoundFor InNP` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `explicit_of_sat` | Given `SATInNP`, `SATCircuitLowerBound → ExplicitNPLowerBound` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `explicit_of_sat'` | `SATCircuitLowerBound → ExplicitNPLowerBound`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`) | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `sat_lower_bound_separates` | Conditional theorem: `SATInNP → PSubsetPPoly → SATCircuitLowerBound → PNotEqualsNP` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `sat_lower_bound_separates'` | Conditional theorem: `PSubsetPPoly → SATCircuitLowerBound → PNotEqualsNP` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it; `PSubsetPPoly` remains a named hypothesis) | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
-| `explicit_lower_bound_separates` | Conditional theorem: `PSubsetPPoly → ExplicitNPLowerBound → PNotEqualsNP` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
+| `sat_lower_bound_separates` | Conditional theorem: `SATInNP → SATCircuitLowerBound → PNotEqualsNP` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
+| `sat_lower_bound_separates'` | Conditional theorem: `SATCircuitLowerBound → PNotEqualsNP` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it; `pSubsetPPoly` is proved in issue #626) | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
+| `explicit_lower_bound_separates` | Conditional theorem: `ExplicitNPLowerBound → PNotEqualsNP` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `explicit_lower_bound_not_inPPoly` | Without any hypothesis: the obligation gives an `InNP` language outside `InPPoly` | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `explicit_lower_bound_separatesFor` | Schema version: the obligation for a class plus a simulation gives a function in the class that no fast algorithm computes | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
 | `inP_const_false`, `inNP_const_false` | Non-vacuity: the NP half of the obligation is satisfiable | [Idea30.lean](../lean/Idea30.lean) | [Idea30.v](../rocq/Idea30.v) |
@@ -93,13 +94,13 @@ Rocq differences in `Idea30.v`: the statements match the Lean file. `superpoly_e
 
 **Asymptotics (not formalized).** Take `g = 2^n / (4n)`. Then `log₂((g+1)(n+g)^{2g}) ≈ 2g·n = 2^n / 2 < 2^n`. So for large `n`, some `n`-bit function needs about `2^n/(4n)` NAND gates. Shannon's bound is `2^n/n` up to constants. This file only proves the exact finite criterion and one instance.
 
-**Transfer.** `superpoly_excludes_poly_circuits` instantiates the polynomial from `InPPoly` in the lower bound. `no_fast_algorithm` composes this with the simulation hypothesis. For the machine model, `not_inP_of_superpoly` uses `PSubsetPPoly` to exclude `InP`. `explicit_lower_bound_separates` unpacks the obligation: its language `L` is in NP but not in P, so P ≠ NP. `sat_lower_bound_separates` is the same with `L = SAT`.
+**Transfer.** `superpoly_excludes_poly_circuits` instantiates the polynomial from `InPPoly` in the lower bound. `no_fast_algorithm` composes this with the simulation hypothesis. For the machine model, `not_inP_of_superpoly` uses the proved `pSubsetPPoly` to exclude `InP`. `explicit_lower_bound_separates` unpacks the obligation: its language `L` is in NP but not in P, so P ≠ NP. `sat_lower_bound_separates` is the same with `L = SAT`.
 
 ## 5. Known results and literature
 
 * C. E. Shannon, "The synthesis of two-terminal switching circuits", *Bell System Technical Journal* 28 (1949). Counting shows that most functions need exponentially large circuits.
 * O. B. Lupanov (1958). Every function on `n` bits has circuits of size `(1+o(1))·2^n/n`, so the counting bound is tight up to lower-order terms.
-* P ⊆ P/poly (polynomial-time machines have polynomial-size circuit families). Savage 1972; Pippenger–Fischer 1979 (size `O(t log t)`). Not formalized here, and taken as the `simulation` hypothesis.
+* P ⊆ P/poly (polynomial-time machines have polynomial-size circuit families). Savage 1972; Pippenger–Fischer 1979 (size `O(t log t)`). Formalized here by issue #626 with a polynomial tableau construction; the sharper `O(t log t)` bound is not formalized.
 * T. Baker, J. Gill, R. Solovay, "Relativizations of the P =? NP question", *SIAM J. Comput.* 1975.
 * A. Razborov, S. Rudich, "Natural proofs", *JCSS* 1997. If strong enough pseudorandom functions exist, no "natural" (constructive and large) property proves superpolynomial circuit lower bounds.
 * S. Aaronson, A. Wigderson, "Algebrization: a new barrier in complexity theory", *ACM TOCT* 2009.
@@ -110,7 +111,7 @@ Rocq differences in `Idea30.v`: the statements match the Lean file. `superpoly_e
   * NEXP ⊄ ACC⁰: Williams 2011.
 * Best explicit lower bounds for unrestricted circuits over the full binary basis are only linear: about `3.1·n`. See Find–Golovnev–Hirsch–Kulikov (FOCS 2016, `(3 + 1/86)n`) and Li–Yang (STOC 2022, `3.1n − o(n)`).
 
-None of these results is formalized here except the counting core.
+The counting core and P ⊆ P/poly are formalized; the other cited results are not.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
@@ -121,10 +122,10 @@ def ExplicitNPLowerBound : Prop := ∃ L : Language, InNP L ∧ SuperpolyLowerBo
 
 Proved conditionals:
 
-* `sat_lower_bound_separates (mem : SATInNP) (hP : PSubsetPPoly) (h : SATCircuitLowerBound) : PNotEqualsNP`.
-* `sat_lower_bound_separates' (hP : PSubsetPPoly) (h : SATCircuitLowerBound) : PNotEqualsNP` (`SATInNP` is proved in `SATVerifier`, so it is not a premise).
-* `explicit_lower_bound_separates (hP : PSubsetPPoly) (h : ExplicitNPLowerBound) : PNotEqualsNP`.
-* Without the simulation hypothesis, `explicit_lower_bound_not_inPPoly` gives the weaker conclusion NP ⊄ P/poly.
+* `sat_lower_bound_separates (mem : SATInNP) (h : SATCircuitLowerBound) : PNotEqualsNP`.
+* `sat_lower_bound_separates' (h : SATCircuitLowerBound) : PNotEqualsNP` (`SATInNP` is proved in `SATVerifier`, so it is not a premise).
+* `explicit_lower_bound_separates (h : ExplicitNPLowerBound) : PNotEqualsNP`.
+* `explicit_lower_bound_not_inPPoly` also states the direct conclusion NP ⊄ P/poly.
 
 Non-vacuity:
 
@@ -139,7 +140,7 @@ What is missing:
    * *Natural proofs.* The counting property "has no small circuit" is large (most functions have it). A lower-bound proof that uses a large, efficiently checkable property cannot work if pseudorandom functions exist (Razborov–Rudich). The pigeonhole argument above is the prototype of a large property. It escapes the barrier only because it is non-constructive, and for the same reason it cannot name a function.
    * *Relativization.* Pure simulation/diagonalization arguments relativize (Baker–Gill–Solovay), so they cannot settle P vs NP.
    * *Algebrization.* Arithmetization-based techniques do not suffice either (Aaronson–Wigderson).
-3. **The quantitative simulation** (machine steps to circuit gates, `PSubsetPPoly`) is only a named hypothesis here. It must also be formalized to remove it from the conditional theorems.
+3. **The quantitative simulation is proved.** Issue #626 supplies `simCircuit`, wire well-formedness, a polynomial gate bound, and correctness for all bounded `Run` witnesses. The concrete bridges use `pSubsetPPoly`; their remaining lower-bound obligations are open.
 4. **Earlier vacuity bug (fixed).** Before the refactor, the shared `SuperpolyLowerBound` allowed `n = 0`. The only well-formed circuit on 0 inputs is empty, so its output is `false`, while `SAT [] = true`. That made the SAT bound trivially true. Both `InPPoly` and `SuperpolyLowerBound` now require `0 < n`, and `inPPoly_const` shows that the fixed notion is not degenerate.
 
 Relation to the other ideas:
@@ -161,11 +162,11 @@ Relation to the other ideas:
 From the repository root:
 
 ```sh
-lake env lean proofs/experiments/issue532/lean/Idea30.lean
-rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea30.v
+lake build
+rocq makefile -f _CoqProject -o Makefile.coq
+make -f Makefile.coq
+python3 scripts/check_proof_status.py --lean
+python3 scripts/check_proof_status.py --rocq
 ```
 
-All commands print nothing on success. Remove the generated Rocq artifacts (`.vo`, `.vok`, `.vos`, `.glob`, `.aux`) of every compiled file afterwards.
+The assumption checks audit the listed results and their import closures.

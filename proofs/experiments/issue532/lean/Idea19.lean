@@ -34,12 +34,12 @@ refuted: advice classes contain languages of arbitrary (even undecidable)
 complexity, so an advice algorithm carries no uniform information. The
 converse direction is developed to the open obligations `SATNotInPPoly`
 (`¬ InPPoly SAT`) and `NPNotInPPoly` (NP ⊄ P/poly), stated over the shared
-machine and circuit models. With `SATInNP` and the known theorem
-`PSubsetPPoly` as named hypotheses they give `PNotEqualsNP`
+machine and circuit models. Using the proved inclusion `pSubsetPPoly` and
+`SATInNP`, they give `PNotEqualsNP`
 (`pNotEqualsNP_of_satNotInPPoly`, `pNotEqualsNP_of_npNotInPPoly`). `SATInNP`
 is proved in `SATVerifier.lean` (`SATVerifier.satInNP`), so
-`npNotInPPoly_of_sat'` and `pNotEqualsNP_of_satNotInPPoly'` drop that premise;
-`PSubsetPPoly` remains a named hypothesis. Neither obligation is proved. Core
+`npNotInPPoly_of_sat'` and `pNotEqualsNP_of_satNotInPPoly'` drop that premise.
+The inclusion is proved in issue #626. Neither lower-bound obligation is proved. Core
 Lean only.
 -/
 
@@ -324,29 +324,28 @@ theorem npNotInPPoly_of_sat (mem : SATInNP) (h : SATNotInPPoly) : NPNotInPPoly :
 theorem npNotInPPoly_of_sat' (h : SATNotInPPoly) : NPNotInPPoly :=
   npNotInPPoly_of_sat SATVerifier.satInNP h
 
-/-- **Conditional theorem.** With the known theorem P ⊆ P/poly as the named
-hypothesis `PSubsetPPoly`, NP ⊄ P/poly gives P ≠ NP. -/
-theorem pNotEqualsNP_of_npNotInPPoly (hP : PSubsetPPoly) (h : NPNotInPPoly) : PNotEqualsNP := by
+/-- **Conditional theorem.** Using the proved inclusion `pSubsetPPoly`,
+NP ⊄ P/poly gives P ≠ NP. -/
+theorem pNotEqualsNP_of_npNotInPPoly (h : NPNotInPPoly) : PNotEqualsNP := by
   intro hEq
   obtain ⟨L, hL, hnot⟩ := h
-  exact not_inP_of_not_inPPoly hP hnot (hEq L hL)
+  exact not_inP_of_not_inPPoly hnot (hEq L hL)
 
-/-- **Conditional theorem (SAT form).** With `SATInNP` and `PSubsetPPoly` as
-named hypotheses, `¬ InPPoly SAT` gives P ≠ NP. -/
-theorem pNotEqualsNP_of_satNotInPPoly (mem : SATInNP) (hP : PSubsetPPoly)
+/-- **Conditional theorem (SAT form).** Using `SATInNP` and the proved inclusion, `¬ InPPoly SAT` gives P ≠ NP. -/
+theorem pNotEqualsNP_of_satNotInPPoly (mem : SATInNP)
     (h : SATNotInPPoly) : PNotEqualsNP :=
-  pNotEqualsNP_of_superpoly_sat mem hP (satNotInPPoly_iff_superpoly.mp h)
+  pNotEqualsNP_of_superpoly_sat mem (satNotInPPoly_iff_superpoly.mp h)
 
 /-- `SATInNP` is proved (`SATVerifier.satInNP`), so the premise is dropped.
-`PSubsetPPoly` remains a named hypothesis. -/
-theorem pNotEqualsNP_of_satNotInPPoly' (hP : PSubsetPPoly) (h : SATNotInPPoly) :
+The proved inclusion is used internally. -/
+theorem pNotEqualsNP_of_satNotInPPoly' (h : SATNotInPPoly) :
     PNotEqualsNP :=
-  pNotEqualsNP_of_satNotInPPoly SATVerifier.satInNP hP h
+  pNotEqualsNP_of_satNotInPPoly SATVerifier.satInNP h
 
 /-- The schema theorem, instantiated at the shared classes. -/
-theorem nonuniform_lower_bound_separates (hP : PSubsetPPoly) (h : NPNotInPPoly) :
+theorem nonuniform_lower_bound_separates (h : NPNotInPPoly) :
     ¬ (∀ L, InNP L → InP L) :=
-  nonuniform_lower_bound_separatesFor InP InNP InPPoly hP h
+  nonuniform_lower_bound_separatesFor InP InNP InPPoly pSubsetPPoly h
 
 /-! ## Non-vacuity -/
 
@@ -358,8 +357,8 @@ theorem not_inPPoly_nonvacuous : (∃ L, ¬ InPPoly L) ∧ InPPoly (fun _ => tru
 /-- `PSubsetPPoly` is not refuted by `ppoly_not_subset_p`: the converse
 inclusion fails, which is consistent with P ⊆ P/poly. The obligation needs a
 language that is *both* in NP and outside P/poly. -/
-theorem ppoly_strictly_bigger_than_p_if (hP : PSubsetPPoly) :
+theorem ppoly_strictly_bigger_than_p_if :
     (∀ L, InP L → InPPoly L) ∧ ∃ L, InPPoly L ∧ ¬ InP L :=
-  ⟨hP, ppoly_not_subset_p⟩
+  ⟨pSubsetPPoly, ppoly_not_subset_p⟩
 
 end Issue532.Idea19

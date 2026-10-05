@@ -14,7 +14,7 @@ They are built on the shared `Complexity`, `Issue532.Machines` and
 `proofs/experiments/issue532/ideas/Idea41.md`). Idea 41 develops Williams'
 algorithm-to-lower-bound direction.
 
-**`NP ⊈ P` is not proved here.** Known theorems are explicit hypotheses. There
+**`NP ⊈ P` is not proved here.** Several known ingredients remain explicit hypotheses; P ⊆ P/poly is proved in issue #626. There
 are no axioms, `sorry` or `Admitted`.
 
 ## Reproducing the defects in PR #43
@@ -26,9 +26,9 @@ are no axioms, `sorry` or `Admitted`.
 | The running time was a free label, so any solver could claim zero cost | `legacy_zero_cost_is_fast`. Shared costs count `Run` steps of a finite-table machine. `run_pos` proves every run takes at least one step. `no_one_step_circuitSAT` proves that no machine decides circuit satisfiability in one step. |
 | The bound `2^n - n^δ` was meant as `2^(n - n^δ)`, with `δ : Nat` | `legacy_bound_misread` evaluates both. `legacy_exponent_collapses` shows that `2^(n - n^δ) = 1` for every natural `δ ≥ 1`. `legacy_bound_misses_budget` shows that `2^n - n^δ` breaks the Williams budget `t·(n+1) ≤ 2^n` at arbitrarily large `n`. |
 | Malformed circuits were not excluded | `malformed_forward_wire` and `malformed_no_inputs`. `malformed_rejected` gives a malformed circuit that outputs `true` and is rejected by `CircuitSAT`. |
-| `fast_PPoly_SAT_implies_P_neq_NP` took `NP ⊄ P/poly` as a hypothesis, closed it with the axiom `NP_not_subset_PPoly_implies_P_neq_NP`, and never used the algorithm | `npNotSubsetP_of_not_npSubsetPPoly` states the real bridge with `PSubsetPPoly` explicit. |
+| `fast_PPoly_SAT_implies_P_neq_NP` took `NP ⊄ P/poly` as a hypothesis, closed it with the axiom `NP_not_subset_PPoly_implies_P_neq_NP`, and never used the algorithm | `npNotSubsetP_of_not_npSubsetPPoly` uses the proved inclusion `Circuits.pSubsetPPoly`. |
 | Williams' method yields `NEXP ⊄ P/poly`, not `NP ⊄ P/poly` | `williams_nexp_lower_bound` states the actual conclusion. `nexp_lower_bound_of_pEqualsNP` shows that `P = NP` yields the same conclusion under the same theorems, so on its own it does not separate P from NP. |
-| The axioms `williams_main_theorem`, `NP_not_subset_PPoly_implies_P_neq_NP`, `PPoly_SAT_is_hard`, `williams_2011_result` and the nonexistence axiom `we_dont_have_fast_TC0_SAT` | Removed. The known theorems are explicit hypotheses (`NTimeHierarchy`, `EasyWitnessLemma`, `WilliamsSpeedup`, `PSubsetPPoly`, `CircuitSATInNP`). The open obligation is the definition `FastCircuitSAT`, not an axiom. |
+| The axioms `williams_main_theorem`, `NP_not_subset_PPoly_implies_P_neq_NP`, `PPoly_SAT_is_hard`, `williams_2011_result` and the nonexistence axiom `we_dont_have_fast_TC0_SAT` | Removed. The known theorems are explicit hypotheses (`NTimeHierarchy`, `EasyWitnessLemma`, `WilliamsSpeedup`, `CircuitSATInNP`). The open obligation is the definition `FastCircuitSAT`, not an axiom. |
 | The enumeration diagonal (see below) | `constant_circuit_agrees` and `no_bit_differs_from_all_circuits`. |
 | The circularity claim (see below) | `williams_budget_not_polynomial`. |
 
@@ -132,18 +132,14 @@ statements. The obstacle is mathematical, not a proof-assistant limitation.
 Run from the repository root:
 
 ```sh
-lake build proofs.experiments.issue10.lean.NPNotSubsetP
-rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea16.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
-rocq compile -Q . '' proofs/experiments/issue10/rocq/NPNotSubsetP.v
+lake build
+rocq makefile -f _CoqProject -o Makefile.coq
+make -f Makefile.coq
 python3 scripts/check_proof_status.py --lean
 python3 scripts/check_proof_status.py --rocq
 ```
 
 The conclusions are listed in `scripts/proof_status.json`. The prover queries
 there report every transitive assumption. A clean report does not discharge
-the explicit hypotheses `CircuitSATInNP`, `PSubsetPPoly`, `NTimeHierarchy`,
+the explicit hypotheses `CircuitSATInNP`, `NTimeHierarchy`,
 `EasyWitnessLemma` and `WilliamsSpeedup`, nor the open `FastCircuitSAT`.

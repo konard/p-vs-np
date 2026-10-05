@@ -56,6 +56,12 @@ over the shared machine. Its paired Lean and Rocq proofs equate locally
 checked, bounded configuration traces with `Run` and bound their represented
 tape span. The CNF encoding and reduction machine remain open.
 
+[issue626/](issue626/README.md) proves P ⊆ P/poly over the shared finite-table
+machine and NAND circuit models. The paired Lean and Rocq compiler has
+well-formedness, a polynomial gate bound, and correctness for every run within
+its polynomial clock. The concrete circuit-lower-bound bridges now use this
+proved inclusion. SAT and NP circuit lower bounds remain open.
+
 [issue7/](issue7/README.md) states the clocked-SAT sentence behind issue #7's
 independence question. Its paired Lean and Rocq files prove a clock lemma and
 that the Σ⁰₂ form `∃ m p, ∀ x, clockCheck m p x = true` is `InP SAT`. Given

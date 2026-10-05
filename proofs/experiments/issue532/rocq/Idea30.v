@@ -12,8 +12,7 @@
    - Transfer (lower_bound_transfer, no_fast_algorithm): a circuit lower
      bound, a simulation of fast algorithms by small circuits and a size
      bound together exclude a fast algorithm.  For the machine model the
-     simulation is the known theorem PSubsetPPoly (P in P/poly), used only
-     as a named hypothesis.
+     simulation is the proved theorem pSubsetPPoly (P in P/poly).
    - Shannon counting: the counting core (words, allBool, fnOfTable,
      uncovered_table, shannon_codes, shannon_circuits) lives in Circuits.v
      over the shared circuit model; this file keeps the concrete instance
@@ -23,11 +22,11 @@
    Counting is non-explicit: its hard language is not known to be in NP.
    The open obligations are SATCircuitLowerBound (SAT needs superpolynomial
    circuits) and ExplicitNPLowerBound (some NP language does).  With
-   PSubsetPPoly (and SATInNP for the SAT version) each gives PNotEqualsNP
+   the proved pSubsetPPoly (and SATInNP for the SAT version) each gives PNotEqualsNP
    (sat_lower_bound_separates, explicit_lower_bound_separates).  SATInNP
    is proved in SATVerifier.v (SATVerifier.satInNP), so explicit_of_sat'
-   and sat_lower_bound_separates' drop that premise; PSubsetPPoly remains a
-   named hypothesis.  Nothing here proves such a bound.
+   and sat_lower_bound_separates' drop that premise; the inclusion is proved
+   in issue #626.  Nothing here proves such a bound.
 
    Difference from Lean: Lean derives superpoly_excludes_poly_circuits and
    const_no_lower_bound from the classical superpoly_iff_not_inPPoly; here
@@ -85,12 +84,12 @@ Proof.
   rewrite <- e. apply simulation. exact ha.
 Qed.
 
-(** For the machine model: under [PSubsetPPoly], a language with a
+(** For the machine model: using [pSubsetPPoly], a language with a
     superpolynomial circuit lower bound is not in P. *)
-Theorem not_inP_of_superpoly : PSubsetPPoly -> forall f : Language,
+Theorem not_inP_of_superpoly : forall f : Language,
   SuperpolyLowerBound f -> ~ InP f.
 Proof.
-  intros hP f h. exact (not_inP_of_not_inPPoly hP f (superpoly_excludes_poly_circuits f h)).
+  intros f h. exact (not_inP_of_not_inPPoly f (superpoly_excludes_poly_circuits f h)).
 Qed.
 
 (** * The open obligations *)
@@ -125,26 +124,26 @@ Theorem explicit_of_sat' : SATCircuitLowerBound -> ExplicitNPLowerBound.
 Proof. exact (explicit_of_sat SATVerifier.satInNP). Qed.
 
 (** Conditional theorem (SAT form).  Given the membership half of
-    Cook-Levin and the known theorem P in P/poly as named hypotheses, a
+    Cook-Levin and the proved theorem P in P/poly, a
     superpolynomial circuit lower bound for SAT gives P <> NP. *)
 Theorem sat_lower_bound_separates :
-  SATInNP -> PSubsetPPoly -> SATCircuitLowerBound -> PNotEqualsNP.
+  SATInNP -> SATCircuitLowerBound -> PNotEqualsNP.
 Proof. exact pNotEqualsNP_of_superpoly_sat. Qed.
 
 (** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped.
-    [PSubsetPPoly] remains a named hypothesis. *)
-Theorem sat_lower_bound_separates' : PSubsetPPoly -> SATCircuitLowerBound -> PNotEqualsNP.
+    The proved inclusion is used internally. *)
+Theorem sat_lower_bound_separates' : SATCircuitLowerBound -> PNotEqualsNP.
 Proof. exact (sat_lower_bound_separates SATVerifier.satInNP). Qed.
 
-(** Conditional theorem.  Given P in P/poly as a named hypothesis, an NP
+(** Conditional theorem.  Using the proved inclusion P in P/poly, an NP
     language with a superpolynomial circuit lower bound gives P <> NP. *)
 Theorem explicit_lower_bound_separates :
-  PSubsetPPoly -> ExplicitNPLowerBound -> PNotEqualsNP.
+  ExplicitNPLowerBound -> PNotEqualsNP.
 Proof.
-  intros hP [L [hL hlb]]. exact (pNotEqualsNP_of_superpoly hP L hL hlb).
+  intros [L [hL hlb]]. exact (pNotEqualsNP_of_superpoly L hL hlb).
 Qed.
 
-(** The weaker reading, without [PSubsetPPoly]: the obligation exhibits an
+(** The direct lower-bound reading: the obligation exhibits an
     NP language outside P/poly. *)
 Theorem explicit_lower_bound_not_inPPoly :
   ExplicitNPLowerBound -> exists L, InNP L /\ ~ InPPoly L.

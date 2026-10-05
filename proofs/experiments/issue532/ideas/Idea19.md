@@ -15,9 +15,9 @@ on the shared machine and circuit model as the open obligations
 `SATNotInPPoly` (`¬ InPPoly SAT`) and `NPNotInPPoly`
 (`∃ L, InNP L ∧ ¬ InPPoly L`), and the conditional separations
 `pNotEqualsNP_of_satNotInPPoly` and `pNotEqualsNP_of_npNotInPPoly` are proved
-from the named known theorem `PSubsetPPoly`. `SATInNP` is proved in
+using the proved inclusion `Circuits.pSubsetPPoly` (issue #626). `SATInNP` is proved in
 `SATVerifier` (`SATVerifier.satInNP`), so the SAT form
-`pNotEqualsNP_of_satNotInPPoly'` needs only `PSubsetPPoly`. In the same model, P/poly is
+`pNotEqualsNP_of_satNotInPPoly'` needs only the open lower-bound obligation. In the same model, P/poly is
 proved not to be contained in P (`ppoly_not_subset_p`).
 
 ## 1. The idea at full strength
@@ -52,7 +52,7 @@ for SAT, yields SAT ∈ P*. The second reading claims *SAT ∉ P/poly*.
 * **Shared model.** `InPPoly L` (from `Circuits.lean`): some polynomial `p`
   bounds, at every positive length `n`, the gate count of a well-formed
   circuit deciding `L` on the words of length `n`. `PSubsetPPoly` (P ⊆ P/poly)
-  is a named known theorem there.
+  is proved by `Circuits.pSubsetPPoly` using the bounded NAND simulation in [issue #626](../../issue626/README.md).
 * **Open obligations.** `SATNotInPPoly := ¬ InPPoly SAT` with
   `SAT = Issue532.Machines.SAT`, and
   `NPNotInPPoly := ∃ L, InNP L ∧ ¬ InPPoly L` (NP ⊄ P/poly).
@@ -61,6 +61,7 @@ for SAT, yields SAT ∈ P*. The second reading claims *SAT ∉ P/poly*.
 
 | Theorem | Informal statement | Lean | Rocq |
 | --- | --- | --- | --- |
+| `pSubsetPPoly` | Proved inclusion `∀ L, InP L → InPPoly L`, by bounded NAND simulation (issue #626). | [Circuits.lean](../lean/Circuits.lean) | [Circuits.v](../rocq/Circuits.v) |
 | `unary_decided_by_advice` | For every `U : Nat → Bool`, `readAdvice` with advice `[U n]` decides the unary language of `U`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `adviceOf_length` | The advice has exactly one bit per length. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `adviceOf_injective` | Distinct languages receive distinct advice sequences. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
@@ -84,12 +85,12 @@ for SAT, yields SAT ∈ P*. The second reading claims *SAT ∉ P/poly*.
 | `satNotInPPoly_iff_superpoly` | `SATNotInPPoly ↔ SuperpolyLowerBound SAT`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `npNotInPPoly_of_sat` | `SATInNP → SATNotInPPoly → NPNotInPPoly`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `npNotInPPoly_of_sat'` | `SATNotInPPoly → NPNotInPPoly`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`). | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
-| `pNotEqualsNP_of_npNotInPPoly` | Conditional: `PSubsetPPoly → NPNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
-| `pNotEqualsNP_of_satNotInPPoly` | Conditional: `SATInNP → PSubsetPPoly → SATNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
-| `pNotEqualsNP_of_satNotInPPoly'` | Conditional: `PSubsetPPoly → SATNotInPPoly → PNotEqualsNP` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it; `PSubsetPPoly` remains a named hypothesis). | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
-| `nonuniform_lower_bound_separates` | The schema theorem at the shared classes: `PSubsetPPoly → NPNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `pNotEqualsNP_of_npNotInPPoly` | Conditional: `NPNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `pNotEqualsNP_of_satNotInPPoly` | Conditional: `SATInNP → SATNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `pNotEqualsNP_of_satNotInPPoly'` | Conditional: `SATNotInPPoly → PNotEqualsNP` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it; `pSubsetPPoly` is proved in issue #626). | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `nonuniform_lower_bound_separates` | The schema theorem at the shared classes: `NPNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `not_inPPoly_nonvacuous` | Non-vacuity: some language is outside `InPPoly` (counting), and constant languages are inside. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
-| `ppoly_strictly_bigger_than_p_if` | With `PSubsetPPoly`, P is strictly contained in P/poly. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `ppoly_strictly_bigger_than_p_if` | P is strictly contained in P/poly, using the proved inclusion. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 
 Differences between the two files:
 
@@ -196,7 +197,7 @@ What is **not** formalized:
   problem again. If that procedure exists the advice is unnecessary.
 * **As a lower-bound route (P ≠ NP): developed to an open obligation.**
   `NPNotInPPoly` (or `SATNotInPPoly`; `SATInNP` is proved in `SATVerifier`)
-  together with the named known theorem `PSubsetPPoly` gives P ≠ NP
+  using the proved inclusion `pSubsetPPoly` gives P ≠ NP
   (`pNotEqualsNP_of_npNotInPPoly`, `pNotEqualsNP_of_satNotInPPoly'`). The obligation implies P ≠ NP (with
   the standard classes, where P ⊆ P/poly), and the converse implication is
   not known. By the NP-completeness of SAT (Cook–Levin, cited, not
@@ -213,8 +214,8 @@ What is **not** formalized:
   constrains positive lengths: with length 0 included, a fixed-length
   circuit convention made `SAT` vacuously outside P/poly (the empty circuit
   outputs `false` on the empty word, which encodes a satisfiable formula);
-  `Circuits.lean` now quantifies over `0 < n`. `PSubsetPPoly` is a named
-  hypothesis, not proved here.
+  `Circuits.lean` now quantifies over `0 < n`. The inclusion is proved by
+  `pSubsetPPoly` in the paired issue #626 simulation.
 
 ## 7. Failure modes this idea catches
 
@@ -238,15 +239,11 @@ See [COMMON_ERRORS.md](../../../attempts/COMMON_ERRORS.md).
 From the repository root:
 
 ```sh
-lake env lean proofs/experiments/issue532/lean/Idea19.lean
-rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea19.v
-for f in proofs/complexity/rocq/Complexity proofs/experiments/issue532/rocq/Machines \
-         proofs/experiments/issue532/rocq/Circuits proofs/experiments/issue532/rocq/Idea19; do
-  rm -f "$f.vo" "$f.vok" "$f.vos" "$f.glob" "$(dirname "$f")/.$(basename "$f").aux"
-done
+lake build
+rocq makefile -f _CoqProject -o Makefile.coq
+make -f Makefile.coq
+python3 scripts/check_proof_status.py --lean
+python3 scripts/check_proof_status.py --rocq
 ```
 
-The compile commands print nothing on success.
+The assumption checks report the certified conclusions; historical compilation remains a separate check.

@@ -17,12 +17,11 @@
    Verdict: advice is refuted as a route to a uniform polynomial algorithm.
    The converse direction is developed to the open obligations SATNotInPPoly
    (~ InPPoly SAT) and NPNotInPPoly (NP not in P/poly), stated over the
-   shared machine and circuit models.  With SATInNP and the known theorem
-   PSubsetPPoly as named hypotheses they give PNotEqualsNP
+   shared machine and circuit models.  Using SATInNP and
+   the proved inclusion pSubsetPPoly they give PNotEqualsNP
    (pNotEqualsNP_of_satNotInPPoly, pNotEqualsNP_of_npNotInPPoly).  SATInNP
    is proved in SATVerifier.v (SATVerifier.satInNP), so npNotInPPoly_of_sat'
-   and pNotEqualsNP_of_satNotInPPoly' drop that premise; PSubsetPPoly remains
-   a named hypothesis.  Neither obligation is proved.
+   and pNotEqualsNP_of_satNotInPPoly' drop that premise; the inclusion is proved in issue #626.  Neither obligation is proved.
 
    Differences from Lean: the escape statements are pointwise (no function
    extensionality); unaryDiag is computable (it diagonalises with the
@@ -345,34 +344,32 @@ Proof. intros mem h. exists SAT. split; [exact mem | exact h]. Qed.
 Theorem npNotInPPoly_of_sat' : SATNotInPPoly -> NPNotInPPoly.
 Proof. exact (npNotInPPoly_of_sat SATVerifier.satInNP). Qed.
 
-(** Conditional theorem.  With the known theorem P in P/poly as the named
-    hypothesis [PSubsetPPoly], NP not in P/poly gives P <> NP. *)
-Theorem pNotEqualsNP_of_npNotInPPoly : PSubsetPPoly -> NPNotInPPoly -> PNotEqualsNP.
+(** Conditional theorem.  Using the proved inclusion [pSubsetPPoly], NP not in P/poly gives P <> NP. *)
+Theorem pNotEqualsNP_of_npNotInPPoly : NPNotInPPoly -> PNotEqualsNP.
 Proof.
-  intros hP [L [hL hnot]] hEq.
-  exact (not_inP_of_not_inPPoly hP L hnot (hEq L hL)).
+  intros [L [hL hnot]] hEq.
+  exact (not_inP_of_not_inPPoly L hnot (hEq L hL)).
 Qed.
 
-(** Conditional theorem (SAT form).  With [SATInNP] and [PSubsetPPoly] as
-    named hypotheses, [~ InPPoly SAT] gives P <> NP.  (Lean goes through
+(** Conditional theorem (SAT form).  Using [SATInNP] and the proved inclusion, [~ InPPoly SAT] gives P <> NP.  (Lean goes through
     [SuperpolyLowerBound SAT]; the Rocq proof uses [not_inP_of_not_inPPoly]
     directly and so needs no excluded middle.) *)
 Theorem pNotEqualsNP_of_satNotInPPoly :
-  SATInNP -> PSubsetPPoly -> SATNotInPPoly -> PNotEqualsNP.
+  SATInNP -> SATNotInPPoly -> PNotEqualsNP.
 Proof.
-  intros mem hP h hEq.
-  exact (not_inP_of_not_inPPoly hP SAT h (inP_sat_of_pEqualsNP mem hEq)).
+  intros mem h hEq.
+  exact (not_inP_of_not_inPPoly SAT h (inP_sat_of_pEqualsNP mem hEq)).
 Qed.
 
 (** [SATInNP] is proved ([SATVerifier.satInNP]), so the premise is dropped.
-    [PSubsetPPoly] remains a named hypothesis. *)
-Theorem pNotEqualsNP_of_satNotInPPoly' : PSubsetPPoly -> SATNotInPPoly -> PNotEqualsNP.
+    The proved inclusion is used internally. *)
+Theorem pNotEqualsNP_of_satNotInPPoly' : SATNotInPPoly -> PNotEqualsNP.
 Proof. exact (pNotEqualsNP_of_satNotInPPoly SATVerifier.satInNP). Qed.
 
 (** The schema theorem, instantiated at the shared classes. *)
-Theorem nonuniform_lower_bound_separates : PSubsetPPoly -> NPNotInPPoly ->
+Theorem nonuniform_lower_bound_separates : NPNotInPPoly ->
   ~ (forall L, InNP L -> InP L).
-Proof. exact (nonuniform_lower_bound_separatesFor InP InNP InPPoly). Qed.
+Proof. exact (nonuniform_lower_bound_separatesFor InP InNP InPPoly pSubsetPPoly). Qed.
 
 (* ---------- Non-vacuity ---------- *)
 
@@ -384,6 +381,6 @@ Proof. split; [exact exists_not_inPPoly | exact (inPPoly_const true)]. Qed.
 (** [PSubsetPPoly] is not refuted by [ppoly_not_subset_p]: the converse
     inclusion fails, which is consistent with P in P/poly.  The obligation
     needs a language that is both in NP and outside P/poly. *)
-Theorem ppoly_strictly_bigger_than_p_if : PSubsetPPoly ->
+Theorem ppoly_strictly_bigger_than_p_if :
   (forall L, InP L -> InPPoly L) /\ exists L, InPPoly L /\ ~ InP L.
-Proof. intro hP. split; [exact hP | exact ppoly_not_subset_p]. Qed.
+Proof. split; [exact pSubsetPPoly | exact ppoly_not_subset_p]. Qed.

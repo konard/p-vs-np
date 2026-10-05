@@ -1,4 +1,6 @@
 import proofs.experiments.issue532.lean.Machines
+import proofs.experiments.issue532.lean.CircuitModel
+import proofs.experiments.issue626.lean.Correctness
 
 /-!
 # Issue #532: a shared circuit model and the bridge to the machine model
@@ -13,9 +15,9 @@ size is the number of gates, and its output is computed by `output`.
   P/poly and a superpolynomial circuit lower bound, which are complementary.
 * `PSubsetPPoly`: every language in P has polynomial-size circuits
   (Savage 1972; Pippenger–Fischer 1979; Arora–Barak Theorem 6.6). It is a
-  known theorem that this file does **not** prove; every use is an explicit
-  hypothesis named `PSubsetPPoly`.
-* `pNotEqualsNP_of_superpoly_sat`: under `SATInNP` and `PSubsetPPoly`, a
+  proved theorem `pSubsetPPoly`, imported from the bounded NAND simulation
+  in issue #626.
+* `pNotEqualsNP_of_superpoly_sat`: using `SATInNP` and the proved inclusion, a
   superpolynomial circuit lower bound for SAT gives P ≠ NP.
 * Circuit requirements are imposed only at positive input lengths: a
   well-formed circuit on `0` inputs is empty and outputs `false`, and counting
@@ -33,43 +35,8 @@ namespace Issue532.Circuits
 
 open Complexity Issue532.Machines
 
-/-- Gate `(i, j)` appends the NAND of wires `i` and `j`. -/
-abbrev Circuit := List (Nat × Nat)
-
-def wire (w : List Bool) (i : Nat) : Bool := w.getD i false
-
-/-- All wire values: the inputs followed by one wire per gate. -/
-def wires (w : List Bool) : Circuit → List Bool
-  | [] => w
-  | (i, j) :: C => wires (w ++ [!(wire w i && wire w j)]) C
-
-/-- The output is the last wire. -/
-def output (x : Word) (C : Circuit) : Bool := (wires x C).getLastD false
-
-/-- Gate `k` only reads the `N` earlier wires. -/
-def WFfrom : Nat → Circuit → Prop
-  | _, [] => True
-  | N, (i, j) :: C => i < N ∧ j < N ∧ WFfrom (N + 1) C
-
-/-- A well-formed circuit on `n` inputs. -/
-def WF (n : Nat) (C : Circuit) : Prop := WFfrom n C
-
-/-- `C` is a well-formed circuit on `n` inputs that agrees with `L` on every
-word of length `n`. -/
-def CircuitDecides (n : Nat) (C : Circuit) (L : Language) : Prop :=
-  WF n C ∧ ∀ x : Word, x.length = n → output x C = L x
-
-/-- The class P/poly: `L` has circuits with polynomially many gates at every
-positive input length.
-
-Length `0` is excluded on purpose. A well-formed circuit on `0` inputs has no
-gates (`WF 0 C` forces `C = []`), so its output is the constant `false`. If
-length `0` counted, every language with `L [] = true` (SAT among them, since
-the empty CNF is satisfiable) would be outside P/poly for a trivial reason,
-and `PSubsetPPoly` would be false. One word per length changes no asymptotic
-notion. -/
-def InPPoly (L : Language) : Prop :=
-  ∃ p : Polynomial, ∀ n, 0 < n → ∃ C : Circuit, C.length ≤ p.eval n ∧ CircuitDecides n C L
+/-- Bounded machine simulation proves the shared inclusion P ⊆ P/poly. -/
+theorem pSubsetPPoly : PSubsetPPoly := Issue626.Simulation.pSubsetPPoly
 
 /-- A superpolynomial circuit lower bound: for every polynomial some positive
 input length defeats every circuit of that size (see `InPPoly` for why the
@@ -102,40 +69,27 @@ theorem superpoly_iff_not_inPPoly (L : Language) : SuperpolyLowerBound L ↔ ¬ 
     intro hne
     exact hx ⟨x, hlen, hne⟩
 
-/-- **Known theorem, not mechanised here.** Every language decided by a
-polynomial-time `Complexity.Machine` has polynomial-size NAND circuits
-(Savage 1972; Pippenger–Fischer 1979; Arora–Barak Theorem 6.6). The missing
-part is the tableau construction for this machine model. -/
-def PSubsetPPoly : Prop := ∀ L : Language, InP L → InPPoly L
-
-/-- A language outside P/poly is outside P, given `PSubsetPPoly`. -/
-theorem not_inP_of_not_inPPoly (hP : PSubsetPPoly) {L : Language} (h : ¬ InPPoly L) :
+/-- A language outside P/poly is outside P, by `pSubsetPPoly`. -/
+theorem not_inP_of_not_inPPoly {L : Language} (h : ¬ InPPoly L) :
     ¬ InP L :=
-  fun hL => h (hP L hL)
+  fun hL => h (pSubsetPPoly L hL)
 
 /-- **Bridge.** A superpolynomial circuit lower bound for SAT gives P ≠ NP,
-using the membership half of Cook–Levin and `PSubsetPPoly`. -/
-theorem pNotEqualsNP_of_superpoly_sat (mem : SATInNP) (hP : PSubsetPPoly)
+using the membership half of Cook–Levin and the proved inclusion `pSubsetPPoly`. -/
+theorem pNotEqualsNP_of_superpoly_sat (mem : SATInNP)
     (h : SuperpolyLowerBound SAT) : PNotEqualsNP := fun hEq =>
-  not_inP_of_not_inPPoly hP ((superpoly_iff_not_inPPoly SAT).mp h) (inP_sat_of_pEqualsNP mem hEq)
+  not_inP_of_not_inPPoly ((superpoly_iff_not_inPPoly SAT).mp h) (inP_sat_of_pEqualsNP mem hEq)
 
 /-- The same bridge for any NP language. -/
-theorem pNotEqualsNP_of_superpoly (hP : PSubsetPPoly) {L : Language} (mem : InNP L)
+theorem pNotEqualsNP_of_superpoly {L : Language} (mem : InNP L)
     (h : SuperpolyLowerBound L) : PNotEqualsNP := fun hEq =>
-  not_inP_of_not_inPPoly hP ((superpoly_iff_not_inPPoly L).mp h) (hEq L mem)
+  not_inP_of_not_inPPoly ((superpoly_iff_not_inPPoly L).mp h) (hEq L mem)
 
 
 /-! ## Sanity check: constant languages are in P/poly
 
 With the positive-length convention every constant language has two- or
 three-gate circuits, so `PSubsetPPoly` is not refuted by a degenerate case. -/
-
-theorem wire_append_self (x : List Bool) (b : Bool) : wire (x ++ [b]) x.length = b := by
-  simp [wire]
-
-theorem wire_append_lt (x : List Bool) (b : Bool) (i : Nat) (h : i < x.length) :
-    wire (x ++ [b]) i = wire x i := by
-  simp [wire, List.getD_eq_getElem?_getD, List.getElem?_append_left h]
 
 /-- The circuit `[(0,0), (0,n)]` outputs `true` on every input of positive length. -/
 theorem output_const_true (x : Word) (hx : 0 < x.length) :

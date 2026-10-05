@@ -31,8 +31,8 @@ polynomial-time machine deciding `L` from the input with its advice.  The open
 obligation is `UniformSATAdvice := UniformAdvice Machines.SAT`;
 `inP_sat_of_uniformSATAdvice` and `pEqualsNP_of_uniformSATAdvice` derive
 `InP SAT` and `PEqualsNP` from it, `not_uniformSATAdvice_of_superpoly` shows
-that a superpolynomial circuit lower bound for SAT refutes it (given the named
-known theorem `PSubsetPPoly`), `not_forall_uniformAdvice` is the non-vacuity
+that a superpolynomial circuit lower bound for SAT refutes it (using the
+proved theorem `pSubsetPPoly`), `not_forall_uniformAdvice` is the non-vacuity
 check, and `uniformPolyAdviceFor_of_uniformAdvice` instantiates the schema
 `UniformPolyAdviceFor`.
 
@@ -423,16 +423,16 @@ theorem pEqualsNP_of_uniformSATAdvice (hard : Machines.SATHard) (h : UniformSATA
   Machines.pEqualsNP_of_inP_sat hard (inP_sat_of_uniformSATAdvice h)
 
 /-- Uniform advice is in particular non-uniform advice: with the known theorem
-`PSubsetPPoly`, the language has polynomial-size circuits. -/
-theorem inPPoly_of_uniformAdvice (hP : Circuits.PSubsetPPoly) {L : Language}
+`pSubsetPPoly`, the language has polynomial-size circuits. -/
+theorem inPPoly_of_uniformAdvice {L : Language}
     (h : UniformAdvice L) : Circuits.InPPoly L :=
-  hP L (inP_of_uniformAdvice h)
+  Circuits.pSubsetPPoly L (inP_of_uniformAdvice h)
 
 /-- **Refutation route.** A superpolynomial circuit lower bound for SAT (together
-with the known theorem `PSubsetPPoly`) refutes the open obligation. -/
-theorem not_uniformSATAdvice_of_superpoly (hP : Circuits.PSubsetPPoly)
+with the proved theorem `pSubsetPPoly`) refutes the open obligation. -/
+theorem not_uniformSATAdvice_of_superpoly
     (h : Circuits.SuperpolyLowerBound Machines.SAT) : ¬ UniformSATAdvice := fun hU =>
-  (Circuits.superpoly_iff_not_inPPoly Machines.SAT).mp h (inPPoly_of_uniformAdvice hP hU)
+  (Circuits.superpoly_iff_not_inPPoly Machines.SAT).mp h (inPPoly_of_uniformAdvice hU)
 
 /-- **Non-vacuity.** Some language has no uniform polynomial advice. -/
 theorem not_forall_uniformAdvice : ¬ ∀ L : Language, UniformAdvice L := by
