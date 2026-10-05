@@ -34,7 +34,7 @@ example : verifyCircuit (encCircuit 1 []) [false] = false := by decide
 -- Replacing every certificate by [false] also breaks the existential language
 -- relation on the smallest circuit whose only satisfying input is [true].
 example : ¬ (CircuitSAT (encCircuit 1 []) = true ↔
-    ∃ cert : Word, verifyCircuit (encCircuit 1 []) [false] = true) := by
+    ∃ _cert : Word, verifyCircuit (encCircuit 1 []) [false] = true) := by
   intro he
   have hs : CircuitSAT (encCircuit 1 []) = true :=
     (circuitSAT_iff_verifyCircuit _).mpr ⟨[true], rfl⟩

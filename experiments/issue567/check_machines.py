@@ -85,8 +85,15 @@ def check(language: str) -> None:
                 raise RuntimeError(f"{language} accepted mutation {name}")
             # Missing imports/names would give a spurious passing mutation test.
             output = result.stdout + result.stderr
-            expected = ("is false", "failed", "Type mismatch") if language == "lean" else ("Unable to unify",)
-            if not any(reason in output for reason in expected):
+            if language == "lean":
+                expected = (
+                    ("could not unify the conclusion of `@Run.halt`",)
+                    if name == "zero_step"
+                    else ("Tactic `decide` proved that the proposition", "is false")
+                )
+            else:
+                expected = ("Unable to unify",)
+            if not all(reason in output for reason in expected):
                 raise RuntimeError(f"{language} mutation {name} failed for an unexpected reason; see {logs}")
             print(f"{language}: rejected {name}")
 
