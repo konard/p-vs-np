@@ -10,6 +10,7 @@ experiments/issue574/CheckLemmas.v
 experiments/issue574/CheckShared.v
 experiments/issue574/PolynomialRegression.v
 experiments/issue568/TraceRegression.v
+experiments/issue624/CertificateRegression.v
 proofs/attempts/alan-feinstein-2005-pneqnp/rocq/FeinsteinAttempt.v
 proofs/attempts/alan-feinstein-2011-pneqnp/rocq/FeinsteinsProof.v
 proofs/attempts/amar-mukherjee-2011-peqnp/proof/rocq/MukherjeeProof.v
@@ -242,6 +243,8 @@ proofs/experiments/issue567/rocq/ResidualKey.v
 proofs/experiments/issue532/rocq/Machines.v
 proofs/experiments/issue532/rocq/SATVerifier.v
 proofs/experiments/issue568/rocq/Tableau.v
+proofs/experiments/issue624/rocq/CertificateCNF.v
+proofs/experiments/issue624/rocq/VerifierTableau.v
 proofs/experiments/issue609/rocq/KnownBarriers.v
 proofs/experiments/issue609/rocq/PEqualsNPAttempt.v
 proofs/experiments/issue7/rocq/ClockedSAT.v
