@@ -48,11 +48,22 @@ representation theorems are certified, and its actual `encodeCNF` bit length
 is `8B² + 14B + 4` at offset zero. Both `VerifierProgram` constructors are
 connected to #568's existing `LocalTrace`, preserving the decoded certificate's
 actual length and acceptance clock. A uniform polynomial clock and tape-cell
-envelope support the future rectangular tableau.
+envelope support the rectangular tableau.
+
+The continuation in PR #630 also proves that determinism and termination
+recover the actual certificate-dependent clock from every accepting run.
+Paired `FixedWindow` modules prove blank-padding simulation on both sides of
+the two-way tape, constant-width local traces for all `ClassNP` witnesses,
+and an explicit polynomial bound on the width. `LocalCNF` supplies certified
+implication and exactly-one constraints and unary encoded-size bounds.
+`ConstantEmitter` provides a finite machine that erases its input, emits a
+fixed word, and restores its head, with a checked `Computes` contract and
+polynomial charged-step bound. Its write and return blocks have reusable
+instruction-table contracts.
 
 This is **known theorem mechanized** for the prerequisites. The transition
 and acceptance constraints have not yet been encoded into CNF, and no
-polynomial-time single-tape reduction machine has been proved. `SATHard`
+input-dependent polynomial-time single-tape reduction machine has been proved. `SATHard`
 remains an explicit premise of the Idea bridges; #624 remains open. See the
 [paired assumption reports](../../../experiments/issue624/ASSUMPTIONS.md).
 

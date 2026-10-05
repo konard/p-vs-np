@@ -43,6 +43,43 @@ polynomial-time function machine. A smaller PR must not close #624.
 Experiments use finite inputs. Stress probes, if needed, must have finite
 input and memory/stack limits. No background process may be left unfinished.
 
+## Continuation after the full-deliverable review
+
+The review at https://github.com/konard/p-vs-np/pull/630#issuecomment-5993763999
+requires the complete #624 endpoint, including the reduction machine. The
+edited PR description is not evidence that the missing proofs exist.
+
+- [x] Read the complete issue, updated PR body, all three PR comment/review
+  endpoints, contributor guidance, and the existing proof construction.
+- [x] Check the prepared branch and recent CI timestamps/SHAs. Existing CI
+  passes for `913f9fa`; the default branch has not advanced.
+- [x] Trace the configuration boundaries and exact certificate-dependent
+  clocks needed to compile `LocalTrace` constraints into finite CNF.
+- [ ] Develop finite negative regressions before implementing each missing
+  construction; retain diagnostics in `ci-logs/` and probes here.
+- [x] Prove exact-clock recovery, two-way padding simulation, fixed-window
+  trace/language correspondence, and the explicit polynomial width.
+- [x] Prove local implication and exactly-one CNF contracts and unary
+  encoded-size bounds; compile their paired negative regressions.
+- [x] Prove a finite fixed-word emitter's charged `Computes` contract,
+  reusable writing/return blocks, and paired concrete execution regressions.
+- [ ] Construct and verify transition/acceptance CNF, both model directions,
+  and all required rejecting/bad-edge/certificate-bound cases.
+- [ ] Prove the complete encoded size, including unary variable identifiers.
+- [ ] Implement the finite single-tape emitter and prove its `Computes`
+  contract and polynomial step bound. Use existing sequencing/sweep proofs.
+- [ ] Assemble paired `satHard`/`cookLevin`, audit their assumptions, remove
+  every named hardness premise, and update the manifest and Idea dossiers.
+- [x] Run complete local CI and both assumption audits, inspect the staged
+  proof diff, and commit verified construction steps.
+- [ ] Publish the complete deliverable and verify its full PR diff and CI;
+  push only the prepared branch.
+- [ ] Update PR #630 around the implemented result, check fresh CI against
+  the pushed SHA, download/analyze any failing logs, and verify clean status.
+- [ ] Mark the PR ready once the deliverable is proved and reviewable. Keep
+  any unresolved proof obligation explicit; do not replace it by an axiom,
+  admissions, exponential enumeration, or a weakened machine model.
+
 ## Validated checkpoint
 
 The certificate CNF and semantic verifier interface are complete. All four
@@ -57,3 +94,12 @@ Its creation time, 2026-10-05 09:32:24 UTC, is after that commit's
 subsequent changes are checked by the PR's latest CI run.
 Publication and readiness are tracked on [PR #630](https://github.com/konard/p-vs-np/pull/630),
 whose description contains no issue-closing reference.
+
+## Continuation checkpoint
+
+The fixed-window semantic interface, local CNF combinators, and fixed-word
+output primitive are checked in both provers. The full `tableauCNF`, its size
+polynomial, the input-dependent reduction machine, and `satHard`/`cookLevin`
+remain absent. [TABLEAU_DESIGN.md](TABLEAU_DESIGN.md) records the concrete
+remaining construction and the emitter quantifier-order obligation. The
+existing hardness premises must remain until those proofs are available.

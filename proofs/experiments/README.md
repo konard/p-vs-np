@@ -61,8 +61,11 @@ fragment, including suffix-closed blanks, a forced bound sentinel, and the
 exact encoded bit length with unary variable identifiers. Its paired semantic
 interface connects decoded certificates to #568's `LocalTrace` for both
 verifier constructors, using the actual certificate-dependent clock, and
-proves a uniform polynomial clock and cell envelope. The transition CNF and
-polynomial-time reduction machine are still required for `SATHard`.
+proves a uniform polynomial clock and cell envelope. It also certifies
+two-way blank padding, fixed-width traces, local implication and exactly-one
+CNF constraints, their unary encoded-size bounds, and a charged fixed-word
+output machine. The transition CNF and input-dependent polynomial-time
+reduction machine are still required for `SATHard`.
 
 [issue7/](issue7/README.md) states the clocked-SAT sentence behind issue #7's
 independence question. Its paired Lean and Rocq files prove a clock lemma and

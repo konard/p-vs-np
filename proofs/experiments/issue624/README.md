@@ -1,10 +1,10 @@
-# Cook–Levin certificate and verifier-tableau prerequisites
+# Cook–Levin construction in the shared machine model
 
 **Status: a preparatory part of #624's first slice. The issue remains open.**
 The complete `tableauCNF`, its polynomial encoded-size bound, the single-tape
 reduction machine, `satHard`, and unconditional P = NP bridges remain to be
-constructed. This directory certifies the variable-length certificate fragment
-and its connection to the existing bounded trace semantics.
+constructed. This directory certifies variable-length certificates, fixed-width
+verifier traces, local CNF combinators, and a finite-table output primitive.
 
 Classification: **known theorem mechanized**, for these prerequisites only.
 Nothing here establishes an answer to P versus NP.
@@ -73,8 +73,72 @@ degree      = (certBound.degree + 1) * timeBound.degree
 ```
 
 `verifierTableau_span` bounds every represented configuration by
-`n + certBound.eval n + maxClock n + 2` tape cells. This envelope does not
-replace the actual acceptance clock in the semantic predicate.
+`n + certBound.eval n + maxClock n + 2` tape cells.
+`acceptingRun_timeLimit` additionally proves that **every** accepting run on
+a bounded certificate fits its actual clock: the verifier's termination
+witness and determinism force the same step count. Consequently
+`envelopeTableau_iff_exact` proves equality of the envelope and exact-clock
+model predicates, for the original assignment and trace. This covers both
+verifier constructors.
+
+## Fixed tape windows
+
+`FixedWindow` pads both sides of a configuration with blanks and proves a
+step-by-step simulation of the shared two-way tape. Moving left from an empty
+represented left tape remains valid; there is no assumed left boundary.
+`run_fitWindow_iff` preserves the answer and exact charged run length.
+
+With `T = maxClock np n` and `B = certBound.eval n`, `windowWidth` is
+`n + B + 2T + 3`. `trace_window_of_run` proves that enough blank reserve on
+both sides yields an actual #568 `LocalTrace` of constant width.
+`windowVerifierTableau_iff_language` proves the complete semantic
+correspondence for every `ClassNP` witness. `accepting_trace_state_lt` excludes
+missing states, whose default instruction rejects. `windowWidth_polynomial`
+uses the explicit polynomial
+
+```text
+coefficient = certBound.coefficient + 2 * clockPolynomial.coefficient + 4
+degree      = certBound.degree + clockPolynomial.degree + 1
+```
+
+These are finite semantic traces; their state, head, and tape constraints
+still need to be compiled into the complete tableau CNF.
+
+## Local CNF combinators
+
+`LocalCNF.implies` compiles a conjunction of premise literals implying a
+disjunction of conclusion literals into a single clause. An empty conclusion
+forbids the premise; an empty premise forces the conclusion.
+`implies_models` proves this contract for each assignment.
+
+`oneHot base size` combines an at-least-one clause with pairwise exclusions.
+`oneHot_models` proves selection of exactly one value in the bounded domain;
+the empty domain is unsatisfiable. It enumerates value pairs rather than
+whole configurations or certificates. `oneHot_encoded_size` bounds its
+encoded bit length by
+
+```text
+2 * (size² + 1) * (1 + (size + 2) * (base + size + 1))
+```
+
+`cnf_encoded_size` also provides a general bound for formulas with bounded
+variable identifiers and clause width. Both bounds use the actual unary
+literal encoding, including delimiters.
+
+## Charged output primitive
+
+`ConstantEmitter.emitter w` is an explicit finite machine table over the
+shared alphabet. It marks the origin, erases the input, returns to the marker,
+writes the fixed word `w`, and restores the head to the leftmost cell. The
+table has `4 + 2 * w.length` states. `emitter_computes` proves the existing
+`Computes` contract, including the exit state, empty left tape, output bits,
+and trailing blanks, within the polynomial `⟨4 + 2 * w.length, 1⟩`.
+`write_block` and `return_block` expose reusable instruction-table contracts
+with one charged step per written bit or head move.
+
+The output is fixed when the table is constructed. This primitive supplies
+neither the counters nor the input-dependent tableau emission required by
+`Computes red (fun x => encodeCNF (tableauCNF np x)) r`.
 
 ## Verification and limits
 
@@ -87,7 +151,12 @@ certificate from a one-bit certificate at the same capacity. The bad-edge
 case reuses `wrong_successor_rejected`, even though its final row accepts.
 A concrete NP witness for the empty-input language has a valid two-row model
 and rejects the same trace after replacing its successor with the bad row.
-This exercises the new predicate with a zero certificate bound and clock two.
+This exercises the predicate with a zero certificate bound and clock two.
+Window regressions check two-way padding, exact span, state bounds, and an
+invalid successor. CNF regressions reject zero, missing, and multiple selected
+values and check forbidden or inactive constraints. Emitter regressions run
+the concrete table on empty inputs/outputs and on inputs shorter and longer
+than its output.
 
 The rejecting-verifier and wrong-successor results concern **the semantic
 `VerifierTableau` predicate**. The certificate CNF alone is always satisfiable;
@@ -97,17 +166,21 @@ criterion in #624 is therefore still outstanding.
 Assumption reports are attached in
 [ASSUMPTIONS.md](../../../experiments/issue624/ASSUMPTIONS.md).
 The source and enforced prover audits list the completed public conclusions
-in `scripts/proof_status.json`. Lean uses only `propext` and `Quot.sound`;
+in `scripts/proof_status.json`. Lean uses only `propext`, `Classical.choice`, and `Quot.sound`;
 Rocq uses no global assumptions. There are no admissions or new axioms.
 
 ```sh
 lake build
 lake env lean experiments/issue624/CertificateRegression.lean
+lake env lean experiments/issue624/WindowRegression.lean
+lake env lean experiments/issue624/CNFRegression.lean
+lake env lean experiments/issue624/EmitterRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py
 python3 scripts/check_proof_status.py --lean
 python3 scripts/check_proof_status.py --rocq
+bash experiments/issue624/check.sh all
 ```
 
 Local toolchains: Lean 4.34.1 and Rocq 9.2. CI uses Rocq 9.0. The original
@@ -127,8 +200,9 @@ locally under `ci-logs/`.
 4. Assemble `satHard` and `cookLevin`, then remove the existing hardness
    premises and update the Idea dossiers. Keep those premises until this step.
 
-The shared model currently supplies sequencing (`compose_run`), but no
-verified general counter/copy/tableau-emission compiler. A finite CNF function
+The shared model supplies sequencing (`compose_run`) and the fixed-output
+primitive above, but no verified general counter/copy/tableau-emission
+compiler. A finite CNF function
 or its output-size bound cannot stand in for the `Computes` proof. Enumerating
 all certificates or configurations would lose the required polynomial bound.
 Importing [Gäher–Kunze's construction](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITP.2021.20)
