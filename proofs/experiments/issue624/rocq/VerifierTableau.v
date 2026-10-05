@@ -75,6 +75,51 @@ Proof.
     cbn [timeLimit]; apply polynomial_mono; lia.
 Qed.
 
+(** Termination and determinism recover the actual certificate clock from
+    every accepting run, regardless of the envelope used for encoding. *)
+Theorem acceptingRun_timeLimit : forall np x cert t,
+  length cert <= evalPoly (np_certBound np) (length x) ->
+  verifierRun (np_verifier np) x cert t true ->
+  t <= timeLimit (np_verifier np) (np_timeBound np) x cert.
+Proof.
+  intros np x cert t hc hr.
+  destruct (np_terminates np x cert hc) as [u [b [hu hb]]].
+  apply verifierRun_iff in hr. apply verifierRun_iff in hb.
+  pose proof (run_deterministic _ _ _ _ _ _ hr hb) as [he _]. lia.
+Qed.
+
+Definition EnvelopeTableau (np : ClassNP) (x : Word) (a : Assignment)
+    (trace : list Config) : Prop :=
+  let cert := decodeCertificate a 0 (evalPoly (np_certBound np) (length x)) in
+  evalCNF a (certificateCNF 0 (evalPoly (np_certBound np) (length x))) = true /\
+  hd_error trace = Some (verifierInitial (np_verifier np) x cert) /\
+  length trace <= maxClock np (length x) /\
+  localTrace (verifierMachine (np_verifier np)) true trace.
+
+(** The original decoded trace itself fits the actual clock. *)
+Theorem envelopeTableau_iff_exact : forall np x a trace,
+  EnvelopeTableau np x a trace <-> VerifierTableau np x a trace.
+Proof.
+  intros np x a trace. split.
+  - intros [hcnf [hhead [_ hlocal]]].
+    split; [exact hcnf|]. split; [exact hhead|]. split; [|exact hlocal].
+    apply acceptingRun_timeLimit; [apply decodeCertificate_length|].
+    apply verifierRun_iff. apply (proj1 (localTrace_iff_run _ _ _ true)).
+    exists trace. auto.
+  - intros [hcnf [hhead [htime hlocal]]].
+    split; [exact hcnf|]. split; [exact hhead|]. split; [|exact hlocal].
+    eapply Nat.le_trans; [exact htime|].
+    apply verifierTimeLimit_le. apply decodeCertificate_length.
+Qed.
+
+Theorem envelopeTableau_iff_language : forall np x,
+  (exists a trace, EnvelopeTableau np x a trace) <-> np_language np x = true.
+Proof.
+  intros np x. rewrite <- verifierTableau_iff_language.
+  split; intros [a [trace h]]; exists a, trace;
+    apply envelopeTableau_iff_exact; exact h.
+Qed.
+
 Theorem maxClock_polynomial : forall np n,
   maxClock np n <= evalPoly (clockPolynomial np) n.
 Proof.

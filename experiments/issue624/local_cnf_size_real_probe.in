@@ -1,0 +1,12 @@
+From Stdlib Require Import Arith Lia.
+(* Split the size inequality from the encoded term. Keeping a recursive
+   list length inside nia made proof search fail in the original attempt. *)
+Goal forall size base k,
+  k <= size * size ->
+  2 * S k * (1 + (size + 2) * (base + size + 1)) <=
+  2 * (size * size + 1) * (1 + (size + 2) * (base + size + 1)).
+intros size base k hl.
+apply Nat.mul_le_mono_r.
+Show.
+nia.
+Qed.

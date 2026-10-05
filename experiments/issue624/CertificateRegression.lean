@@ -95,6 +95,17 @@ example : ¬ Represents (encodeCertificate [true, false]) 0 [true, false] 1 :=
 example : ¬ Issue568.Tableau.LocalTrace Issue568.Tableau.moveThenAccept true
     [initial [], Issue568.Tableau.wrongSuccessor] := Issue568.Tableau.wrong_successor_rejected
 
+-- A rectangular envelope must recover the exact certificate-dependent clock.
+example (np : ClassNP) (x cert : Word) (t : Nat)
+    (hc : cert.length ≤ np.certBound.eval x.length)
+    (hr : np.verifier.Run x cert t true) :
+    t ≤ np.verifier.timeLimit np.timeBound x cert :=
+  acceptingRun_timeLimit np x cert t hc hr
+
+example (np : ClassNP) (x : Word) (a : Assignment) (trace : List Config) :
+    EnvelopeTableau np x a trace ↔ VerifierTableau np x a trace :=
+  envelopeTableau_iff_exact np x a trace
+
 -- The bad-edge predicate also has a concrete, nonvacuous NP witness.
 private theorem emptyInputRun (x : Word) :
     ∃ t, t ≤ 2 ∧ Run Issue568.Tableau.moveThenAccept (initial x) t x.isEmpty := by
@@ -140,3 +151,7 @@ example : ¬ VerifierTableau emptyInputNP [] (encodeCertificate [])
 #print axioms Issue624.VerifierTableau.maxClock_polynomial
 #print axioms Issue624.VerifierTableau.verifierTableau_span
 #print axioms Issue624.VerifierTableau.wrong_successor_not_model
+
+#print axioms Issue624.VerifierTableau.acceptingRun_timeLimit
+#print axioms Issue624.VerifierTableau.envelopeTableau_iff_exact
+#print axioms Issue624.VerifierTableau.envelopeTableau_iff_language

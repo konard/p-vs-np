@@ -72,6 +72,46 @@ theorem verifierTimeLimit_le (np : ClassNP) (x cert : Word)
     np.verifier.timeLimit np.timeBound x cert ≤ maxClock np x.length := by
   cases np.verifier <;> apply polynomial_mono np.timeBound <;> omega
 
+/-- Termination plus determinism recovers the actual clock of every accepting
+run. Thus a rectangular envelope cannot admit a slower spurious acceptance. -/
+theorem acceptingRun_timeLimit (np : ClassNP) (x cert : Word) (t : Nat)
+    (hc : cert.length ≤ np.certBound.eval x.length)
+    (hr : np.verifier.Run x cert t true) :
+    t ≤ np.verifier.timeLimit np.timeBound x cert := by
+  obtain ⟨u, b, hu, hb⟩ := np.terminates x cert hc
+  have he := run_deterministic ((verifierRun_iff _ _ _ _ _).mp hr)
+    ((verifierRun_iff _ _ _ _ _).mp hb)
+  exact he.1 ▸ hu
+
+/-- Rectangular trace interface using the existing local constraints. -/
+def EnvelopeTableau (np : ClassNP) (x : Word) (a : Assignment)
+    (trace : List Config) : Prop :=
+  let cert := decodeCertificate a 0 (np.certBound.eval x.length)
+  evalCNF a (certificateCNF 0 (np.certBound.eval x.length)) = true ∧
+  trace.head? = some (verifierInitial np.verifier x cert) ∧
+  trace.length ≤ maxClock np x.length ∧
+  LocalTrace (verifierMachine np.verifier) true trace
+
+/-- Equality of model predicates, stronger than equisatisfiability. In the
+forward direction even the original trace satisfies the exact clock. -/
+theorem envelopeTableau_iff_exact (np : ClassNP) (x : Word) (a : Assignment)
+    (trace : List Config) :
+    EnvelopeTableau np x a trace ↔ VerifierTableau np x a trace := by
+  constructor
+  · rintro ⟨hcnf, hhead, _, hlocal⟩
+    refine ⟨hcnf, hhead, ?_, hlocal⟩
+    apply acceptingRun_timeLimit np x _ trace.length (decodeCertificate_length _ _ _)
+    apply (verifierRun_iff _ _ _ _ _).mpr
+    exact (localTrace_iff_run _ _ _ true).mp ⟨trace, hhead, rfl, hlocal⟩
+  · rintro ⟨hcnf, hhead, htime, hlocal⟩
+    exact ⟨hcnf, hhead, Nat.le_trans htime
+      (verifierTimeLimit_le np x _ (decodeCertificate_length _ _ _)), hlocal⟩
+
+theorem envelopeTableau_iff_language (np : ClassNP) (x : Word) :
+    (∃ a trace, EnvelopeTableau np x a trace) ↔ np.language x = true := by
+  simp only [envelopeTableau_iff_exact]
+  exact verifierTableau_iff_language np x
+
 theorem maxClock_polynomial (np : ClassNP) (n : Nat) :
     maxClock np n ≤ (clockPolynomial np).eval n := by
   have hpow : 1 ≤ (n + 1) ^ np.certBound.degree := Nat.one_le_pow _ _ (by omega)

@@ -139,6 +139,16 @@ Example wrong_successor_nonmodel : ~ VerifierTableau emptyInputNP [] (encodeCert
   [initial []; Tableau.Tableau.wrongSuccessor].
 Proof. apply wrong_successor_not_model. reflexivity. Qed.
 
+Example accepting_run_exact_clock : forall np x cert t,
+  length cert <= evalPoly (np_certBound np) (length x) ->
+  verifierRun (np_verifier np) x cert t true ->
+  t <= timeLimit (np_verifier np) (np_timeBound np) x cert.
+Proof. apply acceptingRun_timeLimit. Qed.
+
+Example rectangular_clock_exact : forall np x a trace,
+  EnvelopeTableau np x a trace <-> VerifierTableau np x a trace.
+Proof. apply envelopeTableau_iff_exact. Qed.
+
 Print Assumptions certificateCNF_models.
 Print Assumptions encodeCertificate_models.
 Print Assumptions decode_encodeCertificate.
@@ -150,3 +160,7 @@ Print Assumptions VerifierTableau.verifierTableau_iff_language.
 Print Assumptions VerifierTableau.maxClock_polynomial.
 Print Assumptions VerifierTableau.verifierTableau_span.
 Print Assumptions VerifierTableau.wrong_successor_not_model.
+
+Print Assumptions VerifierTableau.acceptingRun_timeLimit.
+Print Assumptions VerifierTableau.envelopeTableau_iff_exact.
+Print Assumptions VerifierTableau.envelopeTableau_iff_language.
