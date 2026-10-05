@@ -27,6 +27,38 @@ check is implemented in the prover, not yet by a finite `Complexity.Machine`
 on `pairedInput`; no polynomial `Run` bound has been proved. Consequently the
 named `CircuitSATInNP` premise in Idea 41 and issue 10 remains explicit.
 
+### Machine-level syntax slice (issue 625)
+
+The paired `CircuitSyntax` modules provide a six-state `Complexity.Machine`
+that recognizes exactly the `encCircuit` grammar on `pairedInput x cert`.
+`circuitSyntax_iff_decCircuit` connects it to the existing total decoder.
+`circuitSyntaxMachine_run` proves a run with exactly `|x| + 1` charged
+instructions for **every** input and certificate, including malformed input.
+`circuitSyntaxMachine_terminates` gives the explicit polynomial `⟨1, 1⟩`,
+and `circuitSyntaxMachine_accepts_iff` identifies the accepted encodings.
+The machine leaves all input and certificate symbols intact.
+
+This is **known theorem mechanized: linear-time recognition of the circuit
+encoding grammar**. It is not the full circuit verifier. For example,
+`encCircuit 1 [(0, 1)]` has valid syntax but an invalid forward wire, and the
+syntax machine accepts it. The machine does not check certificate length or
+evaluate NAND gates. Its certified status applies only to the listed syntax
+theorems.
+
+`Idea41.circuitSATInNP_of_verifier_run` now proves the NP-record assembly from
+a machine and a polynomial satisfying the **explicit** remaining obligation:
+
+```text
+∀ x cert, |cert| ≤ |x| + 1 →
+  ∃ t, t ≤ time.eval (|x| + |cert| + 1) ∧
+    Run m (pairedInput x cert) t (verifyCircuit x cert)
+```
+
+It uses the existing certificate bound and run determinism. It does not prove
+that such a machine exists, and no `mem : CircuitSATInNP` argument has been
+removed. The [issue 625 investigation](../../../experiments/issue625/README.md)
+records the failing unconditional target and the remaining work.
+
 ## Adversarial claim for issue 568
 
 The paired `ResidualKey` files challenge one precisely specified **proposed**
@@ -53,12 +85,16 @@ by this slice.
 ```sh
 lake build proofs.experiments.issue532.lean.Idea41
 lake build proofs.experiments.issue567.lean.ResidualKey
+lake build proofs.experiments.issue567.lean.CircuitSyntax \
+  proofs.experiments.issue10.lean.NPNotSubsetP
 lake env lean experiments/issue567/DecoderRegression.lean
 lake env lean experiments/issue567/Assumptions.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq experiments/issue567/DecoderRegression.vo \
   experiments/issue567/Assumptions.vo \
+  experiments/issue567/MachineRegression.vo \
   proofs/experiments/issue567/rocq/ResidualKey.vo
+python3 experiments/issue567/check_machines.py --lean --rocq
 python3 scripts/check_proof_status.py
 python3 scripts/check_proof_status.py --lean
 python3 scripts/check_proof_status.py --rocq

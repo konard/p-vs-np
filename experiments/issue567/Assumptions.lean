@@ -1,5 +1,6 @@
 import proofs.experiments.issue532.lean.Idea41
 import proofs.experiments.issue567.lean.ResidualKey
+import proofs.experiments.issue567.lean.CircuitSyntax
 
 #print axioms Issue532.Idea41.decCircuit_encCircuit
 #print axioms Issue532.Idea41.decCircuit_sound
@@ -9,3 +10,8 @@ import proofs.experiments.issue567.lean.ResidualKey
 #print axioms Issue532.Idea41.verifyCircuit_cert_bound
 #print axioms Issue567.ResidualKey.coarseKey_not_satisfiability_complete
 #print axioms Issue567.ResidualKey.family_encoded_lengths
+#print axioms Issue567.CircuitSyntax.circuitSyntax_iff_decCircuit
+#print axioms Issue567.CircuitSyntax.circuitSyntaxMachine_run
+#print axioms Issue567.CircuitSyntax.circuitSyntaxMachine_terminates
+#print axioms Issue567.CircuitSyntax.circuitSyntaxMachine_accepts_iff
+#print axioms Issue532.Idea41.circuitSATInNP_of_verifier_run

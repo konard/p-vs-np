@@ -703,6 +703,37 @@ Proof.
   pose proof (decCircuit_data_bounds _ _ _ hd) as [hb _]. lia.
 Qed.
 
+(** This packages the NP record only. The explicit hypothesis still requires
+    the full finite-machine evaluator and a polynomial bound on every bounded
+    certificate, including malformed inputs. *)
+Theorem circuitSATInNP_of_verifier_run : forall (m : Machine) (time : Polynomial),
+  (forall x cert, length cert <= length x + 1 ->
+    exists t, t <= evalPoly time (length x + length cert + 1) /\
+      Run m (pairedInput x cert) t (verifyCircuit x cert)) -> CircuitSATInNP.
+Proof.
+  intros m time hrun.
+  assert (hterm : forall x cert, length cert <= evalPoly
+    {| coefficient := 1; degree := 1 |} (length x) ->
+    exists t b, t <= timeLimit (paired m) time x cert /\
+      verifierRun (paired m) x cert t b).
+  { intros x cert hc. unfold evalPoly in hc. simpl in hc.
+    destruct (hrun x cert ltac:(lia)) as [t [ht hr]].
+    exists t, (verifyCircuit x cert). auto. }
+  assert (hcorr : forall x, CircuitSAT x = true <->
+    exists cert t, length cert <= evalPoly {| coefficient := 1; degree := 1 |} (length x) /\
+      t <= timeLimit (paired m) time x cert /\ verifierRun (paired m) x cert t true).
+  { intro x. rewrite circuitSAT_iff_verifyCircuit. split.
+    - intros [cert hv]. pose proof (verifyCircuit_cert_bound x cert hv) as hc.
+      destruct (hrun x cert ltac:(lia)) as [t [ht hr]].
+      exists cert, t. rewrite hv in hr. repeat split; auto. unfold evalPoly. simpl. lia.
+    - intros [cert [t [hc [_ hr]]]]. unfold evalPoly in hc. simpl in hc.
+      destruct (hrun x cert ltac:(lia)) as [t' [_ hr']].
+      exists cert. symmetry. exact (proj2 (run_deterministic _ _ _ _ _ _ hr hr')). }
+  exists {| np_language := CircuitSAT; np_verifier := paired m; np_timeBound := time;
+    np_certBound := {| coefficient := 1; degree := 1 |};
+    np_terminates := hterm; np_correct := hcorr |}. reflexivity.
+Qed.
+
 (** In a well-formed circuit every gate reads a wire below [N + |C|]. *)
 Theorem wfFrom_bound : forall (N : nat) (C : Circuit), WFfrom N C ->
   forall g, In g C -> fst g < N + length C /\ snd g < N + length C.

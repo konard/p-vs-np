@@ -404,6 +404,36 @@ the certificate is a satisfying input and the verifier evaluates the circuit
 this model. -/
 def CircuitSATInNP : Prop := InNP CircuitSAT
 
+/-- Assemble membership from an actual machine run theorem. This only packages
+the NP record; the hypothesis still requires the full circuit evaluator and
+its polynomial bound, including termination on malformed bounded inputs. -/
+theorem circuitSATInNP_of_verifier_run (m : Machine) (time : Polynomial)
+    (hrun : ∀ x cert, cert.length ≤ x.length + 1 →
+      ∃ t, t ≤ time.eval (x.length + cert.length + 1) ∧
+        Run m (pairedInput x cert) t (verifyCircuit x cert)) : CircuitSATInNP := by
+  let np : ClassNP := {
+    language := CircuitSAT
+    verifier := .paired m
+    timeBound := time
+    certBound := ⟨1, 1⟩
+    terminates := by
+      intro x cert hc
+      obtain ⟨t, ht, hr⟩ := hrun x cert (by simpa [Polynomial.eval] using hc)
+      exact ⟨t, verifyCircuit x cert, ht, hr⟩
+    correct := by
+      intro x
+      rw [circuitSAT_iff_verifyCircuit]
+      constructor
+      · rintro ⟨cert, hv⟩
+        have hc := verifyCircuit_cert_bound hv
+        obtain ⟨t, ht, hr⟩ := hrun x cert (by omega)
+        rw [hv] at hr
+        exact ⟨cert, t, by simpa [Polynomial.eval] using Nat.le_succ_of_le hc, ht, hr⟩
+      · rintro ⟨cert, t, hc, _, hr⟩
+        obtain ⟨t', _, hr'⟩ := hrun x cert (by simpa [Polynomial.eval] using hc)
+        exact ⟨cert, (run_deterministic hr hr').2.symm⟩ }
+  exact ⟨np, rfl⟩
+
 /-! ## The exhaustive-search baseline -/
 
 theorem length_allAssignments (n : Nat) : (allAssignments n).length = 2 ^ n := by
