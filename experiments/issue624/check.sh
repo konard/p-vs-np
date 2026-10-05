@@ -27,7 +27,8 @@ check_lean() {
     experiments/issue7_shoenfield_absoluteness.lean experiments/issue7_undecidability_formalization.lean \
     experiments/issue572/Independent.lean experiments/issue568/TraceRegression.lean \
     experiments/issue624/CertificateRegression.lean experiments/issue624/WindowRegression.lean \
-    experiments/issue624/CNFRegression.lean experiments/issue624/EmitterRegression.lean; do
+    experiments/issue624/CNFRegression.lean experiments/issue624/EmitterRegression.lean \
+    experiments/issue624/CircuitCNFRegression.lean; do
     lake env lean "$file"
   done
   python3 experiments/issue532_vacuity/check.py

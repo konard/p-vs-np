@@ -1,10 +1,11 @@
 # Cook–Levin construction in the shared machine model
 
-**Status: a preparatory part of #624's first slice. The issue remains open.**
+**Status: the full Cook–Levin theorem is not proved. The issue remains open.**
 The complete `tableauCNF`, its polynomial encoded-size bound, the single-tape
 reduction machine, `satHard`, and unconditional P = NP bridges remain to be
 constructed. This directory certifies variable-length certificates, fixed-width
-verifier traces, local CNF combinators, and a finite-table output primitive.
+verifier traces, local CNF combinators, a NAND-circuit CNF compiler, and a
+finite-table output primitive.
 
 Classification: **known theorem mechanized**, for these prerequisites only.
 Nothing here establishes an answer to P versus NP.
@@ -125,6 +126,43 @@ encoded bit length by
 variable identifiers and clause width. Both bounds use the actual unary
 literal encoding, including delimiters.
 
+## Shared circuit CNF compiler
+
+`CircuitCNF` compiles the existing `Issue532.Circuits` NAND programs. Each
+`gateCNF o i j` contributes three clauses asserting `o = NAND(i,j)`.
+`gateCNF_models` includes repeated input wires. `circuitCNF_models` proves
+assignment-by-assignment agreement with the existing `wires` evaluator for
+well-formed circuits, given agreement on the input prefix.
+
+`acceptingCNF` also asserts the last wire. When there are no wires, it emits
+an empty clause, matching the existing constant-false output convention.
+`acceptingCNF_iff` proves satisfiability exactly when an input of the specified
+length makes the circuit output true. The formula uses the existing wire
+indices, without enumerating input assignments. Its actual encoded bit length
+is bounded by
+
+```text
+8 * (3 * gateCount + 1) * (inputCount + gateCount + 1)
+```
+
+If the total wire count is at most `p.eval inputLength`,
+`acceptingCNF_polynomial_size` supplies `circuitPolynomial p`:
+
+```text
+coefficient = 8 * (3 * p.coefficient + 1) * (p.coefficient + 1)
+degree      = 2 * p.degree
+```
+
+The shared `Circuits` modules now contain `wires_length`, `wire_wires_lt`,
+and `toAssign_wire`. The shared `Machines` modules contain `ticks_length`
+and `encodeLit_length`. Existing qualified Rocq helper names and
+`Idea41.wires_length` delegate to these proofs. This removes repeated proof
+logic without changing the established circuit or CNF definitions.
+
+This compiler does not yet supply a verifier-to-circuit simulation or the
+input-dependent finite reduction machine. Its correctness and size theorem
+therefore do not establish `SATHard`.
+
 ## Charged output primitive
 
 `ConstantEmitter.emitter w` is an explicit finite machine table over the
@@ -156,7 +194,9 @@ Window regressions check two-way padding, exact span, state bounds, and an
 invalid successor. CNF regressions reject zero, missing, and multiple selected
 values and check forbidden or inactive constraints. Emitter regressions run
 the concrete table on empty inputs/outputs and on inputs shorter and longer
-than its output.
+than its output. Circuit-CNF regressions cover zero wires, a satisfiable
+NAND circuit, an unsatisfiable contradiction circuit, incorrect gate outputs,
+and the polynomial bound with unary wire identifiers.
 
 The rejecting-verifier and wrong-successor results concern **the semantic
 `VerifierTableau` predicate**. The certificate CNF alone is always satisfiable;
@@ -175,6 +215,7 @@ lake env lean experiments/issue624/CertificateRegression.lean
 lake env lean experiments/issue624/WindowRegression.lean
 lake env lean experiments/issue624/CNFRegression.lean
 lake env lean experiments/issue624/EmitterRegression.lean
+lake env lean experiments/issue624/CircuitCNFRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py
@@ -209,4 +250,5 @@ Importing [Gäher–Kunze's construction](https://drops.dagstuhl.de/entities/doc
 requires a checked model simulation; this PR introduces no such import.
 
 Refs #624, #568, #567, #532. The work plan is in
-[PLAN.md](../../../experiments/issue624/PLAN.md).
+[PLAN.md](../../../experiments/issue624/PLAN.md); the current continuation is
+tracked in [CONTINUATION_PLAN.md](../../../experiments/issue624/CONTINUATION_PLAN.md).

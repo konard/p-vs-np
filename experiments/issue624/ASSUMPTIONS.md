@@ -2,14 +2,15 @@
 
 Captured on 2026-10-05 with Lean 4.34.1 and Rocq 9.2. These reports cover
 certificate CNF, exact-clock recovery, fixed-window verifier semantics,
-local CNF combinators, and a finite fixed-output machine. They do not cover
+local CNF combinators, a shared NAND-circuit CNF compiler, and a finite
+fixed-output machine. They do not cover
 `tableauCNF`, `satHard`, or an input-dependent reduction machine, which remain
 unimplemented.
 
 ## Direct Lean reports
 
-The four paired regressions are `CertificateRegression`, `WindowRegression`,
-`CNFRegression`, and `EmitterRegression`. After `lake build`, run each with
+The five paired regressions are `CertificateRegression`, `WindowRegression`,
+`CNFRegression`, `EmitterRegression`, and `CircuitCNFRegression`. After `lake build`, run each with
 `lake env lean experiments/issue624/<name>.lean`. Each prints the following
 queries, in source order.
 
@@ -36,6 +37,10 @@ queries, in source order.
 'Issue624.LocalCNF.implies_models' depends on axioms: [propext, Quot.sound]
 'Issue624.LocalCNF.oneHot_encoded_size' depends on axioms: [propext, Quot.sound]
 'Issue624.ConstantEmitter.emitter_computes' depends on axioms: [propext, Quot.sound]
+'Issue624.CircuitCNF.acceptingCNF_iff' depends on axioms: [propext, Quot.sound]
+'Issue624.CircuitCNF.circuitCNF_models' depends on axioms: [propext, Quot.sound]
+'Issue624.CircuitCNF.acceptingCNF_encoded_size' depends on axioms: [propext, Quot.sound]
+'Issue624.CircuitCNF.acceptingCNF_polynomial_size' depends on axioms: [propext, Quot.sound]
 ```
 
 ## Direct Rocq reports
@@ -89,12 +94,20 @@ Print Assumptions oneHot_encoded_size.
 Closed under the global context
 Print Assumptions emitter_computes.
 Closed under the global context
+Print Assumptions acceptingCNF_iff.
+Closed under the global context
+Print Assumptions circuitCNF_models.
+Closed under the global context
+Print Assumptions acceptingCNF_encoded_size.
+Closed under the global context
+Print Assumptions acceptingCNF_polynomial_size.
+Closed under the global context
 ```
 
 ## Enforced manifest audit
 
 `python3 scripts/check_proof_status.py --lean` and `--rocq` both pass across
-the whole manifest. The following are the actual audit lines for all 41
+the whole manifest. The following are the actual audit lines for all 48
 registered #624 conclusions in each prover. Lean uses only `propext`,
 `Classical.choice`, and `Quot.sound`; Rocq entries permit no assumptions.
 The checker also scans the transitive source closure for admissions and new
@@ -129,6 +142,13 @@ lean Issue624.LocalCNF.implies_models: Quot.sound, propext
 lean Issue624.LocalCNF.oneHot_models: Quot.sound, propext
 lean Issue624.LocalCNF.cnf_encoded_size: Quot.sound, propext
 lean Issue624.LocalCNF.oneHot_encoded_size: Quot.sound, propext
+lean Issue624.CircuitCNF.gateCNF_models: Quot.sound, propext
+lean Issue624.CircuitCNF.agrees_prefix: Quot.sound, propext
+lean Issue624.CircuitCNF.agrees_append: Quot.sound, propext
+lean Issue624.CircuitCNF.circuitCNF_models: Quot.sound, propext
+lean Issue624.CircuitCNF.acceptingCNF_iff: Quot.sound, propext
+lean Issue624.CircuitCNF.acceptingCNF_encoded_size: Quot.sound, propext
+lean Issue624.CircuitCNF.acceptingCNF_polynomial_size: Quot.sound, propext
 lean Issue624.ConstantEmitter.emitter_states: Quot.sound, propext
 lean Issue624.ConstantEmitter.write_block: Quot.sound, propext
 lean Issue624.ConstantEmitter.return_block: Quot.sound, propext
@@ -170,6 +190,13 @@ rocq LocalCNF.implies_models: (none)
 rocq LocalCNF.oneHot_models: (none)
 rocq LocalCNF.cnf_encoded_size: (none)
 rocq LocalCNF.oneHot_encoded_size: (none)
+rocq CircuitCNF.gateCNF_models: (none)
+rocq CircuitCNF.agrees_prefix: (none)
+rocq CircuitCNF.agrees_append: (none)
+rocq CircuitCNF.circuitCNF_models: (none)
+rocq CircuitCNF.acceptingCNF_iff: (none)
+rocq CircuitCNF.acceptingCNF_encoded_size: (none)
+rocq CircuitCNF.acceptingCNF_polynomial_size: (none)
 rocq ConstantEmitter.emitter_states: (none)
 rocq ConstantEmitter.write_block: (none)
 rocq ConstantEmitter.return_block: (none)

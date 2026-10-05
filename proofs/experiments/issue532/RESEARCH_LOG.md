@@ -61,6 +61,17 @@ fixed word, and restores its head, with a checked `Computes` contract and
 polynomial charged-step bound. Its write and return blocks have reusable
 instruction-table contracts.
 
+The latest continuation adds `CircuitCNF`, a three-clause-per-NAND compiler
+using the existing circuit wire indices and evaluator. It proves each model
+agrees with the computed wires and that the output-asserting formula is
+satisfiable exactly when the circuit is. Zero wires produce an empty clause.
+The unary encoded length is at most `8*(3g+1)*(n+g+1)`, where `g` is the
+number of gates and `n` is the number of input wires. A polynomial wire-count
+bound gives an explicit polynomial encoded-length bound. Shared wire and
+encoding lemmas replace duplicate proofs; previous qualified public names
+remain available through wrappers. Paired regressions reject incorrect gate
+outputs and an unsatisfiable contradiction circuit.
+
 This is **known theorem mechanized** for the prerequisites. The transition
 and acceptance constraints have not yet been encoded into CNF, and no
 input-dependent polynomial-time single-tape reduction machine has been proved. `SATHard`
