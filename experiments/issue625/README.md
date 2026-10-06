@@ -149,16 +149,18 @@ The intended invariants still need general proofs:
    succeeds exactly when its index is below the current wire-list length.
 3. Restoring a lookup preserves the original circuit cells and every wire
    value. Appending a gate produces the same list as `Circuits.wires`.
-4. Certificate matching and all lookup-failure exits terminate. The number
-   of shuttles and their charged instructions have one explicit polynomial
-   bound in the encoded paired-input length.
+4. All lookup-failure exits terminate. The number of evaluator shuttles and
+   their charged instructions have one explicit polynomial bound in the
+   encoded paired-input length. Certificate matching now has its own bound.
 
 ### Universally proved candidate phases
 
 The paired [`EvaluatorInvariants.lean.in`](EvaluatorInvariants.lean.in) and
-[`EvaluatorInvariants.v.in`](EvaluatorInvariants.v.in) are compiled with the
-exact candidate table. State references are filled from that table's state
-index, so these are proofs about its charged instructions. They establish:
+[`EvaluatorInvariants.v.in`](EvaluatorInvariants.v.in), together with
+[`LengthInvariants.lean.in`](LengthInvariants.lean.in) and
+[`LengthInvariants.v.in`](LengthInvariants.v.in), are compiled with the exact
+candidate table. State references are filled from that table's state index,
+so these are proofs about its charged instructions. They establish:
 
 - `malformed_reject`: every word outside the circuit encoding grammar is
   rejected for every certificate in exactly `|x| + 1` instructions.
@@ -172,19 +174,27 @@ index, so these are proofs about its charged instructions. They establish:
 - `gate_empty_run`: when the gate loop reaches its final list marker, it
   returns the last wire, defaulting to false on an empty wire list, in exactly
   `|wires| + 3` instructions.
+- `count_success`: for every unary header `n`, arbitrary remaining bit payload
+  `w`, and certificate of length `n`, the length-matching pass reaches the gate
+  phase with the header and every certificate bit restored. Its instruction
+  count is at most `64 * (n + 1) * (n + |w| + |cert| + 4)`.
+- `count_reject`: for the same arbitrary header and payload, every certificate
+  whose length differs from `n` halts with rejection within that same bound.
+  This includes an empty certificate and both shorter and longer lengths.
 
 These results quantify over arbitrary words and tape contexts. They are not
-finite-input examples. They still do not prove the certificate-matching
-phase, advancement of the wire cursor for arbitrary unary indices, operand
-and marker restoration, or NAND appending. Consequently no whole verifier
-run bound, `circuitSATInNP`, or premise-free bridge follows from them.
+finite-input examples. They still do not prove advancement of the wire cursor
+for arbitrary unary indices, lookup rejection, operand and marker restoration,
+or NAND appending. Consequently no whole verifier run bound, `circuitSATInNP`,
+or premise-free bridge follows from them.
 
 The runner scans the generated source and its local imports for admissions
 and forbidden assumptions, then checks every printed assumption report. The
-new phase results use only `propext` and `Quot.sound` in Lean; Rocq reports
-closed global contexts. Regression tests reject a later Lean admission, a
-mixture of closed and open Rocq reports, and missing reports. These candidate
-phase proofs have not been registered as unconditional membership results.
+phase results use only `propext`, `Classical.choice`, and `Quot.sound` in Lean;
+Rocq reports closed global contexts. Regression tests reject a later Lean
+admission, a mixture of closed and open Rocq reports, and missing reports.
+These candidate phase proofs have not been registered as unconditional
+membership results.
 
 The bounded Python suite compares the table against an independent executable
 specification on 3,174 input/certificate pairs. It covers all raw words up to
@@ -193,6 +203,13 @@ two-gate dependencies, wrong certificate lengths, forward wires, and wire
 lookups with up to sixteen input wires. Each run has a finite budget of
 `128 * (|x| + |cert| + 2)^2`. Exceeding the budget fails the experiment;
 **that budget has not been proved sufficient on arbitrary inputs**.
+
+A further 270 bounded trace cases check the certificate phase's tape and
+instruction bound directly: exact lengths reach `gate` with the header and
+certificate restored, while wrong lengths reject before reaching `gate`.
+They cover zero to four input wires, zero to five certificate bits, three
+payloads, and false, true, and alternating certificate values. The paired
+universal proofs above establish these phase properties for arbitrary lengths.
 
 [`check_evaluator_candidate.py`](check_evaluator_candidate.py) emits the same
 table as `Complexity.Machine` in Lean and Rocq and kernel-checks fourteen
@@ -239,6 +256,20 @@ the ignored `ci-logs/` directory. In `verification-37465392079.log`:
 This run precedes the four universal phase proofs above. The updated probes
 pass locally in both provers, while the exact membership targets retain the
 same failure. Fresh CI results for the updated head are recorded in PR #631.
+
+The next investigation checked
+[37470605046](https://github.com/konard/p-vs-np/actions/runs/37470605046),
+started at 13:24:56 UTC on `75db4fcafe315e7ea4d74ce72eb0c6019f1dea2c`,
+after that commit at 13:24:50 UTC. All five latest failed runs were saved to
+`ci-logs/`. In `verification-37470605046.log`, the candidate phase checks pass
+at Rocq line 565 and Lean line 786, then Lean line 793 reports unknown
+`Issue532.Idea41.circuitSATInNP` and Rocq line 574 reports missing
+`Idea41.circuitSATInNP`. The bridge errors start at lines 795 and 577;
+their membership arguments remain. The summary fails at line 9580. All six
+other jobs pass. The two certificate-phase proofs above were developed after
+this run. They discharge length matching and its local polynomial bound,
+but leave the gate-loop evaluator obligation open. The exact completion
+probe still fails locally for the same missing theorem and bridge premises.
 
 Full local Lean and Rocq builds reproduce successful compilation. The exact
 completion command still exits 1, matching those missing proof obligations.
@@ -316,8 +347,8 @@ python3 scripts/check_proof_status.py --rocq
 
 `check_repository.sh` retains the Python and prover regression commands from
 the current CI workflow and ends with the mandatory paired completion gate.
-On the updated tree, all 132 Python tests and the preceding prover regression
-checks pass, including the four universal candidate phase results. The script
+On the updated tree, all 134 Python tests and the preceding prover regression
+checks pass, including the six universal candidate phase results. The script
 then exits 1 at the membership gate. Full Lean and Rocq builds, the certified
 source and assumption audits in both provers, and the six Agda checks in the
 workflow's pinned container pass. A passing build or phase invariant alone

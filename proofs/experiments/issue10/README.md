@@ -136,10 +136,12 @@ The direct evaluator experiment now supplies an 83-state candidate and
 fourteen concrete runs checked in both provers. Paired universal phase proofs
 establish malformed-input rejection, preservation of the input when entering
 certificate matching, initialization of the first wire cursor, and the final
-output scan. Certificate matching, general wire lookup, and NAND evaluation
-still need their invariants and a polynomial charged-instruction proof. These
-results do not discharge `CircuitSATInNP` or remove any hypothesis from this
-route.
+output scan. The certificate-matching phase now also has paired universal
+proofs: exact lengths preserve the header and certificate, while wrong lengths
+halt with rejection, both within an explicit polynomial instruction bound.
+General wire lookup, NAND evaluation, and the aggregate polynomial run bound
+remain unproved. These results do not discharge `CircuitSATInNP` or remove any
+hypothesis from this route.
 
 `Issue532.SATVerifier` is the model for such a proof. After that, the next
 known theorem in Williams' chain is `LazyDiagonalSimulation` (the universal

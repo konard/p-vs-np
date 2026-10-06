@@ -258,6 +258,20 @@ is Idea 34, which needs `lake build proofs.complexity.lean.Complexity` first.
 
 ## Verification log
 
+Issue 625 certificate-phase proofs (2026-10-06). The exact 83-state candidate
+now has paired universal `count_success` and `count_reject` results. For every
+unary header `n`, arbitrary bit payload `w`, and certificate, matching lengths
+reach the gate phase with the original header and certificate restored;
+mismatching lengths halt with rejection. Both use at most
+`64 * (n + 1) * (n + |w| + |cert| + 4)` charged instructions. The proofs include
+empty, shorter, and longer certificates. Lean's assumption reports are within
+`propext`, `Classical.choice`, and `Quot.sound`; Rocq reports closed global
+contexts. An additional 270 trace cases check the restored tape, phase bound,
+and rejection before gate evaluation. The general lookup, gate restoration,
+NAND appending, and aggregate polynomial evaluator theorem remain missing;
+`circuitSATInNP` and both CI completion jobs remain blocked. See
+[`experiments/issue625`](../../../experiments/issue625/README.md).
+
 Issue 625 candidate phase proofs (2026-10-06). The paired generated probes now
 prove four universal results about the exact 83-state table: malformed-input
 rejection in `|x| + 1` steps, tape-preserving entry into certificate matching

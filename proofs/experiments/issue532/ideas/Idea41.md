@@ -68,8 +68,9 @@ programs, `WF`, `output`, `InPPoly`).
   hypothesis.
   The [direct evaluator experiment](../../../../experiments/issue625/README.md)
   supplies an 83-state candidate with fourteen concrete runs checked in Lean
-  and Rocq. Four paired universal phase proofs cover syntax rejection, entry
-  into certificate matching, initial wire marking, and the final output pass.
+  and Rocq. Six paired universal phase results cover syntax rejection, entry
+  into certificate matching, initial wire marking, the final output pass,
+  and certificate-length matching or rejection within a polynomial bound.
   Its whole evaluator and polynomial runtime proofs remain open, so it does
   not discharge this hypothesis or satisfy the completion gate.
 * **Exhaustive search.** `bruteCircuitSAT n C` evaluates `C` on the `2^n`
@@ -322,8 +323,10 @@ Issue 625 adds a paired finite-machine **syntax** slice:
 `Issue567.CircuitSyntax.circuitSyntaxMachine_run` (Lean) and
 `CircuitSyntax.circuitSyntaxMachine_run` (Rocq) recognize precisely the
 `encCircuit` grammar in `|x| + 1` steps, for every paired input. This is not
-`CircuitSATInNP`: valid syntax can still contain forward wires, and certificate
-length and gate evaluation remain to be implemented.
+`CircuitSATInNP`: valid syntax can still contain forward wires, and this syntax
+machine does not check certificate length or evaluate gates. The direct
+candidate's certificate phase is now proved separately; its full gate-loop
+and polynomial run proofs remain open.
 `circuitSATInNP_of_verifier_run` assembles the NP record from the full
 machine's polynomial run theorem as an explicit hypothesis. It does not
 discharge membership. The original `CircuitSATInNP` arguments are retained.
