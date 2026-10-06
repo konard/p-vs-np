@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Local counterparts of the repository's Python and prover regression checks.
-# Run after lake build and make -f Makefile.coq. The unresolved membership
-# diagnostic is separate and deliberately excluded from this passing suite.
+# Run after lake build and make -f Makefile.coq. The final mandatory completion
+# gate fails until the full issue 625 deliverable has been proved and certified.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 python3 scripts/check_gubin_audit.py
 python3 -m unittest scripts.test_check_attempt_structure -v
 python3 -m unittest scripts.test_check_proof_status -v
+python3 -m unittest experiments.issue625.test_completion_gate -v
 python3 -m unittest scripts.test_list_issues -v
 python3 scripts/check_proof_status.py
 python3 experiments/issue578/check_paper_lp.py
@@ -40,3 +41,4 @@ bash experiments/issue573/check.sh --rocq
 bash experiments/issue587/check.sh --lean
 bash experiments/issue587/check.sh --rocq
 python3 -m unittest experiments.issue611.test_rocq_project -v
+python3 experiments/issue625/check_membership.py --lean --rocq

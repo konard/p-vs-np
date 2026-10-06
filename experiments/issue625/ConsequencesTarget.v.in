@@ -1,0 +1,26 @@
+From proofs.experiments.issue10.rocq Require Import NPNotSubsetP.
+From proofs.experiments.issue532.rocq Require Import Idea41.
+From proofs.complexity.rocq Require Import Complexity.
+Import Complexity.Complexity.
+
+(* Exact type checks: no membership premise or supplied witness. *)
+Example refuting_fast_target : ~ FastCircuitSAT -> PNotEqualsNP :=
+  Idea41.pNotEqualsNP_of_not_fastCircuitSAT.
+
+Example equality_fast_target : PEqualsNP -> FastCircuitSAT :=
+  Idea41.fastCircuitSAT_of_pEqualsNP.
+
+Example containment_separation_target : NTimeHierarchy -> EasyWitnessLemma ->
+  WilliamsSpeedup -> NEXPSubsetPPoly -> PNotEqualsNP :=
+  Idea41.pNotEqualsNP_of_nexpSubsetPPoly.
+
+Example equality_lower_bound_target : NTimeHierarchy -> EasyWitnessLemma ->
+  WilliamsSpeedup -> PEqualsNP -> ~ NEXPSubsetPPoly :=
+  Idea41.not_nexpSubsetPPoly_of_pEqualsNP.
+
+Example np_separation_target : ~ FastCircuitSAT -> NPNotSubsetP :=
+  NPNotSubsetP.npNotSubsetP_of_not_fastCircuitSAT.
+
+Example nexp_lower_bound_target : NTimeHierarchy -> EasyWitnessLemma ->
+  WilliamsSpeedup -> PEqualsNP -> ~ NEXPSubsetPPoly :=
+  NPNotSubsetP.nexp_lower_bound_of_pEqualsNP.

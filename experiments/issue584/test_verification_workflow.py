@@ -130,7 +130,7 @@ class VerificationWorkflowTests(unittest.TestCase):
 
     def test_failed_certified_audit_fails_summary(self):
         script = step_script("Check results")
-        for job in ("detect-changes", "lean-verification", "rocq-verification", "agda-verification", "certified-lean"):
+        for job in ("detect-changes", "lean-verification", "rocq-verification", "agda-verification", "certified-lean", "circuit-sat-lean", "circuit-sat-rocq"):
             script = script.replace(f"${{{{ needs.{job}.result }}}}", "success")
         script = script.replace("${{ needs.certified-rocq.result }}", "failure")
         result = subprocess.run(
@@ -146,6 +146,8 @@ class VerificationWorkflowTests(unittest.TestCase):
 
     def test_failed_detector_fails_summary(self):
         script = step_script("Check results")
+        for job in ("circuit-sat-lean", "circuit-sat-rocq"):
+            script = script.replace(f"${{{{ needs.{job}.result }}}}", "success")
         for job in ("lean-verification", "rocq-verification", "certified-lean", "certified-rocq", "agda-verification"):
             script = script.replace(f"${{{{ needs.{job}.result }}}}", "skipped")
         script = script.replace("${{ needs.detect-changes.result }}", "failure")

@@ -1,4 +1,6 @@
 From proofs.experiments.issue532.rocq Require Import Idea41.
+From proofs.complexity.rocq Require Import Complexity.
+Import Complexity.Complexity.
 
 (* Acceptance target from issue #625; this fails while membership is open. *)
-Example membership_target : CircuitSATInNP := circuitSATInNP.
+Example membership_target : InNP CircuitSAT := Idea41.circuitSATInNP.
