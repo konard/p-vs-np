@@ -2,6 +2,10 @@ From Stdlib Require Import List Bool Arith.
 From proofs.experiments.issue624.rocq Require Import ConstantEmitter.
 Import ListNotations Complexity.Complexity Machines ConstantEmitter.
 
+Example legacy_composition : forall m c d e t u,
+  Reaches m c t d -> Reaches m d u e -> Reaches m c (t + u) e.
+Proof. exact ConstantEmitter.reaches_trans. Qed.
+
 Example computed_word : forall w,
   Computes (emitter w) (fun _ => w) (emitterPolynomial w).
 Proof. apply emitter_computes. Qed.

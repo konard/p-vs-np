@@ -93,6 +93,11 @@ Proof.
   rewrite returnRows_get by exact hi. destruct a; reflexivity.
 Qed.
 
+(** Preserve the original qualified name while sharing the composition proof. *)
+Lemma reaches_trans : forall m c d e t u,
+  Reaches m c t d -> Reaches m d u e -> Reaches m c (t + u) e.
+Proof. exact Machines.reaches_trans. Qed.
+
 Definition cfg (q : nat) (l r : list Symbol) : Config :=
   match r with
   | [] => {| state := q; tapeLeft := l; tapeHead := blank; tapeRight := [] |}
