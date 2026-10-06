@@ -119,6 +119,17 @@ input-independent finite reduction table, its tape invariants, or its `Computes`
 proof has been constructed.
 The mandatory completion gate remains unchanged.
 
+Local validation at the initial-input checkpoint passed: the complete Python
+suite, 256-job Lean build, full Rocq build, both 234-result source/assumption
+audits, seven original tableau contract types in each kernel, and Agda checks.
+Workflow lint and `git diff --check` also passed. Expected negative kernel
+probes were rejected.
+
+The existing Idea 36 bridge also matches the completion gate's required type.
+Its missing registration is fixed in both provers; `existing_bridge_probe.py`
+checks the exact type and assumptions. Its separate vertex-cover hardness
+premise remains required. That checkpoint registered 235 conclusions per prover.
+
 ## Input-retaining counter continuation
 
 - [x] Read the issue and all PR comment types; fetch the latest default branch.
@@ -145,20 +156,11 @@ The mandatory completion gate remains unchanged.
   audits, tableau/bridge contract checks, workflow lint, and focused project/
   workflow tests pass. Logs are preserved in `ci-logs/counter-full-*.log`.
   The completion preflight still exits 1 with the same 42 diagnostics.
-- [ ] Commit atomic changes, push only the prepared branch, update PR #630,
-  and inspect fresh CI logs against the pushed SHA and timestamp.
+- [x] Commit atomic changes, push only the prepared branch, and update PR #630.
+- [ ] Inspect fresh CI logs against the pushed SHA and timestamp; record their
+  findings in the PR description.
 - [ ] Verify the full deliverable and all CI pass, then mark PR #630 ready.
 
 The counter's output is a tape-block configuration, not `Computes red`.
 No formula-emitting reduction table or charged bound for it is established.
 All probes use finite inputs; no deliberate stack or memory stress is used.
-
-Local validation passed: the complete Python suite, 256-job Lean build,
-full Rocq build, both 234-result source/assumption audits, seven original
-tableau contract types in each kernel, and Agda checks. Workflow lint and
-`git diff --check` also passed. Expected negative kernel probes were rejected.
-
-The existing Idea 36 bridge also matches the completion gate's required type.
-Its missing registration is fixed in both provers; `existing_bridge_probe.py`
-checks the exact type and assumptions. Its separate vertex-cover hardness
-premise remains required. There are now 235 certified conclusions per prover.
