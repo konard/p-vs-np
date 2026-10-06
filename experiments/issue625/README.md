@@ -121,6 +121,55 @@ in this investigation. Consequently there is no machine-level proof of forward
 wire rejection, wrong-length rejection, or NAND evaluation and no overall
 polynomial `Run` theorem. These remain the required next implementation work.
 
+## CI failure investigation, 2026-10-06
+
+The failing [run 37459212307](https://github.com/konard/p-vs-np/actions/runs/37459212307)
+started at 11:51:35 UTC on `d1ea2a16cf6a3ba5488d072bdb7bfdc4d1c95941`,
+after that commit at 11:51:17 UTC. Thus the failures are current. The branch
+already contains the fetched default branch. The full downloaded log is
+preserved locally as `ci-logs/formal-verification-37459212307.log`.
+
+- Lean log line 1437 reports unknown identifier
+  `Issue532.Idea41.circuitSATInNP`; lines 1439–1474 show that all six consequence
+  contracts retain their membership premise.
+- Rocq log line 1224 reports that `Idea41.circuitSATInNP` was not found;
+  lines 1226–1235 show the first bridge's extra membership argument.
+- Both jobs also reject missing certification entries. `Verification Summary`
+  fails at line 9547 because the Lean completion job failed. Both completion
+  jobs failed; the summary's first failing check exits before its Rocq check.
+
+Full local Lean and Rocq builds reproduce successful compilation. The exact
+completion command still exits 1, matching those missing proof obligations.
+Recompilation, adding manifest entries alone, and changing job selection would
+not supply the evaluator run theorem.
+
+The paired `VerifierReuse` probes test two concrete implementation candidates:
+
+```sh
+python3 experiments/issue625/check_verifier_reuse.py --lean --rocq
+```
+
+Each prover proves that neither the syntax machine nor the existing SAT verifier
+can satisfy even the weaker contract
+`∀ x cert, |cert| ≤ |x| + 1 → ∃ t, Run m (pairedInput x cert) t (verifyCircuit x cert)`.
+This contract omits the polynomial bound, so its refutation also rules out
+using either table directly in `circuitSATInNP_of_verifier_run`.
+
+Both counterexamples use `encCircuit 1 [] = [true, false, false]`. On certificate
+`[false]`, the syntax table accepts while the circuit verifier rejects. On
+`[true]`, the SAT table rejects while the circuit verifier accepts: SAT decodes
+the first two bits as an empty clause and drops the trailing bit. These are
+actual charged runs from the existing universal run lemmas, with disagreement
+proved by run determinism. Their Lean assumption reports contain only
+`propext` and `Quot.sound`; Rocq reports both results closed under the global
+context. They establish counterexamples to direct table reuse, not the absence
+of a possible circuit verifier or a circuit-to-SAT machine reduction.
+
+The completion jobs run these probes before the existing mandatory membership
+check and preserve their logs in the diagnostic artifacts. Issue 625 remains
+unresolved and the PR remains draft: no full evaluator, polynomial run proof,
+unconditional membership theorem, or premise removal is supplied here.
+
 ## Mutation checks and interpretation
 
 ```sh
