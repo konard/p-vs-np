@@ -13,9 +13,12 @@ state changes, row decoding, and rejection of incorrect writes, copied cells,
 heads, and states. It also covers missing instructions, invalid destinations,
 halts, empty domains, and both window edges. Its wrong-write, wrong-copy, and
 wrong-state assignments satisfy the row clauses and fail the transition clauses.
-These regressions do not certify full tableau CNF or SAT hardness. Individual
-rows and moves are compiled, but accepting traces have not yet been assembled
-into a formula.
+`RunCNFRegression` checks the bounded accepting-trace compiler: immediate and
+two-row acceptance, inactive suffixes, premature halts, exhausted clocks,
+wrong successors, canonical decoding, empty domains, and unary encoded-size
+and explicit polynomial bounds. These regressions do not certify full
+tableau CNF or SAT hardness; initial input/certificate wiring and the
+input-dependent reduction machine remain outstanding.
 
 After building the imported modules, run:
 
@@ -27,6 +30,7 @@ lake env lean experiments/issue624/EmitterRegression.lean
 lake env lean experiments/issue624/CircuitCNFRegression.lean
 lake env lean experiments/issue624/MachineCNFRegression.lean
 lake env lean experiments/issue624/SuccessorRegression.lean
+lake env lean experiments/issue624/RunCNFRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 bash experiments/issue624/check.sh all
@@ -52,6 +56,8 @@ lake env lean experiments/issue624/successor_probe.lean
 rocq repl -quiet -Q proofs proofs < experiments/issue624/successor_probe.in
 rocq repl -quiet -Q proofs proofs < experiments/issue624/successor_decode_probe.in
 rocq repl -quiet < experiments/issue624/successor_arithmetic_probe.in
+rocq repl -quiet -Q . '' < experiments/issue624/run_probe.in
+python3 experiments/issue624/run_assumptions.py
 ```
 
 [PLAN.md](PLAN.md) tracks the completed prerequisites and the remaining
@@ -78,6 +84,6 @@ admissions or global axioms.
 the required CI result. [The checker documentation](../../scripts/README.md#check_issue624_completionpy)
 describes the paired contract interface and required merge check.
 
-[TABLEAU_DESIGN.md](TABLEAU_DESIGN.md) records the proposed variable layout,
-transition guards, size obligations, and the input-dependent emitter's
-missing machine operations. It is a plan rather than an implemented formula.
+[TABLEAU_DESIGN.md](TABLEAU_DESIGN.md) records the implemented trace layout,
+the remaining initial-row and complete-size obligations, and the
+input-dependent emitter's missing machine operations.

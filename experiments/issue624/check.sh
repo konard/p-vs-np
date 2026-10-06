@@ -30,7 +30,7 @@ check_lean() {
     experiments/issue624/CertificateRegression.lean experiments/issue624/WindowRegression.lean \
     experiments/issue624/CNFRegression.lean experiments/issue624/EmitterRegression.lean \
     experiments/issue624/CircuitCNFRegression.lean experiments/issue624/MachineCNFRegression.lean \
-    experiments/issue624/SuccessorRegression.lean; do
+    experiments/issue624/SuccessorRegression.lean experiments/issue624/RunCNFRegression.lean; do
     lake env lean "$file"
   done
   python3 experiments/issue532_vacuity/check.py

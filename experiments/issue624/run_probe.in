@@ -1,0 +1,22 @@
+From Stdlib Require Import List Bool Arith Lia.
+From proofs.complexity.rocq Require Import Complexity.
+From proofs.experiments.issue532.rocq Require Import Machines.
+From proofs.experiments.issue624.rocq Require Import LocalCNF SuccessorCNF RunCNF.
+Import ListNotations Complexity Machines LocalCNF SuccessorCNF RunCNF.
+
+(* Mapping the suffix guard exposes a conjunction only after guarded_models.
+   Preserve the intermediate goal and the completed proof. *)
+Goal forall m base width k a,
+  evalCNF a (runCNF m base width (S k)) = true <->
+    evalCNF a (rowCNF base (length (program m)) width) = true /\
+    (a (stopVar base (length (program m)) width) = true -> evalCNF a (haltCNF m base width) = true) /\
+    (a (stopVar base (length (program m)) width) = false ->
+      evalCNF a (successorCNF m base (nextBase base (length (program m)) width) width) = true /\
+      evalCNF a (runCNF m (nextBase base (length (program m)) width) width k) = true).
+Proof.
+  intros. cbn [runCNF]. rewrite !evalCNF_append, !andb_true_iff, !guarded_models.
+  Show.
+  rewrite evalCNF_append, andb_true_iff.
+  unfold evalLit. cbn [pos var].
+  destruct (a (stopVar base (length (program m)) width)); cbn [Bool.eqb]; intuition congruence.
+Qed.

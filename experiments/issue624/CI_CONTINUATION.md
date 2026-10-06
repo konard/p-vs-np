@@ -68,7 +68,7 @@ distinct next states, and actual unary size.
 All experiments have finite inputs. They do not deliberately stress memory
 or stack. Large logs remain local under `ci-logs/`.
 
-## Remaining enforced requirements
+## Remaining at the dispatch checkpoint
 
 The checked dispatch compiler must still be wired to the selected head/tape
 cell, next-row state/head/tape updates, certificate-dependent initial row,
@@ -81,3 +81,9 @@ emit that formula with a charged polynomial `Computes` proof.
 unproved. Their existing premises remain explicit. The completion gate,
 assumption policies and merge protection are preserved. PR #630 must stay
 draft while these requirements fail.
+
+The subsequent `SuccessorCNF` and `RunCNF` construction now supplies complete
+row/move wiring, accepting prefixes, canonical trace models, and an explicit
+unary trace-size polynomial. Initial input/certificate wiring and the charged
+input-dependent reduction machine remain open. The current investigation and
+validation plan is in [COMPLETION_PLAN.md](COMPLETION_PLAN.md).

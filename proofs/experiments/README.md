@@ -64,9 +64,11 @@ verifier constructors, using the actual certificate-dependent clock, and
 proves a uniform polynomial clock and cell envelope. It also certifies
 two-way blank padding, fixed-width traces, local implication and exactly-one
 CNF constraints, their unary encoded-size bounds, a shared NAND-circuit
-CNF compiler, machine instruction-selection CNF, and a charged fixed-word
-output machine. The complete transition CNF and input-dependent polynomial-time
-reduction machine are still required for `SATHard`.
+CNF compiler, machine instruction-selection and successor CNF, bounded
+accepting-trace CNF with an explicit unary size polynomial, and a charged
+fixed-word output machine. Initial input/certificate wiring and an
+input-dependent polynomial-time reduction machine are still required for
+`SATHard`.
 
 [issue7/](issue7/README.md) states the clocked-SAT sentence behind issue #7's
 independence question. Its paired Lean and Rocq files prove a clock lemma and

@@ -102,9 +102,18 @@ conclusions per prover bring the #624 registration count to 100 and the
 whole manifest to 178. Paired regressions distinguish wrong writes, copied
 cells, heads, and states from otherwise well-formed rows.
 
-This is **known theorem mechanized** for the prerequisites. The complete
-accepting trace, including initial/certificate wiring and active rows, has not
-yet been assembled into CNF, and no
+The accepting-trace continuation adds paired `RunCNF` modules. Row stop bits
+choose accepting termination or a charged successor and a bounded suffix.
+Every satisfying assignment decodes to #568's accepting local trace; every
+fixed-width accepting trace has a canonical model that decodes exactly.
+Clock exhaustion, rejecting halts, and wrong successors are rejected. Inactive
+suffix variables are unconstrained. Checked clause-count, identifier, and
+width bounds give an actual unary encoded-size bound and an explicit shared
+polynomial envelope. Twenty-four further #624 conclusions and two shared
+polynomial-arithmetic conclusions per prover bring the whole manifest to 204.
+
+This is **known theorem mechanized** for the prerequisites. The initial
+input/certificate wiring has not yet been joined to the accepting-trace CNF, and no
 input-dependent polynomial-time single-tape reduction machine has been proved. `SATHard`
 remains an explicit premise of the Idea bridges; #624 remains open. See the
 [paired assumption reports](../../../experiments/issue624/ASSUMPTIONS.md).

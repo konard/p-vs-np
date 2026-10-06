@@ -1,9 +1,11 @@
 # Assumption reports for the #624 construction
 
 Initial reports captured on 2026-10-05 with Lean 4.34.1 and Rocq 9.2.
-The successor-compiler update below was captured on 2026-10-06. These reports cover
+The successor and accepting-trace compiler updates below were captured on
+2026-10-06. These reports cover
 certificate CNF, exact-clock recovery, fixed-window verifier semantics,
-local CNF combinators, shared NAND-circuit and finite-row successor compilers, and a finite
+local CNF combinators, shared NAND-circuit, finite-row successor and bounded
+accepting-trace compilers, and a finite
 fixed-output machine. They do not cover
 `tableauCNF`, `satHard`, or an input-dependent reduction machine, which remain
 unimplemented.
@@ -362,4 +364,67 @@ rocq SuccessorCNF.instructionRules_bounds: (none)
 rocq SuccessorCNF.successorCNF_length: (none)
 rocq SuccessorCNF.successorCNF_bounds: (none)
 rocq SuccessorCNF.successorCNF_encoded_size: (none)
+```
+
+## Accepting-trace compiler and shared polynomial arithmetic
+
+Captured on 2026-10-06 with `python3 experiments/issue624/run_assumptions.py`.
+The script checks paired public names and reuses the kernel-query code from
+`scripts/check_proof_status.py`. All entries below are registered with exactly
+the reported assumptions. These trace results do not supply initial
+input/certificate wiring or the charged reduction machine.
+
+```text
+lean Issue624.RunCNF.guarded_models: Quot.sound, propext
+lean Issue624.RunCNF.haltRule_models: Classical.choice, Quot.sound, propext
+lean Issue624.RunCNF.haltCNF_step: Classical.choice, Quot.sound, propext
+lean Issue624.RunCNF.runCNF_unfold: Quot.sound, propext
+lean Issue624.RunCNF.decodeTrace_length: Quot.sound, propext
+lean Issue624.RunCNF.runCNF_sound: Classical.choice, Quot.sound, propext
+lean Issue624.RunCNF.runCNF_complete: Classical.choice, Quot.sound, propext
+lean Issue624.RunCNF.runCNF_models: Classical.choice, Quot.sound, propext
+lean Issue624.RunCNF.runCNF_wrong_successor_rejected: Classical.choice, Quot.sound, propext
+lean Issue624.RunCNF.rowRepresents_congr: Quot.sound, propext
+lean Issue624.RunCNF.traceRepresents_congr: Quot.sound, propext
+lean Issue624.RunCNF.traceAssignment_represents: Classical.choice, Quot.sound, propext
+lean Issue624.RunCNF.decodeTrace_represents: Quot.sound, propext
+lean Issue624.RunCNF.runCNF_traceAssignment: Classical.choice, Quot.sound, propext
+lean Issue624.RunCNF.traceRepresents_width: propext
+lean Issue624.RunCNF.runCNF_iff: Classical.choice, Quot.sound, propext
+lean Issue624.RunCNF.runCNF_rejecting_unsatisfiable: Classical.choice, Quot.sound, propext
+lean Issue624.RunCNF.haltCNF_length: Quot.sound, propext
+lean Issue624.RunCNF.haltCNF_bounds: Quot.sound, propext
+lean Issue624.RunCNF.runCNF_length: Quot.sound, propext
+lean Issue624.RunCNF.guarded_bounds: Quot.sound, propext
+lean Issue624.RunCNF.runCNF_bounds: Quot.sound, propext
+lean Issue624.RunCNF.runCNF_encoded_size: Quot.sound, propext
+lean Issue624.RunCNF.runCNF_polynomial_size: Quot.sound, propext
+lean Complexity.polyAdd_eval: propext
+lean Complexity.polyMul_eval: Quot.sound, propext
+rocq RunCNF.guarded_models: (none)
+rocq RunCNF.haltRule_models: (none)
+rocq RunCNF.haltCNF_step: (none)
+rocq RunCNF.runCNF_unfold: (none)
+rocq RunCNF.decodeTrace_length: (none)
+rocq RunCNF.runCNF_sound: (none)
+rocq RunCNF.runCNF_complete: (none)
+rocq RunCNF.runCNF_models: (none)
+rocq RunCNF.runCNF_wrong_successor_rejected: (none)
+rocq RunCNF.rowRepresents_congr: (none)
+rocq RunCNF.traceRepresents_congr: (none)
+rocq RunCNF.traceAssignment_represents: (none)
+rocq RunCNF.decodeTrace_represents: (none)
+rocq RunCNF.runCNF_traceAssignment: (none)
+rocq RunCNF.traceRepresents_width: (none)
+rocq RunCNF.runCNF_iff: (none)
+rocq RunCNF.runCNF_rejecting_unsatisfiable: (none)
+rocq RunCNF.haltCNF_length: (none)
+rocq RunCNF.haltCNF_bounds: (none)
+rocq RunCNF.runCNF_length: (none)
+rocq RunCNF.guarded_bounds: (none)
+rocq RunCNF.runCNF_bounds: (none)
+rocq RunCNF.runCNF_encoded_size: (none)
+rocq RunCNF.runCNF_polynomial_size: (none)
+rocq Complexity.polyAdd_eval: (none)
+rocq Complexity.polyMul_eval: (none)
 ```

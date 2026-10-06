@@ -511,7 +511,7 @@ theorem successorCNF_wrong_successor (m : Machine) (base next width : Nat) (a : 
   | false => rfl
   | true => exact False.elim (h ((successorCNF_step m base next width a c d hc hd).mp he))
 
-private theorem flatMap_length_le {α β : Type} (xs : List α) (f : α → List β) (bound : Nat)
+theorem flatMap_length_le {α β : Type} (xs : List α) (f : α → List β) (bound : Nat)
     (h : ∀ x ∈ xs, (f x).length ≤ bound) : (xs.flatMap f).length ≤ xs.length * bound := by
   induction xs with
   | nil => simp

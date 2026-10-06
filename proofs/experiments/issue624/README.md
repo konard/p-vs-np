@@ -5,11 +5,13 @@ The complete `tableauCNF`, its polynomial encoded-size bound, the single-tape
 reduction machine, `satHard`, and unconditional P = NP bridges remain to be
 constructed. This directory certifies variable-length certificates, fixed-width
 verifier traces, local CNF combinators, a NAND-circuit CNF compiler, a
-finite-row successor compiler, and a finite-table output primitive.
+finite-row successor and bounded accepting-trace compilers, and a finite-table
+output primitive.
 
 `MachineCNF` compiles instruction dispatch from the existing machine table.
-`SuccessorCNF` compiles charged tape moves between two represented rows;
-the complete accepting formula remains uncompiled.
+`SuccessorCNF` compiles charged tape moves between two represented rows.
+`RunCNF` assembles those moves and accepting termination into a bounded trace
+formula; connecting its first row to the input and certificate remains open.
 
 Classification: **known theorem mechanized**, for these prerequisites only.
 Nothing here establishes an answer to P versus NP.
@@ -113,8 +115,9 @@ coefficient = certBound.coefficient + 2 * clockPolynomial.coefficient + 4
 degree      = certBound.degree + clockPolynomial.degree + 1
 ```
 
-These are finite semantic traces; their state, head, and tape constraints
-still need to be compiled into the complete tableau CNF.
+`RunCNF` compiles their state, head, tape, and accepting-trace constraints.
+Their initial input/certificate constraints remain to be compiled and joined
+to this formula.
 
 ## Local CNF combinators
 
@@ -212,7 +215,8 @@ contracts so this compiler uses those proofs directly.
 
 This formula selects an instruction. `SuccessorCNF` supplies the head/tape
 wiring and charged successor constraints below. The full accepting tableau
-still needs initial/certificate constraints, row activity, and final acceptance.
+still needs initial/certificate constraints. `RunCNF` supplies row activity
+and final acceptance.
 No input-dependent reduction machine or hardness theorem follows from these
 local compilers alone.
 
@@ -260,9 +264,55 @@ C = 2*(Q*Q + W*W + 17*W + 2) + 4*Q*W*(4*W + 2).
 For row offsets `b` and `next`, variables are below
 `V = max b next + Q + 5*W`, and clauses have width at most `L = Q + W + 6`.
 `successorCNF_encoded_size` proves encoded bit length at most
-`2*C*(1 + L*(V + 1))`, counting unary identifiers and delimiters. This bound
-has not yet been combined with the clock, certificate, and row-count bounds
-into the full tableau's explicit `Polynomial`.
+`2*C*(1 + L*(V + 1))`, counting unary identifiers and delimiters. `RunCNF`
+combines this bound with the row-count and offset bounds below;
+the initial/certificate clauses remain outside its polynomial.
+
+## Bounded accepting-trace CNF
+
+`RunCNF.lean` and `RunCNF.v` compile a nonempty accepting prefix of at most
+`T` configurations with window width `W`. Each row reserves `Q + 5W + 1`
+variables: the existing state/head/tape block and one stop bit. A true stop
+bit requires the current instruction to halt accepting. A false stop bit
+requires the existing `successorCNF` and the remaining trace formula.
+Continuation clauses carry every preceding row's continuation guard, so
+rows after an accepting halt require no selections. Clock zero emits an
+empty clause; a move on the last possible row is also impossible.
+
+`runCNF_sound` extracts a represented, accepting #568 `LocalTrace` from
+every satisfying assignment. `runCNF_complete` proves the reverse direction
+for each represented trace within the clock. `traceAssignment` supplies a
+canonical model for every fixed-width accepting trace; `decodeTrace_represents`
+recovers that exact trace. Consequently `runCNF_iff` characterizes
+satisfiability by the existence of such a trace, without an assignment or
+state-bound premise. `runCNF_wrong_successor_rejected` rejects a decoded
+incorrect edge even if its final row accepts. `runCNF_rejecting_unsatisfiable`
+proves unsatisfiability whenever the machine rejects every configuration.
+
+Let `C = successorCount m W` and
+`R = Q² + W² + 17W + 2 + 4QW + C`. The checked bounds are:
+
+```text
+clauses       <= T*R + 1
+variable IDs  <  b + (T + 1)*(Q + 5W + 1)
+clause width  <= Q + W + 6 + T
+encoded bits  <= 2*(T*R + 1)*
+                  (1 + (Q + W + 6 + T)*(b + (T + 1)*(Q + 5W + 1) + 1))
+```
+
+The variable bound includes an extra row mentioned syntactically by the
+guarded successor clauses at the final clock position. `runPolynomial m b w t`
+is an explicit `Polynomial` assembled from polynomial bounds for offset,
+width, and clock. `runCNF_polynomial_size` checks that envelope against the
+actual unary `encodeCNF` length. Shared `Complexity.polyAdd` and `polyMul`
+compute coefficients and degrees; their checked evaluation lemmas also
+serve the existing polynomial-closure proofs.
+
+This formula permits any first configuration. It does not yet express
+`np.language x`, and its rejection theorem concerns machines that reject
+every configuration. Arbitrary rejecting verifiers may accept from other
+configurations, so the full verifier-level negative test still needs initial
+input/certificate wiring.
 
 ## Charged output primitive
 
@@ -297,7 +347,10 @@ values and check forbidden or inactive constraints. Emitter regressions run
 the concrete table on empty inputs/outputs and on inputs shorter and longer
 than its output. Circuit-CNF regressions cover zero wires, a satisfiable
 NAND circuit, an unsatisfiable contradiction circuit, incorrect gate outputs,
-and the polynomial bound with unary wire identifiers.
+and the polynomial bound with unary wire identifiers. Run-CNF regressions
+cover immediate and two-row acceptance, inactive suffixes with arbitrary
+values, premature halts, missing accepting termination, zero/short clocks,
+wrong successors, empty domains, and unary and polynomial size bounds.
 
 The rejecting-verifier and wrong-successor results concern **the semantic
 `VerifierTableau` predicate**. The certificate CNF alone is always satisfiable;
@@ -319,6 +372,7 @@ lake env lean experiments/issue624/EmitterRegression.lean
 lake env lean experiments/issue624/CircuitCNFRegression.lean
 lake env lean experiments/issue624/MachineCNFRegression.lean
 lake env lean experiments/issue624/SuccessorRegression.lean
+lake env lean experiments/issue624/RunCNFRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py
@@ -333,8 +387,8 @@ locally under `ci-logs/`.
 
 ## Remaining construction
 
-1. Combine the compiled rows and moves with initial/certificate constraints,
-   active-prefix rows, and accepting termination. Relate the complete formula
+1. Combine the compiled accepting traces with initial/certificate constraints.
+   Relate the complete formula
    to `WindowVerifierTableau` in both directions and prove its negative cases.
 2. Combine that construction's bounds with the certificate fragment's bound,
    counting all variable identifiers under the unary encoding.

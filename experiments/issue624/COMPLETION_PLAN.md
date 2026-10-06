@@ -37,3 +37,36 @@ establish completion. No formal impossibility has been established.
 Experiments use finite inputs; deliberate stress probes require memory/stack
 limits. Wait for every background command before ending work. Preserve the
 shared machine semantics and reuse #568's `LocalTrace`.
+
+## Accepting-trace continuation
+
+- [x] List the latest five CI runs with timestamps and SHAs. Confirm run
+  `37466019639` checks `43a39de` after that commit was created. Download all
+  three recent failing runs to ignored `ci-logs/` and read the failed job.
+- [x] Reproduce the 58 missing-contract/registration diagnostics locally.
+  The summary fails because the full Cook–Levin completion check fails;
+  prerequisite compilation and assumption checks pass.
+- [x] Fetch `origin/main` and verify it is already an ancestor of this branch.
+- [x] Add paired finite accepting-prefix regressions before creating `RunCNF`;
+  preserve missing-module failures and intermediate proof goals locally.
+- [x] Assemble row constraints, charged successors, accepting halts, and
+  finite clock exhaustion. Extract the original #568 trace from every model
+  and construct/decode the canonical assignment for every valid trace.
+- [x] Prove clause count, variable bounds, width, actual unary encoded size,
+  and an explicit polynomial envelope. Reuse shared polynomial arithmetic.
+- [x] Register all 24 paired `RunCNF` lemmas and the two paired shared
+  polynomial lemmas with their exact kernel-reported assumptions.
+- [x] Run the full Python, Lean, Rocq, and Agda checks; inspect saved logs and
+  the PR diff. The 254-job Lean build and both 204-result kernel audits pass.
+  Commit shared polynomial arithmetic separately from the trace compiler.
+- [ ] Push only the prepared branch, update PR #630, verify the fresh run's
+  SHA/timestamp, and download/analyze every non-passing job log.
+- [ ] Wire the initial input and decoded certificate into row zero; prove
+  full `tableauCNF` correctness and combine all fragment size bounds.
+- [ ] Construct the input-independent finite reduction table and prove its
+  charged polynomial `Computes` contract, then assemble the public endpoints.
+
+The trace compiler imposes no initial configuration. Its rejecting-machine
+theorem assumes rejection from every configuration, rather than from just the
+verifier's prescribed input. It does not discharge the verifier-level
+completion contract. The full completion check remains required.
