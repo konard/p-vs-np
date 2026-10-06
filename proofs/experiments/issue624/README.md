@@ -352,8 +352,8 @@ cover immediate and two-row acceptance, inactive suffixes with arbitrary
 values, premature halts, missing accepting termination, zero/short clocks,
 wrong successors, empty domains, and unary and polynomial size bounds.
 
-The rejecting-verifier and wrong-successor results concern **the semantic
-`VerifierTableau` predicate**. The certificate CNF alone is always satisfiable;
+The verifier-level rejecting and wrong-successor results in `VerifierTableau`
+concern **its semantic predicate**. The certificate CNF alone is always satisfiable;
 it does not express machine acceptance. The full rejection-as-unsatisfiable-CNF
 criterion in #624 is therefore still outstanding.
 
