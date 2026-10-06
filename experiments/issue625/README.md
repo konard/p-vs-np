@@ -2,8 +2,9 @@
 
 Issue 625 asks for unconditional `circuitSATInNP : CircuitSATInNP` in Lean and
 Rocq. **That target remains unresolved by this change.** The work here proves
-and audits the machine-level encoding grammar slice and packages the NP-record
-assembly, but supplies no full NAND-evaluating machine. No membership premise
+and audits the machine-level encoding grammar slice, packages the NP-record
+assembly, and implements a direct evaluator candidate. Its universal evaluator
+correctness and polynomial `Run` proof remain missing. No membership premise
 is removed, and issue 625 should remain open.
 
 ## Reproduce the outstanding target
@@ -184,11 +185,21 @@ membership premises remain, and the PR remains draft and incomplete.
 
 ## CI failure investigation, 2026-10-06
 
+The candidate [run 37464814143](https://github.com/konard/p-vs-np/actions/runs/37464814143)
+started at 12:39:17 UTC on `d56b26989a36b5b13aedd94a318f3f754897dd25`,
+after that commit at 12:39:11 UTC. Its full log is preserved locally as
+`ci-logs/verification-37464814143.log`. Both paired candidate probes pass
+(lines 156 and 797). Membership remains missing (Lean line 163, Rocq line 806),
+and the bridge probes reject the extra premise (Lean lines 165–201, Rocq
+lines 809–814). Both completion jobs and the summary fail; all six other jobs
+pass. The summary reports the Lean completion failure at line 9568. This run
+confirms the experimental table's concrete runs, not unconditional membership.
+
 The failing [run 37459212307](https://github.com/konard/p-vs-np/actions/runs/37459212307)
 started at 11:51:35 UTC on `d1ea2a16cf6a3ba5488d072bdb7bfdc4d1c95941`,
 after that commit at 11:51:17 UTC. Thus the failures are current. The branch
 already contains the fetched default branch. The full downloaded log is
-preserved locally as `ci-logs/formal-verification-37459212307.log`.
+preserved locally as `ci-logs/verification-37459212307.log`.
 
 - Lean log line 1437 reports unknown identifier
   `Issue532.Idea41.circuitSATInNP`; lines 1439–1474 show that all six consequence
