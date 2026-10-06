@@ -119,6 +119,40 @@ input-independent finite reduction table, its tape invariants, or its `Computes`
 proof has been constructed.
 The mandatory completion gate remains unchanged.
 
+## Input-retaining counter continuation
+
+- [x] Read the issue and all PR comment types; fetch the latest default branch.
+  `main` remains `ecedd2b` and is already an ancestor of this branch.
+- [x] List the latest five failed runs, download their full logs into ignored
+  `ci-logs/`, and verify run `37481919026` follows and checks `7ae9e283`.
+  The local preflight reproduces its 42 diagnostics. Full log lines 917–959
+  identify the endpoints/premises; line 9567 reports the downstream summary.
+- [x] Add paired counter regressions before implementation; preserve the
+  initial missing-module failures in `ci-logs/counter-before-{lean,rocq}.log`.
+- [x] Prove shared symbol-preserving left/right scans, `Reaches` composition,
+  and shifted second-table embedding; reuse composition in the fixed emitter.
+- [x] Construct a fixed nine-state input-retaining counter with an exact
+  charged tape contract for every word, prefix, and existing unary counter.
+- [x] Construct a seven-state setup block, retaining the actual input and
+  inserting cursor/delimiter. Sequence a 16-state `countedInput` machine with
+  an exact `Reaches` contract from `initial x` and bound `12 * (|x| + 1)^2`.
+- [x] Register 11 conclusions per prover using actual kernel assumptions;
+  integrate paired regressions and certified builds into local checks and CI.
+- [ ] Finish arithmetic/copy/formula-emission blocks and tape restoration;
+  prove `red_computes`, assemble hardness/completeness, and remove premises.
+- [x] Finish full Python/Lean/Rocq/Agda verification and review the diff.
+  The 257-job Lean build, full Rocq build, both 246-result source/assumption
+  audits, tableau/bridge contract checks, workflow lint, and focused project/
+  workflow tests pass. Logs are preserved in `ci-logs/counter-full-*.log`.
+  The completion preflight still exits 1 with the same 42 diagnostics.
+- [ ] Commit atomic changes, push only the prepared branch, update PR #630,
+  and inspect fresh CI logs against the pushed SHA and timestamp.
+- [ ] Verify the full deliverable and all CI pass, then mark PR #630 ready.
+
+The counter's output is a tape-block configuration, not `Computes red`.
+No formula-emitting reduction table or charged bound for it is established.
+All probes use finite inputs; no deliberate stack or memory stress is used.
+
 Local validation passed: the complete Python suite, 256-job Lean build,
 full Rocq build, both 234-result source/assumption audits, seven original
 tableau contract types in each kernel, and Agda checks. Workflow lint and

@@ -69,7 +69,10 @@ CNF compiler, machine instruction-selection and successor CNF, bounded
 accepting-trace CNF with an explicit unary size polynomial, and a charged
 fixed-word output machine. The complete tableau now includes initial
 input/certificate wiring, both model directions, language equivalence, and
-an explicit unary encoded-size polynomial. An input-dependent polynomial-time
+an explicit unary encoded-size polynomial. A fixed 16-state counter block
+retains the actual input and constructs its unary length with a charged
+quadratic bound, using shared scan and machine-composition proofs.
+An input-dependent polynomial-time
 reduction machine is still required for
 `SATHard`.
 

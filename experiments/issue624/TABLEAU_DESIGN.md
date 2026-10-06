@@ -110,5 +110,13 @@ requires a finite instruction table, tape invariant, charged `Reaches`
 bound, and a final `Computes` proof. Neither classical choice of a formula
 nor polynomial output length supplies these operations for free.
 
+`UnaryCounter.countedInput` now supplies the first input-dependent machine
+block: a fixed 16-state table retains `x` and constructs a unary `|x|` counter
+from `initial x`, within `12 * (|x| + 1)^2` charged steps. The nine-state inner
+loop also accepts arbitrary existing unary counters and retained left tape.
+Shared right/left scan proofs and shifted `Reaches` composition support later
+blocks. Arithmetic for formula indices, copy/emission loops, and final tape
+restoration still need finite-table implementations and charged contracts.
+
 Only after this machine contract is proved can
 `satHard` and `cookLevin` be assembled and the named hardness premises removed.

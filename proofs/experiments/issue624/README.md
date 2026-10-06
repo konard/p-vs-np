@@ -7,7 +7,7 @@ encoded-size bound are checked in both provers. This directory certifies
 variable-length certificates, fixed-width
 verifier traces, local CNF combinators, a NAND-circuit CNF compiler, a
 finite-row successor and bounded accepting-trace compilers, and a finite-table
-output primitive.
+output primitive and input-retaining unary counter blocks.
 
 `MachineCNF` compiles instruction dispatch from the existing machine table.
 `SuccessorCNF` compiles charged tape moves between two represented rows.
@@ -360,6 +360,34 @@ The output is fixed when the table is constructed. This primitive supplies
 neither the counters nor the input-dependent tableau emission required by
 `Computes red (fun x => encodeCNF (tableauCNF np x)) r`.
 
+## Charged input retention and unary counting
+
+`UnaryCounter.counter` has nine states independent of the input and counter
+value. Its tape contains a blank cursor, the remaining input, a separator,
+and `k` unary ticks. Each iteration retains one input bit to the left of the
+cursor, appends a tick, and returns to the cursor. `counter_reaches` proves
+the complete tape contract for arbitrary input `x`, existing left tape, and
+counter value, in exactly `|x| * (2 * (|x| + k) + 6) + 2` charged instructions.
+`countTime_polynomial` bounds that time by `8 * (|x| + k + 1)^2`.
+
+`prepare` constructs the cursor and delimiter from `initial x`, retaining
+every bit, in exactly `2 * |x| + 4` steps, including empty input.
+`countedInput` sequences the two tables into one fixed 16-state machine.
+`countedInput_reaches` starts from the actual shared-model input and finishes
+with the original bits on the reversed left tape, a blank cursor, separator,
+and exactly `|x|` unary ticks. `inputTime_polynomial` proves the explicit bound
+`12 * (|x| + 1)^2`. The exit state is 16, so further blocks can be sequenced.
+
+These blocks reuse shared `Machines.scan_right`, `scan_left`, `Reaches.trans`
+(`reaches_trans` in Rocq), and `reaches_append_right`. The scan lemmas preserve
+arbitrary symbol lists and count one instruction per scanned cell; the shifted
+composition lemma preserves the exact charged computation. The fixed emitter
+also reuses the shared transitivity proof.
+
+This is a tape-block interface. Formula emission, counter arithmetic for its
+indices, final tape restoration, and the complete reduction's `Computes`
+contract remain required.
+
 ## Verification and limits
 
 The paired [regressions](../../../experiments/issue624/) cover zero bounds,
@@ -409,6 +437,7 @@ lake env lean experiments/issue624/MachineCNFRegression.lean
 lake env lean experiments/issue624/SuccessorRegression.lean
 lake env lean experiments/issue624/RunCNFRegression.lean
 lake env lean experiments/issue624/TableauCNFRegression.lean
+lake env lean experiments/issue624/CounterRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py
@@ -429,9 +458,9 @@ locally under `ci-logs/`.
 2. Assemble `satHard` and `cookLevin`, then remove the existing hardness
    premises and update the Idea dossiers. Keep those premises until this step.
 
-The shared model supplies sequencing (`compose_run`) and the fixed-output
-primitive above, but no verified general counter/copy/tableau-emission
-compiler. A finite CNF function
+The shared model supplies sequencing (`compose_run`), charged scans and
+input retention/counting, and the fixed-output primitive above. A general
+counter-arithmetic/copy/tableau-emission compiler remains to be constructed. A finite CNF function
 or its output-size bound cannot stand in for the `Computes` proof. Enumerating
 all certificates or configurations would lose the required polynomial bound.
 Importing [Gäher–Kunze's construction](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITP.2021.20)

@@ -112,11 +112,30 @@ width bounds give an actual unary encoded-size bound and an explicit shared
 polynomial envelope. Twenty-four further #624 conclusions and two shared
 polynomial-arithmetic conclusions per prover bring the whole manifest to 204.
 
-This is **known theorem mechanized** for the prerequisites. The initial
-input/certificate wiring has not yet been joined to the accepting-trace CNF, and no
-input-dependent polynomial-time single-tape reduction machine has been proved. `SATHard`
-remains an explicit premise of the Idea bridges; #624 remains open. See the
-[paired assumption reports](../../../experiments/issue624/ASSUMPTIONS.md).
+The initial-input continuation adds paired `InitialCNF` and `CookLevin`
+modules. They join the actual input and variable-length certificate to the
+accepting-trace CNF, prove both tableau model directions, and bound the actual
+unary encoded output length by an explicit polynomial. Wrong initial rows,
+overlong certificates, rejecting verifiers, and wrong successors are rejected.
+These conclusions and the existing Idea 36 bridge bring the manifest to 235
+conclusions per prover.
+
+The counter continuation adds shared charged scans and computation composition,
+then constructs paired `UnaryCounter` modules. A fixed nine-state block retains
+the input and increments an existing unary counter once per bit. Its exact
+time is `n * (2 * (n + k) + 6) + 2`. A seven-state setup block starts from
+`initial x`; their 16-state composition retains every input bit and constructs
+the unary input length within `12 * (n + 1)^2` charged steps. Generic contracts,
+empty/mixed-bit examples, arbitrary retained prefixes, insufficient fuel, and
+malformed counter symbols are checked. Eleven new conclusions per prover bring
+the manifest to 246, with each entry's actual kernel assumptions recorded.
+
+This is **known theorem mechanized** for the tableau and machine primitives.
+The counter has a `Reaches` tape-block contract; no formula-emitting reduction
+table or polynomial charged `Computes` proof has been constructed. `satHard`
+and `cookLevin` remain absent, and `SATHard` remains an explicit premise of the
+Idea bridges. The completion preflight still reports 42 diagnostics and #624
+remains open. See the [paired assumption reports](../../../experiments/issue624/ASSUMPTIONS.md).
 
 ## The forty-one ideas
 

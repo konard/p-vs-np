@@ -22,6 +22,14 @@ constructors with empty/short/full certificates. Wrong-state, wrong-head, and
 wrong-tape assignments satisfy the earlier fragments but fail the initial row.
 The input-dependent reduction machine and SAT hardness remain outstanding.
 
+`CounterRegression` executes a fixed nine-state counter on empty and mixed-bit
+inputs, with arbitrary retained left tape and an existing counter. It checks
+both tape sides, exact runtime, insufficient fuel, and rejection of missing
+separators or non-unary counter symbols. Its 16-state `countedInput` checks
+entry from `initial x`, including genuinely empty input, input retention, and
+construction of the unary input length. The generic block contracts and
+explicit polynomial envelopes are proved in both kernels.
+
 After building the imported modules, run:
 
 ```sh
@@ -34,6 +42,7 @@ lake env lean experiments/issue624/MachineCNFRegression.lean
 lake env lean experiments/issue624/SuccessorRegression.lean
 lake env lean experiments/issue624/RunCNFRegression.lean
 lake env lean experiments/issue624/TableauCNFRegression.lean
+lake env lean experiments/issue624/CounterRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 bash experiments/issue624/check.sh all
@@ -66,6 +75,7 @@ python3 experiments/issue624/check_tableau_contracts.py --lean
 python3 experiments/issue624/check_tableau_contracts.py --rocq
 python3 experiments/issue624/existing_bridge_probe.py --lean
 python3 experiments/issue624/existing_bridge_probe.py --rocq
+python3 experiments/issue624/counter_assumptions.py
 ```
 
 [PLAN.md](PLAN.md) tracks the completed prerequisites and the remaining

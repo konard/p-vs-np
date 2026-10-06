@@ -510,3 +510,40 @@ checks that unapplied type and its kernel-reported assumptions:
 lean Issue532.Idea36.exactRounding_gives_pEqualsNP: Classical.choice, Quot.sound, propext
 rocq Idea36.exactRounding_gives_pEqualsNP: (none)
 ```
+
+## Charged counter and shared tape scans (2026-10-06)
+
+Run `python3 experiments/issue624/counter_assumptions.py` after building
+the paired modules to reproduce these 11 reports per prover. They cover
+the fixed counter table, actual-input setup, composed 16-state block,
+exact charged times, polynomial bounds, and shared scan/composition lemmas.
+The manifest allows only each entry’s kernel-reported assumptions.
+
+```text
+lean Issue624.UnaryCounter.counter_cycle: Quot.sound, propext
+lean Issue624.UnaryCounter.counter_reaches: Quot.sound, propext
+lean Issue624.UnaryCounter.countTime_polynomial: Quot.sound, propext
+lean Issue624.UnaryCounter.counter_append: Quot.sound, propext
+lean Issue624.UnaryCounter.prepare_reaches: Quot.sound, propext
+lean Issue624.UnaryCounter.countedInput_reaches: Quot.sound, propext
+lean Issue624.UnaryCounter.inputTime_polynomial: Quot.sound, propext
+lean Issue532.Machines.Reaches.trans: propext
+lean Issue532.Machines.scan_right: propext
+lean Issue532.Machines.scan_left: propext
+lean Issue532.Machines.reaches_append_right: Quot.sound, propext
+rocq UnaryCounter.counter_cycle: (none)
+rocq UnaryCounter.counter_reaches: (none)
+rocq UnaryCounter.countTime_polynomial: (none)
+rocq UnaryCounter.counter_append: (none)
+rocq UnaryCounter.prepare_reaches: (none)
+rocq UnaryCounter.countedInput_reaches: (none)
+rocq UnaryCounter.inputTime_polynomial: (none)
+rocq Machines.reaches_trans: (none)
+rocq Machines.scan_right: (none)
+rocq Machines.scan_left: (none)
+rocq Machines.reaches_append_right: (none)
+```
+
+The paired `CounterRegression` files also query the main block contracts
+directly. This audit does not establish the missing formula reduction,
+`satHard`, or `cookLevin`; the full completion gate remains required.
