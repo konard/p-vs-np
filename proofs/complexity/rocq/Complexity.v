@@ -80,6 +80,24 @@ Record Polynomial := {
 Definition evalPoly (p : Polynomial) (n : nat) : nat :=
   coefficient p * (n + 1) ^ degree p.
 
+(** Explicit envelopes for adding and multiplying polynomial bounds. *)
+Definition polyAdd (p q : Polynomial) : Polynomial :=
+  {| coefficient := coefficient p + coefficient q; degree := degree p + degree q |}.
+Definition polyMul (p q : Polynomial) : Polynomial :=
+  {| coefficient := coefficient p * coefficient q; degree := degree p + degree q |}.
+
+Theorem polyAdd_eval : forall p q n,
+  evalPoly p n + evalPoly q n <= evalPoly (polyAdd p q) n.
+Proof.
+  intros [c k] [d l] n. unfold evalPoly, polyAdd. simpl.
+  assert (hk : (n + 1) ^ k <= (n + 1) ^ (k + l)) by (apply Nat.pow_le_mono_r; lia).
+  assert (hl : (n + 1) ^ l <= (n + 1) ^ (k + l)) by (apply Nat.pow_le_mono_r; lia).
+  nia.
+Qed.
+Theorem polyMul_eval : forall p q n,
+  evalPoly p n * evalPoly q n = evalPoly (polyMul p q) n.
+Proof. intros [c k] [d l] n. unfold evalPoly, polyMul. simpl. rewrite Nat.pow_add_r. nia. Qed.
+
 (** A time function bounded at every input length by a polynomial, including zero. *)
 Definition PolynomiallyBounded (T : nat -> nat) : Prop :=
   exists c k : nat, forall n : nat, T n <= c * (n + 1) ^ k.
@@ -118,11 +136,8 @@ Theorem polynomiallyBounded_add : forall (T U : nat -> nat),
 Proof.
   intros T U [c [k hT]] [d [l hU]]. exists (c + d), (k + l).
   intro n. specialize (hT n). specialize (hU n).
-  assert (Hk : (n + 1) ^ k <= (n + 1) ^ (k + l))
-    by (apply Nat.pow_le_mono_r; lia).
-  assert (Hl : (n + 1) ^ l <= (n + 1) ^ (k + l))
-    by (apply Nat.pow_le_mono_r; lia).
-  nia.
+  pose proof (polyAdd_eval {| coefficient := c; degree := k |}
+    {| coefficient := d; degree := l |} n). unfold evalPoly, polyAdd in H. simpl in H. lia.
 Qed.
 
 Theorem polynomiallyBounded_mul : forall (T U : nat -> nat),
@@ -131,8 +146,8 @@ Theorem polynomiallyBounded_mul : forall (T U : nat -> nat),
 Proof.
   intros T U [c [k hT]] [d [l hU]]. exists (c * d), (k + l).
   intro n. specialize (hT n). specialize (hU n).
-  rewrite Nat.pow_add_r.
-  nia.
+  pose proof (polyMul_eval {| coefficient := c; degree := k |}
+    {| coefficient := d; degree := l |} n). unfold evalPoly, polyMul in H. simpl in H. nia.
 Qed.
 
 (** Composing polynomial runtime and polynomial output-size bounds. *)

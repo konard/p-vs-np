@@ -92,6 +92,25 @@ structure Polynomial where
 def Polynomial.eval (p : Polynomial) (n : Nat) : Nat :=
   p.coefficient * (n + 1) ^ p.degree
 
+/-- Explicit envelopes for adding and multiplying polynomial bounds. -/
+def polyAdd (p q : Polynomial) : Polynomial :=
+  ⟨p.coefficient + q.coefficient, p.degree + q.degree⟩
+def polyMul (p q : Polynomial) : Polynomial :=
+  ⟨p.coefficient * q.coefficient, p.degree + q.degree⟩
+
+theorem polyAdd_eval (p q : Polynomial) (n : Nat) :
+    p.eval n + q.eval n ≤ (polyAdd p q).eval n := by
+  have hp := Nat.pow_le_pow_right (Nat.zero_lt_succ n) (Nat.le_add_right p.degree q.degree)
+  have hq := Nat.pow_le_pow_right (Nat.zero_lt_succ n) (Nat.le_add_left q.degree p.degree)
+  simp only [polyAdd, Polynomial.eval, Nat.add_mul]
+  exact Nat.add_le_add (Nat.mul_le_mul_left p.coefficient hp)
+    (Nat.mul_le_mul_left q.coefficient hq)
+
+theorem polyMul_eval (p q : Polynomial) (n : Nat) :
+    p.eval n * q.eval n = (polyMul p q).eval n := by
+  simp only [Polynomial.eval, polyMul, Nat.pow_add]
+  ac_rfl
+
 /-- A time function bounded at every input length by a polynomial, including zero. -/
 def PolynomiallyBounded (T : Nat → Nat) : Prop :=
   ∃ c k : Nat, ∀ n : Nat, T n ≤ c * (n + 1) ^ k
@@ -126,31 +145,16 @@ theorem PolynomiallyBounded.add {T U : Nat → Nat}
     PolynomiallyBounded (fun n => T n + U n) := by
   obtain ⟨c, k, hT⟩ := hT
   obtain ⟨d, l, hU⟩ := hU
-  refine ⟨c + d, k + l, ?_⟩
-  intro n
-  have hk : (n + 1) ^ k ≤ (n + 1) ^ (k + l) :=
-    Nat.pow_le_pow_right (Nat.zero_lt_succ n) (Nat.le_add_right k l)
-  have hl : (n + 1) ^ l ≤ (n + 1) ^ (k + l) :=
-    Nat.pow_le_pow_right (Nat.zero_lt_succ n) (Nat.le_add_left l k)
-  calc
-    T n + U n ≤ c * (n + 1) ^ k + d * (n + 1) ^ l :=
-      Nat.add_le_add (hT n) (hU n)
-    _ ≤ c * (n + 1) ^ (k + l) + d * (n + 1) ^ (k + l) :=
-      Nat.add_le_add (Nat.mul_le_mul_left c hk) (Nat.mul_le_mul_left d hl)
-    _ = (c + d) * (n + 1) ^ (k + l) := (Nat.add_mul c d _).symm
+  exact ⟨c + d, k + l, fun n =>
+    Nat.le_trans (Nat.add_le_add (hT n) (hU n)) (polyAdd_eval ⟨c, k⟩ ⟨d, l⟩ n)⟩
 
 theorem PolynomiallyBounded.mul {T U : Nat → Nat}
     (hT : PolynomiallyBounded T) (hU : PolynomiallyBounded U) :
     PolynomiallyBounded (fun n => T n * U n) := by
   obtain ⟨c, k, hT⟩ := hT
   obtain ⟨d, l, hU⟩ := hU
-  refine ⟨c * d, k + l, ?_⟩
-  intro n
-  calc
-    T n * U n ≤ (c * (n + 1) ^ k) * (d * (n + 1) ^ l) :=
-      Nat.mul_le_mul (hT n) (hU n)
-    _ = (c * d) * ((n + 1) ^ k * (n + 1) ^ l) := by ac_rfl
-    _ = (c * d) * (n + 1) ^ (k + l) := by rw [Nat.pow_add]
+  exact ⟨c * d, k + l, fun n =>
+    Nat.le_trans (Nat.mul_le_mul (hT n) (hU n)) (Nat.le_of_eq (polyMul_eval ⟨c, k⟩ ⟨d, l⟩ n))⟩
 
 /-- Composing polynomial runtime and polynomial output-size bounds. -/
 theorem PolynomiallyBounded.comp {T U : Nat → Nat}
