@@ -1,9 +1,9 @@
 import proofs.experiments.issue532.lean.Idea41
+import proofs.experiments.issue567.lean.CircuitSyntax
 
 /-!
-A candidate finite table with kernel-checked concrete runs. The interpreter
-soundness lemma is universal; the evaluator examples are finite. This file
-does not prove universal evaluator correctness or a polynomial time bound.
+A candidate finite table with kernel-checked concrete runs and universal phase
+invariants. The whole evaluator's correctness and polynomial bound are pending.
 -/
 set_option maxRecDepth 4096
 set_option maxHeartbeats 2000000
@@ -58,6 +58,8 @@ theorem execute_complete {m : Machine} {c : Config} {t : Nat} {b : Bool}
       | succ fuel => simp [execute, hs, ih fuel (by omega)]
 
 @EXAMPLES@
+
+@INVARIANTS@
 
 #print axioms execute_sound
 #print axioms execute_complete

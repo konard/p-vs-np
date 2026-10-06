@@ -1,10 +1,11 @@
 From Stdlib Require Import List Arith Lia.
 Import ListNotations.
 From proofs.experiments.issue532.rocq Require Import Idea41.
+From proofs.experiments.issue567.rocq Require Import CircuitSyntax.
 Import Complexity Machines Circuits.
 
-(* The table and examples are experimental. No universal circuit evaluator
-   correctness or polynomial termination theorem is claimed. *)
+(* The table, examples and universal phase invariants are experimental.
+   Whole evaluator correctness and polynomial termination remain pending. *)
 Module EvaluatorCandidate.
 
 @TABLE@
@@ -45,6 +46,8 @@ Proof.
 Qed.
 
 @EXAMPLES@
+
+@INVARIANTS@
 
 Print Assumptions execute_sound.
 Print Assumptions execute_complete.

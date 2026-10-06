@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Kernel-check concrete circuit-evaluator runs in the unchanged machine model.
+"""Kernel-check circuit-evaluator runs and universal phase invariants.
 
 This candidate still needs its universal evaluator theorem and polynomial
 bound. Passing this script cannot satisfy the CircuitSAT completion gate.
@@ -7,6 +7,7 @@ bound. Passing this script cannot satisfy the CircuitSAT completion gate.
 
 import argparse
 from pathlib import Path
+import re
 import sys
 import tempfile
 
@@ -18,6 +19,38 @@ from experiments.issue567.check_machines import compile_probe
 from experiments.issue625.evaluator_candidate import (
     Halt, STATES, STATE_INDEX, TABLE, enc_circuit, run_machine,
 )
+from scripts import check_proof_status as proof_status
+
+
+AUDITED_THEOREMS = (
+    'execute_sound', 'execute_complete', 'nand_false_run', 'nand_true_run',
+    'dependent_gate_run', 'forward_wire_run', 'lookup_first_initial',
+    'malformed_reject', 'valid_start', 'gate_empty_run',
+)
+
+
+def audit_reports(language, output):
+    """Check every printed report, including reports after an allowed one."""
+    if language == 'lean':
+        reports = dict(re.findall(
+            r"(?m)^'Issue625\.EvaluatorCandidate\.(\w+)' (.+)$", output,
+        ))
+        for name in AUDITED_THEOREMS:
+            if name not in reports:
+                raise ValueError(f'lean: missing assumption report for {name}')
+            assumptions = proof_status.parse_lean_axioms(reports[name])
+            forbidden = assumptions - {'propext', 'Classical.choice', 'Quot.sound'}
+            if forbidden:
+                raise ValueError(f'lean: {name} uses unapproved assumptions: {sorted(forbidden)}')
+    elif language == 'rocq':
+        # Rocq prints no theorem name for a closed context. Reject any open
+        # context before counting closed ones; one closed result is insufficient.
+        if 'Axioms:' in output:
+            raise ValueError('rocq: candidate results have global assumptions')
+        if output.count('Closed under the global context') != len(AUDITED_THEOREMS):
+            raise ValueError('rocq: missing candidate assumption reports')
+    else:
+        raise ValueError(f'unknown prover: {language}')
 
 
 CASES = (
@@ -95,7 +128,12 @@ def examples_source(language):
 def probe_source(language):
     suffix = '.lean' if language == 'lean' else '.v'
     template = (HERE / f'EvaluatorCandidate{suffix}.in').read_text(encoding='utf-8')
-    return template.replace('@TABLE@', table_source(language)).replace('@EXAMPLES@', examples_source(language))
+    invariants = (HERE / f'EvaluatorInvariants{suffix}.in').read_text(encoding='utf-8')
+    source = template.replace('@TABLE@', table_source(language)).replace('@EXAMPLES@', examples_source(language))
+    source = source.replace('@INVARIANTS@', invariants)
+    for state, index in STATE_INDEX.items():
+        source = source.replace(f'@STATE_{state}@', str(index))
+    return source
 
 
 def check(language):
@@ -107,13 +145,19 @@ def check(language):
     with tempfile.TemporaryDirectory(prefix='evaluator_candidate_', dir=HERE) as directory:
         path = Path(directory) / f'EvaluatorCandidate{suffix}'
         path.write_text(source, encoding='utf-8')
+        entries = [{'source': str(path.relative_to(ROOT))}]
+        failures = proof_status.check_sources(ROOT, proof_status.source_closure(ROOT, entries))
+        if failures:
+            raise RuntimeError('\n'.join(failures))
         log = logs / f'{language}-evaluator-candidate.log'
         extra_args = ('-j', '2', '-M', '1024') if language == 'lean' else ()
         result = compile_probe(language, path, log, extra_args=extra_args)
         if result.returncode:
-            raise RuntimeError(f'{language}: concrete evaluator run failed; see {log}\n'
+            raise RuntimeError(f'{language}: evaluator probe failed; see {log}\n'
                                + (result.stdout + result.stderr).rstrip())
-    print(f'{language}: 83-state candidate, {len(CASES) + len(RAW_CASES)} concrete runs checked; universal proof pending')
+        audit_reports(language, result.stdout + result.stderr)
+    print(f'{language}: 83-state candidate, {len(CASES) + len(RAW_CASES)} concrete runs '
+          'and four universal phase invariants checked; whole evaluator proof pending')
 
 
 def main():

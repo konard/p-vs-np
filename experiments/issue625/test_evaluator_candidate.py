@@ -12,6 +12,7 @@ from experiments.issue625.evaluator_candidate import (
     run_machine,
     verify_circuit,
 )
+from experiments.issue625.check_evaluator_candidate import AUDITED_THEOREMS, audit_reports
 
 
 class EvaluatorCandidateTests(unittest.TestCase):
@@ -52,6 +53,37 @@ class EvaluatorCandidateTests(unittest.TestCase):
             gates = [(0, n - 1), (n, n), (n + 1, 0)]
             for certificate in ([False] * n, [True] * n, [i % 2 == 0 for i in range(n)]):
                 self.check_pair(enc_circuit(n, gates), certificate)
+
+
+class CandidateAssumptionTests(unittest.TestCase):
+    def lean_reports(self, overrides=None):
+        overrides = overrides or {}
+        return '\n'.join(
+            f"'Issue625.EvaluatorCandidate.{name}' depends on axioms: "
+            f"[{overrides.get(name, 'propext, Quot.sound')}]"
+            for name in AUDITED_THEOREMS
+        )
+
+    def test_permitted_reports_pass(self):
+        audit_reports('lean', self.lean_reports())
+        audit_reports('rocq', 'Closed under the global context\n' * len(AUDITED_THEOREMS))
+
+    def test_later_lean_admission_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'gate_empty_run uses unapproved assumptions'):
+            audit_reports('lean', self.lean_reports({'gate_empty_run': 'propext, sorryAx'}))
+
+    def test_missing_lean_report_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'missing assumption report'):
+            audit_reports('lean', self.lean_reports().split('\n', 1)[1])
+
+    def test_rocq_mixed_closed_and_open_context_rejected(self):
+        output = 'Closed under the global context\n' * len(AUDITED_THEOREMS)
+        with self.assertRaisesRegex(ValueError, 'global assumptions'):
+            audit_reports('rocq', output + 'Axioms:\nmissing_run : True\n')
+
+    def test_missing_rocq_report_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'missing candidate assumption reports'):
+            audit_reports('rocq', 'Closed under the global context\n')
 
 
 if __name__ == '__main__':
