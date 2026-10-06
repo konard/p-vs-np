@@ -8,6 +8,7 @@ python3 scripts/check_gubin_audit.py
 python3 -m unittest scripts.test_check_attempt_structure -v
 python3 -m unittest scripts.test_check_proof_status -v
 python3 -m unittest experiments.issue625.test_completion_gate -v
+python3 -m unittest experiments.issue625.test_evaluator_candidate -v
 python3 -m unittest scripts.test_list_issues -v
 python3 scripts/check_proof_status.py
 python3 experiments/issue578/check_paper_lp.py
@@ -42,4 +43,5 @@ bash experiments/issue587/check.sh --lean
 bash experiments/issue587/check.sh --rocq
 python3 -m unittest experiments.issue611.test_rocq_project -v
 python3 experiments/issue625/check_verifier_reuse.py --lean --rocq
+python3 experiments/issue625/check_evaluator_candidate.py --lean --rocq
 python3 experiments/issue625/check_membership.py --lean --rocq

@@ -32,6 +32,8 @@ class CompletionWorkflowTests(unittest.TestCase):
                 self.assertNotRegex(job, r"(?m)^    (?:if|needs):")
                 self.assertIn(f"check_membership.py --{language}", job)
                 self.assertIn(f"check_machines.py --{language}", job)
+                self.assertLess(job.index(f"check_evaluator_candidate.py --{language}"),
+                                job.index(f"check_membership.py --{language}"))
                 self.assertNotIn("continue-on-error", job)
                 self.assertIn("timeout-minutes:", job)
 

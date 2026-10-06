@@ -1,0 +1,68 @@
+import proofs.experiments.issue532.lean.Idea41
+
+/-!
+A candidate finite table with kernel-checked concrete runs. The interpreter
+soundness lemma is universal; the evaluator examples are finite. This file
+does not prove universal evaluator correctness or a polynomial time bound.
+-/
+set_option maxRecDepth 4096
+set_option maxHeartbeats 2000000
+
+namespace Issue625.EvaluatorCandidate
+open Complexity Issue532.Idea41
+
+@TABLE@
+
+/-- Bounded interpreter: one unit of fuel per charged table instruction. -/
+def execute (m : Machine) : Nat → Config → Option (Nat × Bool)
+  | 0, _ => none
+  | fuel + 1, c =>
+      match step m c with
+      | .inl b => some (1, b)
+      | .inr c' => do
+          let (t, b) ← execute m fuel c'
+          pure (t + 1, b)
+
+/-- A computed answer always supplies a real run with the same step count. -/
+theorem execute_sound (m : Machine) (fuel : Nat) (c : Config) (t : Nat) (b : Bool)
+    (h : execute m fuel c = some (t, b)) : Run m c t b := by
+  induction fuel generalizing c t b with
+  | zero => simp [execute] at h
+  | succ fuel ih =>
+      cases hs : step m c with
+      | inl answer =>
+          simp only [execute, hs, Option.some.injEq, Prod.mk.injEq] at h
+          obtain ⟨rfl, rfl⟩ := h
+          exact Run.halt hs
+      | inr next =>
+          cases hr : execute m fuel next with
+          | none => simp [execute, hs, hr] at h
+          | some result =>
+              obtain ⟨elapsed, answer⟩ := result
+              simp only [execute, hs, hr] at h
+              obtain ⟨rfl, rfl⟩ := h
+              exact Run.next hs (ih next elapsed answer hr)
+
+/-- Every charged run computes the same time and answer with sufficient fuel. -/
+theorem execute_complete {m : Machine} {c : Config} {t : Nat} {b : Bool}
+    (hr : Run m c t b) (fuel : Nat) (hf : t ≤ fuel) :
+    execute m fuel c = some (t, b) := by
+  induction hr generalizing fuel with
+  | halt hs =>
+      cases fuel with
+      | zero => omega
+      | succ fuel => simp [execute, hs]
+  | next hs hr ih =>
+      cases fuel with
+      | zero => omega
+      | succ fuel => simp [execute, hs, ih fuel (by omega)]
+
+@EXAMPLES@
+
+#print axioms execute_sound
+#print axioms execute_complete
+#print axioms nand_false_run
+#print axioms nand_true_run
+#print axioms dependent_gate_run
+#print axioms forward_wire_run
+end Issue625.EvaluatorCandidate

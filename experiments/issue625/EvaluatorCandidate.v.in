@@ -1,0 +1,55 @@
+From Stdlib Require Import List Arith Lia.
+Import ListNotations.
+From proofs.experiments.issue532.rocq Require Import Idea41.
+Import Complexity Machines Circuits.
+
+(* The table and examples are experimental. No universal circuit evaluator
+   correctness or polynomial termination theorem is claimed. *)
+Module EvaluatorCandidate.
+
+@TABLE@
+
+Fixpoint execute (m : Machine) (fuel : nat) (c : Config) : option (nat * bool) :=
+  match fuel with
+  | 0 => None
+  | S fuel' =>
+      match step m c with
+      | inl b => Some (1, b)
+      | inr c' =>
+          match execute m fuel' c' with
+          | None => None
+          | Some (t, b) => Some (S t, b)
+          end
+      end
+  end.
+
+Theorem execute_sound : forall m fuel c t b,
+  execute m fuel c = Some (t, b) -> Run m c t b.
+Proof.
+  intros m fuel. induction fuel as [|fuel ih]; intros c t b h.
+  - discriminate h.
+  - cbn [execute] in h. destruct (step m c) as [answer|next] eqn:hs.
+    + inversion h; subst. apply run_halt. exact hs.
+    + destruct (execute m fuel next) as [[elapsed answer]|] eqn:hr; [|discriminate].
+      inversion h; subst. eapply run_next; [exact hs|].
+      eapply ih. exact hr.
+Qed.
+
+Theorem execute_complete : forall m c t b,
+  Run m c t b -> forall fuel, t <= fuel -> execute m fuel c = Some (t, b).
+Proof.
+  intros m c t b hr. induction hr; intros fuel hf;
+    destruct fuel as [|fuel]; [lia| |lia|].
+  - cbn [execute]. rewrite H. reflexivity.
+  - cbn [execute]. rewrite H, IHhr by lia. reflexivity.
+Qed.
+
+@EXAMPLES@
+
+Print Assumptions execute_sound.
+Print Assumptions execute_complete.
+Print Assumptions nand_false_run.
+Print Assumptions nand_true_run.
+Print Assumptions dependent_gate_run.
+Print Assumptions forward_wire_run.
+End EvaluatorCandidate.

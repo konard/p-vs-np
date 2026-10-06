@@ -132,6 +132,12 @@ remain necessary. Both provers now run this completion gate on every CI event;
 the required verification summary cannot pass on the syntax slice alone.
 See [the investigation](../../../experiments/issue625/README.md).
 
+The direct evaluator experiment now supplies an 83-state candidate and
+fourteen concrete runs checked in both provers. Certificate matching, wire
+lookup, and NAND evaluation still need universal tape invariants and a
+polynomial charged-instruction proof. These experiments do not discharge
+`CircuitSATInNP` or remove any hypothesis from this route.
+
 `Issue532.SATVerifier` is the model for such a proof. After that, the next
 known theorem in Williams' chain is `LazyDiagonalSimulation` (the universal
 nondeterministic simulation behind `NTimeHierarchy`). Neither ingredient

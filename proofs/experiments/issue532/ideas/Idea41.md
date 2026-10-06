@@ -66,6 +66,10 @@ programs, `WF`, `output`, `InPPoly`).
   `CircuitSAT w = true` iff `w` encodes a well-formed satisfiable circuit.
   `CircuitSATInNP :≡ InNP CircuitSAT` is a known theorem, used only as a
   hypothesis.
+  The [direct evaluator experiment](../../../../experiments/issue625/README.md)
+  supplies an 83-state candidate with fourteen concrete runs checked in Lean
+  and Rocq. Its universal evaluator and polynomial runtime proofs remain open,
+  so it does not discharge this hypothesis or satisfy the completion gate.
 * **Exhaustive search.** `bruteCircuitSAT n C` evaluates `C` on the `2^n`
   vectors of `allAssignments n`. It evaluates `2^n · |C|` gates
   (`bruteForceGateEvaluations_eq`).

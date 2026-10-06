@@ -61,9 +61,11 @@ MUTATIONS = {
 }
 
 
-def compile_probe(language: str, path: Path, log: Path) -> subprocess.CompletedProcess:
+def compile_probe(
+    language: str, path: Path, log: Path, *, extra_args: tuple[str, ...] = (),
+) -> subprocess.CompletedProcess:
     command = ["lake", "env", "lean"] if language == "lean" else ["rocq", "compile", "-Q", ".", ""]
-    result = subprocess.run([*command, str(path)], cwd=ROOT, capture_output=True, text=True)
+    result = subprocess.run([*command, *extra_args, str(path)], cwd=ROOT, capture_output=True, text=True)
     log.write_text(result.stdout + result.stderr, encoding="utf-8")
     return result
 

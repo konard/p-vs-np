@@ -33,6 +33,9 @@ jobs:
     - name: Test CircuitSAT completion gate
       run: python3 -m unittest experiments.issue625.test_completion_gate -v
 
+    - name: Test bounded circuit evaluator candidate
+      run: python3 -m unittest experiments.issue625.test_evaluator_candidate -v
+
     - name: Test issue listing script
       run: python3 -m unittest scripts.test_list_issues -v
 
@@ -332,6 +335,7 @@ jobs:
           proofs.experiments.issue532.lean.SATVerifier
         python3 experiments/issue567/check_machines.py --lean
         python3 experiments/issue625/check_verifier_reuse.py --lean
+        python3 experiments/issue625/check_evaluator_candidate.py --lean
         python3 experiments/issue625/check_membership.py --lean
     - name: Preserve Lean completion diagnostics
       if: always()
@@ -363,6 +367,7 @@ jobs:
             proofs/experiments/issue532/rocq/SATVerifier.vo
           python3 experiments/issue567/check_machines.py --rocq
           python3 experiments/issue625/check_verifier_reuse.py --rocq
+          python3 experiments/issue625/check_evaluator_candidate.py --rocq
           python3 experiments/issue625/check_membership.py --rocq
     - name: Revert permissions
       if: always()

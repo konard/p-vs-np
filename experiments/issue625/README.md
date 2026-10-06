@@ -116,10 +116,71 @@ conditional, and an assumption audit does not discharge its explicit parameter.
   The syntax machine preserves the tape, but it does not construct the lookup
   workspace or prove an invariant for it.
 
-No correct transition table and invariant for the full evaluator were obtained
-in this investigation. Consequently there is no machine-level proof of forward
-wire rejection, wrong-length rejection, or NAND evaluation and no overall
-polynomial `Run` theorem. These remain the required next implementation work.
+The initial investigation did not obtain an evaluator table. The bounded
+candidate experiment below now supplies a prospective table, but its universal
+invariants and polynomial `Run` theorem remain unproved. Concrete runs do not
+discharge these obligations.
+
+## Direct evaluator candidate, 2026-10-06
+
+[`evaluator_candidate.py`](evaluator_candidate.py) constructs an 83-state,
+332-instruction table over the unchanged four-symbol alphabet. Its execution
+function follows `Complexity.moveHead`, including explicit blank cells. The
+instruction table does not call the reference decoder or circuit evaluator.
+
+The table first validates the circuit grammar. It compares the unary input
+count with certificate length while retaining all certificate values: a single
+cursor marks a false wire with `blank`, a true wire with `separator`, and each
+cursor cell is restored before that pass completes. During a gate lookup the
+active gate's list marker becomes `blank`. The machine consumes unary ticks
+by marking them with `separator` and shuttles to the wire cursor once per
+tick. Reaching the end of the wire list rejects an unavailable or forward
+wire. Both indices are restored after lookup. The finite state retains the
+first operand while looking up the second, then appends their NAND to the
+wire region and restores the gate marker. The final pass returns the last
+wire, with `false` for an empty wire list.
+
+The intended invariants still need general proofs:
+
+1. Each phase finds the intended boundary or marked cell, including when the
+   marked false wire is adjacent to the blank beyond the wire list.
+2. A lookup's consumed unary prefix and wire cursor advance together; lookup
+   succeeds exactly when its index is below the current wire-list length.
+3. Restoring a lookup preserves the original circuit cells and every wire
+   value. Appending a gate produces the same list as `Circuits.wires`.
+4. Certificate matching and all malformed-input exits terminate. The number
+   of shuttles and their charged instructions have one explicit polynomial
+   bound in the encoded paired-input length.
+
+The bounded Python suite compares the table against an independent executable
+specification on 3,174 input/certificate pairs. It covers all raw words up to
+eight bits with four representative certificates, identity and NAND circuits,
+two-gate dependencies, wrong certificate lengths, forward wires, and wire
+lookups with up to sixteen input wires. Each run has a finite budget of
+`128 * (|x| + |cert| + 2)^2`. Exceeding the budget fails the experiment;
+**that budget has not been proved sufficient on arbitrary inputs**.
+
+[`check_evaluator_candidate.py`](check_evaluator_candidate.py) emits the same
+table as `Complexity.Machine` in Lean and Rocq and kernel-checks fourteen
+concrete runs against the actual `verifyCircuit` definitions. For example,
+`encCircuit 1 [(0, 0)]` takes 111 charged steps on either one-bit certificate
+and returns the appropriate NAND result. A two-gate dependency takes 515
+steps on `[true, false]`. The generated probes also prove `execute_sound` and
+`execute_complete` for every machine: their bounded interpreter and `Run`
+agree on the exact time and answer. The printed Lean dependencies are within
+`propext` and `Quot.sound`; Rocq reports closed global contexts.
+
+```sh
+python3 -m unittest experiments.issue625.test_evaluator_candidate -v
+python3 experiments/issue625/check_evaluator_candidate.py --lean --rocq
+python3 experiments/issue625/evaluator_candidate.py --word 101000 --certificate 0 --trace
+```
+
+Tracing defaults to off. Generated probe sources and prover logs are preserved
+in `experiments/issue625/logs/`. The new checks run before the unchanged
+mandatory membership gate. They are experimental evidence, **not certified
+CircuitSAT membership**. Neither prover yet supplies `circuitSATInNP`, the
+membership premises remain, and the PR remains draft and incomplete.
 
 ## CI failure investigation, 2026-10-06
 
@@ -167,8 +228,9 @@ of a possible circuit verifier or a circuit-to-SAT machine reduction.
 
 The completion jobs run these probes before the existing mandatory membership
 check and preserve their logs in the diagnostic artifacts. Issue 625 remains
-unresolved and the PR remains draft: no full evaluator, polynomial run proof,
-unconditional membership theorem, or premise removal is supplied here.
+unresolved and the PR remains draft: the candidate has concrete checked runs,
+but no universal evaluator proof, polynomial run proof, unconditional
+membership theorem, or premise removal is supplied here.
 
 ## Mutation checks and interpretation
 

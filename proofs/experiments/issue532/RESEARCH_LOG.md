@@ -258,6 +258,18 @@ is Idea 34, which needs `lake build proofs.complexity.lean.Complexity` first.
 
 ## Verification log
 
+Issue 625 direct evaluator experiment (2026-10-06). An 83-state candidate
+table now preserves certificates during length checking, performs unary
+wire lookups, and appends NAND results. The Python suite compares 3,174
+bounded pairs against the finite specification. Lean and Rocq kernel-check
+fourteen concrete runs of that same table against `verifyCircuit` and prove
+soundness and completeness of its bounded interpreter for arbitrary machines.
+These finite checks do not prove the candidate's universal invariants or its
+polynomial runtime. Unconditional `circuitSATInNP`, manifest registration,
+and premise removal remain blocked; both completion jobs still fail. Details
+and the exact remaining obligations are in
+[`experiments/issue625`](../../../experiments/issue625/README.md).
+
 Issue 625 completion enforcement (2026-10-06). Review identified that the
 workflow could pass while `circuitSATInNP` was absent because only the syntax
 slice and conditional assembly were checked. Mandatory Lean and Rocq jobs now
@@ -267,7 +279,7 @@ closures and theorem assumptions with fixed limits. The required verification
 summary rejects either job failing or being skipped. Probe sources and logs
 are retained as CI artifacts. The gate currently fails in both provers for
 missing membership and retained premises. This is CI enforcement, not a new
-known theorem mechanized: the evaluating machine and polynomial `Run` proof
+known theorem mechanized: the universal evaluator and polynomial `Run` proofs
 remain missing, and issue 625 remains unresolved.
 
 Issue 625 input-validation slice (2026-10-05). A six-state circuit syntax
