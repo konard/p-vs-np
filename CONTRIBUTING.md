@@ -105,6 +105,15 @@ The workflow compiles Lean and Rocq proof files, and checks the listed shared-mo
 - Rocq compilation: `rocq makefile -f _CoqProject -o Makefile.coq && make -f Makefile.coq`
 - Certified source check: `python3 scripts/check_proof_status.py`
 - Certified assumption check after building: `python3 scripts/check_proof_status.py --lean` or `--rocq`
+- CircuitSAT issue-completion check after building both provers: `python3 experiments/issue625/check_membership.py --lean --rocq`
+
+The two `CircuitSAT Completion` jobs run on every workflow event, including
+documentation-only pull requests. They require unconditional `InNP CircuitSAT`,
+all six issue 625 bridges without membership premises, manifest registration,
+and assumption audits. The required `Verification Summary` fails if either
+completion job fails or is skipped. Syntax recognition and a conditional
+verifier assembly theorem do not satisfy this gate; it remains failing while
+the evaluator and its polynomial machine-run proof are missing.
 
 Ensure your code compiles locally before submitting.
 

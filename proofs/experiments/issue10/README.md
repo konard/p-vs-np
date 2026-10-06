@@ -28,7 +28,7 @@ are no axioms, `sorry` or `Admitted`.
 | Malformed circuits were not excluded | `malformed_forward_wire` and `malformed_no_inputs`. `malformed_rejected` gives a malformed circuit that outputs `true` and is rejected by `CircuitSAT`. |
 | `fast_PPoly_SAT_implies_P_neq_NP` took `NP ⊄ P/poly` as a hypothesis, closed it with the axiom `NP_not_subset_PPoly_implies_P_neq_NP`, and never used the algorithm | `npNotSubsetP_of_not_npSubsetPPoly` states the real bridge with `PSubsetPPoly` explicit. |
 | Williams' method yields `NEXP ⊄ P/poly`, not `NP ⊄ P/poly` | `williams_nexp_lower_bound` states the actual conclusion. `nexp_lower_bound_of_pEqualsNP` shows that `P = NP` yields the same conclusion under the same theorems, so on its own it does not separate P from NP. |
-| The axioms `williams_main_theorem`, `NP_not_subset_PPoly_implies_P_neq_NP`, `PPoly_SAT_is_hard`, `williams_2011_result` and the nonexistence axiom `we_dont_have_fast_TC0_SAT` | Removed. The known theorems are explicit hypotheses (`NTimeHierarchy`, `EasyWitnessLemma`, `WilliamsSpeedup`, `PSubsetPPoly`, `CircuitSATInNP`). The open obligation is the definition `FastCircuitSAT`, not an axiom. |
+| The axioms `williams_main_theorem`, `NP_not_subset_PPoly_implies_P_neq_NP`, `PPoly_SAT_is_hard`, `williams_2011_result` and the nonexistence axiom `we_dont_have_fast_TC0_SAT` | Removed. The known theorems are explicit hypotheses (`NTimeHierarchy`, `EasyWitnessLemma`, `WilliamsSpeedup`, `PSubsetPPoly`). The open obligation is the definition `FastCircuitSAT`, not an axiom. |
 | The enumeration diagonal (see below) | `constant_circuit_agrees` and `no_bit_differs_from_all_circuits`. |
 | The circularity claim (see below) | `williams_budget_not_polynomial`. |
 
@@ -75,7 +75,7 @@ decider meets it (`fastCircuitSAT_of_inP`).
 
 The real limitation is different. Williams' conclusion is about `NEXP`. The
 route reaches `NP ⊈ P` only by refuting `FastCircuitSAT` itself
-(`npNotSubsetP_of_not_fastCircuitSAT`, given `CircuitSATInNP`). That is a
+(`npNotSubsetP_of_not_fastCircuitSAT`). That is a
 lower bound on circuit-satisfiability algorithms, which is at least as hard
 as the original problem.
 
@@ -107,25 +107,22 @@ of these is formalized here.
 The Rocq `Legacy.Circuit` stores `compute` on `nat -> bool` instead of
 `Fin n → Bool`; the defect it reproduces is the same.
 
-## Next ingredient to discharge
+## Certified membership and remaining Williams ingredients
 
-As in the write-up, the premise of the route to `NP ⊈ P` is **`CircuitSATInNP`**, the
-circuit-evaluating verifier. `satisfying_input_within_certBound` proves that
-the certificate fits the linear bound `1·(|w|+1)`. What remains is a paired
-`Complexity.Machine` with the following properties:
+Idea 41 now proves unconditional `circuitSATInNP : InNP CircuitSAT` in both
+provers. Its 83-state machine validates the exact encoding, checks certificate
+length and wire bounds, evaluates NAND gates, and halts within
+`1024 * (|x| + |cert| + 12)^3` charged instructions. The certificate bound is
+linear. See [the proof and regressions](../../../experiments/issue625/README.md).
 
-1. It decodes `encNat n` and the gate list `encList encGate C`.
-2. It checks `WF n C` and that the certificate length is `n`.
-3. It evaluates `C` gate by gate.
-4. It halts within a polynomial number of `Run` steps.
+`nexp_lower_bound_of_pEqualsNP` and `npNotSubsetP_of_not_fastCircuitSAT` now use
+that theorem and take no membership premise. The mandatory completion gates
+check these signatures and transitive assumptions in both provers.
 
-`Issue532.SATVerifier` is the model for such a proof. After that, the next
-known theorem in Williams' chain is `LazyDiagonalSimulation` (the universal
-nondeterministic simulation behind `NTimeHierarchy`). Neither ingredient
-touches the open part, `FastCircuitSAT` or its refutation.
-
-Rocq does not change this assessment. The Rocq twin checks the same
-statements. The obstacle is mathematical, not a proof-assistant limitation.
+The remaining known Williams ingredients include `LazyDiagonalSimulation`
+(the universal nondeterministic simulation behind `NTimeHierarchy`),
+`EasyWitnessLemma`, and `WilliamsSpeedup`. The open part is still
+`FastCircuitSAT` or its refutation. CircuitSAT membership does not settle it.
 
 ## Verification
 
@@ -133,17 +130,14 @@ Run from the repository root:
 
 ```sh
 lake build proofs.experiments.issue10.lean.NPNotSubsetP
-rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea16.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
-rocq compile -Q . '' proofs/experiments/issue10/rocq/NPNotSubsetP.v
+rocq makefile -f _CoqProject -o Makefile.coq
+make -f Makefile.coq
+python3 experiments/issue625/check_membership.py --lean --rocq
 python3 scripts/check_proof_status.py --lean
 python3 scripts/check_proof_status.py --rocq
 ```
 
 The conclusions are listed in `scripts/proof_status.json`. The prover queries
 there report every transitive assumption. A clean report does not discharge
-the explicit hypotheses `CircuitSATInNP`, `PSubsetPPoly`, `NTimeHierarchy`,
+the explicit hypotheses `PSubsetPPoly`, `NTimeHierarchy`,
 `EasyWitnessLemma` and `WilliamsSpeedup`, nor the open `FastCircuitSAT`.

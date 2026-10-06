@@ -1,0 +1,281 @@
+(* Universal tape lemmas for the exact generated table. *)
+
+Definition cfg (q : nat) (L R : list Symbol) : Config :=
+  match R with
+  | [] => {| state := q; tapeLeft := L; tapeHead := blank; tapeRight := [] |}
+  | a :: r => {| state := q; tapeLeft := L; tapeHead := a; tapeRight := r |}
+  end.
+
+Theorem stepR : forall q q' a w L R,
+  instruction candidate q a = move q' w right ->
+  step candidate (cfg q L (a :: R)) = inr (cfg q' (w :: L) R).
+Proof.
+  intros q q' a w L R h. unfold step. cbn [cfg state tapeHead]. rewrite h.
+  destruct R; reflexivity.
+Qed.
+
+Theorem stepL : forall q q' a w l L R,
+  instruction candidate q a = move q' w left ->
+  step candidate (cfg q (l :: L) (a :: R)) = inr (cfg q' L (l :: w :: R)).
+Proof.
+  intros q q' a w l L R h. unfold step. cbn [cfg state tapeHead]. rewrite h. reflexivity.
+Qed.
+
+Theorem reaches_trans : forall c d e t u,
+  Reaches candidate c t d -> Reaches candidate d u e -> Reaches candidate c (t + u) e.
+Proof.
+  intros c d e t u h h'. induction h.
+  - exact h'.
+  - replace (S t + u) with (S (t + u)) by lia.
+    eapply reaches_next; [exact H | apply IHh; exact h'].
+Qed.
+
+Theorem R1 : forall q q' a w L R t E,
+  instruction candidate q a = move q' w right ->
+  Reaches candidate (cfg q' (w :: L) R) t E ->
+  Reaches candidate (cfg q L (a :: R)) (S t) E.
+Proof.
+  intros q q' a w L R t E h hr.
+  eapply reaches_next; [apply stepR; exact h | exact hr].
+Qed.
+
+Theorem L1 : forall q q' a w l L R t E,
+  instruction candidate q a = move q' w left ->
+  Reaches candidate (cfg q' L (l :: w :: R)) t E ->
+  Reaches candidate (cfg q (l :: L) (a :: R)) (S t) E.
+Proof.
+  intros q q' a w l L R t E h hr.
+  eapply reaches_next; [apply stepL; exact h | exact hr].
+Qed.
+
+Theorem walkR : forall q w L R,
+  (forall a, In a w -> instruction candidate q a = move q a right) ->
+  Reaches candidate (cfg q L (w ++ R)) (length w) (cfg q (rev w ++ L) R).
+Proof.
+  intros q w. induction w as [|a w ih]; intros L R h.
+  - apply reaches_refl.
+  - cbn [length app rev]. rewrite <- app_assoc. cbn [app].
+    eapply R1; [apply h; now left |].
+    apply ih. intros b hb. apply h. now right.
+Qed.
+
+Theorem walkL : forall q marker L w a R,
+  (forall b, In b (a :: w) -> instruction candidate q b = move q b left) ->
+  Reaches candidate (cfg q (w ++ marker :: L) (a :: R)) (S (length w))
+    (cfg q L (marker :: rev w ++ a :: R)).
+Proof.
+  intros q marker L w. induction w as [|b w ih]; intros a R h.
+  - eapply L1; [apply h; now left | apply reaches_refl].
+  - cbn [app rev length]. rewrite <- app_assoc. cbn [app].
+    eapply L1; [apply h; now left |].
+    apply ih. intros c hc. apply h. now right.
+Qed.
+
+Theorem rewind : forall q q' marker a w L R,
+  instruction candidate q a = move q' a left ->
+  (forall b, In b w -> instruction candidate q' b = move q' b left) ->
+  Reaches candidate (cfg q (w ++ marker :: L) (a :: R)) (S (length w))
+    (cfg q' L (marker :: rev w ++ a :: R)).
+Proof.
+  intros q q' marker a w L R ha hw. destruct w as [|b w].
+  - eapply L1; [exact ha | apply reaches_refl].
+  - cbn [app rev length]. rewrite <- app_assoc. cbn [app].
+    eapply L1; [exact ha |]. apply walkL. exact hw.
+Qed.
+
+Theorem bit_mem : forall a w,
+  In a (map ofBool w) -> a = zero \/ a = one.
+Proof.
+  intros a w h. apply in_map_iff in h. destruct h as [b [<- _]].
+  destruct b; [now right | now left].
+Qed.
+
+Definition cursor (b : bool) : Symbol := if b then separator else blank.
+
+Theorem lookup_first_initial : forall w b v L,
+  Reaches candidate (cfg @STATE_lookup_first_init@ (blank :: L)
+    (map ofBool w ++ separator :: map ofBool (b :: v)))
+    (2 * length w + 4)
+    (cfg @STATE_lookup_first_unary@ (blank :: L)
+      (map ofBool w ++ separator :: cursor b :: map ofBool v)).
+Proof.
+  intros w b v L.
+  assert (h1 : Reaches candidate
+    (cfg @STATE_lookup_first_init@ (blank :: L) (map ofBool w ++ separator :: map ofBool (b :: v)))
+    (length w)
+    (cfg @STATE_lookup_first_init@ (rev (map ofBool w) ++ blank :: L)
+      (separator :: map ofBool (b :: v)))).
+  { rewrite <- (length_map ofBool w). apply walkR.
+    intros a ha. destruct (bit_mem a w ha) as [-> | ->]; reflexivity. }
+  assert (h4 : Reaches candidate
+    (cfg @STATE_lookup_first_back_sep@ (rev (map ofBool w) ++ blank :: L)
+      (separator :: cursor b :: map ofBool v))
+    (length w + 1)
+    (cfg @STATE_lookup_first_back_gate@ L
+      (blank :: map ofBool w ++ separator :: cursor b :: map ofBool v))).
+  { assert (hw : forall a, In a (rev (map ofBool w)) ->
+      instruction candidate @STATE_lookup_first_back_gate@ a =
+        move @STATE_lookup_first_back_gate@ a left).
+    { intros a ha. apply in_rev in ha.
+      destruct (bit_mem a w ha) as [-> | ->]; reflexivity. }
+    pose proof (rewind @STATE_lookup_first_back_sep@ @STATE_lookup_first_back_gate@
+      blank separator (rev (map ofBool w)) L (cursor b :: map ofBool v) eq_refl hw) as h.
+    rewrite length_rev, length_map, rev_involutive in h.
+    replace (length w + 1) with (S (length w)) by lia. exact h. }
+  assert (h5 : Reaches candidate
+    (cfg @STATE_lookup_first_back_gate@ L
+      (blank :: map ofBool w ++ separator :: cursor b :: map ofBool v)) 1
+    (cfg @STATE_lookup_first_unary@ (blank :: L)
+      (map ofBool w ++ separator :: cursor b :: map ofBool v))).
+  { eapply R1; [reflexivity | apply reaches_refl]. }
+  replace (2 * length w + 4) with
+    (length w + S (S ((length w + 1) + 1))) by lia.
+  eapply reaches_trans; [exact h1 |]. cbn [map].
+  eapply R1; [reflexivity |].
+  eapply (L1 @STATE_lookup_first_mark_initial@ @STATE_lookup_first_back_sep@
+    (ofBool b) (cursor b) separator); [destruct b; reflexivity |].
+  eapply reaches_trans; [exact h4 | exact h5].
+Qed.
+
+Print Assumptions lookup_first_initial.
+
+(* Universal parser/rewind and terminal gate-loop invariants. *)
+
+Definition syntaxIdx (q : CircuitSyntax.Phase) : nat :=
+  match q with
+  | CircuitSyntax.header => @STATE_syntax_header@
+  | CircuitSyntax.marker => @STATE_syntax_marker@
+  | CircuitSyntax.firstWire => @STATE_syntax_first@
+  | CircuitSyntax.secondWire => @STATE_syntax_second@
+  | CircuitSyntax.done => @STATE_syntax_done@
+  | CircuitSyntax.bad => @STATE_syntax_bad@
+  end.
+
+Fixpoint phaseAfter (q : CircuitSyntax.Phase) (w : Word) : CircuitSyntax.Phase :=
+  match w with [] => q | b :: w => phaseAfter (CircuitSyntax.next q b) w end.
+
+Theorem phaseAfter_spec : forall q w,
+  CircuitSyntax.syntaxFrom q w = CircuitSyntax.finished (phaseAfter q w).
+Proof.
+  intros q w. revert q. induction w as [|b w ih]; intro q; [reflexivity | apply ih].
+Qed.
+
+Theorem syntax_scan_reaches : forall q w L R,
+  Reaches candidate (cfg (syntaxIdx q) L (map ofBool w ++ separator :: R)) (length w)
+    (cfg (syntaxIdx (phaseAfter q w)) (rev (map ofBool w) ++ L) (separator :: R)).
+Proof.
+  intros q w. revert q. induction w as [|b w ih]; intros q L R.
+  - apply reaches_refl.
+  - cbn [map app rev length phaseAfter]. rewrite <- app_assoc. cbn [app].
+    eapply (R1 (syntaxIdx q) (syntaxIdx (CircuitSyntax.next q b)) (ofBool b) (ofBool b));
+      [destruct q, b; reflexivity | apply ih].
+Qed.
+
+Theorem paired_eq : forall w cert, pairedInput w cert =
+  cfg (syntaxIdx CircuitSyntax.header) [] (map ofBool w ++ separator :: map ofBool cert).
+Proof. intros w cert. destruct w; reflexivity. Qed.
+
+Theorem malformed_reject : forall w cert,
+  CircuitSyntax.circuitSyntax w = false ->
+  Run candidate (pairedInput w cert) (length w + 1) false.
+Proof.
+  intros w cert hbad. rewrite paired_eq.
+  eapply reaches_run; [apply syntax_scan_reaches |].
+  apply run_halt. unfold step. cbn [cfg state tapeHead].
+  unfold CircuitSyntax.circuitSyntax in hbad. rewrite phaseAfter_spec in hbad.
+  destruct (phaseAfter CircuitSyntax.header w); try reflexivity. discriminate.
+Qed.
+
+Theorem walkLEnd : forall q w a R,
+  (forall b, In b (a :: w) -> instruction candidate q b = move q b left) ->
+  Reaches candidate (cfg q w (a :: R)) (S (length w))
+    (cfg q [] (blank :: rev w ++ a :: R)).
+Proof.
+  intros q w. induction w as [|b w ih]; intros a R h.
+  - eapply reaches_next; [|apply reaches_refl].
+    unfold step. cbn [cfg state tapeHead]. rewrite (h a (or_introl eq_refl)). reflexivity.
+  - cbn [rev length]. rewrite <- app_assoc. cbn [app].
+    eapply L1; [apply h; now left |]. apply ih.
+    intros c hc. apply h. now right.
+Qed.
+
+Theorem rewindEnd : forall q q' a w R,
+  instruction candidate q a = move q' a left ->
+  (forall b, In b w -> instruction candidate q' b = move q' b left) ->
+  Reaches candidate (cfg q w (a :: R)) (S (length w))
+    (cfg q' [] (blank :: rev w ++ a :: R)).
+Proof.
+  intros q q' a w R ha hw. destruct w as [|b w].
+  - eapply reaches_next; [|apply reaches_refl].
+    unfold step. cbn [cfg state tapeHead]. rewrite ha. reflexivity.
+  - cbn [rev length]. rewrite <- app_assoc. cbn [app].
+    eapply L1; [exact ha | apply walkLEnd; exact hw].
+Qed.
+
+Theorem valid_start : forall w cert,
+  CircuitSyntax.circuitSyntax w = true ->
+  Reaches candidate (pairedInput w cert) (2 * length w + 2)
+    (cfg @STATE_count_first@ [blank] (map ofBool w ++ separator :: map ofBool cert)).
+Proof.
+  intros w cert hvalid.
+  assert (hf : phaseAfter CircuitSyntax.header w = CircuitSyntax.done).
+  { unfold CircuitSyntax.circuitSyntax in hvalid. rewrite phaseAfter_spec in hvalid.
+    destruct (phaseAfter CircuitSyntax.header w); try discriminate; reflexivity. }
+  pose proof (syntax_scan_reaches CircuitSyntax.header w [] (map ofBool cert)) as h1.
+  rewrite hf, app_nil_r in h1.
+  assert (hw : forall a, In a (rev (map ofBool w)) ->
+    instruction candidate @STATE_start_left@ a = move @STATE_start_left@ a left).
+  { intros a ha. apply in_rev in ha.
+    destruct (bit_mem a w ha) as [-> | ->]; reflexivity. }
+  pose proof (rewindEnd (syntaxIdx CircuitSyntax.done) @STATE_start_left@ separator
+    (rev (map ofBool w)) (map ofBool cert) eq_refl hw) as h2.
+  rewrite length_rev, length_map, rev_involutive in h2.
+  assert (h3 : Reaches candidate (cfg @STATE_start_left@ []
+    (blank :: map ofBool w ++ separator :: map ofBool cert)) 1
+    (cfg @STATE_count_first@ [blank] (map ofBool w ++ separator :: map ofBool cert))).
+  { eapply R1; [reflexivity | apply reaches_refl]. }
+  rewrite paired_eq. replace (2 * length w + 2) with
+    (length w + (S (length w) + 1)) by lia.
+  eapply reaches_trans; [exact h1 |].
+  eapply reaches_trans; [exact h2 | exact h3].
+Qed.
+
+Fixpoint lastFrom (b : bool) (w : Word) : bool :=
+  match w with [] => b | a :: w => lastFrom a w end.
+
+Theorem finish_run : forall (b : bool) (w : Word) (L : list Symbol),
+  Run candidate (cfg (if b then @STATE_finish_true@ else @STATE_finish_false@) L (map ofBool w))
+    (length w + 1) (lastFrom b w).
+Proof.
+  intros b w. revert b. induction w as [|a w ih]; intros b L.
+  - apply run_halt. destruct b; reflexivity.
+  - cbn [map length lastFrom]. rewrite Nat.add_1_r.
+    eapply run_next; [apply (stepR (if b then @STATE_finish_true@ else @STATE_finish_false@)
+      (if a then @STATE_finish_true@ else @STATE_finish_false@) (ofBool a) (ofBool a));
+      destruct b, a; reflexivity |].
+    replace (S (length w)) with (length w + 1) by lia. apply ih.
+Qed.
+
+Theorem lastFrom_eq_last : forall b w, lastFrom b w = last w b.
+Proof.
+  intros b w. revert b. induction w as [|a w ih]; intro b; [reflexivity |].
+  destruct w as [|c w]; [reflexivity |]. apply ih.
+Qed.
+
+Theorem gate_empty_run : forall w L,
+  Run candidate (cfg @STATE_gate@ L (zero :: separator :: map ofBool w))
+    (length w + 3) (last w false).
+Proof.
+  intros w L.
+  assert (h1 : Reaches candidate (cfg @STATE_gate@ L (zero :: separator :: map ofBool w)) 2
+    (cfg @STATE_finish_false@ (separator :: zero :: L) (map ofBool w))).
+  { eapply R1; [reflexivity |]. eapply R1; [reflexivity | apply reaches_refl]. }
+  pose proof (finish_run false w (separator :: zero :: L)) as h2.
+  rewrite lastFrom_eq_last in h2.
+  replace (length w + 3) with (2 + (length w + 1)) by lia.
+  eapply reaches_run; [exact h1 | exact h2].
+Qed.
+
+Print Assumptions malformed_reject.
+Print Assumptions valid_start.
+Print Assumptions gate_empty_run.

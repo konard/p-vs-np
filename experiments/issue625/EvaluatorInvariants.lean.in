@@ -1,0 +1,289 @@
+/-! Universal tape lemmas for the exact candidate table. State numbers are
+filled from the same table as the concrete probes; no transition oracle is
+introduced. The certified CircuitVerifier module extends these lemmas to the whole run proof. -/
+
+open Issue532.Machines
+
+def cfg (q : Nat) (L : List Symbol) : List Symbol → Config
+  | [] => ⟨q, L, .blank, []⟩
+  | a :: R => ⟨q, L, a, R⟩
+
+abbrev Rch := Reaches candidate
+
+theorem stepR {q q' : Nat} {a w : Symbol}
+    (h : candidate.instruction q a = .move q' w .right) (L R : List Symbol) :
+    step candidate (cfg q L (a :: R)) = .inr (cfg q' (w :: L) R) := by
+  simp only [step, cfg, h]
+  cases R <;> rfl
+
+theorem stepL {q q' : Nat} {a w l : Symbol}
+    (h : candidate.instruction q a = .move q' w .left) (L R : List Symbol) :
+    step candidate (cfg q (l :: L) (a :: R)) = .inr (cfg q' L (l :: w :: R)) := by
+  simp only [step, cfg, h]
+  rfl
+
+theorem stepS {q q' : Nat} {a w : Symbol}
+    (h : candidate.instruction q a = .move q' w .stay) (L R : List Symbol) :
+    step candidate (cfg q L (a :: R)) = .inr (cfg q' L (w :: R)) := by
+  simp only [step, cfg, h]
+  rfl
+
+theorem stepH {q : Nat} {a : Symbol} {b : Bool}
+    (h : candidate.instruction q a = .halt b) (L R : List Symbol) :
+    step candidate (cfg q L (a :: R)) = .inl b := by
+  simp only [step, cfg, h]
+
+theorem trans {c d e : Config} {t u : Nat}
+    (h : Rch c t d) (h' : Rch d u e) : Rch c (t + u) e := by
+  induction h with
+  | refl => simpa using h'
+  | next hs _ ih => rw [Nat.add_right_comm]; exact Reaches.next hs (ih h')
+
+theorem R1 {q q' : Nat} {a w : Symbol} {L R : List Symbol} {t : Nat} {E : Config}
+    (h : candidate.instruction q a = .move q' w .right)
+    (hr : Rch (cfg q' (w :: L) R) t E) :
+    Rch (cfg q L (a :: R)) (t + 1) E := Reaches.next (stepR h L R) hr
+
+theorem L1 {q q' : Nat} {a w l : Symbol} {L R : List Symbol} {t : Nat} {E : Config}
+    (h : candidate.instruction q a = .move q' w .left)
+    (hr : Rch (cfg q' L (l :: w :: R)) t E) :
+    Rch (cfg q (l :: L) (a :: R)) (t + 1) E := Reaches.next (stepL h L R) hr
+
+theorem walkR (q : Nat) : ∀ (w L R : List Symbol),
+    (∀ a ∈ w, candidate.instruction q a = .move q a .right) →
+    Rch (cfg q L (w ++ R)) w.length (cfg q (w.reverse ++ L) R)
+  | [], L, R, _ => Reaches.refl _
+  | a :: w, L, R, h => by
+      have ih := walkR q w (a :: L) R
+        (fun a' ha' => h a' (List.mem_cons_of_mem _ ha'))
+      have hr := R1 (L := L) (R := w ++ R) (h a (List.mem_cons_self ..)) ih
+      simpa [Nat.add_comm] using hr
+
+/-- A left scan stops on the explicit marker, preserving every scanned cell.
+The marker is not scanned by this lemma. -/
+theorem walkL (q : Nat) (marker : Symbol) (L : List Symbol) :
+    ∀ (w : List Symbol) (a : Symbol) (R : List Symbol),
+    (∀ b ∈ a :: w, candidate.instruction q b = .move q b .left) →
+    Rch (cfg q (w ++ marker :: L) (a :: R)) (w.length + 1)
+      (cfg q L (marker :: w.reverse ++ a :: R))
+  | [], a, R, h => L1 (h a (List.mem_cons_self ..)) (Reaches.refl _)
+  | b :: w, a, R, h => by
+      have ih := walkL q marker L w b (a :: R)
+        (fun b' hb' => h b' (List.mem_cons_of_mem _ hb'))
+      have hr := L1 (L := w ++ marker :: L) (h a (List.mem_cons_self ..)) ih
+      simpa [Nat.add_comm, Nat.add_left_comm] using hr
+
+/-- Turn at a boundary, then scan left until the distinguished marker. -/
+theorem rewind (q q' : Nat) (marker a : Symbol) (w L R : List Symbol)
+    (ha : candidate.instruction q a = .move q' a .left)
+    (hw : ∀ b ∈ w, candidate.instruction q' b = .move q' b .left) :
+    Rch (cfg q (w ++ marker :: L) (a :: R)) (w.length + 1)
+      (cfg q' L (marker :: w.reverse ++ a :: R)) := by
+  cases w with
+  | nil => exact L1 ha (Reaches.refl _)
+  | cons b w =>
+      have hr := walkL q' marker L w b (a :: R) hw
+      simpa [Nat.add_comm] using L1 ha hr
+
+theorem bit_mem {a : Symbol} {w : Word} (h : a ∈ w.map Symbol.ofBool) :
+    a = .zero ∨ a = .one := by
+  obtain ⟨b, _, rfl⟩ := List.mem_map.mp h
+  cases b <;> simp [Symbol.ofBool]
+
+def cursor : Bool → Symbol
+  | false => .blank
+  | true => .separator
+
+/-- For every suffix and every nonempty wire list, the first lookup's initial
+shuttle finds the circuit/certificate boundary, marks exactly the first wire,
+and returns to the active gate. The circuit suffix and wire bits are preserved.
+The equation gives an exact number of charged, nonhalting instructions. -/
+theorem lookup_first_initial (w : Word) (b : Bool) (v : Word) (L : List Symbol) :
+    Rch (cfg @STATE_lookup_first_init@ (.blank :: L)
+      (w.map Symbol.ofBool ++ .separator :: (b :: v).map Symbol.ofBool))
+      (2 * w.length + 4)
+      (cfg @STATE_lookup_first_unary@ (.blank :: L)
+        (w.map Symbol.ofBool ++ .separator :: cursor b :: v.map Symbol.ofBool)) := by
+  have h1 := walkR @STATE_lookup_first_init@ (w.map Symbol.ofBool) (.blank :: L)
+    (.separator :: (b :: v).map Symbol.ofBool) (by
+      intro a ha
+      rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h4 := rewind @STATE_lookup_first_back_sep@ @STATE_lookup_first_back_gate@
+    .blank .separator (w.map Symbol.ofBool).reverse L (cursor b :: v.map Symbol.ofBool)
+    rfl (by
+      intro a ha
+      rcases bit_mem (List.mem_reverse.mp ha) with rfl | rfl <;> rfl)
+  have h5 : Rch (cfg @STATE_lookup_first_back_gate@ L
+      (.blank :: w.map Symbol.ofBool ++ .separator :: cursor b :: v.map Symbol.ofBool))
+      1 (cfg @STATE_lookup_first_unary@ (.blank :: L)
+        (w.map Symbol.ofBool ++ .separator :: cursor b :: v.map Symbol.ofBool)) :=
+    R1 rfl (Reaches.refl _)
+  simp only [List.reverse_reverse, List.length_reverse, List.length_map] at h4
+  have h45 := trans h4 h5
+  have h345 := L1 (q := @STATE_lookup_first_mark_initial@) (a := Symbol.ofBool b)
+    (w := cursor b) (by cases b <;> rfl) h45
+  have h2345 := R1 (q := @STATE_lookup_first_init@) (a := .separator) rfl h345
+  have h := trans h1 h2345
+  have he : (w.map Symbol.ofBool).length + (w.length + 1 + 1 + 1 + 1) =
+      2 * w.length + 4 := by simp only [List.length_map]; omega
+  rw [he] at h
+  exact h
+
+#print axioms lookup_first_initial
+
+open Issue567.CircuitSyntax (Phase)
+
+def syntaxIdx : Phase → Nat
+  | .header => @STATE_syntax_header@
+  | .marker => @STATE_syntax_marker@
+  | .firstWire => @STATE_syntax_first@
+  | .secondWire => @STATE_syntax_second@
+  | .done => @STATE_syntax_done@
+  | .bad => @STATE_syntax_bad@
+
+def phaseAfter : Phase → Word → Phase
+  | q, [] => q
+  | q, b :: w => phaseAfter (Issue567.CircuitSyntax.next q b) w
+
+theorem phaseAfter_spec (q : Phase) (w : Word) :
+    Issue567.CircuitSyntax.syntaxFrom q w = (phaseAfter q w == .done) := by
+  induction w generalizing q with
+  | nil => rfl
+  | cons b w ih => exact ih _
+
+/-- The candidate's parser consumes exactly the circuit word, stopping on the
+input/certificate separator without touching a certificate bit. -/
+theorem syntax_scan_reaches (q : Phase) (w : Word) (L R : List Symbol) :
+    Rch (cfg (syntaxIdx q) L (w.map Symbol.ofBool ++ .separator :: R)) w.length
+      (cfg (syntaxIdx (phaseAfter q w)) ((w.map Symbol.ofBool).reverse ++ L)
+        (.separator :: R)) := by
+  induction w generalizing q L with
+  | nil => exact Reaches.refl _
+  | cons b w ih =>
+      have hs : candidate.instruction (syntaxIdx q) (Symbol.ofBool b) =
+          .move (syntaxIdx (Issue567.CircuitSyntax.next q b)) (Symbol.ofBool b) .right := by
+        cases q <;> cases b <;> rfl
+      have hr := R1 hs (ih (Issue567.CircuitSyntax.next q b) (Symbol.ofBool b :: L))
+      simpa [phaseAfter, Nat.add_comm] using hr
+
+theorem paired_eq (w cert : Word) : pairedInput w cert =
+    cfg (syntaxIdx .header) [] (w.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool) := by
+  unfold pairedInput
+  simp only [List.append_assoc, List.singleton_append]
+  cases w <;> rfl
+
+/-- Every malformed circuit word is rejected by the actual 83-state table,
+for every certificate, in exactly |w| + 1 charged instructions. -/
+theorem malformed_reject (w cert : Word)
+    (hbad : Issue567.CircuitSyntax.circuitSyntax w = false) :
+    Run candidate (pairedInput w cert) (w.length + 1) false := by
+  have hscan := syntax_scan_reaches .header w [] (cert.map Symbol.ofBool)
+  have hs : candidate.instruction (syntaxIdx (phaseAfter .header w)) .separator =
+      .halt false := by
+    have hf : (phaseAfter .header w == .done) = false := by
+      rw [← phaseAfter_spec]
+      exact hbad
+    cases hp : phaseAfter .header w <;> simp only [hp] at hf <;> try rfl
+    contradiction
+  rw [paired_eq]
+  exact hscan.run (Run.halt (stepH hs _ _))
+
+/-- Left scans at the initial tape boundary create the explicit blank cell
+required by the subsequent certificate matching phase. -/
+theorem walkLEnd (q : Nat) : ∀ (w : List Symbol) (a : Symbol) (R : List Symbol),
+    (∀ b ∈ a :: w, candidate.instruction q b = .move q b .left) →
+    Rch (cfg q w (a :: R)) (w.length + 1)
+      (cfg q [] (.blank :: w.reverse ++ a :: R))
+  | [], a, R, h => by
+      apply Reaches.next (c' := cfg q [] (.blank :: a :: R))
+      · simp only [step, cfg, h a (List.mem_cons_self ..)]
+        rfl
+      · exact Reaches.refl _
+  | b :: w, a, R, h => by
+      have ih := walkLEnd q w b (a :: R)
+        (fun b' hb' => h b' (List.mem_cons_of_mem _ hb'))
+      simpa [Nat.add_comm, Nat.add_left_comm] using L1 (h a (List.mem_cons_self ..)) ih
+
+theorem rewindEnd (q q' : Nat) (a : Symbol) (w R : List Symbol)
+    (ha : candidate.instruction q a = .move q' a .left)
+    (hw : ∀ b ∈ w, candidate.instruction q' b = .move q' b .left) :
+    Rch (cfg q w (a :: R)) (w.length + 1)
+      (cfg q' [] (.blank :: w.reverse ++ a :: R)) := by
+  cases w with
+  | nil =>
+      apply Reaches.next (c' := cfg q' [] (.blank :: a :: R))
+      · simp only [step, cfg, ha]; rfl
+      · exact Reaches.refl _
+  | cons b w => simpa [Nat.add_comm] using L1 ha (walkLEnd q' w b (a :: R) hw)
+
+/-- For every well-formed encoding and certificate, the actual parser and
+rewind enter the length-matching phase with the entire input preserved. -/
+theorem valid_start (w cert : Word)
+    (hvalid : Issue567.CircuitSyntax.circuitSyntax w = true) :
+    Rch (pairedInput w cert) (2 * w.length + 2)
+      (cfg @STATE_count_first@ [.blank]
+        (w.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool)) := by
+  have hf : phaseAfter .header w = .done := by
+    have he : (phaseAfter .header w == .done) = true := by
+      rw [← phaseAfter_spec]; exact hvalid
+    exact beq_iff_eq.mp he
+  have h1 := syntax_scan_reaches .header w [] (cert.map Symbol.ofBool)
+  rw [hf, List.append_nil] at h1
+  have h2 := rewindEnd (syntaxIdx .done) @STATE_start_left@ .separator
+    (w.map Symbol.ofBool).reverse (cert.map Symbol.ofBool) rfl (by
+      intro a ha
+      rcases bit_mem (List.mem_reverse.mp ha) with rfl | rfl <;> rfl)
+  simp only [List.reverse_reverse, List.length_reverse, List.length_map] at h2
+  have h3 : Rch (cfg @STATE_start_left@ []
+      (.blank :: w.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool))
+      1 (cfg @STATE_count_first@ [.blank]
+        (w.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool)) :=
+    R1 rfl (Reaches.refl _)
+  have h := trans h1 (trans h2 h3)
+  rw [← paired_eq] at h
+  have ht : w.length + (w.length + 1 + 1) = 2 * w.length + 2 := by omega
+  rw [ht] at h
+  exact h
+
+def lastFrom : Bool → Word → Bool
+  | b, [] => b
+  | _, b :: w => lastFrom b w
+
+/-- The final output pass charges every visited wire and the halt instruction. -/
+theorem finish_run (b : Bool) (w : Word) (L : List Symbol) :
+    Run candidate (cfg (if b then @STATE_finish_true@ else @STATE_finish_false@) L
+      (w.map Symbol.ofBool)) (w.length + 1) (lastFrom b w) := by
+  induction w generalizing b L with
+  | nil =>
+      apply Run.halt
+      cases b <;> rfl
+  | cons a w ih =>
+      have hs : candidate.instruction (if b then @STATE_finish_true@ else @STATE_finish_false@)
+          (Symbol.ofBool a) =
+          .move (if a then @STATE_finish_true@ else @STATE_finish_false@) (Symbol.ofBool a) .right := by
+        cases b <;> cases a <;> rfl
+      exact Run.next (stepR hs _ _) (ih a (Symbol.ofBool a :: L))
+
+theorem lastFrom_eq_getLastD (b : Bool) (w : Word) : lastFrom b w = w.getLastD b := by
+  induction w generalizing b with
+  | nil => rfl
+  | cons a w ih =>
+      cases w with
+      | nil => rfl
+      | cons a' w => exact ih a
+
+/-- An empty gate suffix returns precisely the last wire, defaulting to false
+on an empty wire list. This proves the terminal gate-loop case for all wires. -/
+theorem gate_empty_run (w : Word) (L : List Symbol) :
+    Run candidate (cfg @STATE_gate@ L (.zero :: .separator :: w.map Symbol.ofBool))
+      (w.length + 3) (w.getLastD false) := by
+  have h1 : Rch (cfg @STATE_gate@ L (.zero :: .separator :: w.map Symbol.ofBool))
+      2 (cfg @STATE_finish_false@ (.separator :: .zero :: L) (w.map Symbol.ofBool)) :=
+    R1 rfl (R1 rfl (Reaches.refl _))
+  have h := h1.run (finish_run false w (.separator :: .zero :: L))
+  rw [lastFrom_eq_getLastD] at h
+  simpa [Nat.add_comm, Nat.add_left_comm] using h
+
+#print axioms malformed_reject
+#print axioms valid_start
+#print axioms gate_empty_run

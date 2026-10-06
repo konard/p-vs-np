@@ -1,0 +1,35 @@
+From Stdlib Require Import List Arith Lia.
+Import ListNotations.
+From proofs.experiments.issue567.rocq Require Import CircuitSyntax.
+From proofs.experiments.issue532.rocq Require Import Idea41.
+From proofs.experiments.issue532.rocq Require Import SATVerifier.
+Import Complexity Machines Circuits CircuitSyntax.
+
+(* A weaker version of the assembly hypothesis, without any time bound.
+   The counterexamples use the original paired circuit encoding. *)
+Definition EvaluatesCircuit (m : Machine) : Prop :=
+  forall x cert, length cert <= length x + 1 ->
+    exists t, Run m (pairedInput x cert) t (verifyCircuit x cert).
+
+Theorem syntax_table_cannot_evaluate : ~ EvaluatesCircuit circuitSyntaxMachine.
+Proof.
+  intro h.
+  assert (hc : length [false] <= length (encCircuit 1 []) + 1) by (simpl; lia).
+  destruct (h (encCircuit 1 []) [false] hc) as [t hr].
+  pose proof (run_deterministic _ _ _ _ _ _ hr
+    (circuitSyntaxMachine_run (encCircuit 1 []) [false])) as [_ he].
+  discriminate he.
+Qed.
+
+Theorem sat_table_cannot_evaluate : ~ EvaluatesCircuit SATVerifier.verifier.
+Proof.
+  intro h.
+  assert (hc : length [true] <= length (encCircuit 1 []) + 1) by (simpl; lia).
+  destruct (h (encCircuit 1 []) [true] hc) as [t hr].
+  destruct (SATVerifier.verifier_run (encCircuit 1 []) [true]) as [t' [_ hr']].
+  pose proof (run_deterministic _ _ _ _ _ _ hr hr') as [_ he].
+  discriminate he.
+Qed.
+
+Print Assumptions syntax_table_cannot_evaluate.
+Print Assumptions sat_table_cannot_evaluate.

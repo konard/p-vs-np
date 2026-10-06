@@ -1,0 +1,25 @@
+import proofs.experiments.issue10.lean.NPNotSubsetP
+
+open Complexity Issue532.Idea41 Issue10.NPNotSubsetP
+
+-- These are exact type checks, with no membership premise or supplied witness.
+example : (¬ FastCircuitSAT) → PNotEqualsNP :=
+  Issue532.Idea41.pNotEqualsNP_of_not_fastCircuitSAT
+
+example : PEqualsNP → FastCircuitSAT :=
+  Issue532.Idea41.fastCircuitSAT_of_pEqualsNP
+
+example : NTimeHierarchy → EasyWitnessLemma → WilliamsSpeedup →
+    NEXPSubsetPPoly → PNotEqualsNP :=
+  Issue532.Idea41.pNotEqualsNP_of_nexpSubsetPPoly
+
+example : NTimeHierarchy → EasyWitnessLemma → WilliamsSpeedup →
+    PEqualsNP → ¬ NEXPSubsetPPoly :=
+  Issue532.Idea41.not_nexpSubsetPPoly_of_pEqualsNP
+
+example : (¬ FastCircuitSAT) → NPNotSubsetP :=
+  Issue10.NPNotSubsetP.npNotSubsetP_of_not_fastCircuitSAT
+
+example : NTimeHierarchy → EasyWitnessLemma → WilliamsSpeedup →
+    PEqualsNP → ¬ NEXPSubsetPPoly :=
+  Issue10.NPNotSubsetP.nexp_lower_bound_of_pEqualsNP

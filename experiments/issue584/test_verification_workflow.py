@@ -7,6 +7,8 @@ import subprocess
 import tempfile
 import unittest
 
+from scripts.check_proof_status import local_imports
+
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github/workflows/verification.yml"
@@ -29,6 +31,19 @@ def step_script(name):
 
 
 class VerificationWorkflowTests(unittest.TestCase):
+    def test_explicit_rocq_build_orders_local_dependencies(self):
+        compiled = set()
+        sources = re.findall(
+            r"(?m)^\s+rocq compile -Q \. '' (\S+\.v)$", WORKFLOW.read_text()
+        )
+        self.assertTrue(sources, "No explicit Rocq build found")
+        for source in sources:
+            path = ROOT / source
+            missing = local_imports(ROOT, path) - compiled
+            names = sorted(str(p.relative_to(ROOT)) for p in missing)
+            self.assertFalse(missing, f"{source} is compiled before {names}")
+            compiled.add(path)
+
     def run_detector(self, event, files="", base="main", git_failure=False):
         with tempfile.TemporaryDirectory() as temp:
             temp = Path(temp)
@@ -130,7 +145,7 @@ class VerificationWorkflowTests(unittest.TestCase):
 
     def test_failed_certified_audit_fails_summary(self):
         script = step_script("Check results")
-        for job in ("detect-changes", "lean-verification", "rocq-verification", "agda-verification", "certified-lean"):
+        for job in ("detect-changes", "lean-verification", "rocq-verification", "agda-verification", "certified-lean", "circuit-sat-lean", "circuit-sat-rocq"):
             script = script.replace(f"${{{{ needs.{job}.result }}}}", "success")
         script = script.replace("${{ needs.certified-rocq.result }}", "failure")
         result = subprocess.run(
@@ -146,6 +161,8 @@ class VerificationWorkflowTests(unittest.TestCase):
 
     def test_failed_detector_fails_summary(self):
         script = step_script("Check results")
+        for job in ("circuit-sat-lean", "circuit-sat-rocq"):
+            script = script.replace(f"${{{{ needs.{job}.result }}}}", "success")
         for job in ("lean-verification", "rocq-verification", "certified-lean", "certified-rocq", "agda-verification"):
             script = script.replace(f"${{{{ needs.{job}.result }}}}", "skipped")
         script = script.replace("${{ needs.detect-changes.result }}", "failure")

@@ -83,7 +83,7 @@ verdicts:
 | 38 | [Relativization audit](ideas/Idea38.md) ([Lean](lean/Idea38.lean), [Rocq](rocq/Idea38.v)) | Refuted in full strength | A decision tree of depth `< N` cannot decide OR on `N` oracle bits, while one nondeterministic query does. A relativizing method settles nothing that is oracle-dependent. | Baker–Gill–Solovay (cited). |
 | 39 | [Proof-system scope](ideas/Idea39.md) ([Lean](lean/Idea39.lean), [Rocq](rocq/Idea39.v)) | Open obligation | Lower bounds transfer down along p-simulation with a composed polynomial. p-simulation is a preorder. A weak lower bound is compatible with strong short proofs. | `AllTautSystemsSuperpolynomial`: every Cook–Reckhow system `CRSystem` for TAUT, over machine verifiers, has a superpolynomial lower bound (Cook–Reckhow's program). |
 | 40 | [Size-uniform invariants](ideas/Idea40.md) ([Lean](lean/Idea40.lean), [Rocq](rocq/Idea40.v)) | Correct tool | Additive recurrences are polynomial. Doubling recurrences are at least `2^n` and beat every polynomial. | `SATMachineSelfReduction`, which gives `InP SAT` (with the named `IterationClosure`) and restates P = NP. |
-| 41 | [Williams' algorithmic method](ideas/Idea41.md) ([Lean](lean/Idea41.lean), [Rocq](rocq/Idea41.v)) | Open obligation | `williams_method`: in the shared model, a Circuit-SAT algorithm faster than `2^n/n^ω(1)` (`FastCircuitSAT`, over `Run`) together with three known theorems taken as explicit hypotheses (the nondeterministic time hierarchy, the easy-witness lemma, and the speedup step `WilliamsSpeedup`) refutes NEXP ⊆ P/poly. The hierarchy is derived from a lazy-diagonalisation lemma (`lazy_diagonal`, proved) plus a universal simulator (`LazyDiagonalSimulation`, an explicit hypothesis). The class `NTIME(T)` is Idea 16's (`inNTIME_iff_idea16`), and Idea 16's `NTimeHierarchy` discharges the hierarchy hypothesis (`williams_method_idea16`); that statement is itself a named known theorem, so one hypothesis is shared, not removed. P = NP gives `FastCircuitSAT` (proved, given `CircuitSATInNP`), so a refutation of `FastCircuitSAT` gives P ≠ NP. | `FastCircuitSAT` for general circuits is open; NEXP ⊄ P/poly is not known to give P ≠ NP. This is the only route here that turns a modest algorithmic gain into an unconditional lower bound (Williams 2011, Murray–Williams 2018, cited). |
+| 41 | [Williams' algorithmic method](ideas/Idea41.md) ([Lean](lean/Idea41.lean), [Rocq](rocq/Idea41.v)) | Open obligation | `williams_method`: in the shared model, a Circuit-SAT algorithm faster than `2^n/n^ω(1)` (`FastCircuitSAT`, over `Run`) together with three known theorems taken as explicit hypotheses (the nondeterministic time hierarchy, the easy-witness lemma, and the speedup step `WilliamsSpeedup`) refutes NEXP ⊆ P/poly. The hierarchy is derived from a lazy-diagonalisation lemma (`lazy_diagonal`, proved) plus a universal simulator (`LazyDiagonalSimulation`, an explicit hypothesis). The class `NTIME(T)` is Idea 16's (`inNTIME_iff_idea16`), and Idea 16's `NTimeHierarchy` discharges the hierarchy hypothesis (`williams_method_idea16`); that statement is itself a named known theorem, so one hypothesis is shared, not removed. P = NP gives `FastCircuitSAT` using unconditional `circuitSATInNP`, so a refutation of `FastCircuitSAT` gives P ≠ NP. | `FastCircuitSAT` for general circuits is open; NEXP ⊄ P/poly is not known to give P ≠ NP. This is the only route here that turns a modest algorithmic gain into an unconditional lower bound (Williams 2011, Murray–Williams 2018, cited). |
 
 ## The shared model
 
@@ -257,6 +257,83 @@ Each file can also be checked on its own with
 is Idea 34, which needs `lake build proofs.complexity.lean.Complexity` first.
 
 ## Verification log
+
+Issue 625 full evaluator proof (2026-10-06). Both `CircuitVerifier` modules
+now prove arbitrary wire lookup and rejection, restoration, NAND appending,
+and gate-loop correctness for the same 83-state finite table. `verifier_run`
+returns exactly `verifyCircuit x cert` for every word and certificate within
+`1024 * (|x| + |cert| + 12)^3` charged steps. `Idea41.circuitSATInNP` is now
+unconditional; the six required bridges and the SAT bridge use the proved
+membership. The seven completion targets are registered and audited with
+unchanged assumption ceilings. Lean uses only its three standard permitted
+principles; Rocq reports closed global contexts. Actual table mutations test
+length bypass and forward-wire acceptance alongside zero-cost and ignored
+certificate probes. The earlier issue 625 entries below describe intermediate
+checkpoints that this full proof supersedes. See
+[`experiments/issue625`](../../../experiments/issue625/README.md).
+
+Issue 625 certificate-phase proofs (2026-10-06). The exact 83-state candidate
+now has paired universal `count_success` and `count_reject` results. For every
+unary header `n`, arbitrary bit payload `w`, and certificate, matching lengths
+reach the gate phase with the original header and certificate restored;
+mismatching lengths halt with rejection. Both use at most
+`64 * (n + 1) * (n + |w| + |cert| + 4)` charged instructions. The proofs include
+empty, shorter, and longer certificates. Lean's assumption reports are within
+`propext`, `Classical.choice`, and `Quot.sound`; Rocq reports closed global
+contexts. An additional 270 trace cases check the restored tape, phase bound,
+and rejection before gate evaluation. The general lookup, gate restoration,
+NAND appending, and aggregate polynomial evaluator theorem remain missing;
+`circuitSATInNP` and both CI completion jobs remain blocked. See
+[`experiments/issue625`](../../../experiments/issue625/README.md).
+
+Issue 625 candidate phase proofs (2026-10-06). The paired generated probes now
+prove four universal results about the exact 83-state table: malformed-input
+rejection in `|x| + 1` steps, tape-preserving entry into certificate matching
+in `2 * |x| + 2` steps, initial wire marking and return to the active gate in
+`2 * |suffix| + 4` steps, and the final output pass in `|wires| + 3` steps.
+Lean uses only `propext` and `Quot.sound`; Rocq reports closed global contexts.
+The runner scans the generated sources and their imports, then checks every
+assumption report; regressions reject mixed or missing reports. Certificate
+matching, arbitrary cursor advancement, operand restoration, NAND appending,
+and the aggregate polynomial run bound remain unproved. These phase results
+do not supply `circuitSATInNP`, so the completion gate still fails. See
+[`experiments/issue625`](../../../experiments/issue625/README.md).
+
+Issue 625 direct evaluator experiment (2026-10-06). An 83-state candidate
+table now preserves certificates during length checking, performs unary
+wire lookups, and appends NAND results. The Python suite compares 3,174
+bounded pairs against the finite specification. Lean and Rocq kernel-check
+fourteen concrete runs of that same table against `verifyCircuit` and prove
+soundness and completeness of its bounded interpreter for arbitrary machines.
+These finite checks do not prove the candidate's universal invariants or its
+polynomial runtime. Unconditional `circuitSATInNP`, manifest registration,
+and premise removal remain blocked; both completion jobs still fail. Details
+and the exact remaining obligations are in
+[`experiments/issue625`](../../../experiments/issue625/README.md).
+
+Issue 625 completion enforcement (2026-10-06). Review identified that the
+workflow could pass while `circuitSATInNP` was absent because only the syntax
+slice and conditional assembly were checked. Mandatory Lean and Rocq jobs now
+compile unconditional membership and all six bridges without membership
+parameters, require manifest registration, and audit the required import
+closures and theorem assumptions with fixed limits. The required verification
+summary rejects either job failing or being skipped. Probe sources and logs
+are retained as CI artifacts. The gate currently fails in both provers for
+missing membership and retained premises. This is CI enforcement, not a new
+known theorem mechanized: the universal evaluator and polynomial `Run` proofs
+remain missing, and issue 625 remains unresolved.
+
+Issue 625 input-validation slice (2026-10-05). A six-state circuit syntax
+machine now recognizes exactly `encCircuit` on the paired input model, with
+an exact `|x| + 1` instruction count, including the halt. Lean and Rocq prove
+the same recognition, decoder equivalence, termination and run-correctness
+statements. The syntax results are known theorems mechanized, not NP
+membership. A forward wire has valid syntax, and the new regression makes
+that distinction explicit. The paired NP-record assembly theorem still takes
+the full evaluating machine's polynomial run theorem as a parameter.
+The unconditional `circuitSATInNP` target remains absent in both provers;
+the `mem` parameters in Idea 41 and issue 10 remain in place. Details and
+reproduction are in [`experiments/issue625`](../../../experiments/issue625/README.md).
 
 Fourth round (2026-09-27, after the review). Every open obligation was moved
 onto the shared machine model, `SATInNP` was proved, and Idea 41 was added and

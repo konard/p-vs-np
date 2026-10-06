@@ -1,0 +1,8 @@
+(* Reproducible signature inspection used while proving the length shuttles.
+   Copy this template to a temporary .v file before running rocq compile.
+   Keeping probes as .in avoids adding them to the repository source inventory. *)
+From Stdlib Require Import List.
+Check @repeat_length.
+Check @rev_repeat.
+Check @repeat_cons.
+Check @repeat_app.

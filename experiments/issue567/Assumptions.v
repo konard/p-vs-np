@@ -1,5 +1,6 @@
 From proofs.experiments.issue532.rocq Require Import Idea41.
 From proofs.experiments.issue567.rocq Require Import ResidualKey.
+From proofs.experiments.issue567.rocq Require Import CircuitSyntax.
 
 Print Assumptions Idea41.decCircuit_encCircuit.
 Print Assumptions Idea41.decCircuit_sound.
@@ -9,3 +10,8 @@ Print Assumptions Idea41.circuitSAT_iff_verifyCircuit.
 Print Assumptions Idea41.verifyCircuit_cert_bound.
 Print Assumptions ResidualKey.coarseKey_not_satisfiability_complete.
 Print Assumptions ResidualKey.family_encoded_lengths.
+Print Assumptions CircuitSyntax.circuitSyntax_iff_decCircuit.
+Print Assumptions CircuitSyntax.circuitSyntaxMachine_run.
+Print Assumptions CircuitSyntax.circuitSyntaxMachine_terminates.
+Print Assumptions CircuitSyntax.circuitSyntaxMachine_accepts_iff.
+Print Assumptions Idea41.circuitSATInNP_of_verifier_run.

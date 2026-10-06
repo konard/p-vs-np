@@ -3,6 +3,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import check_dossiers
 
@@ -109,6 +110,54 @@ class RepositoryTests(unittest.TestCase):
 
 
 class ImportClosureTests(unittest.TestCase):
+    def test_core_companion_is_checked_and_must_be_imported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            base = root / 'proofs/experiments/issue532'
+            (base / 'ideas').mkdir(parents=True)
+            markdown = '# Idea 01 — Core test\n**Verdict:** ' + check_dossiers.VERDICTS[2] + '\n'
+            for heading in check_dossiers.SECTIONS:
+                markdown += heading + '\n'
+                if heading == check_dossiers.SECTIONS[2]:
+                    markdown += '| `core_fact` | checked | [Lean](../lean/Idea01.lean) | [Rocq](../rocq/Idea01.v) |\n'
+            (base / 'ideas/Idea01.md').write_text(markdown)
+            for language, suffix in (('lean', '.lean'), ('rocq', '.v')):
+                directory = base / language
+                directory.mkdir()
+                if language == 'lean':
+                    main = 'import proofs.experiments.issue532.lean.Idea01Core\n'
+                    body = 'namespace Issue532.Idea01\ntheorem a : 1 = 1 := rfl\ntheorem b : 2 = 2 := rfl\n'
+                    core = 'import proofs.experiments.issue532.lean.Machines\n' + body
+                    core += '/-- Open obligation. -/\ndef Goal : Prop := Complexity.InP Issue532.Machines.SAT\n'
+                    core += 'theorem core_fact : 3 = 3 := rfl\n'
+                else:
+                    main = 'From proofs.experiments.issue532.rocq Require Import Idea01Core.\n'
+                    body = 'Theorem a : 1 = 1. Proof. reflexivity. Qed.\nTheorem b : 2 = 2. Proof. reflexivity. Qed.\n'
+                    core = 'From proofs.experiments.issue532.rocq Require Import Machines.\n' + body
+                    core += '(** Open obligation. *)\nDefinition Goal : Prop := InP SAT.\n'
+                    core += 'Theorem core_fact : 3 = 3. Proof. reflexivity. Qed.\n'
+                (directory / f'Idea01{suffix}').write_text(main + body)
+                (directory / f'Idea01Core{suffix}').write_text(core)
+                (directory / f'Machines{suffix}').write_text('')
+            with patch.object(check_dossiers, 'ROOT', root), patch.object(check_dossiers, 'BASE', base), patch.object(check_dossiers, 'SHARED', {'lean': [], 'rocq': []}):
+                self.assertEqual(check_dossiers.check_idea(1), [])
+                for language, suffix, mutation in (
+                    ('lean', '.lean', 'theorem hole : True := by sorry\n'),
+                    ('rocq', '.v', 'Theorem hole : True. Admitted.\n'),
+                ):
+                    core_path = base / language / f'Idea01Core{suffix}'
+                    original = core_path.read_text()
+                    core_path.write_text(original + mutation)
+                    errors = check_dossiers.check_idea(1)
+                    self.assertTrue(any('forbidden token' in error and 'Core' in error for error in errors), errors)
+                    self.assertTrue(any('trivial' in error and 'Core' in error for error in errors), errors)
+                    core_path.write_text(original)
+                    main_path = base / language / f'Idea01{suffix}'
+                    original = main_path.read_text()
+                    main_path.write_text(original.split('\n', 1)[1])
+                    self.assertTrue(any('core companion is not imported' in error for error in check_dossiers.check_idea(1)))
+                    main_path.write_text(original)
+
     def test_shared_and_transitive_mutations_are_rejected_in_both_provers(self):
         for language, suffix, mutations in (
             ("lean", ".lean", (

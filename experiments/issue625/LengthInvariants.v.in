@@ -1,0 +1,424 @@
+(* Exact certificate-matching shuttles on the generated instruction table. *)
+Definition ones (n : nat) : list Symbol := repeat one n.
+Definition marks (n : nat) : list Symbol := repeat separator n.
+
+Ltac cells :=
+  repeat rewrite map_app; repeat rewrite rev_app_distr;
+  repeat rewrite rev_involutive; repeat rewrite rev_repeat;
+  repeat rewrite length_app; repeat rewrite length_map;
+  repeat rewrite length_rev; repeat rewrite length_map; repeat rewrite repeat_length;
+  cbn [map rev app length]; repeat rewrite rev_repeat;
+  repeat rewrite repeat_length; repeat rewrite <- app_assoc;
+  cbn [app]; repeat rewrite Nat.add_1_r.
+Ltac cells_in H :=
+  repeat rewrite map_app in H; repeat rewrite rev_app_distr in H;
+  repeat rewrite rev_involutive in H; repeat rewrite rev_repeat in H;
+  repeat rewrite length_app in H; repeat rewrite length_map in H;
+  repeat rewrite length_rev in H; repeat rewrite length_map in H;
+  repeat rewrite repeat_length in H;
+  cbn [map rev app length] in H; repeat rewrite rev_repeat in H;
+  repeat rewrite repeat_length in H; repeat rewrite <- app_assoc in H;
+  cbn [app] in H; repeat rewrite Nat.add_1_r in H.
+Tactic Notation "cells" "in" ident(H) := cells_in H.
+
+Lemma marks_mem : forall a n, In a (marks n) -> a = separator.
+Proof. intros a n h. apply repeat_spec in h. exact h. Qed.
+
+Lemma bitR : forall q w L R,
+  (forall b, instruction candidate q (ofBool b) = move q (ofBool b) right) ->
+  Reaches candidate (cfg q L (map ofBool w ++ R)) (length w)
+    (cfg q (rev (map ofBool w) ++ L) R).
+Proof.
+  intros q w L R h. rewrite <- (length_map ofBool w). apply walkR.
+  intros a ha. apply in_map_iff in ha. destruct ha as [b [hb _]]. subst a. apply h.
+Qed.
+
+Lemma bits_back : forall q q' marker w L a R,
+  instruction candidate q a = move q' a left ->
+  (forall b, instruction candidate q' (ofBool b) = move q' (ofBool b) left) ->
+  Reaches candidate (cfg q (rev (map ofBool w) ++ marker :: L) (a :: R))
+    (length w + 1) (cfg q' L (marker :: map ofBool w ++ a :: R)).
+Proof.
+  intros q q' marker w L a R ha hw.
+  pose proof (rewind q q' marker a (rev (map ofBool w)) L R ha) as h.
+  rewrite length_rev, length_map, rev_involutive in h.
+  replace (length w + 1) with (S (length w)) by lia. apply h.
+  intros b hb. apply in_rev in hb. apply in_map_iff in hb.
+  destruct hb as [c [hc _]]. subst b. apply hw.
+Qed.
+
+Theorem count_return_sep : forall p r R, r <> [] ->
+  Reaches candidate (cfg @STATE_count_back_sep@
+    (rev (map ofBool r) ++ marks p ++ [blank]) (separator :: R))
+    (length r + 2 * p + 3)
+    (cfg @STATE_count_next@ (marks p ++ [blank]) (map ofBool r ++ separator :: R)).
+Proof.
+  intros p r R hne.
+  assert (hw : forall a, In a (rev (map ofBool r) ++ marks p) ->
+      instruction candidate @STATE_count_back_left@ a = move @STATE_count_back_left@ a left).
+  { intros a ha. apply in_app_or in ha. destruct ha as [ha | ha].
+    - apply in_rev in ha. destruct (bit_mem a r ha) as [-> | ->]; reflexivity.
+    - rewrite (marks_mem a p ha). reflexivity. }
+  pose proof (rewind @STATE_count_back_sep@ @STATE_count_back_left@ blank separator
+    (rev (map ofBool r) ++ marks p) [] R eq_refl hw) as h1.
+  assert (h2 : Reaches candidate
+    (cfg @STATE_count_skip@ [blank] (marks p ++ map ofBool r ++ separator :: R)) p
+    (cfg @STATE_count_skip@ (marks p ++ [blank]) (map ofBool r ++ separator :: R))).
+  { assert (hw' : forall a, In a (marks p) ->
+      instruction candidate @STATE_count_skip@ a = move @STATE_count_skip@ a right).
+    { intros a ha. rewrite (marks_mem a p ha). reflexivity. }
+    pose proof (walkR @STATE_count_skip@ (marks p) [blank]
+      (map ofBool r ++ separator :: R) hw') as h.
+    unfold marks in h. rewrite repeat_length, rev_repeat in h. exact h. }
+  assert (h3 : Reaches candidate
+    (cfg @STATE_count_skip@ (marks p ++ [blank]) (map ofBool r ++ separator :: R)) 1
+    (cfg @STATE_count_next@ (marks p ++ [blank]) (map ofBool r ++ separator :: R))).
+  { destruct r as [|b r]; [contradiction |].
+    eapply reaches_next; [|apply reaches_refl]. destruct b; reflexivity. }
+  unfold marks in *. cells in h1.
+  replace (length r + 2 * p + 3) with (S (length r + p) + S (p + 1)) by lia.
+  eapply reaches_trans; [exact h1 |].
+  eapply R1; [reflexivity |]. eapply reaches_trans; [exact h2 | exact h3].
+Qed.
+
+Theorem count_return : forall p r u b R, r <> [] ->
+  Reaches candidate (cfg @STATE_count_back_sep@
+    (rev (map ofBool u) ++ separator :: rev (map ofBool r) ++ marks p ++ [blank])
+    (ofBool b :: R)) (length u + length r + 2 * p + 4)
+    (cfg @STATE_count_next@ (marks p ++ [blank])
+      (map ofBool r ++ separator :: map ofBool (u ++ [b]) ++ R)).
+Proof.
+  intros p r u b R hne.
+  assert (hb : instruction candidate @STATE_count_back_sep@ (ofBool b) =
+    move @STATE_count_back_sep@ (ofBool b) left) by (destruct b; reflexivity).
+  pose proof (bits_back @STATE_count_back_sep@ @STATE_count_back_sep@ separator u
+    (rev (map ofBool r) ++ marks p ++ [blank]) (ofBool b) R hb
+    ltac:(intro bit; destruct bit; reflexivity)) as h1.
+  pose proof (count_return_sep p r (map ofBool (u ++ [b]) ++ R) hne) as h2.
+  cells in h1. cells in h2. cells.
+  replace (length u + length r + 2 * p + 4) with
+    (S (length u) + (length r + 2 * p + 3)) by lia.
+  eapply reaches_trans; [exact h1 | exact h2].
+Qed.
+
+Lemma ones_shift : forall p L, one :: repeat one p ++ L = repeat one p ++ one :: L.
+Proof. induction p; intro L; cbn [repeat app]; [reflexivity |]. f_equal. apply IHp. Qed.
+
+Lemma restore_marks : forall p L R,
+  Reaches candidate (cfg @STATE_count_restore@ L (marks p ++ R)) p
+    (cfg @STATE_count_restore@ (ones p ++ L) R).
+Proof.
+  induction p as [|p ih]; intros L R; [apply reaches_refl |].
+  unfold marks, ones in *. cbn [repeat app].
+  rewrite ones_shift.
+  eapply R1; [reflexivity | apply ih].
+Qed.
+
+Theorem count_finish : forall q p r cert,
+  instruction candidate q blank = move @STATE_count_finish_sep@ blank left ->
+  Reaches candidate (cfg q (rev (map ofBool cert) ++ separator ::
+    rev (map ofBool r) ++ zero :: marks p ++ [blank]) [])
+    (length cert + length r + 2 * p + 5)
+    (cfg @STATE_gate@ (zero :: ones p ++ [blank])
+      (map ofBool r ++ separator :: map ofBool cert ++ [blank])).
+Proof.
+  intros q p r cert hq.
+  pose proof (bits_back q @STATE_count_finish_sep@ separator cert
+    (rev (map ofBool r) ++ zero :: marks p ++ [blank]) blank [] hq
+    ltac:(intro bit; destruct bit; reflexivity)) as h1.
+  assert (hw : forall a, In a (rev (map ofBool r) ++ zero :: marks p) ->
+    instruction candidate @STATE_count_restore_left@ a = move @STATE_count_restore_left@ a left).
+  { intros a ha. apply in_app_or in ha. destruct ha as [ha | [ha | ha]].
+    - apply in_rev in ha. destruct (bit_mem a r ha) as [-> | ->]; reflexivity.
+    - subst a. reflexivity.
+    - rewrite (marks_mem a p ha). reflexivity. }
+  pose proof (rewind @STATE_count_finish_sep@ @STATE_count_restore_left@ blank separator
+    (rev (map ofBool r) ++ zero :: marks p) [] (map ofBool cert ++ [blank]) eq_refl hw) as h2.
+  pose proof (restore_marks p [blank]
+    (zero :: map ofBool r ++ separator :: map ofBool cert ++ [blank])) as h3.
+  unfold marks in *. cells in h1. cells in h2. cells in h3. cells.
+  replace (length cert + length r + 2 * p + 5) with
+    (S (length cert) + (S (length r + S p) + S (p + 1))) by lia.
+  eapply reaches_trans; [exact h1 |].
+  eapply reaches_trans; [exact h2 |].
+  eapply R1; [reflexivity |]. eapply reaches_trans; [exact h3 |].
+  eapply R1; [reflexivity | apply reaches_refl].
+Qed.
+
+Theorem count_advance : forall p n w u b c v,
+  Reaches candidate (cfg @STATE_count_next@ (marks p ++ [blank])
+    (ones (S n) ++ zero :: map ofBool w ++ separator :: map ofBool u ++ cursor b :: map ofBool (c :: v)))
+    (2 * (n + length w + length u + p) + 12)
+    (cfg @STATE_count_next@ (marks (S p) ++ [blank])
+      (ones n ++ zero :: map ofBool w ++ separator :: map ofBool (u ++ [b]) ++ cursor c :: map ofBool v)).
+Proof.
+  intros p n w u b c v. set (r := repeat true n ++ false :: w).
+  assert (hr : map ofBool r = ones n ++ zero :: map ofBool w).
+  { unfold r, ones. rewrite map_app, map_repeat. reflexivity. }
+  pose proof (bitR @STATE_count_seek_next@ r (marks (S p) ++ [blank])
+    (separator :: map ofBool u ++ cursor b :: map ofBool (c :: v))
+    ltac:(intro bit; destruct bit; reflexivity)) as h1.
+  pose proof (bitR @STATE_count_cert_next@ u
+    (separator :: rev (map ofBool r) ++ marks (S p) ++ [blank])
+    (cursor b :: map ofBool (c :: v))
+    ltac:(intro bit; destruct bit; reflexivity)) as h2.
+  pose proof (count_return (S p) r u b (cursor c :: map ofBool v)) as h3.
+  assert (hne : r <> []). { unfold r. intro h. apply (f_equal (@length bool)) in h. cells in h. lia. }
+  specialize (h3 hne). cells in h1. cells in h2. cells in h3.
+  change (ones (S n)) with (one :: ones n).
+  rewrite hr in h1, h2, h3. cells in h1. cells in h2. cells in h3. cells.
+  replace (2 * (n + length w + length u + p) + 12) with
+    (S (length r + S (length u + S (S (length u + length r + 2 * S p + 4))))) by
+    (unfold r; cells; lia).
+  eapply R1; [reflexivity |].
+  eapply reaches_trans; [exact h1 |]. eapply R1; [reflexivity |].
+  eapply reaches_trans; [exact h2 |].
+  eapply (R1 @STATE_count_cert_next@ @STATE_count_mark_next@ (cursor b) (ofBool b));
+    [destruct b; reflexivity |].
+  eapply (L1 @STATE_count_mark_next@ @STATE_count_back_sep@ (ofBool c) (cursor c) (ofBool b));
+    [destruct c; reflexivity | exact h3].
+Qed.
+
+Theorem count_short : forall p n w u b,
+  Run candidate (cfg @STATE_count_next@ (marks p ++ [blank])
+    (ones (S n) ++ zero :: map ofBool w ++ separator :: map ofBool u ++ [cursor b]))
+    (n + length w + length u + 5) false.
+Proof.
+  intros p n w u b. set (r := repeat true n ++ false :: w).
+  assert (hr : map ofBool r = ones n ++ zero :: map ofBool w).
+  { unfold r, ones. rewrite map_app, map_repeat. reflexivity. }
+  pose proof (bitR @STATE_count_seek_next@ r (marks (S p) ++ [blank])
+    (separator :: map ofBool u ++ [cursor b])
+    ltac:(intro bit; destruct bit; reflexivity)) as h1.
+  pose proof (bitR @STATE_count_cert_next@ u
+    (separator :: rev (map ofBool r) ++ marks (S p) ++ [blank]) [cursor b]
+    ltac:(intro bit; destruct bit; reflexivity)) as h2.
+  cells in h1. cells in h2. change (ones (S n)) with (one :: ones n).
+  rewrite hr in h1, h2. cells in h1. cells in h2. cells.
+  replace (n + length w + length u + 5) with
+    (S (length r + S (length u + S 1))) by (unfold r; cells; lia).
+  eapply run_next; [apply stepR; reflexivity |].
+  eapply reaches_run; [exact h1 |]. eapply run_next; [apply stepR; reflexivity |].
+  eapply reaches_run; [exact h2 |].
+  eapply run_next;
+    [eapply (stepR @STATE_count_cert_next@ @STATE_count_mark_next@ (cursor b) (ofBool b));
+      destruct b; reflexivity |].
+  apply run_halt. reflexivity.
+Qed.
+
+Theorem count_end_success : forall p w u b,
+  Reaches candidate (cfg @STATE_count_next@ (marks p ++ [blank])
+    (zero :: map ofBool w ++ separator :: map ofBool u ++ [cursor b]))
+    (2 * (length w + length u + p) + 9)
+    (cfg @STATE_gate@ (zero :: ones p ++ [blank])
+      (map ofBool w ++ separator :: map ofBool (u ++ [b]) ++ [blank])).
+Proof.
+  intros p w u b.
+  pose proof (bitR @STATE_count_seek_end@ w (zero :: marks p ++ [blank])
+    (separator :: map ofBool u ++ [cursor b])
+    ltac:(intro bit; destruct bit; reflexivity)) as h1.
+  pose proof (bitR @STATE_count_cert_end@ u
+    (separator :: rev (map ofBool w) ++ zero :: marks p ++ [blank]) [cursor b]
+    ltac:(intro bit; destruct bit; reflexivity)) as h2.
+  pose proof (count_finish @STATE_count_check_end@ p w (u ++ [b]) eq_refl) as h3.
+  cells in h1. cells in h2. cells in h3. cells.
+  replace (2 * (length w + length u + p) + 9) with
+    (S (length w + S (length u + S (length (u ++ [b]) + length w + 2 * p + 5)))) by
+    (cells; lia).
+  eapply R1; [reflexivity |]. eapply reaches_trans; [exact h1 |].
+  eapply R1; [reflexivity |]. eapply reaches_trans; [exact h2 |].
+  eapply (R1 @STATE_count_cert_end@ @STATE_count_check_end@ (cursor b) (ofBool b));
+    [destruct b; reflexivity | cells; exact h3].
+Qed.
+
+Theorem count_end_long : forall p w u b c v,
+  Run candidate (cfg @STATE_count_next@ (marks p ++ [blank])
+    (zero :: map ofBool w ++ separator :: map ofBool u ++ cursor b :: map ofBool (c :: v)))
+    (length w + length u + 4) false.
+Proof.
+  intros p w u b c v.
+  pose proof (bitR @STATE_count_seek_end@ w (zero :: marks p ++ [blank])
+    (separator :: map ofBool u ++ cursor b :: map ofBool (c :: v))
+    ltac:(intro bit; destruct bit; reflexivity)) as h1.
+  pose proof (bitR @STATE_count_cert_end@ u
+    (separator :: rev (map ofBool w) ++ zero :: marks p ++ [blank])
+    (cursor b :: map ofBool (c :: v))
+    ltac:(intro bit; destruct bit; reflexivity)) as h2.
+  cells in h1. cells in h2. cells.
+  replace (length w + length u + 4) with (S (length w + S (length u + S 1))) by lia.
+  eapply run_next; [apply stepR; reflexivity |].
+  eapply reaches_run; [exact h1 |]. eapply run_next; [apply stepR; reflexivity |].
+  eapply reaches_run; [exact h2 |].
+  eapply run_next;
+    [eapply (stepR @STATE_count_cert_end@ @STATE_count_check_end@ (cursor b) (ofBool b));
+      destruct b; reflexivity |].
+  apply run_halt. destruct c; reflexivity.
+Qed.
+
+Theorem count_tail_success : forall n p K w u b v,
+  length v = n -> p + n + length w + length u + length v + 4 <= K ->
+  exists t, t <= 32 * (n + 1) * K /\
+    Reaches candidate (cfg @STATE_count_next@ (marks p ++ [blank])
+      (ones n ++ zero :: map ofBool w ++ separator :: map ofBool u ++ cursor b :: map ofBool v)) t
+      (cfg @STATE_gate@ (zero :: ones (p + n) ++ [blank])
+        (map ofBool w ++ separator :: map ofBool (u ++ b :: v) ++ [blank])).
+Proof.
+  induction n as [|n ih]; intros p K w u b v hv hK.
+  - destruct v; [|discriminate].
+    exists (2 * (length w + length u + p) + 9). split; [cbn in hK; nia |].
+    pose proof (count_end_success p w u b) as h. cells in h. cells.
+    replace (p + 0) with p by lia. exact h.
+  - destruct v as [|c v]; [discriminate |].
+    assert (hv' : length v = n) by (cbn in hv; lia).
+    assert (hK' : S p + n + length w + length (u ++ [b]) + length v + 4 <= K)
+      by (rewrite length_app; cbn; cbn in hK; lia).
+    destruct (ih (S p) K w (u ++ [b]) c v hv' hK') as [t [ht hr]].
+    pose proof (count_advance p n w u b c v) as hs.
+    assert (hc : 2 * (n + length w + length u + p) + 12 <= 32 * K) by (cbn in hK; lia).
+    exists (2 * (n + length w + length u + p) + 12 + t). split; [nia |].
+    cells in hr. cells in hs. cells.
+    replace (p + S n) with (S p + n) by lia.
+    eapply reaches_trans; [exact hs | exact hr].
+Qed.
+
+Theorem count_tail_reject : forall n p K w u b v,
+  length v <> n -> p + n + length w + length u + length v + 4 <= K ->
+  exists t, t <= 32 * (n + 1) * K /\
+    Run candidate (cfg @STATE_count_next@ (marks p ++ [blank])
+      (ones n ++ zero :: map ofBool w ++ separator :: map ofBool u ++ cursor b :: map ofBool v)) t false.
+Proof.
+  induction n as [|n ih]; intros p K w u b v hv hK.
+  - destruct v as [|c v]; [contradiction |].
+    exists (length w + length u + 4). split; [cbn in hK; nia |].
+    exact (count_end_long p w u b c v).
+  - destruct v as [|c v].
+    + exists (n + length w + length u + 5). split; [cbn in hK; nia |].
+      exact (count_short p n w u b).
+    + assert (hv' : length v <> n) by (cbn in hv; lia).
+      assert (hK' : S p + n + length w + length (u ++ [b]) + length v + 4 <= K)
+        by (rewrite length_app; cbn; cbn in hK; lia).
+      destruct (ih (S p) K w (u ++ [b]) c v hv' hK') as [t [ht hr]].
+      pose proof (count_advance p n w u b c v) as hs.
+      assert (hc : 2 * (n + length w + length u + p) + 12 <= 32 * K) by (cbn in hK; lia).
+      exists (2 * (n + length w + length u + p) + 12 + t). split; [nia |].
+      cells in hr. cells in hs. cells. eapply reaches_run; [exact hs | exact hr].
+Qed.
+
+Theorem count_first_start : forall n w b v,
+  Reaches candidate (cfg @STATE_count_first@ [blank]
+    (ones (S n) ++ zero :: map ofBool w ++ separator :: map ofBool (b :: v)))
+    (2 * (n + length w) + 10)
+    (cfg @STATE_count_next@ (marks 1 ++ [blank])
+      (ones n ++ zero :: map ofBool w ++ separator :: cursor b :: map ofBool v)).
+Proof.
+  intros n w b v. set (r := repeat true n ++ false :: w).
+  assert (hr : map ofBool r = ones n ++ zero :: map ofBool w).
+  { unfold r, ones. rewrite map_app, map_repeat. reflexivity. }
+  pose proof (bitR @STATE_count_seek_first@ r [separator; blank]
+    (separator :: map ofBool (b :: v))
+    ltac:(intro bit; destruct bit; reflexivity)) as h1.
+  assert (hne : r <> []). { unfold r. intro h. apply (f_equal (@length bool)) in h. cells in h. lia. }
+  pose proof (count_return_sep 1 r (cursor b :: map ofBool v) hne) as h2.
+  change (ones (S n)) with (one :: ones n).
+  rewrite hr in h1, h2. cells in h1. cells in h2. cells.
+  replace (2 * (n + length w) + 10) with (S (length r + S (S (length r + 2 * 1 + 3)))) by
+    (unfold r; cells; lia).
+  eapply R1; [reflexivity |]. eapply reaches_trans; [exact h1 |].
+  eapply R1; [reflexivity |].
+  eapply (L1 @STATE_count_cert_first@ @STATE_count_back_sep@ (ofBool b) (cursor b) separator);
+    [destruct b; reflexivity | exact h2].
+Qed.
+
+Theorem count_first_short : forall n w,
+  Run candidate (cfg @STATE_count_first@ [blank]
+    (ones (S n) ++ zero :: map ofBool w ++ [separator])) (n + length w + 4) false.
+Proof.
+  intros n w. set (r := repeat true n ++ false :: w).
+  assert (hr : map ofBool r = ones n ++ zero :: map ofBool w).
+  { unfold r, ones. rewrite map_app, map_repeat. reflexivity. }
+  pose proof (bitR @STATE_count_seek_first@ r [separator; blank] [separator]
+    ltac:(intro bit; destruct bit; reflexivity)) as h1.
+  change (ones (S n)) with (one :: ones n).
+  rewrite hr in h1. cells in h1. cells.
+  replace (n + length w + 4) with (S (length r + S 1)) by (unfold r; cells; lia).
+  eapply run_next; [apply stepR; reflexivity |]. eapply reaches_run; [exact h1 |].
+  eapply run_next; [apply stepR; reflexivity |]. apply run_halt. reflexivity.
+Qed.
+
+Theorem count_zero_success : forall w,
+  Reaches candidate (cfg @STATE_count_first@ [blank] (zero :: map ofBool w ++ [separator]))
+    (2 * length w + 7) (cfg @STATE_gate@ [zero; blank] (map ofBool w ++ [separator; blank])).
+Proof.
+  intro w.
+  pose proof (bitR @STATE_count_seek_empty@ w [zero; blank] [separator]
+    ltac:(intro bit; destruct bit; reflexivity)) as h1.
+  pose proof (count_finish @STATE_count_cert_empty@ 0 w [] eq_refl) as h2.
+  unfold marks, ones in h2. cbn [repeat] in h2. cells in h1. cells in h2. cells.
+  replace (0 + length w + 2 * 0 + 5) with (length w + 5) in h2 by lia.
+  replace (2 * length w + 7) with (S (length w + S (length w + 5))) by lia.
+  eapply R1; [reflexivity |]. eapply reaches_trans; [exact h1 |].
+  eapply R1; [reflexivity | exact h2].
+Qed.
+
+Theorem count_zero_long : forall w b v,
+  Run candidate (cfg @STATE_count_first@ [blank]
+    (zero :: map ofBool w ++ separator :: map ofBool (b :: v))) (length w + 3) false.
+Proof.
+  intros w b v.
+  pose proof (bitR @STATE_count_seek_empty@ w [zero; blank] (separator :: map ofBool (b :: v))
+    ltac:(intro bit; destruct bit; reflexivity)) as h1.
+  cells in h1. cells.
+  replace (length w + 3) with (S (length w + S 1)) by lia.
+  eapply run_next; [apply stepR; reflexivity |]. eapply reaches_run; [exact h1 |].
+  eapply run_next; [apply stepR; reflexivity |]. apply run_halt. destruct b; reflexivity.
+Qed.
+
+(* Every matching certificate reaches the gate phase with its bits and header
+   restored. The bound counts the shuttles' actual charged instructions. *)
+Theorem count_success : forall n w cert, length cert = n ->
+  exists t, t <= 64 * (n + 1) * (n + length w + length cert + 4) /\
+    Reaches candidate (cfg @STATE_count_first@ [blank]
+      (ones n ++ zero :: map ofBool w ++ separator :: map ofBool cert)) t
+      (cfg @STATE_gate@ (zero :: ones n ++ [blank])
+        (map ofBool w ++ separator :: map ofBool cert ++ [blank])).
+Proof.
+  intros n w cert hc. destruct n as [|n].
+  - destruct cert; [|discriminate].
+    exists (2 * length w + 7). split; [cbn; lia |]. exact (count_zero_success w).
+  - destruct cert as [|b v]; [discriminate |].
+    set (K := S n + length w + length (b :: v) + 4).
+    assert (hv : length v = n) by (cbn in hc; lia).
+    assert (hK : 1 + n + length w + length (@nil bool) + length v + 4 <= K)
+      by (unfold K; cbn; lia).
+    destruct (count_tail_success n 1 K w [] b v hv hK) as [t [ht hr]].
+    pose proof (count_first_start n w b v) as hs.
+    assert (hc' : 2 * (n + length w) + 10 <= 32 * K) by (unfold K; cbn; lia).
+    exists (2 * (n + length w) + 10 + t). split; [fold K; nia |].
+    cells in hs. cells in hr. cells. replace (1 + n) with (S n) in hr by lia.
+    eapply reaches_trans; [exact hs | exact hr].
+Qed.
+
+(* Both too-short and too-long certificates halt before gate evaluation. *)
+Theorem count_reject : forall n w cert, length cert <> n ->
+  exists t, t <= 64 * (n + 1) * (n + length w + length cert + 4) /\
+    Run candidate (cfg @STATE_count_first@ [blank]
+      (ones n ++ zero :: map ofBool w ++ separator :: map ofBool cert)) t false.
+Proof.
+  intros n w cert hc. destruct n as [|n].
+  - destruct cert as [|b v]; [contradiction |].
+    exists (length w + 3). split; [cbn; lia |]. exact (count_zero_long w b v).
+  - destruct cert as [|b v].
+    + exists (n + length w + 4). split; [cbn; nia |]. exact (count_first_short n w).
+    + set (K := S n + length w + length (b :: v) + 4).
+      assert (hv : length v <> n) by (cbn in hc; lia).
+      assert (hK : 1 + n + length w + length (@nil bool) + length v + 4 <= K)
+        by (unfold K; cbn; lia).
+      destruct (count_tail_reject n 1 K w [] b v hv hK) as [t [ht hr]].
+      pose proof (count_first_start n w b v) as hs.
+      assert (hc' : 2 * (n + length w) + 10 <= 32 * K) by (unfold K; cbn; lia).
+      exists (2 * (n + length w) + 10 + t). split; [fold K; nia |].
+      cells in hs. cells in hr. cells. eapply reaches_run; [exact hs | exact hr].
+Qed.
+
+Print Assumptions count_success.
+Print Assumptions count_reject.
