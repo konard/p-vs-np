@@ -5,9 +5,9 @@ The successor and accepting-trace compiler updates below were captured on
 2026-10-06. These reports cover
 certificate CNF, exact-clock recovery, fixed-window verifier semantics,
 local CNF combinators, shared NAND-circuit, finite-row successor and bounded
-accepting-trace compilers, and a finite
-fixed-output machine. They do not cover
-`tableauCNF`, `satHard`, or an input-dependent reduction machine, which remain
+accepting-trace compilers, and a finite fixed-output machine. The full tableau
+and its unary size bound are covered by the continuation reports below.
+`satHard` and the input-dependent reduction machine remain
 unimplemented.
 
 ## Direct Lean reports
@@ -427,4 +427,74 @@ rocq RunCNF.runCNF_encoded_size: (none)
 rocq RunCNF.runCNF_polynomial_size: (none)
 rocq Complexity.polyAdd_eval: (none)
 rocq Complexity.polyMul_eval: (none)
+```
+
+## Initial row and full tableau
+
+Captured on 2026-10-06 with the extended `run_assumptions.py`. The 30 new
+paired public conclusions are registered with exactly their kernel-reported
+assumptions. The seven full-tableau endpoint types also match the unchanged
+completion contracts; the reduction and hardness endpoints are still absent.
+
+```text
+lean Issue624.InitialCNF.sourceCNF_models: Quot.sound, propext
+lean Issue624.InitialCNF.tapeCNF_models: Quot.sound, propext
+lean Issue624.InitialCNF.tapeSelected_iff: Quot.sound, propext
+lean Issue624.InitialCNF.certificateSources_length: propext
+lean Issue624.InitialCNF.certificateSources_eval: Quot.sound, propext
+lean Issue624.InitialCNF.windowSources_length: Quot.sound, propext
+lean Issue624.InitialCNF.windowSources_eval: Quot.sound, propext
+lean Issue624.InitialCNF.initialCNF_models: Quot.sound, propext
+lean Issue624.InitialCNF.sourceCNF_length: Quot.sound, propext
+lean Issue624.InitialCNF.sourceCNF_bounds: Classical.choice, Quot.sound, propext
+lean Issue624.InitialCNF.tapeCNF_length: Quot.sound, propext
+lean Issue624.InitialCNF.tapeCNF_bounds: Classical.choice, Quot.sound, propext
+lean Issue624.InitialCNF.certificateSources_bound: Quot.sound, propext
+lean Issue624.InitialCNF.windowSources_bound: Quot.sound, propext
+lean Issue624.InitialCNF.initialCNF_length: Quot.sound, propext
+lean Issue624.InitialCNF.initialCNF_bounds: Classical.choice, Quot.sound, propext
+lean Issue624.InitialCNF.initialCNF_polynomial_size: Classical.choice, Quot.sound, propext
+lean Issue624.CookLevin.sources_length: Quot.sound, propext
+lean Issue624.CookLevin.initialRow_span: Quot.sound, propext
+lean Issue624.CookLevin.initialCNF_row: Quot.sound, propext
+lean Issue624.CookLevin.tableauCNF_unfold: propext
+lean Issue624.CookLevin.tableauCNF_sound: Classical.choice, Quot.sound, propext
+lean Issue624.CookLevin.decodeCertificate_congr: Quot.sound, propext
+lean Issue624.CookLevin.tableauCNF_complete: Classical.choice, Quot.sound, propext
+lean Issue624.CookLevin.tableauCNF_iff: Classical.choice, Quot.sound, propext
+lean Issue624.CookLevin.tableauCNF_rejecting_unsatisfiable: Classical.choice, Quot.sound, propext
+lean Issue624.CookLevin.tableauCNF_overlong_rejected: Quot.sound, propext
+lean Issue624.CookLevin.tableauCNF_wrong_successor_rejected: Classical.choice, Quot.sound, propext
+lean Issue624.CookLevin.encodeCNF_length_append: propext
+lean Issue624.CookLevin.tableauCNF_encoded_size: Classical.choice, Quot.sound, propext
+rocq InitialCNF.sourceCNF_models: (none)
+rocq InitialCNF.tapeCNF_models: (none)
+rocq InitialCNF.tapeSelected_iff: (none)
+rocq InitialCNF.certificateSources_length: (none)
+rocq InitialCNF.certificateSources_eval: (none)
+rocq InitialCNF.windowSources_length: (none)
+rocq InitialCNF.windowSources_eval: (none)
+rocq InitialCNF.initialCNF_models: (none)
+rocq InitialCNF.sourceCNF_length: (none)
+rocq InitialCNF.sourceCNF_bounds: (none)
+rocq InitialCNF.tapeCNF_length: (none)
+rocq InitialCNF.tapeCNF_bounds: (none)
+rocq InitialCNF.certificateSources_bound: (none)
+rocq InitialCNF.windowSources_bound: (none)
+rocq InitialCNF.initialCNF_length: (none)
+rocq InitialCNF.initialCNF_bounds: (none)
+rocq InitialCNF.initialCNF_polynomial_size: (none)
+rocq CookLevin.sources_length: (none)
+rocq CookLevin.initialRow_span: (none)
+rocq CookLevin.initialCNF_row: (none)
+rocq CookLevin.tableauCNF_unfold: (none)
+rocq CookLevin.tableauCNF_sound: (none)
+rocq CookLevin.decodeCertificate_congr: (none)
+rocq CookLevin.tableauCNF_complete: (none)
+rocq CookLevin.tableauCNF_iff: (none)
+rocq CookLevin.tableauCNF_rejecting_unsatisfiable: (none)
+rocq CookLevin.tableauCNF_overlong_rejected: (none)
+rocq CookLevin.tableauCNF_wrong_successor_rejected: (none)
+rocq CookLevin.encodeCNF_length_append: (none)
+rocq CookLevin.tableauCNF_encoded_size: (none)
 ```

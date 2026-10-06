@@ -16,9 +16,11 @@ wrong-state assignments satisfy the row clauses and fail the transition clauses.
 `RunCNFRegression` checks the bounded accepting-trace compiler: immediate and
 two-row acceptance, inactive suffixes, premature halts, exhausted clocks,
 wrong successors, canonical decoding, empty domains, and unary encoded-size
-and explicit polynomial bounds. These regressions do not certify full
-tableau CNF or SAT hardness; initial input/certificate wiring and the
-input-dependent reduction machine remain outstanding.
+and explicit polynomial bounds. `TableauCNFRegression` checks the complete
+formula, its unary size contract, and concrete models for both verifier
+constructors with empty/short/full certificates. Wrong-state, wrong-head, and
+wrong-tape assignments satisfy the earlier fragments but fail the initial row.
+The input-dependent reduction machine and SAT hardness remain outstanding.
 
 After building the imported modules, run:
 
@@ -31,6 +33,7 @@ lake env lean experiments/issue624/CircuitCNFRegression.lean
 lake env lean experiments/issue624/MachineCNFRegression.lean
 lake env lean experiments/issue624/SuccessorRegression.lean
 lake env lean experiments/issue624/RunCNFRegression.lean
+lake env lean experiments/issue624/TableauCNFRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 bash experiments/issue624/check.sh all
@@ -57,7 +60,10 @@ rocq repl -quiet -Q proofs proofs < experiments/issue624/successor_probe.in
 rocq repl -quiet -Q proofs proofs < experiments/issue624/successor_decode_probe.in
 rocq repl -quiet < experiments/issue624/successor_arithmetic_probe.in
 rocq repl -quiet -Q . '' < experiments/issue624/run_probe.in
+rocq repl -quiet -Q . '' < experiments/issue624/initial_probe.in
 python3 experiments/issue624/run_assumptions.py
+python3 experiments/issue624/check_tableau_contracts.py --lean
+python3 experiments/issue624/check_tableau_contracts.py --rocq
 ```
 
 [PLAN.md](PLAN.md) tracks the completed prerequisites and the remaining
@@ -84,6 +90,8 @@ admissions or global axioms.
 the required CI result. [The checker documentation](../../scripts/README.md#check_issue624_completionpy)
 describes the paired contract interface and required merge check.
 
-[TABLEAU_DESIGN.md](TABLEAU_DESIGN.md) records the implemented trace layout,
-the remaining initial-row and complete-size obligations, and the
-input-dependent emitter's missing machine operations.
+[TABLEAU_DESIGN.md](TABLEAU_DESIGN.md) records the implemented full-tableau
+layout and the input-dependent emitter's missing machine operations.
+`check_tableau_contracts.py` checks the seven implemented tableau results
+against the completion gate's original, unapplied types in each kernel. It
+does not replace the full completion check or certify the missing reduction.

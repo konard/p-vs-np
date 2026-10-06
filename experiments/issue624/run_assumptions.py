@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Query every public accepting-trace and shared polynomial lemma in both kernels."""
+"""Query paired trace, initial-row, full-tableau and polynomial lemmas."""
 
 import json
 import re
@@ -14,11 +14,13 @@ from scripts.check_proof_status import query_assumptions
 
 def entries(language):
     extension = "lean" if language == "lean" else "v"
-    source = f"proofs/experiments/issue624/{language}/RunCNF.{extension}"
     keyword = "theorem" if language == "lean" else "Theorem"
-    names = re.findall(rf"(?m)^{keyword} (\w+)", (ROOT / source).read_text())
-    prefix = "Issue624.RunCNF" if language == "lean" else "RunCNF"
-    results = [{"source": source, "theorem": f"{prefix}.{name}"} for name in names]
+    results = []
+    for module in ("RunCNF", "InitialCNF", "CookLevin"):
+        source = f"proofs/experiments/issue624/{language}/{module}.{extension}"
+        names = re.findall(rf"(?m)^(?:@\[[^\n]*\]\s*)?{keyword} (\w+)", (ROOT / source).read_text())
+        prefix = f"Issue624.{module}" if language == "lean" else module
+        results.extend({"source": source, "theorem": f"{prefix}.{name}"} for name in names)
     results.extend({
         "source": f"proofs/complexity/{language}/Complexity.{extension}",
         "theorem": f"Complexity.{name}",

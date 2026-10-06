@@ -187,6 +187,7 @@ jobs:
           lake env lean experiments/issue624/MachineCNFRegression.lean
           lake env lean experiments/issue624/SuccessorRegression.lean
           lake env lean experiments/issue624/RunCNFRegression.lean
+          lake env lean experiments/issue624/TableauCNFRegression.lean
           python3 experiments/issue532_vacuity/check.py
           bash experiments/issue571/check.sh
           if lake_test_output=$(lake test 2>&1); then
@@ -277,6 +278,8 @@ jobs:
           proofs.experiments.issue624.lean.MachineCNF \
           proofs.experiments.issue624.lean.SuccessorCNF \
           proofs.experiments.issue624.lean.RunCNF \
+          proofs.experiments.issue624.lean.InitialCNF \
+          proofs.experiments.issue624.lean.CookLevin \
           proofs.experiments.issue624.lean.CircuitCNF \
           proofs.experiments.issue624.lean.ConstantEmitter \
           proofs.experiments.issue609.lean.PEqualsNPAttempt \
@@ -287,6 +290,7 @@ jobs:
           proofs.experiments.issue8.lean.NPSubsetP \
           proofs.experiments.issue7.lean.ClockedSAT
         python3 scripts/check_proof_status.py --lean
+        python3 experiments/issue624/check_tableau_contracts.py --lean
 
   certified-rocq:
     name: Certified Rocq Results
@@ -315,6 +319,8 @@ jobs:
           rocq compile -Q . '' proofs/experiments/issue624/rocq/MachineCNF.v
           rocq compile -Q . '' proofs/experiments/issue624/rocq/SuccessorCNF.v
           rocq compile -Q . '' proofs/experiments/issue624/rocq/RunCNF.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/InitialCNF.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/CookLevin.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
           rocq compile -Q . '' proofs/experiments/issue624/rocq/CircuitCNF.v
           rocq compile -Q . '' proofs/experiments/issue624/rocq/ConstantEmitter.v
@@ -330,6 +336,7 @@ jobs:
           rocq compile -Q . '' proofs/experiments/issue8/rocq/NPSubsetP.v
           rocq compile -Q . '' proofs/experiments/issue7/rocq/ClockedSAT.v
           python3 scripts/check_proof_status.py --rocq
+          python3 experiments/issue624/check_tableau_contracts.py --rocq
     - name: Revert permissions
       if: always()
       run: sudo chown -R 1001:116 .

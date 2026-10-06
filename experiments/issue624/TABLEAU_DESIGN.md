@@ -1,7 +1,7 @@
-# Remaining tableau and reduction construction
+# Checked tableau and remaining reduction construction
 
-The accepting-trace formula is checked. Initial input/certificate wiring and
-the reduction machine remain construction obligations. The checked contracts
+The full accepting-tableau formula and its encoded-size bound are checked.
+The reduction machine remains a construction obligation. The checked contracts
 are listed in [the proof README](../../proofs/experiments/issue624/README.md).
 
 For input length `n`, use `B = certBound.eval n`, `T = maxClock np n`,
@@ -29,8 +29,10 @@ constructs the combined row/stop model, and `decodeTrace_represents` proves
 exact extraction. Each row's continuation guards every clause in its suffix;
 after a true stop bit, suffix variables are unconstrained. Regression models
 use both all-false and all-true suffixes. Clock zero and empty state/head
-domains are rejected. Certificate/row disjointness and joint initial-row model
-construction remain to be proved. No group enumerates configurations,
+domains are rejected. `CookLevin.jointAssignment` keeps certificate variables
+below `rowBase = 2B + 1` and canonical row variables above it.
+`tableauCNF_complete` proves certificate preservation and exact trace decoding.
+No group enumerates configurations,
 traces, or certificates.
 
 ## Initial row and transitions
@@ -40,7 +42,10 @@ For `.paired`, place input bits, the separator, then certificate cells, whose
 presence/value literals distinguish zero from blank. For `.ignoreCertificate`,
 place only input bits. Unused cells contain blank. Initial-row clauses must
 relate each decoded certificate assignment to the exact padded configuration.
-These clauses remain unimplemented.
+`InitialCNF.windowSources_eval` identifies the symbolic cell sources with
+the exact flattened padded initial configuration. `initialCNF_models`
+establishes the state/head/tape representation contract for each assignment.
+Certificate sources use three constant-width implications per cell.
 
 The checked recursion is:
 
@@ -59,8 +64,12 @@ each move, including reversed cells to the left of the head and both edges.
 `successorCNF_sound` extracts a genuine charged move from any satisfying
 two-row assignment. Both edge crossings are rejected rather than wrapped or
 truncated. `RunCNF.runCNF_sound` and `runCNF_complete` integrate accepting
-prefixes. Only initial-row/certificate integration remains missing from this
-part of the full formula.
+prefixes. `CookLevin.tableauCNF` joins certificate constraints, initial wiring,
+and this trace fragment. Its soundness and completeness theorems refer to the
+original `FixedWindow.WindowVerifierTableau`, preserving the original decoded
+certificate and trace. `tableauCNF_iff` equates satisfiability with the input
+language, and its three negative theorems cover rejecting verifiers, overlong
+certificates, and incorrect decoded edges.
 
 ## Encoded size
 
@@ -78,9 +87,13 @@ the successor bounds to the complete trace prefix. `runPolynomial` and
 polynomially bounded offsets, windows, and clocks, counting unary identifiers
 and delimiters. Nested guards make the maximum clause width grow linearly
 with `T`; clause count remains linear in `T` times the per-row bound.
-The full builder still needs to add the initial clauses and combine this
-bound with the certificate fragment's bound. Substitute `maxClock_polynomial`
-and `windowWidth_polynomial` for the trace parameters.
+The initial fragment has at most `Q² + W² + 20W + 4` clauses, variable
+identifiers below `b + Q + 5W`, and clause width at most `Q + W + 6`.
+`initialPolynomial` supplies its unary size bound. The full builder's
+`sizePolynomial` adds the certificate, initial-row, and trace bounds using
+the shared `polyAdd`. It substitutes `offsetPolynomial`, `windowPolynomial`,
+and `clockPolynomial` for the trace parameters. `tableauCNF_encoded_size`
+checks that explicit bound against the original `encodeCNF` bit length.
 
 ## Input-dependent machine emission
 
@@ -97,5 +110,5 @@ requires a finite instruction table, tape invariant, charged `Reaches`
 bound, and a final `Computes` proof. Neither classical choice of a formula
 nor polynomial output length supplies these operations for free.
 
-Only after formula correctness and this machine contract are proved can
+Only after this machine contract is proved can
 `satHard` and `cookLevin` be assembled and the named hardness premises removed.

@@ -54,7 +54,8 @@ replaces PR #41's documents and lists their corrections.
 [issue568/](issue568/README.md) begins the constructive Cook–Levin bridge
 over the shared machine. Its paired Lean and Rocq proofs equate locally
 checked, bounded configuration traces with `Run` and bound their represented
-tape span. The CNF encoding and reduction machine remain open.
+tape span. Issue #624 implements the corresponding full CNF encoding below;
+the reduction machine remains open.
 
 [issue624/](issue624/README.md) certifies the variable-length certificate CNF
 fragment, including suffix-closed blanks, a forced bound sentinel, and the
@@ -66,8 +67,10 @@ two-way blank padding, fixed-width traces, local implication and exactly-one
 CNF constraints, their unary encoded-size bounds, a shared NAND-circuit
 CNF compiler, machine instruction-selection and successor CNF, bounded
 accepting-trace CNF with an explicit unary size polynomial, and a charged
-fixed-word output machine. Initial input/certificate wiring and an
-input-dependent polynomial-time reduction machine are still required for
+fixed-word output machine. The complete tableau now includes initial
+input/certificate wiring, both model directions, language equivalence, and
+an explicit unary encoded-size polynomial. An input-dependent polynomial-time
+reduction machine is still required for
 `SATHard`.
 
 [issue7/](issue7/README.md) states the clocked-SAT sentence behind issue #7's

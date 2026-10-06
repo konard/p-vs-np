@@ -30,7 +30,8 @@ check_lean() {
     experiments/issue624/CertificateRegression.lean experiments/issue624/WindowRegression.lean \
     experiments/issue624/CNFRegression.lean experiments/issue624/EmitterRegression.lean \
     experiments/issue624/CircuitCNFRegression.lean experiments/issue624/MachineCNFRegression.lean \
-    experiments/issue624/SuccessorRegression.lean experiments/issue624/RunCNFRegression.lean; do
+    experiments/issue624/SuccessorRegression.lean experiments/issue624/RunCNFRegression.lean \
+    experiments/issue624/TableauCNFRegression.lean; do
     lake env lean "$file"
   done
   python3 experiments/issue532_vacuity/check.py
@@ -49,6 +50,7 @@ check_lean() {
   python3 scripts/check_proof_status.py --lean
   python3 experiments/issue624/check_completion_kernels.py --lean
   python3 experiments/issue624/check_completion_types.py --lean
+  python3 experiments/issue624/check_tableau_contracts.py --lean
 }
 
 check_rocq() {
@@ -61,6 +63,7 @@ check_rocq() {
   python3 scripts/check_proof_status.py --rocq
   python3 experiments/issue624/check_completion_kernels.py --rocq
   python3 experiments/issue624/check_completion_types.py --rocq
+  python3 experiments/issue624/check_tableau_contracts.py --rocq
 }
 
 check_agda() {

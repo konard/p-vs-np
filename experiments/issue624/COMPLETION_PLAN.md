@@ -25,8 +25,9 @@ establish completion. No formal impossibility has been established.
   branch had no protection or rulesets before adding this requirement.
 - [x] Verify checker regressions, existing workflow regressions, full local
   compilation and audits. Store large logs in `ci-logs/` and inspect them.
-- [ ] Finish the outstanding tableau construction, explicit size polynomial,
-  finite reduction machine and charged `Computes` proof in both provers.
+- [x] Finish the full tableau construction and explicit encoded-size polynomial
+  in both provers.
+- [ ] Finish the finite reduction machine and charged `Computes` proof.
 - [ ] Assemble hardness/completeness, remove the specified bridge premises,
   update dossiers and documentation, and pass the completion check.
 - [x] Commit reviewed enforcement changes and push only the prepared branch.
@@ -61,7 +62,7 @@ shared machine semantics and reuse #568's `LocalTrace`.
   Commit shared polynomial arithmetic separately from the trace compiler.
 - [ ] Push only the prepared branch, update PR #630, verify the fresh run's
   SHA/timestamp, and download/analyze every non-passing job log.
-- [ ] Wire the initial input and decoded certificate into row zero; prove
+- [x] Wire the initial input and decoded certificate into row zero; prove
   full `tableauCNF` correctness and combine all fragment size bounds.
 - [ ] Construct the input-independent finite reduction table and prove its
   charged polynomial `Computes` contract, then assemble the public endpoints.
@@ -70,3 +71,55 @@ The trace compiler imposes no initial configuration. Its rejecting-machine
 theorem assumes rejection from every configuration, rather than from just the
 verifier's prescribed input. It does not discharge the verifier-level
 completion contract. The full completion check remains required.
+
+## Initial-input continuation of issue #624
+
+- [x] Read the issue, all PR conversations/reviews/inline comments, contributor
+  guidance, existing construction plans, and recent related merged PRs.
+- [x] Verify the prepared branch and initial clean tree. Fetch the latest
+  default branch; `origin/main` is already included, with no conflicts.
+- [x] Download the five most recent failed runs to ignored `ci-logs/`, verify
+  timestamps/SHAs, and reproduce the 58 completion diagnostics locally.
+- [x] Add paired full-tableau regressions before implementing the missing
+  initial row. Preserve their initial failures in `ci-logs/`.
+- [x] Compile symbolic input/certificate cells without enumerating certificates.
+  Prove the exact initial-row contract for both verifier constructors.
+- [x] Assemble the complete tableau CNF, both model directions, input-language
+  equivalence, rejecting/overlong/wrong-successor negative cases, and the
+  explicit polynomial bound on actual unary-encoded output length.
+- [ ] Build the single input-independent finite reduction machine and its
+  charged polynomial `Computes` proof; assemble paired hardness/completeness
+  and remove every specified hardness premise.
+- [x] Register checked conclusions, attach kernel assumptions, update docs,
+  and run all local Python/Lean/Rocq/Agda checks with logs saved to files.
+- [ ] Review code, tests, and PR diff; commit useful atomic steps, push only
+  `issue-624-0b9b9b6c5d75`, update PR #630, and inspect fresh CI logs.
+- [ ] Verify the full completion checks pass and the tree is clean; mark the
+  PR ready only once its required full deliverable is checked.
+
+The failing summary is downstream of the intentionally mandatory completion
+gate. Keep its contracts and assumption policy intact. No formal impossibility
+has been established. Experiments use finite inputs; any deliberate stack or
+memory stress must be resource-bounded. Wait for background checks to finish.
+
+### Current checked construction
+
+The paired `InitialCNF` and `CookLevin` modules prove the complete tableau
+model correspondence and its actual unary encoded-size polynomial. Thirty new
+public conclusions per prover are registered using kernel-reported assumptions.
+The seven tableau endpoints match the completion gate’s original types. Concrete
+regressions reject wrong initial state/head/tape contents and cover empty, short,
+full, and zero-bound certificates with both verifier constructors.
+
+The local completion preflight now has 44 diagnostics, down from 58. The
+remaining endpoints are `red_computes`, `satHard`, and `cookLevin` in each
+prover, plus the existing public bridge premises/registrations. Polynomial
+output size is proved; polynomial charged running time is not. No single
+input-independent finite reduction table, its tape invariants, or its `Computes`
+proof has been constructed.
+The mandatory completion gate remains unchanged.
+
+Local validation passed: the complete Python suite, 256-job Lean build,
+full Rocq build, both 234-result source/assumption audits, seven original
+tableau contract types in each kernel, and Agda checks. Workflow lint and
+`git diff --check` also passed. Expected negative kernel probes were rejected.

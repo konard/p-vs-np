@@ -1,9 +1,10 @@
 # Cook–Levin construction in the shared machine model
 
 **Status: the full Cook–Levin theorem is not proved. The issue remains open.**
-The complete `tableauCNF`, its polynomial encoded-size bound, the single-tape
-reduction machine, `satHard`, and unconditional P = NP bridges remain to be
-constructed. This directory certifies variable-length certificates, fixed-width
+The single-tape reduction machine, `satHard`, and unconditional P = NP bridges
+remain to be constructed. The complete `tableauCNF` and its explicit polynomial
+encoded-size bound are checked in both provers. This directory certifies
+variable-length certificates, fixed-width
 verifier traces, local CNF combinators, a NAND-circuit CNF compiler, a
 finite-row successor and bounded accepting-trace compilers, and a finite-table
 output primitive.
@@ -11,7 +12,8 @@ output primitive.
 `MachineCNF` compiles instruction dispatch from the existing machine table.
 `SuccessorCNF` compiles charged tape moves between two represented rows.
 `RunCNF` assembles those moves and accepting termination into a bounded trace
-formula; connecting its first row to the input and certificate remains open.
+formula. `InitialCNF` connects its first row to the input and decoded certificate;
+`CookLevin` assembles the full formula and its language correspondence.
 
 Classification: **known theorem mechanized**, for these prerequisites only.
 Nothing here establishes an answer to P versus NP.
@@ -116,8 +118,8 @@ degree      = certBound.degree + clockPolynomial.degree + 1
 ```
 
 `RunCNF` compiles their state, head, tape, and accepting-trace constraints.
-Their initial input/certificate constraints remain to be compiled and joined
-to this formula.
+`InitialCNF` compiles the initial input/certificate constraints and joins them
+to this formula in `CookLevin.tableauCNF`.
 
 ## Local CNF combinators
 
@@ -214,9 +216,8 @@ registered in the assumption manifest, with the same names in both provers.
 contracts so this compiler uses those proofs directly.
 
 This formula selects an instruction. `SuccessorCNF` supplies the head/tape
-wiring and charged successor constraints below. The full accepting tableau
-still needs initial/certificate constraints. `RunCNF` supplies row activity
-and final acceptance.
+wiring and charged successor constraints below. `InitialCNF` supplies
+initial/certificate constraints; `RunCNF` supplies row activity and final acceptance.
 No input-dependent reduction machine or hardness theorem follows from these
 local compilers alone.
 
@@ -308,11 +309,41 @@ actual unary `encodeCNF` length. Shared `Complexity.polyAdd` and `polyMul`
 compute coefficients and degrees; their checked evaluation lemmas also
 serve the existing polynomial-closure proofs.
 
-This formula permits any first configuration. It does not yet express
-`np.language x`, and its rejection theorem concerns machines that reject
+This fragment permits any first configuration. Its rejection theorem concerns
+machines that reject
 every configuration. Arbitrary rejecting verifiers may accept from other
-configurations, so the full verifier-level negative test still needs initial
-input/certificate wiring.
+configurations. `CookLevin.tableauCNF` includes the initial input/certificate
+wiring, and its rejection theorem needs only rejection of the prescribed inputs.
+
+## Initial row and complete tableau
+
+`InitialCNF` builds one symbolic source per tape cell. A constant source forces
+the selected tape symbol. A certificate source uses three implications to
+select blank, zero, or one from its presence/value variables. Thus the formula
+does not enumerate certificates. `windowSources_eval` equates those sources
+with the flattened, blank-padded `verifierInitial` for both verifier constructors.
+The initial row has state zero and head position `T`.
+
+`initialCNF_models` proves the exact row-representation contract, including
+the uniqueness of its state, head, and every tape cell. At offset `b`, the
+fragment has at most `Q² + W² + 20W + 4` clauses, variables below `b + Q + 5W`,
+and clause width at most `Q + W + 6`. `initialPolynomial` bounds its actual
+unary encoded length using the shared polynomial arithmetic.
+
+`CookLevin.tableauCNF np x` joins the certificate, initial-row, and accepting-run
+fragments with row zero at `2B + 1`. `tableauCNF_sound` decodes a model to the
+existing `WindowVerifierTableau`. `tableauCNF_complete` constructs a joint
+model while preserving the decoded certificate and the exact trace. Certificate
+variables are below the row offset, so this construction preserves both parts.
+`tableauCNF_iff` proves satisfiability exactly when `np.language x = true`, for
+every shared `ClassNP` witness. The three full-formula negative theorems reject
+rejecting verifiers, attempted overlong certificates, and wrong decoded successors.
+
+`sizePolynomial` is the shared polynomial sum of `certificatePolynomial`,
+`initialPolynomial`, and `runPolynomial`, with the checked offset, width, and
+clock bounds substituted. `tableauCNF_encoded_size` bounds the bit length of
+the original unary `encodeCNF`, including identifiers and delimiters. This
+output-size theorem does not supply the reduction machine's running-time proof.
 
 ## Charged output primitive
 
@@ -351,11 +382,15 @@ and the polynomial bound with unary wire identifiers. Run-CNF regressions
 cover immediate and two-row acceptance, inactive suffixes with arbitrary
 values, premature halts, missing accepting termination, zero/short clocks,
 wrong successors, empty domains, and unary and polynomial size bounds.
+Full-tableau regressions compare the same assignment across fragments: it
+represents a bounded certificate and an accepting prefix from state one, but
+fails the full initial row for a verifier that rejects from state zero. Wrong
+head and certificate-bit assignments satisfy row one-hot constraints and fail
+initial wiring. Concrete full models cover empty/short/full certificates,
+zero bounds, both constructors, and exact certificate/trace decoding.
 
-The verifier-level rejecting and wrong-successor results in `VerifierTableau`
-concern **its semantic predicate**. The certificate CNF alone is always satisfiable;
-it does not express machine acceptance. The full rejection-as-unsatisfiable-CNF
-criterion in #624 is therefore still outstanding.
+The certificate CNF alone is always satisfiable. The rejection-as-unsatisfiable-CNF
+criterion in #624 is proved for the complete `CookLevin.tableauCNF`.
 
 Assumption reports are attached in
 [ASSUMPTIONS.md](../../../experiments/issue624/ASSUMPTIONS.md).
@@ -373,6 +408,7 @@ lake env lean experiments/issue624/CircuitCNFRegression.lean
 lake env lean experiments/issue624/MachineCNFRegression.lean
 lake env lean experiments/issue624/SuccessorRegression.lean
 lake env lean experiments/issue624/RunCNFRegression.lean
+lake env lean experiments/issue624/TableauCNFRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py
@@ -387,15 +423,10 @@ locally under `ci-logs/`.
 
 ## Remaining construction
 
-1. Combine the compiled accepting traces with initial/certificate constraints.
-   Relate the complete formula
-   to `WindowVerifierTableau` in both directions and prove its negative cases.
-2. Combine that construction's bounds with the certificate fragment's bound,
-   counting all variable identifiers under the unary encoding.
-3. Build counters and copy/emission loops over the shared four-symbol alphabet
+1. Build counters and copy/emission loops over the shared four-symbol alphabet
    and prove `Computes red (fun x => encodeCNF (tableauCNF np x)) r` for an
    explicit polynomial `r`, with the required final tape/head configuration.
-4. Assemble `satHard` and `cookLevin`, then remove the existing hardness
+2. Assemble `satHard` and `cookLevin`, then remove the existing hardness
    premises and update the Idea dossiers. Keep those premises until this step.
 
 The shared model supplies sequencing (`compose_run`) and the fixed-output
@@ -408,4 +439,4 @@ requires a checked model simulation; this PR introduces no such import.
 
 Refs #624, #568, #567, #532. The work plan is in
 [PLAN.md](../../../experiments/issue624/PLAN.md); the current continuation is
-tracked in [CONTINUATION_PLAN.md](../../../experiments/issue624/CONTINUATION_PLAN.md).
+tracked in [COMPLETION_PLAN.md](../../../experiments/issue624/COMPLETION_PLAN.md).
