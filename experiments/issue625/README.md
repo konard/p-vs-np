@@ -316,7 +316,7 @@ python3 scripts/check_proof_status.py --rocq
 
 `check_repository.sh` retains the Python and prover regression commands from
 the current CI workflow and ends with the mandatory paired completion gate.
-On the updated tree, all 131 Python tests and the preceding prover regression
+On the updated tree, all 132 Python tests and the preceding prover regression
 checks pass, including the four universal candidate phase results. The script
 then exits 1 at the membership gate. Full Lean and Rocq builds, the certified
 source and assumption audits in both provers, and the six Agda checks in the
