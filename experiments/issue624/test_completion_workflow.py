@@ -1,5 +1,6 @@
 """Check that incomplete endpoints cannot produce a green PR summary."""
 
+import json
 import os
 from pathlib import Path
 import re
@@ -7,12 +8,38 @@ import subprocess
 import unittest
 
 from experiments.issue584.test_verification_workflow import step_script
+from scripts.check_proof_status import source_closure
 
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 class CompletionWorkflowTests(unittest.TestCase):
+    def test_certification_builds_all_registered_source_dependencies(self):
+        workflow = (ROOT / ".github/workflows/verification.yml").read_text()
+        manifest = json.loads((ROOT / "scripts/proof_status.json").read_text())
+        for language in ("lean", "rocq"):
+            with self.subTest(language=language):
+                job = re.search(
+                    rf"(?ms)^  certified-{language}:\n(.*?)(?=^  [\w-]+:|\Z)",
+                    workflow,
+                )[1]
+                if language == "lean":
+                    command = re.search(r"(?ms)^\s+lake build(.*?)^\s+python3 ", job)[1]
+                    modules = re.findall(r"\bproofs(?:\.\w+)+\b", command)
+                    targets = [{"source": module.replace(".", "/") + ".lean"}
+                               for module in modules]
+                    built = source_closure(ROOT, targets)
+                else:
+                    # Rocq compile does not build imported source files itself.
+                    targets = re.findall(r"rocq compile[^\n]*? (\S+\.v)", job)
+                    built = {ROOT / target for target in targets}
+                self.assertTrue(targets, f"no {language} certification build targets")
+                required = source_closure(ROOT, manifest[language])
+                missing = sorted(str(path.relative_to(ROOT)) for path in required - built)
+                self.assertEqual(missing, [],
+                                 f"{language} certification lacks build targets: {missing}")
+
     def run_summary(self, completion, required=True):
         script = step_script("Check results")
         script = re.sub(r"\$\{\{ needs\.([\w-]+)\.result \}\}",

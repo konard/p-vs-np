@@ -157,6 +157,13 @@ premise remains required. That checkpoint registered 235 conclusions per prover.
   workflow tests pass. Logs are preserved in `ci-logs/counter-full-*.log`.
   The completion preflight still exits 1 with the same 42 diagnostics.
 - [x] Commit atomic changes, push only the prepared branch, and update PR #630.
+- [x] Investigate fresh run `37489428127`, created at `15:40:02Z` after
+  `ec9e8aa` at `15:39:48Z`. The certified Lean job missed the new module in
+  its explicit build list; saved log line 428 reports missing
+  `UnaryCounter.olean`. All other prerequisite jobs passed. Add a paired
+  certification-build coverage regression that fails on this omission,
+  then include `UnaryCounter` in the Lean certification targets. The
+  regression, target build, and workflow lint pass after the fix.
 - [ ] Inspect fresh CI logs against the pushed SHA and timestamp; record their
   findings in the PR description.
 - [ ] Verify the full deliverable and all CI pass, then mark PR #630 ready.

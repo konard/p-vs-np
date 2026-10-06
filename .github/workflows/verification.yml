@@ -284,6 +284,7 @@ jobs:
           proofs.experiments.issue624.lean.CookLevin \
           proofs.experiments.issue624.lean.CircuitCNF \
           proofs.experiments.issue624.lean.ConstantEmitter \
+          proofs.experiments.issue624.lean.UnaryCounter \
           proofs.experiments.issue609.lean.PEqualsNPAttempt \
           proofs.experiments.issue609.lean.KnownBarriers \
           proofs.experiments.issue532.lean.Idea41 \
