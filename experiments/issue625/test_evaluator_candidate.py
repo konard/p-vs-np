@@ -4,10 +4,14 @@ These checks compare actual charged machine instructions with the circuit
 specification. They do not replace a universally quantified prover theorem.
 """
 
+import contextlib
+import io
 import itertools
+import json
 import unittest
 
 from experiments.issue625.evaluator_candidate import (
+    BLANK, ZERO, ONE, SEPARATOR,
     enc_circuit,
     run_machine,
     verify_circuit,
@@ -54,6 +58,34 @@ class EvaluatorCandidateTests(unittest.TestCase):
             for certificate in ([False] * n, [True] * n, [i % 2 == 0 for i in range(n)]):
                 self.check_pair(enc_circuit(n, gates), certificate)
 
+    def test_certificate_match_preserves_tape_and_rejects_wrong_lengths(self):
+        for n in range(5):
+            for gates in ([], [(0, 0)], [(0, 0), (n, 0)]):
+                word = enc_circuit(n, gates)
+                payload = word[n + 1:]
+                for length in range(6):
+                    for certificate in ([False] * length, [True] * length,
+                                        [i % 2 == 0 for i in range(length)]):
+                        with self.subTest(n=n, gates=gates, certificate=certificate):
+                            trace = io.StringIO()
+                            with contextlib.redirect_stdout(trace):
+                                run_machine(word, certificate, trace=True)
+                            snapshots = [json.loads(line) for line in trace.getvalue().splitlines()]
+                            start = next(s for s in snapshots if s['state'] == 'count_first')
+                            gate = next((s for s in snapshots if s['state'] == 'gate'), None)
+                            budget = 64 * (n + 1) * (n + len(payload) + length + 4)
+                            if length == n:
+                                self.assertIsNotNone(gate)
+                                self.assertLessEqual(gate['step'] - start['step'], budget)
+                                self.assertEqual(gate['left'], [BLANK] + [ONE] * n + [ZERO])
+                                self.assertEqual([gate['head']] + gate['right'],
+                                                 [ONE if b else ZERO for b in payload] +
+                                                 [SEPARATOR] + [ONE if b else ZERO for b in certificate] +
+                                                 [BLANK])
+                            else:
+                                self.assertIsNone(gate)
+                                self.assertLessEqual(snapshots[-1]['step'] - start['step'] + 1, budget)
+
 
 class CandidateAssumptionTests(unittest.TestCase):
     def lean_reports(self, overrides=None):
@@ -71,6 +103,10 @@ class CandidateAssumptionTests(unittest.TestCase):
     def test_later_lean_admission_rejected(self):
         with self.assertRaisesRegex(ValueError, 'gate_empty_run uses unapproved assumptions'):
             audit_reports('lean', self.lean_reports({'gate_empty_run': 'propext, sorryAx'}))
+
+    def test_certificate_phase_admission_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'count_success uses unapproved assumptions'):
+            audit_reports('lean', self.lean_reports({'count_success': 'sorryAx'}))
 
     def test_missing_lean_report_rejected(self):
         with self.assertRaisesRegex(ValueError, 'missing assumption report'):

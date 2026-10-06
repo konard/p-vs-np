@@ -25,7 +25,7 @@ from scripts import check_proof_status as proof_status
 AUDITED_THEOREMS = (
     'execute_sound', 'execute_complete', 'nand_false_run', 'nand_true_run',
     'dependent_gate_run', 'forward_wire_run', 'lookup_first_initial',
-    'malformed_reject', 'valid_start', 'gate_empty_run',
+    'malformed_reject', 'valid_start', 'gate_empty_run', 'count_success', 'count_reject',
 )
 
 
@@ -129,6 +129,7 @@ def probe_source(language):
     suffix = '.lean' if language == 'lean' else '.v'
     template = (HERE / f'EvaluatorCandidate{suffix}.in').read_text(encoding='utf-8')
     invariants = (HERE / f'EvaluatorInvariants{suffix}.in').read_text(encoding='utf-8')
+    invariants += '\n' + (HERE / f'LengthInvariants{suffix}.in').read_text(encoding='utf-8')
     source = template.replace('@TABLE@', table_source(language)).replace('@EXAMPLES@', examples_source(language))
     source = source.replace('@INVARIANTS@', invariants)
     for state, index in STATE_INDEX.items():
@@ -157,7 +158,7 @@ def check(language):
                                + (result.stdout + result.stderr).rstrip())
         audit_reports(language, result.stdout + result.stderr)
     print(f'{language}: 83-state candidate, {len(CASES) + len(RAW_CASES)} concrete runs '
-          'and four universal phase invariants checked; whole evaluator proof pending')
+          'and six universal phase results checked; whole evaluator proof pending')
 
 
 def main():

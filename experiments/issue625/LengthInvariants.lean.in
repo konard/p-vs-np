@@ -1,0 +1,506 @@
+/-! Certificate-matching shuttles, with exact charged costs. -/
+
+def ones (n : Nat) : List Symbol := List.replicate n .one
+def marks (n : Nat) : List Symbol := List.replicate n .separator
+
+theorem cfg_blank (q : Nat) (L : List Symbol) : cfg q L [.blank] = cfg q L [] := rfl
+
+theorem marks_mem {a : Symbol} {n : Nat} (h : a ∈ marks n) : a = .separator := by
+  exact (List.mem_replicate.mp h).2
+
+theorem ones_mem {a : Symbol} {n : Nat} (h : a ∈ ones n) : a = .one := by
+  exact (List.mem_replicate.mp h).2
+
+/-- Return from a newly marked certificate bit to the next header tick.
+The cursor encodes its original Boolean value and all earlier bits are restored. -/
+theorem count_return (p : Nat) (r u : Word) (b : Bool) (R : List Symbol) (hne : r ≠ []) :
+    Rch (cfg @STATE_count_back_sep@
+      ((u.map Symbol.ofBool).reverse ++ .separator ::
+        (r.map Symbol.ofBool).reverse ++ marks p ++ [.blank])
+      (Symbol.ofBool b :: R))
+      (u.length + r.length + 2 * p + 4)
+      (cfg @STATE_count_next@ (marks p ++ [.blank])
+        (r.map Symbol.ofBool ++ .separator :: (u ++ [b]).map Symbol.ofBool ++ R)) := by
+  have h1 := walkL @STATE_count_back_sep@ .separator
+    ((r.map Symbol.ofBool).reverse ++ marks p ++ [.blank])
+    (u.map Symbol.ofBool).reverse (Symbol.ofBool b) R (by
+      intro a ha
+      rcases List.mem_cons.mp ha with h | h
+      · subst a; cases b <;> rfl
+      · rcases bit_mem (List.mem_reverse.mp h) with rfl | rfl <;> rfl)
+  have h2 := rewind @STATE_count_back_sep@ @STATE_count_back_left@ .blank .separator
+    ((r.map Symbol.ofBool).reverse ++ marks p) []
+    ((u ++ [b]).map Symbol.ofBool ++ R) rfl (by
+      intro a ha
+      rcases List.mem_append.mp ha with h | h
+      · rcases bit_mem (List.mem_reverse.mp h) with rfl | rfl <;> rfl
+      · have := marks_mem h; subst a; rfl)
+  have h3 := walkR @STATE_count_skip@ (marks p) [.blank]
+    (r.map Symbol.ofBool ++ .separator :: (u ++ [b]).map Symbol.ofBool ++ R) (by
+      intro a ha; have := marks_mem ha; subst a; rfl)
+  -- The remaining header always has a bit; an empty remainder is not a
+  -- well-formed count state, so the generic shuttle ends before the stay.
+  have h4 : Rch (cfg @STATE_count_skip@ (marks p ++ [.blank])
+      (r.map Symbol.ofBool ++ .separator :: (u ++ [b]).map Symbol.ofBool ++ R)) 1
+      (cfg @STATE_count_next@ (marks p ++ [.blank])
+        (r.map Symbol.ofBool ++ .separator :: (u ++ [b]).map Symbol.ofBool ++ R)) := by
+    cases r with
+    | nil => exact False.elim (hne rfl)
+    | cons a r =>
+        apply Reaches.next (c' := cfg @STATE_count_next@ (marks p ++ [.blank])
+          ((a :: r).map Symbol.ofBool ++ .separator :: (u ++ [b]).map Symbol.ofBool ++ R))
+        · exact stepS (by cases a <;> rfl) _ _
+        · exact Reaches.refl _
+  simp only [marks, List.reverse_reverse, List.length_reverse, List.length_map,
+    List.length_append, List.length_replicate, List.reverse_append,
+    List.reverse_replicate, List.map_append, List.map_cons, List.map_nil,
+    List.append_assoc, List.singleton_append, List.cons_append] at h1 h2 h3 h4 ⊢
+  have h3' := trans h3 h4
+  have h23 := R1 (q := @STATE_count_back_left@) (a := .blank) rfl h3'
+  have h23' := trans h2 h23
+  have h := trans h1 h23'
+  simpa only [Nat.add_assoc, Nat.add_left_comm,
+    Nat.add_comm, Nat.two_mul] using h
+
+theorem restore_marks (p : Nat) (L R : List Symbol) :
+    Rch (cfg @STATE_count_restore@ L (marks p ++ R)) p
+      (cfg @STATE_count_restore@ (ones p ++ L) R) := by
+  induction p generalizing L with
+  | zero => exact Reaches.refl _
+  | succ p ih =>
+      have h := R1 (q := @STATE_count_restore@) (a := .separator) (w := .one) rfl
+        (ih (.one :: L))
+      have he : ones (p + 1) ++ L = ones p ++ .one :: L := by
+        simp only [ones, List.replicate_succ', List.append_assoc, List.singleton_append]
+      rw [he]
+      simpa only [marks, List.replicate_succ, List.cons_append] using h
+
+/-- The successful length check restores the unary header and keeps the
+certificate unchanged. The final explicit blank was created by moving left
+from the first blank after the certificate. -/
+theorem count_finish (q p : Nat) (r cert : Word)
+    (hq : candidate.instruction q .blank = .move @STATE_count_finish_sep@ .blank .left) :
+    Rch (cfg q ((cert.map Symbol.ofBool).reverse ++ .separator ::
+        (r.map Symbol.ofBool).reverse ++ .zero :: marks p ++ [.blank]) [])
+      (cert.length + r.length + 2 * p + 5)
+      (cfg @STATE_gate@ (.zero :: ones p ++ [.blank])
+        (r.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool ++ [.blank])) := by
+  have h1 := rewind q @STATE_count_finish_sep@ .separator .blank
+    (cert.map Symbol.ofBool).reverse
+    ((r.map Symbol.ofBool).reverse ++ .zero :: marks p ++ [.blank]) [] hq (by
+      intro a ha; rcases bit_mem (List.mem_reverse.mp ha) with rfl | rfl <;> rfl)
+  have h2 := rewind @STATE_count_finish_sep@ @STATE_count_restore_left@ .blank .separator
+    ((r.map Symbol.ofBool).reverse ++ .zero :: marks p) []
+    (cert.map Symbol.ofBool ++ [.blank]) rfl (by
+      intro a ha
+      rcases List.mem_append.mp ha with h | h
+      · rcases bit_mem (List.mem_reverse.mp h) with rfl | rfl <;> rfl
+      · rcases List.mem_cons.mp h with h | h
+        · subst a; rfl
+        · have := marks_mem h; subst a; rfl)
+  have h3 := restore_marks p [.blank]
+    (.zero :: r.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool ++ [.blank])
+  have h4 : Rch (cfg @STATE_count_restore@ (ones p ++ [.blank])
+      (.zero :: r.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool ++ [.blank])) 1
+      (cfg @STATE_gate@ (.zero :: ones p ++ [.blank])
+        (r.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool ++ [.blank])) :=
+    R1 rfl (Reaches.refl _)
+  simp only [marks, List.reverse_reverse, List.length_reverse, List.length_map,
+    List.length_append, List.length_cons, List.length_replicate, List.reverse_append,
+    List.reverse_replicate, List.reverse_cons, List.reverse_nil,
+    List.append_assoc, List.singleton_append, List.cons_append, List.append_nil, List.nil_append] at h1 h2 h3 h4 ⊢
+  have h34 := trans h3 h4
+  have h234 := trans h2 (R1 (q := @STATE_count_restore_left@) (a := .blank) rfl h34)
+  have h := trans h1 h234
+  rw [cfg_blank] at h
+  simpa only [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.two_mul] using h
+
+theorem count_advance (p n : Nat) (w u : Word) (b c : Bool) (v : Word) :
+    Rch (cfg @STATE_count_next@ (marks p ++ [.blank])
+      (ones (n + 1) ++ .zero :: w.map Symbol.ofBool ++ .separator ::
+        u.map Symbol.ofBool ++ cursor b :: (c :: v).map Symbol.ofBool))
+      (2 * (n + w.length + u.length + p) + 12)
+      (cfg @STATE_count_next@ (marks (p + 1) ++ [.blank])
+        (ones n ++ .zero :: w.map Symbol.ofBool ++ .separator ::
+          (u ++ [b]).map Symbol.ofBool ++ cursor c :: v.map Symbol.ofBool)) := by
+  let r : Word := List.replicate n true ++ false :: w
+  have hr : r.map Symbol.ofBool = ones n ++ .zero :: w.map Symbol.ofBool := by
+    simp [r, ones, Symbol.ofBool]
+  have h1 := walkR @STATE_count_seek_next@ (r.map Symbol.ofBool)
+    (marks (p + 1) ++ [.blank])
+    (.separator :: u.map Symbol.ofBool ++ cursor b :: (c :: v).map Symbol.ofBool) (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h2 := walkR @STATE_count_cert_next@ (u.map Symbol.ofBool)
+    (.separator :: (r.map Symbol.ofBool).reverse ++ marks (p + 1) ++ [.blank])
+    (cursor b :: (c :: v).map Symbol.ofBool) (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h3 := count_return (p + 1) r u b (cursor c :: v.map Symbol.ofBool) (by
+    simp [r])
+  have h4 := L1 (q := @STATE_count_mark_next@) (a := Symbol.ofBool c)
+    (w := cursor c) (l := Symbol.ofBool b) (by cases c <;> rfl) h3
+  have h5 := R1 (q := @STATE_count_cert_next@) (a := cursor b)
+    (w := Symbol.ofBool b) (by cases b <;> rfl) h4
+  simp only [List.length_map, List.map_cons, List.append_assoc, List.cons_append] at h1 h2 h5
+  have h6 := trans h2 h5
+  have h7 := R1 (q := @STATE_count_seek_next@) (a := .separator) rfl h6
+  have h8 := trans h1 h7
+  have h9 := R1 (q := @STATE_count_next@) (a := .one) (w := .separator) rfl h8
+  have hp : .separator :: marks p = marks (p + 1) := by
+    simp [marks, List.replicate_succ]
+  have hn : .one :: ones n = ones (n + 1) := by
+    simp [ones, List.replicate_succ]
+  simp only [← hp, ← hn, List.cons_append, hr, List.append_assoc] at h9 ⊢
+  have ht : r.length + (u.length + (u.length + r.length + 2 * (p + 1) + 4 + 1 + 1) + 1) + 1 =
+      2 * (n + w.length + u.length + p) + 12 := by
+    simp only [r, List.length_append, List.length_replicate, List.length_cons]
+    omega
+  rw [ht] at h9
+  exact h9
+
+theorem count_short (p n : Nat) (w u : Word) (b : Bool) :
+    Run candidate (cfg @STATE_count_next@ (marks p ++ [.blank])
+      (ones (n + 1) ++ .zero :: w.map Symbol.ofBool ++ .separator ::
+        u.map Symbol.ofBool ++ [cursor b]))
+      (n + w.length + u.length + 5) false := by
+  let r : Word := List.replicate n true ++ false :: w
+  have hr : r.map Symbol.ofBool = ones n ++ .zero :: w.map Symbol.ofBool := by
+    simp [r, ones, Symbol.ofBool]
+  have h1 := walkR @STATE_count_seek_next@ (r.map Symbol.ofBool)
+    (marks (p + 1) ++ [.blank]) (.separator :: u.map Symbol.ofBool ++ [cursor b]) (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h2 := walkR @STATE_count_cert_next@ (u.map Symbol.ofBool)
+    (.separator :: (r.map Symbol.ofBool).reverse ++ marks (p + 1) ++ [.blank]) [cursor b] (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h3 : Run candidate (cfg @STATE_count_mark_next@
+      (Symbol.ofBool b :: (u.map Symbol.ofBool).reverse ++
+        .separator :: (r.map Symbol.ofBool).reverse ++ marks (p + 1) ++ [.blank]) []) 1 false :=
+    Run.halt (by rfl)
+  have h4 := Run.next (stepR (q := @STATE_count_cert_next@) (a := cursor b)
+    (w := Symbol.ofBool b) (by cases b <;> rfl) _ _) h3
+  change Run candidate (cfg @STATE_count_cert_next@
+    ((u.map Symbol.ofBool).reverse ++ .separator :: (r.map Symbol.ofBool).reverse ++ marks (p + 1) ++ [.blank])
+    [cursor b]) (1 + 1) false at h4
+  simp only [List.append_eq, List.append_assoc, List.cons_append] at h2 h4
+  have h5 := h2.run h4
+  have h6 := Run.next (stepR (q := @STATE_count_seek_next@) (a := .separator) rfl _ _) h5
+  have h7 := h1.run h6
+  have h8 := Run.next (stepR (q := @STATE_count_next@) (a := .one) (w := .separator) rfl _ _) h7
+  simpa only [hr, ones, marks, List.replicate_succ, List.append_eq, List.length_map,
+    List.length_append, List.length_cons, List.length_replicate, List.cons_append,
+    List.append_assoc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h8
+
+theorem count_end_success (p : Nat) (w u : Word) (b : Bool) :
+    Rch (cfg @STATE_count_next@ (marks p ++ [.blank])
+      (.zero :: w.map Symbol.ofBool ++ .separator :: u.map Symbol.ofBool ++ [cursor b]))
+      (2 * (w.length + u.length + p) + 9)
+      (cfg @STATE_gate@ (.zero :: ones p ++ [.blank])
+        (w.map Symbol.ofBool ++ .separator :: (u ++ [b]).map Symbol.ofBool ++ [.blank])) := by
+  have h1 := walkR @STATE_count_seek_end@ (w.map Symbol.ofBool)
+    (.zero :: marks p ++ [.blank]) (.separator :: u.map Symbol.ofBool ++ [cursor b]) (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h2 := walkR @STATE_count_cert_end@ (u.map Symbol.ofBool)
+    (.separator :: (w.map Symbol.ofBool).reverse ++ .zero :: marks p ++ [.blank]) [cursor b] (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h3 := count_finish @STATE_count_check_end@ p w (u ++ [b]) rfl
+  simp only [List.map_append, List.map_cons, List.map_nil, List.reverse_append,
+    List.reverse_cons, List.reverse_nil, List.append_assoc, List.singleton_append,
+    List.cons_append, List.nil_append] at h1 h2 h3 ⊢
+  have h4 := R1 (q := @STATE_count_cert_end@) (a := cursor b)
+    (w := Symbol.ofBool b) (by cases b <;> rfl) h3
+  have h5 := trans h2 h4
+  have h6 := R1 (q := @STATE_count_seek_end@) (a := .separator) rfl h5
+  have h7 := trans h1 h6
+  have h8 := R1 (q := @STATE_count_next@) (a := .zero) rfl h7
+  have ht : (w.map Symbol.ofBool).length +
+      ((u.map Symbol.ofBool).length + ((u ++ [b]).length + w.length + 2 * p + 5 + 1) + 1) + 1 =
+      2 * (w.length + u.length + p) + 9 := by
+    simp only [List.length_map, List.length_append, List.length_cons, List.length_nil]; omega
+  rw [ht] at h8
+  exact h8
+
+theorem count_end_long (p : Nat) (w u : Word) (b c : Bool) (v : Word) :
+    Run candidate (cfg @STATE_count_next@ (marks p ++ [.blank])
+      (.zero :: w.map Symbol.ofBool ++ .separator :: u.map Symbol.ofBool ++
+        cursor b :: (c :: v).map Symbol.ofBool))
+      (w.length + u.length + 4) false := by
+  have h1 := walkR @STATE_count_seek_end@ (w.map Symbol.ofBool)
+    (.zero :: marks p ++ [.blank])
+    (.separator :: u.map Symbol.ofBool ++ cursor b :: (c :: v).map Symbol.ofBool) (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h2 := walkR @STATE_count_cert_end@ (u.map Symbol.ofBool)
+    (.separator :: (w.map Symbol.ofBool).reverse ++ .zero :: marks p ++ [.blank])
+    (cursor b :: (c :: v).map Symbol.ofBool) (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h3 : Run candidate (cfg @STATE_count_check_end@
+      (Symbol.ofBool b :: (u.map Symbol.ofBool).reverse ++ .separator ::
+        (w.map Symbol.ofBool).reverse ++ .zero :: marks p ++ [.blank])
+      ((c :: v).map Symbol.ofBool)) 1 false := Run.halt (by cases c <;> rfl)
+  have h4 := Run.next (stepR (q := @STATE_count_cert_end@) (a := cursor b)
+    (w := Symbol.ofBool b) (by cases b <;> rfl) _ _) h3
+  change Run candidate (cfg @STATE_count_cert_end@
+    ((u.map Symbol.ofBool).reverse ++ .separator :: (w.map Symbol.ofBool).reverse ++ .zero :: marks p ++ [.blank])
+    (cursor b :: (c :: v).map Symbol.ofBool)) (1 + 1) false at h4
+  simp only [List.append_eq, List.append_assoc, List.cons_append] at h2 h4
+  have h5 := h2.run h4
+  have h6 := Run.next (stepR (q := @STATE_count_seek_end@) (a := .separator) rfl _ _) h5
+  have h7 := h1.run h6
+  have h8 := Run.next (stepR (q := @STATE_count_next@) (a := .zero) rfl _ _) h7
+  simpa only [List.append_eq, List.map_cons, List.cons_append, List.append_assoc,
+    List.length_map, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using h8
+
+theorem count_tail_success (n : Nat) : ∀ (p K : Nat) (w u : Word) (b : Bool) (v : Word),
+    v.length = n → p + n + w.length + u.length + v.length + 4 ≤ K →
+    ∃ t, t ≤ 32 * (n + 1) * K ∧
+      Rch (cfg @STATE_count_next@ (marks p ++ [.blank])
+        (ones n ++ .zero :: w.map Symbol.ofBool ++ .separator ::
+          u.map Symbol.ofBool ++ cursor b :: v.map Symbol.ofBool)) t
+        (cfg @STATE_gate@ (.zero :: ones (p + n) ++ [.blank])
+          (w.map Symbol.ofBool ++ .separator :: (u ++ b :: v).map Symbol.ofBool ++ [.blank])) := by
+  induction n with
+  | zero =>
+      intro p K w u b v hv hK
+      have hv' : v = [] := List.eq_nil_of_length_eq_zero hv
+      subst v
+      exact ⟨2 * (w.length + u.length + p) + 9, by simp only [List.length_nil] at hK; omega,
+        by simpa only [ones, List.replicate_zero, List.nil_append, List.map_nil,
+          List.append_nil, Nat.add_zero] using count_end_success p w u b⟩
+  | succ n ih =>
+      intro p K w u b v hv hK
+      cases v with
+      | nil => simp at hv
+      | cons c v =>
+          obtain ⟨t, ht, hrun⟩ := ih (p + 1) K w (u ++ [b]) c v
+            (by simpa only [List.length_cons] using Nat.succ.inj hv)
+            (by simp only [List.length_cons, List.length_append, List.length_nil] at hK ⊢; omega)
+          have hstep := count_advance p n w u b c v
+          have hs : 2 * (n + w.length + u.length + p) + 12 ≤ 32 * K := by
+            simp only [List.length_cons] at hK; omega
+          refine ⟨2 * (n + w.length + u.length + p) + 12 + t, ?_, ?_⟩
+          · change _ ≤ 32 * (n + 2) * K
+            calc
+              _ ≤ 32 * K + 32 * (n + 1) * K := Nat.add_le_add hs ht
+              _ = 32 * (n + 1 + 1) * K := by simp only [Nat.mul_add, Nat.add_mul, Nat.mul_one]; omega
+          · have h := trans hstep hrun
+            simpa only [Nat.succ_eq_add_one, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm,
+              List.map_cons, List.map_append, List.map_nil, List.append_assoc,
+              List.singleton_append, List.cons_append, List.nil_append] using h
+
+theorem count_tail_reject (n : Nat) : ∀ (p K : Nat) (w u : Word) (b : Bool) (v : Word),
+    v.length ≠ n → p + n + w.length + u.length + v.length + 4 ≤ K →
+    ∃ t, t ≤ 32 * (n + 1) * K ∧
+      Run candidate (cfg @STATE_count_next@ (marks p ++ [.blank])
+        (ones n ++ .zero :: w.map Symbol.ofBool ++ .separator ::
+          u.map Symbol.ofBool ++ cursor b :: v.map Symbol.ofBool)) t false := by
+  induction n with
+  | zero =>
+      intro p K w u b v hv hK
+      cases v with
+      | nil => exact False.elim (hv rfl)
+      | cons c v =>
+          refine ⟨w.length + u.length + 4, by simp only [List.length_cons] at hK; omega, ?_⟩
+          simpa only [ones, List.replicate_zero, List.nil_append] using count_end_long p w u b c v
+  | succ n ih =>
+      intro p K w u b v hv hK
+      cases v with
+      | nil =>
+          have hs : n + w.length + u.length + 5 ≤ 32 * K := by
+            simp only [List.length_nil] at hK; omega
+          have hm : 32 * K ≤ 32 * (n + 1 + 1) * K :=
+            Nat.mul_le_mul_right K (by omega)
+          exact ⟨n + w.length + u.length + 5, Nat.le_trans hs hm,
+            by simpa only [List.map_nil] using count_short p n w u b⟩
+      | cons c v =>
+          obtain ⟨t, ht, hrun⟩ := ih (p + 1) K w (u ++ [b]) c v
+            (by simp only [List.length_cons] at hv; omega)
+            (by simp only [List.length_cons, List.length_append, List.length_nil] at hK ⊢; omega)
+          have hstep := count_advance p n w u b c v
+          have hs : 2 * (n + w.length + u.length + p) + 12 ≤ 32 * K := by
+            simp only [List.length_cons] at hK; omega
+          refine ⟨2 * (n + w.length + u.length + p) + 12 + t, ?_, hstep.run hrun⟩
+          calc
+            _ ≤ 32 * K + 32 * (n + 1) * K := Nat.add_le_add hs ht
+            _ = 32 * (n + 1 + 1) * K := by simp only [Nat.mul_add, Nat.add_mul, Nat.mul_one]; omega
+
+theorem count_return_sep (p : Nat) (r : Word) (R : List Symbol) (hne : r ≠ []) :
+    Rch (cfg @STATE_count_back_sep@
+      ((r.map Symbol.ofBool).reverse ++ marks p ++ [.blank]) (.separator :: R))
+      (r.length + 2 * p + 3)
+      (cfg @STATE_count_next@ (marks p ++ [.blank]) (r.map Symbol.ofBool ++ .separator :: R)) := by
+  have h1 := rewind @STATE_count_back_sep@ @STATE_count_back_left@ .blank .separator
+    ((r.map Symbol.ofBool).reverse ++ marks p) [] R rfl (by
+      intro a ha
+      rcases List.mem_append.mp ha with h | h
+      · rcases bit_mem (List.mem_reverse.mp h) with rfl | rfl <;> rfl
+      · have := marks_mem h; subst a; rfl)
+  have h2 := walkR @STATE_count_skip@ (marks p) [.blank] (r.map Symbol.ofBool ++ .separator :: R) (by
+    intro a ha; have := marks_mem ha; subst a; rfl)
+  have h3 : Rch (cfg @STATE_count_skip@ (marks p ++ [.blank])
+      (r.map Symbol.ofBool ++ .separator :: R)) 1
+      (cfg @STATE_count_next@ (marks p ++ [.blank]) (r.map Symbol.ofBool ++ .separator :: R)) := by
+    cases r with
+    | nil => exact False.elim (hne rfl)
+    | cons a r =>
+        exact Reaches.next (stepS (by cases a <;> rfl) _ _) (Reaches.refl _)
+  simp only [marks, List.reverse_append, List.reverse_replicate, List.reverse_reverse,
+    List.length_append, List.length_reverse, List.length_map, List.length_replicate,
+    List.append_assoc, List.cons_append, List.nil_append] at h1 h2 h3 ⊢
+  have h := trans h1 (R1 (q := @STATE_count_back_left@) (a := .blank) rfl (trans h2 h3))
+  simpa only [Nat.two_mul, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+
+theorem count_first_start (n : Nat) (w : Word) (b : Bool) (v : Word) :
+    Rch (cfg @STATE_count_first@ [.blank]
+      (ones (n + 1) ++ .zero :: w.map Symbol.ofBool ++ .separator :: (b :: v).map Symbol.ofBool))
+      (2 * (n + w.length) + 10)
+      (cfg @STATE_count_next@ (marks 1 ++ [.blank])
+        (ones n ++ .zero :: w.map Symbol.ofBool ++ .separator :: cursor b :: v.map Symbol.ofBool)) := by
+  let r : Word := List.replicate n true ++ false :: w
+  have hr : r.map Symbol.ofBool = ones n ++ .zero :: w.map Symbol.ofBool := by
+    simp [r, ones, Symbol.ofBool]
+  have h1 := walkR @STATE_count_seek_first@ (r.map Symbol.ofBool) [.separator, .blank]
+    (.separator :: (b :: v).map Symbol.ofBool) (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h2 := count_return_sep 1 r (cursor b :: v.map Symbol.ofBool) (by simp [r])
+  have h3 := L1 (q := @STATE_count_cert_first@) (a := Symbol.ofBool b)
+    (w := cursor b) (l := .separator) (by cases b <;> rfl) h2
+  have h4 := R1 (q := @STATE_count_seek_first@) (a := .separator) rfl h3
+  simp only [marks, List.replicate_succ, List.replicate_zero, List.cons_append,
+    List.nil_append, List.map_cons, List.append_assoc] at h1 h4
+  have h5 := trans h1 h4
+  have h6 := R1 (q := @STATE_count_first@) (a := .one) (w := .separator) rfl h5
+  simpa only [hr, ones, marks, List.replicate_succ, List.replicate_zero, List.append_eq,
+    r, List.map_cons, List.length_map, List.length_append, List.length_replicate, List.length_cons,
+    List.cons_append, List.nil_append, List.append_assoc,
+    Nat.mul_add, Nat.mul_one, Nat.two_mul, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h6
+
+theorem count_first_short (n : Nat) (w : Word) :
+    Run candidate (cfg @STATE_count_first@ [.blank]
+      (ones (n + 1) ++ .zero :: w.map Symbol.ofBool ++ [.separator]))
+      (n + w.length + 4) false := by
+  let r : Word := List.replicate n true ++ false :: w
+  have hr : r.map Symbol.ofBool = ones n ++ .zero :: w.map Symbol.ofBool := by
+    simp [r, ones, Symbol.ofBool]
+  have h1 := walkR @STATE_count_seek_first@ (r.map Symbol.ofBool) [.separator, .blank]
+    [.separator] (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h2 : Run candidate (cfg @STATE_count_cert_first@
+      (.separator :: (r.map Symbol.ofBool).reverse ++ [.separator, .blank]) []) 1 false :=
+    Run.halt (by rfl)
+  have h3 := Run.next (stepR (q := @STATE_count_seek_first@) (a := .separator) rfl _ _) h2
+  have h4 := h1.run h3
+  have h5 := Run.next (stepR (q := @STATE_count_first@) (a := .one) (w := .separator) rfl _ _) h4
+  simpa only [hr, ones, List.replicate_succ, List.append_eq, r,
+    List.length_map, List.length_append, List.length_replicate, List.length_cons,
+    List.cons_append, List.append_assoc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h5
+
+theorem count_zero_success (w : Word) :
+    Rch (cfg @STATE_count_first@ [.blank]
+      (.zero :: w.map Symbol.ofBool ++ [.separator]))
+      (2 * w.length + 7)
+      (cfg @STATE_gate@ [.zero, .blank] (w.map Symbol.ofBool ++ [.separator, .blank])) := by
+  have h1 := walkR @STATE_count_seek_empty@ (w.map Symbol.ofBool) [.zero, .blank]
+    [.separator] (by intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h2 := count_finish @STATE_count_cert_empty@ 0 w [] rfl
+  simp only [List.map_nil, List.reverse_nil, List.nil_append, List.append_nil, ones,
+    marks, List.replicate_zero, Nat.zero_mul, Nat.zero_add, List.cons_append,
+    List.append_assoc, List.singleton_append, List.length_nil] at h2
+  have h3 := R1 (q := @STATE_count_seek_empty@) (a := .separator) rfl h2
+  have h4 := trans h1 h3
+  have h5 := R1 (q := @STATE_count_first@) (a := .zero) rfl h4
+  simpa only [List.cons_append, List.length_map, Nat.zero_add, Nat.add_zero,
+    Nat.two_mul, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h5
+
+theorem count_zero_long (w : Word) (b : Bool) (v : Word) :
+    Run candidate (cfg @STATE_count_first@ [.blank]
+      (.zero :: w.map Symbol.ofBool ++ .separator :: (b :: v).map Symbol.ofBool))
+      (w.length + 3) false := by
+  have h1 := walkR @STATE_count_seek_empty@ (w.map Symbol.ofBool) [.zero, .blank]
+    (.separator :: (b :: v).map Symbol.ofBool) (by
+      intro a ha; rcases bit_mem ha with rfl | rfl <;> rfl)
+  have h2 : Run candidate (cfg @STATE_count_cert_empty@
+      (.separator :: (w.map Symbol.ofBool).reverse ++ [.zero, .blank])
+      ((b :: v).map Symbol.ofBool)) 1 false := Run.halt (by cases b <;> rfl)
+  have h3 := Run.next (stepR (q := @STATE_count_seek_empty@) (a := .separator) rfl _ _) h2
+  have h4 := h1.run h3
+  have h5 := Run.next (stepR (q := @STATE_count_first@) (a := .zero) rfl _ _) h4
+  simpa only [List.append_eq, List.cons_append, List.append_assoc, List.length_map,
+    Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h5
+
+/-- Every exact-length certificate reaches gate evaluation, with all bits
+preserved, within a quadratic number of real table instructions. -/
+theorem count_success (n : Nat) (w cert : Word) (hc : cert.length = n) :
+    ∃ t, t ≤ 64 * (n + 1) * (n + w.length + cert.length + 4) ∧
+      Rch (cfg @STATE_count_first@ [.blank]
+        (ones n ++ .zero :: w.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool)) t
+        (cfg @STATE_gate@ (.zero :: ones n ++ [.blank])
+          (w.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool ++ [.blank])) := by
+  cases n with
+  | zero =>
+      have hc' : cert = [] := List.eq_nil_of_length_eq_zero hc
+      subst cert
+      exact ⟨2 * w.length + 7, by simp only [List.length_nil]; omega,
+        by simpa only [ones, List.replicate_zero, List.nil_append, List.map_nil,
+          List.append_assoc, List.singleton_append] using count_zero_success w⟩
+  | succ n =>
+      cases cert with
+      | nil => simp at hc
+      | cons b v =>
+          let K := n + 1 + w.length + (b :: v).length + 4
+          obtain ⟨t, ht, hrun⟩ := count_tail_success n 1 K w [] b v
+            (by simp only [List.length_cons] at hc; omega)
+            (by simp only [K, List.length_cons, List.length_nil]; omega)
+          simp only [List.map_nil, List.nil_append, List.append_assoc, List.singleton_append, List.cons_append] at hrun
+          have hstep := count_first_start n w b v
+          simp only [List.append_assoc, List.cons_append] at hstep
+          have hs : 2 * (n + w.length) + 10 ≤ 32 * K := by
+            simp only [K, List.length_cons]; omega
+          refine ⟨2 * (n + w.length) + 10 + t, ?_, ?_⟩
+          · change _ ≤ 64 * (n + 2) * K
+            calc
+              _ ≤ 32 * K + 32 * (n + 1) * K := Nat.add_le_add hs ht
+              _ = 32 * (n + 2) * K := by simp only [Nat.mul_add, Nat.add_mul, Nat.mul_one]; omega
+              _ ≤ 64 * (n + 2) * K := Nat.mul_le_mul_right K (Nat.mul_le_mul_right (n + 2) (by decide))
+          · have h := trans hstep hrun
+            simpa only [List.map_nil, List.nil_append, List.append_assoc, List.cons_append,
+              Nat.add_comm] using h
+
+/-- Both shorter and longer certificates reject, including empty certificates
+and the zero-input case. No gate result or certificate content is assumed. -/
+theorem count_reject (n : Nat) (w cert : Word) (hc : cert.length ≠ n) :
+    ∃ t, t ≤ 64 * (n + 1) * (n + w.length + cert.length + 4) ∧
+      Run candidate (cfg @STATE_count_first@ [.blank]
+        (ones n ++ .zero :: w.map Symbol.ofBool ++ .separator :: cert.map Symbol.ofBool)) t false := by
+  cases n with
+  | zero =>
+      cases cert with
+      | nil => exact False.elim (hc rfl)
+      | cons b v =>
+          exact ⟨w.length + 3, by simp only [List.length_cons]; omega,
+            by simpa only [ones, List.replicate_zero, List.nil_append] using count_zero_long w b v⟩
+  | succ n =>
+      let K := n + 1 + w.length + cert.length + 4
+      have hm : 32 * K ≤ 64 * (n + 2) * K :=
+        Nat.mul_le_mul_right K (by omega)
+      cases cert with
+      | nil =>
+          have hs : n + w.length + 4 ≤ 32 * K := by simp only [K, List.length_nil]; omega
+          exact ⟨n + w.length + 4, Nat.le_trans hs hm,
+            by simpa only [List.map_nil] using count_first_short n w⟩
+      | cons b v =>
+          obtain ⟨t, ht, hrun⟩ := count_tail_reject n 1 K w [] b v
+            (by simp only [List.length_cons] at hc; omega)
+            (by simp only [K, List.length_cons, List.length_nil]; omega)
+          simp only [List.map_nil, List.nil_append, List.append_assoc, List.singleton_append, List.cons_append] at hrun
+          have hstep := count_first_start n w b v
+          simp only [List.append_assoc, List.cons_append] at hstep
+          have hs : 2 * (n + w.length) + 10 ≤ 32 * K := by
+            simp only [K, List.length_cons]; omega
+          refine ⟨2 * (n + w.length) + 10 + t, ?_, ?_⟩
+          · change _ ≤ 64 * (n + 2) * K
+            calc
+              _ ≤ 32 * K + 32 * (n + 1) * K := Nat.add_le_add hs ht
+              _ = 32 * (n + 2) * K := by simp only [Nat.mul_add, Nat.add_mul, Nat.mul_one]; omega
+              _ ≤ 64 * (n + 2) * K := Nat.mul_le_mul_right K (Nat.mul_le_mul_right (n + 2) (by decide))
+          · simpa only [List.map_nil, List.nil_append, List.append_assoc, List.cons_append] using hstep.run hrun
+
+#print axioms count_success
+#print axioms count_reject
