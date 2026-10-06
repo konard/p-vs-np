@@ -61,3 +61,15 @@ length. Fourteen further conclusions per prover bring the #624 registration
 count to 62 and the whole manifest to 140 per prover. Tape/head wiring and
 successor configurations remain open. See [CI_CONTINUATION.md](CI_CONTINUATION.md)
 for fresh failure diagnostics and this checkpoint's validation record.
+
+## Finite-row successor checkpoint
+
+`SuccessorCNF` now compiles one move between well-formed rows, extracts
+configurations constructively, and proves equivalence to the original
+charged `step`, including rejection at both window edges. Its clause,
+variable, width, and actual unary encoded-size bounds are checked.
+Thirty-eight further paired conclusions bring the #624 registration count
+to 100 and the whole manifest to 178 per prover. Initial/certificate wiring,
+active-prefix rows, accepting termination, the full encoded-size polynomial,
+and the input-dependent reduction machine remain open.
+[RESTART_PLAN.md](RESTART_PLAN.md) records this continuation and its validation.

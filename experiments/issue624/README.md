@@ -8,8 +8,14 @@ and unsatisfiable circuits, wrong gate outputs, and unary encoding bounds.
 including default rejection for missing columns, nonzero variable offsets,
 wrong instruction outputs, missing or multiple selected values, and an empty
 program. Its size checks include the unary identifiers and explicit polynomial.
-These regressions do not certify full tableau CNF or SAT hardness. The semantic predicate
-still carries an explicit trace whose constraints have not been encoded.
+`SuccessorRegression` checks actual charged moves in all three directions,
+state changes, row decoding, and rejection of incorrect writes, copied cells,
+heads, and states. It also covers missing instructions, invalid destinations,
+halts, empty domains, and both window edges. Its wrong-write, wrong-copy, and
+wrong-state assignments satisfy the row clauses and fail the transition clauses.
+These regressions do not certify full tableau CNF or SAT hardness. Individual
+rows and moves are compiled, but accepting traces have not yet been assembled
+into a formula.
 
 After building the imported modules, run:
 
@@ -20,6 +26,7 @@ lake env lean experiments/issue624/CNFRegression.lean
 lake env lean experiments/issue624/EmitterRegression.lean
 lake env lean experiments/issue624/CircuitCNFRegression.lean
 lake env lean experiments/issue624/MachineCNFRegression.lean
+lake env lean experiments/issue624/SuccessorRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 bash experiments/issue624/check.sh all
@@ -41,6 +48,10 @@ rocq repl -quiet -Q proofs proofs < experiments/issue624/tableau_probe.in
 rocq repl -quiet < experiments/issue624/local_cnf_size_probe.in
 rocq repl -quiet < experiments/issue624/local_cnf_size_real_probe.in
 lake env lean experiments/issue624/field_probe.lean
+lake env lean experiments/issue624/successor_probe.lean
+rocq repl -quiet -Q proofs proofs < experiments/issue624/successor_probe.in
+rocq repl -quiet -Q proofs proofs < experiments/issue624/successor_decode_probe.in
+rocq repl -quiet < experiments/issue624/successor_arithmetic_probe.in
 ```
 
 [PLAN.md](PLAN.md) tracks the completed prerequisites and the remaining

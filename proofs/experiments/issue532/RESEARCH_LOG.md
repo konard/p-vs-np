@@ -79,7 +79,7 @@ encoding lemmas replace duplicate proofs; previous qualified public names
 remain available through wrappers. Paired regressions reject incorrect gate
 outputs and an unsatisfiable contradiction circuit.
 
-The latest continuation adds paired `MachineCNF` modules. Their three one-hot
+The instruction-dispatch continuation adds paired `MachineCNF` modules. Their three one-hot
 blocks select the state, scanned symbol, and instruction from the existing
 finite machine table. The model theorem recovers exactly `Machine.instruction`,
 including default rejection for missing columns. A constructive assignment
@@ -89,11 +89,22 @@ compiler agrees with the existing charged `step`, and its actual unary encoded
 length has an explicit polynomial bound for polynomially bounded offsets.
 Paired regressions select an incorrect instruction while satisfying all three
 one-hot fragments and verify that the table clauses reject it. Fourteen
-conclusions are registered in each prover. This still requires connections to
-the tableau's head/tape cells and all successor-row updates.
+conclusions are registered in each prover.
+
+The successor continuation adds paired `SuccessorCNF` modules. One-hot row
+clauses extract a unique configuration by bounded search, and a constructive
+assignment represents each bounded configuration. Guarded state/head/write
+and copy constraints compile one move from the actual finite machine table.
+The equivalence and extraction results use the original charged `step`; both
+window edges are rejected without wrapping or truncation. Clause, variable,
+width, and unary encoded-size bounds are proved. Thirty-eight further
+conclusions per prover bring the #624 registration count to 100 and the
+whole manifest to 178. Paired regressions distinguish wrong writes, copied
+cells, heads, and states from otherwise well-formed rows.
 
 This is **known theorem mechanized** for the prerequisites. The complete
-transition and acceptance constraints have not yet been encoded into CNF, and no
+accepting trace, including initial/certificate wiring and active rows, has not
+yet been assembled into CNF, and no
 input-dependent polynomial-time single-tape reduction machine has been proved. `SATHard`
 remains an explicit premise of the Idea bridges; #624 remains open. See the
 [paired assumption reports](../../../experiments/issue624/ASSUMPTIONS.md).

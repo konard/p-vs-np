@@ -13,7 +13,9 @@ state/scanned-symbol lookup, with an injective instruction code and polynomial
 unary encoding bound. Wire its scanned-symbol group to the tape cell chosen
 by the row's head, guard it with row activity, and connect its instruction
 output to the next row's state/head/tape constraints. The dispatch compiler
-does not supply any of those connections.
+does not supply those connections. `SuccessorCNF` now supplies a separate
+row-and-move compiler with the same instruction lookup; integrating activity
+and accepting halts into the whole trace remains necessary.
 `acceptingRun_timeLimit` recovers the actual certificate-dependent clock from
 any accepting trace; the envelope cannot introduce a slower accepting run.
 
@@ -30,7 +32,11 @@ blocks after them for:
 
 Use `LocalCNF.oneHot` for state, head, and symbol groups. Variable uniqueness
 and decoding need an arithmetic proof for these offsets. No group enumerates
-configurations, traces, or certificates. Inactive rows can carry arbitrary
+configurations, traces, or certificates. `SuccessorCNF.rowCNF_models` and
+`decodeRow_represents` now provide constructive extraction and uniqueness for
+each block; `rowAssignment_represents` supplies its canonical model.
+Disjointness and assembly across all row and certificate blocks remain to be
+proved. Inactive rows can carry arbitrary
 well-formed values. If `T = 0` or `Q = 0`, the corresponding formula should
 be unsatisfiable, consistent with the impossibility of an accepting run.
 
@@ -57,8 +63,11 @@ inactive sentinel. Missing table entries already mean rejecting halt in the
 shared model. The decoded configuration must use reversed cells to the left
 of the selected head and ordinary-order cells to its right. Proving that this
 decoding commutes with each move, including the window boundary constraints,
-is still necessary. The fixed-window simulation supplies completeness; it
-does not prove the row-decoding lemma or the guarded-clause compiler.
+is now proved by `SuccessorCNF.moveHead_matches` and `successorCNF_step`.
+`successorCNF_sound` extracts a genuine charged move from any satisfying
+two-row assignment. Both edge crossings are rejected rather than wrapped or
+truncated. The active-prefix, initial-row, and accepting-halt integration is
+still missing.
 
 ## Encoded size
 
@@ -68,7 +77,9 @@ Copying the other tape cells costs at most a further factor of `W` per
 transition guard. Thus the intended loops enumerate polynomially many
 rows, cells, state/symbol values, and value pairs.
 
-These observations are not a checked size theorem. The completed builder
+`SuccessorCNF` now has checked clause-count, variable-bound, clause-width,
+and unary encoded-size bounds for one successor pair. These observations
+are not a checked size theorem for the full tableau. The completed builder
 needs explicit clause-count, maximum clause-width, and variable-bound lemmas.
 `LocalCNF.cnf_encoded_size` then counts the unary identifier cost and clause
 delimiters. Combine these bounds with `maxClock_polynomial`,

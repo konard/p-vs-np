@@ -1,0 +1,11 @@
+From Stdlib Require Import List Arith.
+Check nth_middle.
+Check app_nth1.
+Check app_nth2.
+Check nth_ext.
+Check firstn_app.
+Check firstn_all.
+Check skipn_app.
+Check rev_involutive.
+Check Nat.ltb_lt.
+Check Nat.eq_dec.

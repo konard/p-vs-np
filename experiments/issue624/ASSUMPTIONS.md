@@ -1,8 +1,9 @@
 # Assumption reports for the #624 construction
 
-Captured on 2026-10-05 with Lean 4.34.1 and Rocq 9.2. These reports cover
+Initial reports captured on 2026-10-05 with Lean 4.34.1 and Rocq 9.2.
+The successor-compiler update below was captured on 2026-10-06. These reports cover
 certificate CNF, exact-clock recovery, fixed-window verifier semantics,
-local CNF combinators, a shared NAND-circuit CNF compiler, and a finite
+local CNF combinators, shared NAND-circuit and finite-row successor compilers, and a finite
 fixed-output machine. They do not cover
 `tableauCNF`, `satHard`, or an input-dependent reduction machine, which remain
 unimplemented.
@@ -235,3 +236,130 @@ Lean 4.34.1 direct reports:
 Rocq 9.2 reports `Closed under the global context` for each of the eight
 corresponding direct queries. Both full manifest audits enforce the allowed
 assumptions independently. No admissions or new axioms are introduced.
+
+## Finite-row successor compiler (2026-10-06)
+
+`SuccessorRegression.lean` and `SuccessorRegression.v` print these nine
+main conclusions after checking the concrete positive and negative cases.
+The Lean decoder uses bounded list search. Its proof reports and those of
+the original-step correspondence use only the standard permitted assumptions.
+
+```text
+'Issue624.SuccessorCNF.rowAssignment_represents' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue624.SuccessorCNF.rowCNF_models' depends on axioms: [propext, Quot.sound]
+'Issue624.SuccessorCNF.decodeRow_represents' depends on axioms: [propext, Quot.sound]
+'Issue624.SuccessorCNF.moveHead_matches' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue624.SuccessorCNF.transitionCNF_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue624.SuccessorCNF.successorCNF_models' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue624.SuccessorCNF.successorCNF_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue624.SuccessorCNF.successorCNF_decoded_wrong_successor' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue624.SuccessorCNF.successorCNF_encoded_size' depends on axioms: [propext, Quot.sound]
+```
+
+The matching Rocq queries, in the same order, are:
+
+```text
+Print Assumptions rowAssignment_represents.
+Closed under the global context
+Print Assumptions rowCNF_models.
+Closed under the global context
+Print Assumptions decodeRow_represents.
+Closed under the global context
+Print Assumptions moveHead_matches.
+Closed under the global context
+Print Assumptions transitionCNF_step.
+Closed under the global context
+Print Assumptions successorCNF_models.
+Closed under the global context
+Print Assumptions successorCNF_sound.
+Closed under the global context
+Print Assumptions successorCNF_decoded_wrong_successor.
+Closed under the global context
+Print Assumptions successorCNF_encoded_size.
+Closed under the global context
+```
+
+The full local verification suites pass with 178 registered conclusions in
+each prover, including 100 for #624. The following are the actual audit
+lines for all 38 new successor conclusions in each prover. Each new Lean
+manifest policy is restricted to its reported assumptions; all new Rocq
+policies are empty. Existing policies remain unchanged.
+
+```text
+lean Issue624.SuccessorCNF.flatten_length: Quot.sound, propext
+lean Issue624.SuccessorCNF.cell_head: Quot.sound, propext
+lean Issue624.SuccessorCNF.decodeConfig_flatten: Quot.sound, propext
+lean Issue624.SuccessorCNF.flatten_injective: Quot.sound, propext
+lean Issue624.SuccessorCNF.moveHead_flatten: Quot.sound, propext
+lean Issue624.SuccessorCNF.rowAssignment_state: Quot.sound, propext
+lean Issue624.SuccessorCNF.rowAssignment_head: Quot.sound, propext
+lean Issue624.SuccessorCNF.rowAssignment_cell: Quot.sound, propext
+lean Issue624.SuccessorCNF.rowAssignment_represents: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.rowRepresents_models: Quot.sound, propext
+lean Issue624.SuccessorCNF.selectedIndex_selected: Quot.sound, propext
+lean Issue624.SuccessorCNF.decodeConfig_shape: Quot.sound, propext
+lean Issue624.SuccessorCNF.rowCNF_models: Quot.sound, propext
+lean Issue624.SuccessorCNF.selected_true_iff: (none)
+lean Issue624.SuccessorCNF.guard_models: Quot.sound, propext
+lean Issue624.SuccessorCNF.inside_of_moveHead_span: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.moveHead_cells: Quot.sound, propext
+lean Issue624.SuccessorCNF.config_eq_of_cells: Quot.sound, propext
+lean Issue624.SuccessorCNF.decodeRow_represents: Quot.sound, propext
+lean Issue624.SuccessorCNF.moveHead_matches: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.copyRules_models: Quot.sound, propext
+lean Issue624.SuccessorCNF.copyRules_cells: propext
+lean Issue624.SuccessorCNF.instructionRules_models: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.nextHead_lt: Quot.sound, propext
+lean Issue624.SuccessorCNF.instructionRules_step: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.transitionCNF_step: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.successorCNF_step: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.successorCNF_models: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.successorCNF_sound: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.successorCNF_decoded_wrong_successor: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.successorCNF_wrong_successor: Classical.choice, Quot.sound, propext
+lean Issue624.SuccessorCNF.rowCNF_length: Quot.sound, propext
+lean Issue624.SuccessorCNF.rowCNF_bounds: Quot.sound, propext
+lean Issue624.SuccessorCNF.instructionRules_length: Quot.sound, propext
+lean Issue624.SuccessorCNF.instructionRules_bounds: Quot.sound, propext
+lean Issue624.SuccessorCNF.successorCNF_length: Quot.sound, propext
+lean Issue624.SuccessorCNF.successorCNF_bounds: Quot.sound, propext
+lean Issue624.SuccessorCNF.successorCNF_encoded_size: Quot.sound, propext
+rocq SuccessorCNF.flatten_length: (none)
+rocq SuccessorCNF.cell_head: (none)
+rocq SuccessorCNF.decodeConfig_flatten: (none)
+rocq SuccessorCNF.flatten_injective: (none)
+rocq SuccessorCNF.moveHead_flatten: (none)
+rocq SuccessorCNF.rowAssignment_state: (none)
+rocq SuccessorCNF.rowAssignment_head: (none)
+rocq SuccessorCNF.rowAssignment_cell: (none)
+rocq SuccessorCNF.rowAssignment_represents: (none)
+rocq SuccessorCNF.rowRepresents_models: (none)
+rocq SuccessorCNF.selectedIndex_selected: (none)
+rocq SuccessorCNF.decodeConfig_shape: (none)
+rocq SuccessorCNF.rowCNF_models: (none)
+rocq SuccessorCNF.selected_true_iff: (none)
+rocq SuccessorCNF.guard_models: (none)
+rocq SuccessorCNF.inside_of_moveHead_span: (none)
+rocq SuccessorCNF.moveHead_cells: (none)
+rocq SuccessorCNF.config_eq_of_cells: (none)
+rocq SuccessorCNF.decodeRow_represents: (none)
+rocq SuccessorCNF.moveHead_matches: (none)
+rocq SuccessorCNF.copyRules_models: (none)
+rocq SuccessorCNF.copyRules_cells: (none)
+rocq SuccessorCNF.instructionRules_models: (none)
+rocq SuccessorCNF.nextHead_lt: (none)
+rocq SuccessorCNF.instructionRules_step: (none)
+rocq SuccessorCNF.transitionCNF_step: (none)
+rocq SuccessorCNF.successorCNF_step: (none)
+rocq SuccessorCNF.successorCNF_models: (none)
+rocq SuccessorCNF.successorCNF_sound: (none)
+rocq SuccessorCNF.successorCNF_decoded_wrong_successor: (none)
+rocq SuccessorCNF.successorCNF_wrong_successor: (none)
+rocq SuccessorCNF.rowCNF_length: (none)
+rocq SuccessorCNF.rowCNF_bounds: (none)
+rocq SuccessorCNF.instructionRules_length: (none)
+rocq SuccessorCNF.instructionRules_bounds: (none)
+rocq SuccessorCNF.successorCNF_length: (none)
+rocq SuccessorCNF.successorCNF_bounds: (none)
+rocq SuccessorCNF.successorCNF_encoded_size: (none)
+```

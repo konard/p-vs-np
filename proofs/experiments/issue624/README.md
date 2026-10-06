@@ -4,11 +4,12 @@
 The complete `tableauCNF`, its polynomial encoded-size bound, the single-tape
 reduction machine, `satHard`, and unconditional P = NP bridges remain to be
 constructed. This directory certifies variable-length certificates, fixed-width
-verifier traces, local CNF combinators, a NAND-circuit CNF compiler, and a
-finite-table output primitive.
+verifier traces, local CNF combinators, a NAND-circuit CNF compiler, a
+finite-row successor compiler, and a finite-table output primitive.
 
-`MachineCNF` also compiles instruction dispatch from the existing machine
-table; the tape movement and complete accepting formula remain uncompiled.
+`MachineCNF` compiles instruction dispatch from the existing machine table.
+`SuccessorCNF` compiles charged tape moves between two represented rows;
+the complete accepting formula remains uncompiled.
 
 Classification: **known theorem mechanized**, for these prerequisites only.
 Nothing here establishes an answer to P versus NP.
@@ -209,11 +210,59 @@ registered in the assumption manifest, with the same names in both provers.
 `LocalCNF` exports its existing one-hot clause count and variable/width
 contracts so this compiler uses those proofs directly.
 
-This formula selects an instruction. To form the full accepting tableau it
-still needs scanned-symbol/head/tape wiring, charged successor constraints,
-initial/certificate constraints, row activity, and final acceptance. No
-input-dependent reduction machine or hardness theorem follows from dispatch
-alone.
+This formula selects an instruction. `SuccessorCNF` supplies the head/tape
+wiring and charged successor constraints below. The full accepting tableau
+still needs initial/certificate constraints, row activity, and final acceptance.
+No input-dependent reduction machine or hardness theorem follows from these
+local compilers alone.
+
+## Finite-row successor CNF
+
+`SuccessorCNF.lean` and `SuccessorCNF.v` use matching public names and the
+existing `Config`, `moveHead`, `step`, and `encodeCNF`. For `Q` machine states,
+window width `W`, and row offset `b`, the layout is:
+
+| Variables | Meaning |
+| --- | --- |
+| `b + q`, `q < Q` | Selected state. |
+| `b + Q + h`, `h < W` | Selected head position. |
+| `b + Q + W + 4*i + s`, `i < W`, `s < 4` | Symbol at tape cell `i`. |
+
+`flatten` reverses the stored left tape and appends the head and right tape.
+`rowCNF` enforces one-hot selections. `decodeRow` searches these bounded
+groups constructively; `rowCNF_models` extracts a represented configuration
+from **every** satisfying row assignment, and `decodeRow_represents` proves
+uniqueness. `rowAssignment_represents` constructs an assignment for every
+configuration with span `W` and state below `Q`.
+
+`transitionCNF` enumerates only states, head positions, symbols, and cells.
+The selected instruction forces the next state and head, overwrites the old
+head cell, and preserves every other cell. Halts, missing instructions,
+out-of-range destination states, and moves outside the window forbid their
+guard. `moveHead_flatten` and `moveHead_matches` connect these clauses to the
+original two-way tape semantics. Crossing an edge grows that machine's span;
+such a move cannot be a same-width successor.
+
+`successorCNF` combines two rows with these transition clauses.
+`successorCNF_step` proves equivalence to `step m c = inr d` for represented
+rows. `successorCNF_models` extracts both rows directly from satisfaction;
+`successorCNF_sound` consequently has no representation premise.
+`successorCNF_decoded_wrong_successor` rejects an incorrect decoded move.
+These conclusions concern one move, including a move into a configuration
+that will halt; they do not encode the accepting halt itself.
+
+The checked clause-count bound is
+
+```text
+C = 2*(Q*Q + W*W + 17*W + 2) + 4*Q*W*(4*W + 2).
+```
+
+For row offsets `b` and `next`, variables are below
+`V = max b next + Q + 5*W`, and clauses have width at most `L = Q + W + 6`.
+`successorCNF_encoded_size` proves encoded bit length at most
+`2*C*(1 + L*(V + 1))`, counting unary identifiers and delimiters. This bound
+has not yet been combined with the clock, certificate, and row-count bounds
+into the full tableau's explicit `Polynomial`.
 
 ## Charged output primitive
 
@@ -269,6 +318,7 @@ lake env lean experiments/issue624/CNFRegression.lean
 lake env lean experiments/issue624/EmitterRegression.lean
 lake env lean experiments/issue624/CircuitCNFRegression.lean
 lake env lean experiments/issue624/MachineCNFRegression.lean
+lake env lean experiments/issue624/SuccessorRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py
@@ -283,9 +333,9 @@ locally under `ci-logs/`.
 
 ## Remaining construction
 
-1. Encode the configurations' finite state, tape contents, head position,
-   represented lengths/boundaries, transitions, and the accepting final row
-   into CNF. Relate each model to this semantic interface in both directions.
+1. Combine the compiled rows and moves with initial/certificate constraints,
+   active-prefix rows, and accepting termination. Relate the complete formula
+   to `WindowVerifierTableau` in both directions and prove its negative cases.
 2. Combine that construction's bounds with the certificate fragment's bound,
    counting all variable identifiers under the unary encoding.
 3. Build counters and copy/emission loops over the shared four-symbol alphabet
