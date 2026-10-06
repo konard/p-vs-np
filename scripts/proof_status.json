@@ -234,7 +234,11 @@
     {"source": "proofs/experiments/issue624/lean/CookLevin.lean", "theorem": "Issue624.CookLevin.tableauCNF_wrong_successor_rejected", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
     {"source": "proofs/experiments/issue624/lean/CookLevin.lean", "theorem": "Issue624.CookLevin.encodeCNF_length_append", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue624/lean/CookLevin.lean", "theorem": "Issue624.CookLevin.tableauCNF_encoded_size", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
-    {"source": "proofs/experiments/issue532/lean/Idea36.lean", "theorem": "Issue532.Idea36.exactRounding_gives_pEqualsNP", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]}
+    {"source": "proofs/experiments/issue532/lean/Idea36.lean", "theorem": "Issue532.Idea36.exactRounding_gives_pEqualsNP", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue532/lean/Machines.lean", "theorem": "Issue532.Machines.Reaches.trans", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue532/lean/Machines.lean", "theorem": "Issue532.Machines.scan_right", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue532/lean/Machines.lean", "theorem": "Issue532.Machines.scan_left", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue532/lean/Machines.lean", "theorem": "Issue532.Machines.reaches_append_right", "allowed_axioms": ["Quot.sound", "propext"]}
   ],
   "rocq": [
     {"source": "proofs/complexity/rocq/Complexity.v", "theorem": "Complexity.pSubsetNP", "allowed_axioms": []},
@@ -471,6 +475,10 @@
     {"source": "proofs/experiments/issue624/rocq/CookLevin.v", "theorem": "CookLevin.tableauCNF_wrong_successor_rejected", "allowed_axioms": []},
     {"source": "proofs/experiments/issue624/rocq/CookLevin.v", "theorem": "CookLevin.encodeCNF_length_append", "allowed_axioms": []},
     {"source": "proofs/experiments/issue624/rocq/CookLevin.v", "theorem": "CookLevin.tableauCNF_encoded_size", "allowed_axioms": []},
-    {"source": "proofs/experiments/issue532/rocq/Idea36.v", "theorem": "Idea36.exactRounding_gives_pEqualsNP", "allowed_axioms": []}
+    {"source": "proofs/experiments/issue532/rocq/Idea36.v", "theorem": "Idea36.exactRounding_gives_pEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Machines.v", "theorem": "Machines.reaches_trans", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Machines.v", "theorem": "Machines.scan_right", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Machines.v", "theorem": "Machines.scan_left", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Machines.v", "theorem": "Machines.reaches_append_right", "allowed_axioms": []}
   ]
 }

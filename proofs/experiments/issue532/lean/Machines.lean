@@ -110,9 +110,55 @@ theorem Reaches.run {m : Machine} {c d : Config} {t t' : Nat} {b : Bool}
   | refl => simpa using hr
   | next hs _ ih => rw [Nat.add_right_comm]; exact Run.next hs (ih hr)
 
+theorem Reaches.trans {m : Machine} {c d e : Config} {t u : Nat}
+    (h : Reaches m c t d) (hu : Reaches m d u e) : Reaches m c (t + u) e := by
+  induction h with
+  | refl => simpa using hu
+  | next hs _ ih => simpa [Nat.add_right_comm] using Reaches.next hs (ih hu)
+
 /-! ## Tapes that differ only by trailing blanks -/
 
 def blanks (k : Nat) : List Symbol := List.replicate k .blank
+
+/-- A head at the beginning of a list; an empty list scans an implicit blank. -/
+def scanConfig (q : Nat) (l : List Symbol) : List Symbol → Config
+  | [] => ⟨q, l, .blank, []⟩
+  | a :: r => ⟨q, l, a, r⟩
+
+/-- The corresponding view for a scan towards the left. -/
+def scanLeftConfig (q : Nat) (r : List Symbol) : List Symbol → Config
+  | [] => ⟨q, [], .blank, r⟩
+  | a :: l => ⟨q, l, a, r⟩
+
+/-- A looping scan preserves its symbols and charges every right move. -/
+theorem scan_right (m : Machine) (q : Nat) (xs l tail : List Symbol)
+    (h : ∀ a ∈ xs, m.instruction q a = .move q a .right) :
+    Reaches m (scanConfig q l (xs ++ tail)) xs.length
+      (scanConfig q (xs.reverse ++ l) tail) := by
+  induction xs generalizing l with
+  | nil => simpa using Reaches.refl (scanConfig q l tail)
+  | cons a xs ih =>
+    have hs : step m (scanConfig q l ((a :: xs) ++ tail)) =
+        .inr (scanConfig q (a :: l) (xs ++ tail)) := by
+      simp only [List.cons_append, scanConfig, step, h a (by simp), moveHead]
+      cases xs ++ tail <;> rfl
+    have hr := ih (a :: l) (fun s hm => h s (by simp [hm]))
+    simpa [List.reverse_cons, List.append_assoc] using Reaches.next hs hr
+
+/-- A looping scan preserves its symbols and charges every left move. -/
+theorem scan_left (m : Machine) (q : Nat) (xs r tail : List Symbol)
+    (h : ∀ a ∈ xs, m.instruction q a = .move q a .left) :
+    Reaches m (scanLeftConfig q r (xs ++ tail)) xs.length
+      (scanLeftConfig q (xs.reverse ++ r) tail) := by
+  induction xs generalizing r with
+  | nil => simpa using Reaches.refl (scanLeftConfig q r tail)
+  | cons a xs ih =>
+    have hs : step m (scanLeftConfig q r ((a :: xs) ++ tail)) =
+        .inr (scanLeftConfig q (a :: r) (xs ++ tail)) := by
+      simp only [List.cons_append, scanLeftConfig, step, h a (by simp), moveHead]
+      cases xs ++ tail <;> rfl
+    have hr := ih (a :: r) (fun s hm => h s (by simp [hm]))
+    simpa [List.reverse_cons, List.append_assoc] using Reaches.next hs hr
 
 /-- `r` and `s` agree up to trailing blanks. -/
 def BlankPad (r s : List Symbol) : Prop := ∃ u k l, r = u ++ blanks k ∧ s = u ++ blanks l
@@ -308,6 +354,25 @@ theorem run_append {second : Machine} (first : Machine) {c : Config} {t : Nat} {
       rw [hins] at hs
       cases hs
       exact congrArg Sum.inr (moveHead_shift c _ q w d)
+
+/-- Non-halting computations also embed in the shifted second table. -/
+theorem reaches_append_right {second : Machine} (first : Machine) {c d : Config} {t : Nat}
+    (h : Reaches second c t d) :
+    Reaches (appendMachine first second) (shiftConfig first.program.length c) t
+      (shiftConfig first.program.length d) := by
+  induction h with
+  | refl => exact Reaches.refl _
+  | @next c c' d t hs _ ih =>
+    apply Reaches.next _ ih
+    unfold step at hs ⊢
+    simp only [shiftConfig]
+    rw [append_instruction_right]
+    cases hins : second.instruction c.state c.head with
+    | halt b => rw [hins] at hs; cases hs
+    | move q w dir =>
+      rw [hins] at hs
+      cases hs
+      exact congrArg Sum.inr (moveHead_shift c _ q w dir)
 
 /-! ## Function-computing machines and reductions -/
 

@@ -155,9 +155,58 @@ Proof.
   - simpl. apply run_next with c'; auto.
 Qed.
 
+Theorem reaches_trans : forall m c d e t u,
+  Reaches m c t d -> Reaches m d u e -> Reaches m c (t + u) e.
+Proof.
+  intros m c d e t u h. induction h; intro hu; simpl; [exact hu|].
+  eapply reaches_next; [eassumption|]. apply IHh. exact hu.
+Qed.
+
 (** ** Tapes that differ only by trailing blanks *)
 
 Definition blanks (k : nat) : list Symbol := repeat blank k.
+
+(** Head views for symbol-preserving scans; empty lists scan implicit blanks. *)
+Definition scanConfig (q : nat) (l r : list Symbol) : Config :=
+  match r with
+  | [] => {| state := q; tapeLeft := l; tapeHead := blank; tapeRight := [] |}
+  | a :: r => {| state := q; tapeLeft := l; tapeHead := a; tapeRight := r |}
+  end.
+Definition scanLeftConfig (q : nat) (r l : list Symbol) : Config :=
+  match l with
+  | [] => {| state := q; tapeLeft := []; tapeHead := blank; tapeRight := r |}
+  | a :: l => {| state := q; tapeLeft := l; tapeHead := a; tapeRight := r |}
+  end.
+Theorem scan_right : forall m q xs l tail,
+  (forall a, In a xs -> instruction m q a = move q a right) ->
+  Reaches m (scanConfig q l (xs ++ tail)) (length xs)
+    (scanConfig q (rev xs ++ l) tail).
+Proof.
+  intros m q xs. induction xs as [|a xs IH]; intros l tail h.
+  - apply reaches_refl.
+  - assert (hs : step m (scanConfig q l ((a :: xs) ++ tail)) =
+      inr (scanConfig q (a :: l) (xs ++ tail))).
+    { cbn [app scanConfig]. unfold step. cbn [state tapeHead].
+      rewrite h by (left; reflexivity).
+      destruct (xs ++ tail); reflexivity. }
+    cbn [length rev]. rewrite <- app_assoc. cbn [app].
+    eapply reaches_next; [exact hs|]. apply IH. intros s hm. apply h. right. exact hm.
+Qed.
+Theorem scan_left : forall m q xs r tail,
+  (forall a, In a xs -> instruction m q a = move q a left) ->
+  Reaches m (scanLeftConfig q r (xs ++ tail)) (length xs)
+    (scanLeftConfig q (rev xs ++ r) tail).
+Proof.
+  intros m q xs. induction xs as [|a xs IH]; intros r tail h.
+  - apply reaches_refl.
+  - assert (hs : step m (scanLeftConfig q r ((a :: xs) ++ tail)) =
+      inr (scanLeftConfig q (a :: r) (xs ++ tail))).
+    { cbn [app scanLeftConfig]. unfold step. cbn [state tapeHead].
+      rewrite h by (left; reflexivity).
+      destruct (xs ++ tail); reflexivity. }
+    cbn [length rev]. rewrite <- app_assoc. cbn [app].
+    eapply reaches_next; [exact hs|]. apply IH. intros s hm. apply h. right. exact hm.
+Qed.
 
 (** [r] and [s] agree up to trailing blanks. *)
 Definition BlankPad (r s : list Symbol) : Prop :=
@@ -344,6 +393,24 @@ Proof.
     rewrite append_instruction_right.
     destruct (instruction second (state c) (tapeHead c)) as [b' | q w d];
       [discriminate |].
+    injection hs as <-. simpl. rewrite moveHead_shift. reflexivity.
+Qed.
+
+(** Non-halting computations embed in the shifted second table too. *)
+Theorem reaches_append_right : forall first second c d t,
+  Reaches second c t d ->
+  Reaches (appendMachine first second) (shiftConfig (length (program first)) c) t
+    (shiftConfig (length (program first)) d).
+Proof.
+  intros first second c d t h. induction h as [c|c c' d t hs _ IH].
+  - apply reaches_refl.
+  - apply reaches_next with (shiftConfig (length (program first)) c'); [|exact IH].
+    unfold step in hs |- *.
+    change (state (shiftConfig (length (program first)) c))
+      with (state c + length (program first)).
+    change (tapeHead (shiftConfig (length (program first)) c)) with (tapeHead c).
+    rewrite append_instruction_right.
+    destruct (instruction second (state c) (tapeHead c)) as [b|q w dir]; [discriminate|].
     injection hs as <-. simpl. rewrite moveHead_shift. reflexivity.
 Qed.
 

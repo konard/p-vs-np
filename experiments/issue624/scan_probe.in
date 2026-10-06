@@ -1,0 +1,16 @@
+From Stdlib Require Import List Bool Arith Lia.
+From proofs.complexity.rocq Require Import Complexity.
+Import ListNotations Complexity.
+Definition scanConfig (q : nat) (l r : list Symbol) : Config :=
+  match r with
+  | [] => {| state := q; tapeLeft := l; tapeHead := blank; tapeRight := [] |}
+  | a :: r => {| state := q; tapeLeft := l; tapeHead := a; tapeRight := r |}
+  end.
+Goal forall m q a xs l tail, instruction m q a = move q a right ->
+ step m (scanConfig q l ((a :: xs) ++ tail)) = inr (scanConfig q (a :: l) (xs ++ tail)).
+intros m q a xs l tail h.
+cbn [app scanConfig step].
+Show.
+unfold step. cbn [state tapeHead].
+rewrite h. destruct (xs ++ tail); reflexivity.
+Qed.

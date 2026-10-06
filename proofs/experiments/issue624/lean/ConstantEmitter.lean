@@ -105,12 +105,6 @@ private theorem return_instr (w : Word) (i : Nat) (hi : i < w.length) (a : Symbo
   rw [hrow]
   cases a <;> rfl
 
-private theorem reaches_trans {m : Machine} {c d e : Config} {t u : Nat}
-    (h : Reaches m c t d) (hu : Reaches m d u e) : Reaches m c (t + u) e := by
-  induction h with
-  | refl => simpa using hu
-  | next hs _ ih => simpa [Nat.add_right_comm] using Reaches.next hs (ih hu)
-
 private def cfg (q : Nat) (l : List Symbol) : List Symbol → Config
   | [] => ⟨q, l, .blank, []⟩
   | a :: r => ⟨q, l, a, r⟩
@@ -214,8 +208,8 @@ private theorem prepare (w x : Word) : ∃ n,
     have hc : step (emitter w) ⟨3, [], .separator, blanks tail.length ++ [.blank]⟩ =
         .inr ⟨4, [], .blank, blanks (tail.length + 1)⟩ := by
       simp [step, (setupRows_instr w .separator).2.2.2.2, moveHead, blanks_snoc]
-    have hh := reaches_trans he (Reaches.next hs
-      (reaches_trans hr (Reaches.next hc (Reaches.refl _))))
+    have hh := Reaches.trans he (Reaches.next hs
+      (Reaches.trans hr (Reaches.next hc (Reaches.refl _))))
     have ht : tail.length + (tail.length + 1 + (0 + 1) + 1) =
         2 * tail.length + 3 := by omega
     rw [ht] at hh
@@ -257,7 +251,7 @@ theorem emitter_computes (w : Word) :
       ⟨4 + w.length, (w.map Symbol.ofBool).reverse, .blank,
         blanks (n + 1 - w.length)⟩ w.length d := by simpa using hd
   refine ⟨2 * n + 4 + w.length + w.length, d, ?_,
-    reaches_trans (reaches_trans hp hw') hd', ?_, hl, n + 1 - w.length + 1, ?_⟩
+    Reaches.trans (Reaches.trans hp hw') hd', ?_, hl, n + 1 - w.length + 1, ?_⟩
   · simp only [emitterPolynomial, Polynomial.eval, Nat.pow_one, Nat.mul_add,
       Nat.add_mul, Nat.mul_one]
     have hm := Nat.mul_le_mul_left 2 hn
