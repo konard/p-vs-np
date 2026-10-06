@@ -57,7 +57,10 @@ a machine and a polynomial satisfying the **explicit** remaining obligation:
 It uses the existing certificate bound and run determinism. It does not prove
 that such a machine exists, and no `mem : CircuitSATInNP` argument has been
 removed. The [issue 625 investigation](../../../experiments/issue625/README.md)
-records the failing unconditional target and the remaining work.
+records the failing unconditional target and the remaining work. Both provers
+now check unconditional membership, premise removal and certification in
+mandatory CI jobs; this syntax slice cannot make the required verification
+summary pass while the full membership proof remains absent.
 
 ## Adversarial claim for issue 568
 
@@ -76,7 +79,8 @@ solver. In particular, equal counts alone imply no runtime lower bound.
 
 The public conclusions are listed in `scripts/proof_status.json`. Lean reports
 only `propext`, `Classical.choice`, and `Quot.sound` where applicable; Rocq
-reports a closed global context. No new theorem takes a problem-specific
+reports a closed global context. The syntax and residual-key conclusions take
+no problem-specific hypothesis; the assembly theorem retains its evaluator-run
 hypothesis. The remaining major premises are `CircuitSATInNP`,
 `PSubsetPPoly`, `SATHard` (for the converse clocked-SAT bridge), and the
 Williams/hierarchy premises described in Idea 41. No premise is discharged

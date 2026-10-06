@@ -14,12 +14,52 @@ After building `Idea41` in both provers:
 python3 experiments/issue625/check_membership.py
 ```
 
-This intentionally exits 1 while the theorem is absent. It compiles the exact
-paired targets in `MembershipTarget.lean.in` and `MembershipTarget.v.in`, saving
-diagnostics in the ignored `logs/` directory. Lean reports unknown identifier
-`Issue532.Idea41.circuitSATInNP`; Rocq reports that `circuitSATInNP` is not found.
-This diagnostic is separate from the passing regressions for the completed
-syntax slice. A passing CI suite for that slice does not close this target.
+This exits 1 while the deliverable is incomplete. It compiles the exact
+paired targets in `MembershipTarget.lean.in` and `MembershipTarget.v.in` against
+`InNP CircuitSAT`, saving diagnostics in the ignored `logs/` directory. Lean
+reports unknown identifier `Issue532.Idea41.circuitSATInNP`; Rocq reports that
+`Idea41.circuitSATInNP` is not found. The paired `ConsequencesTarget` probes also
+fail because all six bridges still require `CircuitSATInNP`.
+
+## Mandatory CI completion gate
+
+The 2026-10-06 review requires full completion through CI rather than accepting
+the syntax slice. Previously the workflow omitted this failing diagnostic:
+all seven jobs could pass while the exact membership target failed in both
+provers. Compilation and auditing only the listed syntax results did not
+check the issue's deliverable.
+
+`CircuitSAT Completion (Lean)` and `CircuitSAT Completion (Rocq)` now run on
+every configured event, including documentation-only PRs, independently of
+the historical jobs' changed-file filters. Each builds the imported modules,
+runs the existing machine mutations, then requires all of the following:
+
+1. `circuitSATInNP` has the unconditional type `InNP CircuitSAT`, without a
+   machine, a run theorem, or another membership proof as a parameter.
+2. The six bridges named in issue 625 compile at their intended types without
+   a `CircuitSATInNP` argument. The other Williams premises remain explicit.
+3. All seven targets have exactly one entry at the expected source in
+   `scripts/proof_status.json`.
+4. The required sources and their local import closures contain no admissions
+   or forbidden assumptions, even if entries are removed from the manifest.
+   Each target's prover-reported assumptions also satisfy its registered
+   limits and a fixed ceiling: only `propext`, `Classical.choice`, `Quot.sound`
+   in Lean, and no global assumptions in Rocq. Expanding the manifest's
+   allowlist cannot bypass that ceiling.
+
+Both completion jobs must succeed for `Verification Summary` to succeed;
+failure, cancellation, and skipping are all rejected. The completion jobs
+upload their probe sources and logs on failure as well as success. They have
+20-minute job limits. The repository's existing branch protection requires
+`Verification Summary`; this change does not modify repository settings.
+
+`python3 -m unittest experiments.issue625.test_completion_gate -v` reproduces
+and tests the workflow and checker defect. Before the fix it fails on the
+absent mandatory jobs and missing summary dependencies. After the fix it
+checks failure propagation, registration, transitive admissions, expanded
+allowlists, and global assumptions. These orchestration regressions pass;
+the actual theorem gate fails until the proof is supplied. No expected-failure
+wrapper converts missing membership into a successful CI result.
 
 ## Evidence and completed proofs
 
@@ -123,5 +163,7 @@ python3 scripts/check_proof_status.py --rocq
 ```
 
 `check_repository.sh` retains the Python and prover regression commands from
-the current CI workflow. The Agda job uses the workflow's pinned container.
-The unconditional membership diagnostic above remains a separate failing check.
+the current CI workflow and ends with the mandatory paired completion gate.
+It now exits 1 at that gate on the incomplete tree. The Agda job uses the
+workflow's pinned container. A passing build or syntax mutation suite alone
+does not establish or certify unconditional circuit membership.

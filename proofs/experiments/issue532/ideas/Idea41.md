@@ -321,6 +321,10 @@ length and gate evaluation remain to be implemented.
 `circuitSATInNP_of_verifier_run` assembles the NP record from the full
 machine's polynomial run theorem as an explicit hypothesis. It does not
 discharge membership. The original `CircuitSATInNP` arguments are retained.
+Both provers now run a mandatory CI completion gate that requires unconditional
+membership, removal of those premises from the six issue 625 bridges, and
+certification of the seven resulting targets. The required verification
+summary fails while any of these obligations remains unresolved.
 See [the remaining obligations](../../../../experiments/issue625/README.md).
 
 From the repository root:

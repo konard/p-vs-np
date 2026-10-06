@@ -128,7 +128,9 @@ unchecked by that machine. `circuitSATInNP_of_verifier_run` packages membership
 once the full evaluator's bounded run theorem is supplied as an explicit
 hypothesis. The unconditional target still fails in
 `python3 experiments/issue625/check_membership.py`, so the `mem` arguments
-remain necessary. See [the investigation](../../../experiments/issue625/README.md).
+remain necessary. Both provers now run this completion gate on every CI event;
+the required verification summary cannot pass on the syntax slice alone.
+See [the investigation](../../../experiments/issue625/README.md).
 
 `Issue532.SATVerifier` is the model for such a proof. After that, the next
 known theorem in Williams' chain is `LazyDiagonalSimulation` (the universal

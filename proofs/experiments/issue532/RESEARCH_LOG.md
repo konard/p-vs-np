@@ -258,6 +258,18 @@ is Idea 34, which needs `lake build proofs.complexity.lean.Complexity` first.
 
 ## Verification log
 
+Issue 625 completion enforcement (2026-10-06). Review identified that the
+workflow could pass while `circuitSATInNP` was absent because only the syntax
+slice and conditional assembly were checked. Mandatory Lean and Rocq jobs now
+compile unconditional membership and all six bridges without membership
+parameters, require manifest registration, and audit the required import
+closures and theorem assumptions with fixed limits. The required verification
+summary rejects either job failing or being skipped. Probe sources and logs
+are retained as CI artifacts. The gate currently fails in both provers for
+missing membership and retained premises. This is CI enforcement, not a new
+known theorem mechanized: the evaluating machine and polynomial `Run` proof
+remain missing, and issue 625 remains unresolved.
+
 Issue 625 input-validation slice (2026-10-05). A six-state circuit syntax
 machine now recognizes exactly `encCircuit` on the paired input model, with
 an exact `|x| + 1` instruction count, including the halt. Lean and Rocq prove
