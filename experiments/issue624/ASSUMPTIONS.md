@@ -211,3 +211,27 @@ rocq VerifierTableau.overlong_not_representable: (none)
 rocq VerifierTableau.rejecting_verifier_no_tableau: (none)
 rocq VerifierTableau.wrong_successor_not_model: (none)
 ```
+
+## Finite machine instruction compiler (2026-10-06)
+
+The paired `MachineCNFRegression` files query the instruction compiler
+against the original shared finite table and `step`. The 14 new manifest
+entries per prover also audit the generic bounded lookup compiler and
+negative case. These do not certify the outstanding Cook–Levin endpoint.
+
+Lean 4.34.1 direct reports:
+
+```text
+'Issue624.MachineCNF.dispatchCNF_models' depends on axioms: [propext, Quot.sound]
+'Issue624.MachineCNF.dispatchAssignment_models' depends on axioms: [propext, Quot.sound]
+'Issue624.MachineCNF.instructionCode_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue624.MachineCNF.dispatchCNF_encoded_size' depends on axioms: [propext, Quot.sound]
+'Issue624.MachineCNF.dispatchCNF_instruction' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue624.MachineCNF.dispatchCNF_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue624.MachineCNF.dispatchCNF_wrong_instruction' depends on axioms: [propext, Quot.sound]
+'Issue624.MachineCNF.dispatchCNF_polynomial_size' depends on axioms: [propext, Quot.sound]
+```
+
+Rocq 9.2 reports `Closed under the global context` for each of the eight
+corresponding direct queries. Both full manifest audits enforce the allowed
+assumptions independently. No admissions or new axioms are introduced.

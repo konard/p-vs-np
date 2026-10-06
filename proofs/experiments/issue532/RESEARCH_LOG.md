@@ -68,7 +68,7 @@ fixed word, and restores its head, with a checked `Computes` contract and
 polynomial charged-step bound. Its write and return blocks have reusable
 instruction-table contracts.
 
-The latest continuation adds `CircuitCNF`, a three-clause-per-NAND compiler
+An earlier continuation adds `CircuitCNF`, a three-clause-per-NAND compiler
 using the existing circuit wire indices and evaluator. It proves each model
 agrees with the computed wires and that the output-asserting formula is
 satisfiable exactly when the circuit is. Zero wires produce an empty clause.
@@ -79,8 +79,21 @@ encoding lemmas replace duplicate proofs; previous qualified public names
 remain available through wrappers. Paired regressions reject incorrect gate
 outputs and an unsatisfiable contradiction circuit.
 
-This is **known theorem mechanized** for the prerequisites. The transition
-and acceptance constraints have not yet been encoded into CNF, and no
+The latest continuation adds paired `MachineCNF` modules. Their three one-hot
+blocks select the state, scanned symbol, and instruction from the existing
+finite machine table. The model theorem recovers exactly `Machine.instruction`,
+including default rejection for missing columns. A constructive assignment
+represents every bounded state and symbol at any offset; injective instruction
+codes preserve the next state, written symbol, and movement direction. The
+compiler agrees with the existing charged `step`, and its actual unary encoded
+length has an explicit polynomial bound for polynomially bounded offsets.
+Paired regressions select an incorrect instruction while satisfying all three
+one-hot fragments and verify that the table clauses reject it. Fourteen
+conclusions are registered in each prover. This still requires connections to
+the tableau's head/tape cells and all successor-row updates.
+
+This is **known theorem mechanized** for the prerequisites. The complete
+transition and acceptance constraints have not yet been encoded into CNF, and no
 input-dependent polynomial-time single-tape reduction machine has been proved. `SATHard`
 remains an explicit premise of the Idea bridges; #624 remains open. See the
 [paired assumption reports](../../../experiments/issue624/ASSUMPTIONS.md).

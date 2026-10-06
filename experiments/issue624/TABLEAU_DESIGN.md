@@ -8,6 +8,12 @@ For input length `n`, use `B = certBound.eval n`, `T = maxClock np n`,
 `FixedWindow.windowVerifierTableau_iff_language` provides a constant-width
 semantic trace, with the initial head `T` cells from the left edge, and
 `accepting_trace_state_lt` bounds every active state by `Q`.
+`MachineCNF.dispatchCNF_models` now compiles the shared instruction table's
+state/scanned-symbol lookup, with an injective instruction code and polynomial
+unary encoding bound. Wire its scanned-symbol group to the tape cell chosen
+by the row's head, guard it with row activity, and connect its instruction
+output to the next row's state/head/tape constraints. The dispatch compiler
+does not supply any of those connections.
 `acceptingRun_timeLimit` recovers the actual certificate-dependent clock from
 any accepting trace; the envelope cannot introduce a slower accepting run.
 

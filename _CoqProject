@@ -15,6 +15,7 @@ experiments/issue624/WindowRegression.v
 experiments/issue624/CNFRegression.v
 experiments/issue624/EmitterRegression.v
 experiments/issue624/CircuitCNFRegression.v
+experiments/issue624/MachineCNFRegression.v
 proofs/attempts/alan-feinstein-2005-pneqnp/rocq/FeinsteinAttempt.v
 proofs/attempts/alan-feinstein-2011-pneqnp/rocq/FeinsteinsProof.v
 proofs/attempts/amar-mukherjee-2011-peqnp/proof/rocq/MukherjeeProof.v
@@ -251,6 +252,7 @@ proofs/experiments/issue624/rocq/CertificateCNF.v
 proofs/experiments/issue624/rocq/VerifierTableau.v
 proofs/experiments/issue624/rocq/FixedWindow.v
 proofs/experiments/issue624/rocq/LocalCNF.v
+proofs/experiments/issue624/rocq/MachineCNF.v
 proofs/experiments/issue624/rocq/CircuitCNF.v
 proofs/experiments/issue624/rocq/ConstantEmitter.v
 proofs/experiments/issue609/rocq/KnownBarriers.v

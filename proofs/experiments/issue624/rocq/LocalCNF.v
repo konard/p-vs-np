@@ -195,9 +195,16 @@ Proof.
       * apply hw. exact hc.
 Qed.
 
-Theorem oneHot_encoded_size : forall base size,
-  length (encodeCNF (oneHot base size)) <=
-    2 * (size * size + 1) * (1 + (size + 2) * (base + size + 1)).
+Theorem oneHot_length : forall base size,
+  length (oneHot base size) <= size * size + 1.
+Proof.
+  intros base size. pose proof (atMostOne_length base size).
+  unfold oneHot. cbn [app length]. lia.
+Qed.
+
+Theorem oneHot_bounds : forall base size,
+  VarsBelow (base + size) (oneHot base size) /\
+    forall c, In c (oneHot base size) -> length c <= size + 2.
 Proof.
   intros base size. destruct (atMostOne_bounds base size) as [hv hw].
   assert (hvars : VarsBelow (base + size) (oneHot base size)).
@@ -209,12 +216,17 @@ Proof.
   { intros c hc. unfold oneHot in hc. simpl in hc. destruct hc as [he|hc].
     - subst c. rewrite length_map, length_seq. lia.
     - specialize (hw c hc). lia. }
-  pose proof (cnf_encoded_size _ _ _ hvars hwidth) as h.
-  pose proof (atMostOne_length base size) as hl.
-  unfold oneHot in h. cbn [app length] in h.
-  remember (length (atMostOne base size)) as k in h, hl. clear Heqk.
-  eapply Nat.le_trans; [exact h|].
-  apply Nat.mul_le_mono_r. nia.
+  split; assumption.
+Qed.
+
+Theorem oneHot_encoded_size : forall base size,
+  length (encodeCNF (oneHot base size)) <=
+    2 * (size * size + 1) * (1 + (size + 2) * (base + size + 1)).
+Proof.
+  intros base size. destruct (oneHot_bounds base size) as [hv hw].
+  pose proof (cnf_encoded_size _ _ _ hv hw) as h.
+  pose proof (oneHot_length base size) as hl.
+  eapply Nat.le_trans; [exact h|]. apply Nat.mul_le_mono_r. lia.
 Qed.
 
 End LocalCNF.

@@ -11,7 +11,8 @@ established; missing proofs must not be described as a formal obstruction.
 3. [x] Trace the shared machine, `Run`, `Reaches`, `Computes`, variable-length
    certificate fragment, finite windows, local CNF, and existing circuit model.
 4. [ ] Build missing formula components with paired regressions first. The
-   shared NAND-to-CNF compiler is proved, but tableau transitions remain open. Reuse
+   shared NAND-to-CNF and instruction-selection compilers are proved, but
+   complete tableau transitions remain open. Reuse
    shared circuit/encoding/trace definitions; avoid certificate enumeration.
 5. [ ] Prove both full tableau model directions and all negative examples.
 6. [ ] Prove the full output-size bound, counting unary variable identifiers.
@@ -49,3 +50,14 @@ are preserved under `ci-logs/`.
 The full tableau, full size bound, input-dependent reduction machine,
 `satHard`, and `cookLevin` remain unproved. No formal impossibility has
 been established, and this checkpoint does not supply one.
+
+## Instruction selection checkpoint
+
+The next continuation adds paired `MachineCNF` modules, reusing `LocalCNF`
+implications and one-hot clauses. They compile the actual shared machine's
+state/symbol lookup, prove model extraction and constructive representation,
+reject an incorrect output instruction, and bound the actual unary encoded
+length. Fourteen further conclusions per prover bring the #624 registration
+count to 62 and the whole manifest to 140 per prover. Tape/head wiring and
+successor configurations remain open. See [CI_CONTINUATION.md](CI_CONTINUATION.md)
+for fresh failure diagnostics and this checkpoint's validation record.

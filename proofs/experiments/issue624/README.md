@@ -7,6 +7,9 @@ constructed. This directory certifies variable-length certificates, fixed-width
 verifier traces, local CNF combinators, a NAND-circuit CNF compiler, and a
 finite-table output primitive.
 
+`MachineCNF` also compiles instruction dispatch from the existing machine
+table; the tape movement and complete accepting formula remain uncompiled.
+
 Classification: **known theorem mechanized**, for these prerequisites only.
 Nothing here establishes an answer to P versus NP.
 
@@ -170,6 +173,48 @@ This compiler does not yet supply a verifier-to-circuit simulation or the
 input-dependent finite reduction machine. Its correctness and size theorem
 therefore do not establish `SATHard`.
 
+## Shared machine instruction CNF
+
+`MachineCNF` reuses `LocalCNF.oneHot` and `implies` to compile every bounded
+state/scanned-symbol pair in the shared `Machine.instruction` table, including
+ragged rows whose missing columns reject. The three disjoint variable groups
+select a state, one of the four alphabet symbols, and an instruction code.
+`instructionCode_injective` distinguishes both halting answers and every
+move's next state, written symbol, and direction.
+
+`dispatchCNF_models` proves the assignment-by-assignment correspondence.
+`dispatchAssignment_models` constructs a model for every valid state and
+every symbol at any variable offset. `dispatchCNF_wrong_instruction` proves
+that changing the output to a different instruction fails even when all
+three exactly-one constraints hold. An empty program has no dispatch model.
+`dispatchCNF_instruction` recovers the actual instruction, and
+`dispatchCNF_step` connects it to the original shared `step` and `moveHead` on
+the complete configuration; neither introduces new machine semantics.
+
+Let `Q = program.length` and `K = instructionBound`, one more than the largest
+code in the finite dispatch table. The CNF has at most `Q² + 4Q + K² + 19`
+clauses, its variable identifiers are below `base + Q + K + 4`, and its
+clause width is at most `Q + K + 7`. Its actual unary encoded bit length is
+bounded by
+
+```text
+2 * (Q² + 4Q + K² + 19) * (1 + (Q + K + 7) * (base + Q + K + 5))
+```
+
+`dispatchCNF_polynomial_size` provides the explicit polynomial when the
+variable offset is polynomially bounded. `Q` and `K` are constants of the
+fixed verifier, including any large next-state identifiers in its table.
+The reusable bounded lookup compiler's contracts and size bounds are also
+registered in the assumption manifest, with the same names in both provers.
+`LocalCNF` exports its existing one-hot clause count and variable/width
+contracts so this compiler uses those proofs directly.
+
+This formula selects an instruction. To form the full accepting tableau it
+still needs scanned-symbol/head/tape wiring, charged successor constraints,
+initial/certificate constraints, row activity, and final acceptance. No
+input-dependent reduction machine or hardness theorem follows from dispatch
+alone.
+
 ## Charged output primitive
 
 `ConstantEmitter.emitter w` is an explicit finite machine table over the
@@ -223,6 +268,7 @@ lake env lean experiments/issue624/WindowRegression.lean
 lake env lean experiments/issue624/CNFRegression.lean
 lake env lean experiments/issue624/EmitterRegression.lean
 lake env lean experiments/issue624/CircuitCNFRegression.lean
+lake env lean experiments/issue624/MachineCNFRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py

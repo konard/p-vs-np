@@ -189,11 +189,16 @@ private theorem atMostOne_bounds (base size : Nat) :
       · simp
       · exact h.2 c hc
 
-theorem oneHot_encoded_size (base size : Nat) :
-    (encodeCNF (oneHot base size)).length ≤
-      2 * (size * size + 1) * (1 + (size + 2) * (base + size + 1)) := by
-  have hv : VarsBelow (base + size) (oneHot base size) := by
-    intro c hc l hl
+theorem oneHot_length (base size : Nat) :
+    (oneHot base size).length ≤ size * size + 1 := by
+  have h := atMostOne_length base size
+  simpa [oneHot] using Nat.add_le_add_left h 1
+
+theorem oneHot_bounds (base size : Nat) :
+    VarsBelow (base + size) (oneHot base size) ∧
+      ∀ c ∈ oneHot base size, c.length ≤ size + 2 := by
+  constructor
+  · intro c hc l hl
     simp only [oneHot, List.mem_append, List.mem_singleton] at hc
     rcases hc with rfl | hc
     · simp only [List.mem_map, List.mem_range] at hl
@@ -201,16 +206,17 @@ theorem oneHot_encoded_size (base size : Nat) :
       simp only
       omega
     · exact (atMostOne_bounds base size).1 c hc l hl
-  have hw : ∀ c ∈ oneHot base size, c.length ≤ size + 2 := by
-    intro c hc
+  · intro c hc
     simp only [oneHot, List.mem_append, List.mem_singleton] at hc
     rcases hc with rfl | hc
     · simp
     · have := (atMostOne_bounds base size).2 c hc; omega
-  have hlen : (oneHot base size).length ≤ size * size + 1 := by
-    have h := atMostOne_length base size
-    simpa [oneHot] using Nat.add_le_add_left h 1
-  exact Nat.le_trans (cnf_encoded_size _ _ _ hv hw)
-    (Nat.mul_le_mul_right _ (Nat.mul_le_mul_left 2 hlen))
+
+theorem oneHot_encoded_size (base size : Nat) :
+    (encodeCNF (oneHot base size)).length ≤
+      2 * (size * size + 1) * (1 + (size + 2) * (base + size + 1)) := by
+  have hb := oneHot_bounds base size
+  exact Nat.le_trans (cnf_encoded_size _ _ _ hb.1 hb.2)
+    (Nat.mul_le_mul_right _ (Nat.mul_le_mul_left 2 (oneHot_length base size)))
 
 end Issue624.LocalCNF
