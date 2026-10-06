@@ -28,6 +28,53 @@ python3 scripts/check_proof_status.py --rocq
 The workflow runs historical compilation and certified audits as separate
 jobs. Passing historical compilation does not change an attempt's status.
 
+## check_issue624_completion.py
+
+PR #630 requires the complete Cook–Levin construction, rather than only the
+entries currently registered in `proof_status.json`. This additional gate
+requires 29 paired public contracts: the complete tableau's model extraction
+and representation, satisfiability equivalence, polynomial bit length under
+the shared unary `encodeCNF`, a charged `Computes` proof for one reduction
+machine fixed for all inputs, `satHard`, `cookLevin`, three negative results,
+and the specified machine-model bridges without SAT-hardness premises.
+
+The gate expects the construction to export `Issue624.CookLevin` in Lean and
+`CookLevin` in Rocq. Its actual defining files are selected by the certified manifest; the
+gate does not require all the implementation in one file. The exact expected
+types are maintained as paired contracts in the script. Representation and
+extraction use the existing `WindowVerifierTableau`, which reuses #568's
+`LocalTrace` and the certificate-dependent clock recovery proof.
+Shared model references are fully qualified so exported names cannot shadow
+the predicates being checked. Construction contracts quantify explicitly over
+the entire shared `ClassNP` and `Word` types.
+
+```bash
+python3 -m unittest experiments.issue624.test_completion experiments.issue624.test_completion_workflow -v
+python3 scripts/check_issue624_completion.py          # source/manifest preflight
+python3 scripts/check_issue624_completion.py --lean   # after building Lean
+python3 scripts/check_issue624_completion.py --rocq   # after building Rocq
+bash experiments/issue624/check.sh completion         # full local completion gate
+```
+
+The preflight reports missing registrations and remaining hardness arguments
+with source line numbers. Passing the preflight alone does not certify
+completion. Both kernels must accept each **unapplied** declaration at its
+required type; this rejects explicit, implicit, and aliased extra premises.
+The shared assumption checker audits their import closures and transitive
+assumptions. The completion allowlist cannot be expanded beyond `propext`,
+`Classical.choice`, `Quot.sound` (Lean), or `Classical_Prop.classic` (Rocq).
+Idea 36's separate `VCHard` and vertex-cover obligations are preserved; it
+has no `SATHard` or `CookLevin` argument to remove.
+
+`Issue 624 Completion` runs independently of change detection on every PR
+#630 update (including documentation-only changes) and manual runs of its
+prepared branch. It fails while any endpoint contract is absent. It preserves
+diagnostic logs as a workflow artifact. `Verification Summary` requires this
+job to succeed on that PR, rejecting skipped and cancelled states as well as
+failures. Unrelated PRs retain the existing verification selection. On GitHub,
+`main` requires the GitHub Actions `Verification Summary` check, with strict
+up-to-date checking and administrator enforcement enabled.
+
 ## list_issues.py
 
 `list_issues.py` prints the repository's GitHub issues, excluding pull requests.

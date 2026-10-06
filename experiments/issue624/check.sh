@@ -6,6 +6,7 @@ cd "$(dirname "$0")/../.."
 check_python() {
   python3 scripts/check_gubin_audit.py
   python3 -m unittest scripts.test_check_attempt_structure scripts.test_check_proof_status scripts.test_list_issues -v
+  python3 -m unittest experiments.issue624.test_completion experiments.issue624.test_completion_workflow -v
   python3 scripts/check_proof_status.py
   python3 experiments/issue578/check_paper_lp.py
   for issue in issue577 issue580 issue584 issue532 issue587 sat_solvers issue588; do
@@ -45,6 +46,8 @@ check_lean() {
   bash experiments/issue573/check.sh --lean
   bash experiments/issue587/check.sh --lean
   python3 scripts/check_proof_status.py --lean
+  python3 experiments/issue624/check_completion_kernels.py --lean
+  python3 experiments/issue624/check_completion_types.py --lean
 }
 
 check_rocq() {
@@ -55,6 +58,8 @@ check_rocq() {
   bash experiments/issue573/check.sh --rocq
   bash experiments/issue587/check.sh --rocq
   python3 scripts/check_proof_status.py --rocq
+  python3 experiments/issue624/check_completion_kernels.py --rocq
+  python3 experiments/issue624/check_completion_types.py --rocq
 }
 
 check_agda() {
@@ -74,6 +79,13 @@ case "${1:-all}" in
   lean) check_lean ;;
   rocq) check_rocq ;;
   agda) check_agda ;;
+  completion)
+    python3 scripts/check_issue624_completion.py
+    check_lean
+    check_rocq
+    python3 scripts/check_issue624_completion.py --lean
+    python3 scripts/check_issue624_completion.py --rocq
+    ;;
   all) check_python; check_lean; check_rocq; check_agda ;;
-  *) printf 'Usage: %s [python|lean|rocq|agda|all]\n' "$0" >&2; exit 2 ;;
+  *) printf 'Usage: %s [python|lean|rocq|agda|all|completion]\n' "$0" >&2; exit 2 ;;
 esac

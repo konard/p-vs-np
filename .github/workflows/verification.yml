@@ -30,6 +30,9 @@ jobs:
     - name: Test proof status checker
       run: python3 -m unittest scripts.test_check_proof_status -v
 
+    - name: Test issue 624 completion gate
+      run: python3 -m unittest experiments.issue624.test_completion experiments.issue624.test_completion_workflow -v
+
     - name: Test issue listing script
       run: python3 -m unittest scripts.test_list_issues -v
 
@@ -106,7 +109,7 @@ jobs:
               rocq=true
               agda=true
             fi
-            if grep -Eq '^scripts/(check_proof_status\.py|proof_status\.json)$' <<< "$changed_files"; then
+            if grep -Eq '^scripts/(check_proof_status\.py|check_issue624_completion\.py|proof_status\.json)$' <<< "$changed_files"; then
               lean=true
               rocq=true
             fi
@@ -347,11 +350,72 @@ jobs:
             agda -i . experiments/issue572/Independent.agda
           '
 
+  issue624-completion:
+    name: Issue 624 Completion
+    runs-on: ubuntu-latest
+    # This job deliberately has no dependency on change detection. Even a
+    # documentation-only update must check the full endpoint on this PR.
+    if: >-
+      (github.event_name == 'pull_request' &&
+       (github.event.pull_request.number == 630 || github.head_ref == 'issue-624-0b9b9b6c5d75')) ||
+      (github.event_name == 'workflow_dispatch' && github.ref_name == 'issue-624-0b9b9b6c5d75')
+    timeout-minutes: 60
+    steps:
+    - uses: actions/checkout@v4
+    - name: Require complete issue 624 sources and manifest entries
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p ci-logs
+        python3 scripts/check_issue624_completion.py 2>&1 | tee ci-logs/issue624-completion-preflight.log
+    - name: Install Lean
+      run: |
+        curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+        echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+    - name: Check complete Lean contracts and assumptions
+      shell: bash
+      run: |
+        set -euo pipefail
+        lake build
+        python3 experiments/issue624/check_completion_kernels.py --lean
+        python3 experiments/issue624/check_completion_types.py --lean
+        python3 scripts/check_issue624_completion.py --lean 2>&1 | tee ci-logs/issue624-completion-lean.log
+        python3 scripts/check_proof_status.py --lean
+    - name: Fix permissions for docker
+      run: sudo chown -R 1000:1000 .
+    - name: Check complete Rocq contracts and assumptions
+      uses: coq-community/docker-coq-action@v1
+      with:
+        custom_image: 'rocq/rocq-prover:9.0'
+        custom_script: |
+          set -euo pipefail
+          rocq makefile -f _CoqProject -o Makefile.coq
+          make -f Makefile.coq
+          python3 experiments/issue624/check_completion_kernels.py --rocq
+          python3 experiments/issue624/check_completion_types.py --rocq
+          python3 scripts/check_issue624_completion.py --rocq 2>&1 | tee ci-logs/issue624-completion-rocq.log
+          python3 scripts/check_proof_status.py --rocq
+    - name: Revert permissions
+      if: always()
+      run: sudo chown -R 1001:116 .
+    - name: Preserve completion diagnostics
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: issue624-completion-diagnostics
+        path: ci-logs/issue624-completion-*.log
+        if-no-files-found: error
+
   summary:
     name: Verification Summary
     runs-on: ubuntu-latest
-    needs: [detect-changes, lean-verification, rocq-verification, certified-lean, certified-rocq, agda-verification]
+    needs: [detect-changes, lean-verification, rocq-verification, certified-lean, certified-rocq, agda-verification, issue624-completion]
     if: always()
+    env:
+      ISSUE624_REQUIRED: >-
+        ${{ (github.event_name == 'pull_request' &&
+             (github.event.pull_request.number == 630 || github.head_ref == 'issue-624-0b9b9b6c5d75')) ||
+            (github.event_name == 'workflow_dispatch' && github.ref_name == 'issue-624-0b9b9b6c5d75') }}
 
     steps:
     - name: Summary
@@ -367,6 +431,7 @@ jobs:
         CERT_LEAN_RESULT="${{ needs.certified-lean.result }}"
         CERT_ROCQ_RESULT="${{ needs.certified-rocq.result }}"
         AGDA_RESULT="${{ needs.agda-verification.result }}"
+        ISSUE624_RESULT="${{ needs.issue624-completion.result }}"
 
         echo "| Change detection | $DETECT_RESULT |" >> $GITHUB_STEP_SUMMARY
 
@@ -385,6 +450,7 @@ jobs:
 
         echo "| Certified Lean result audit | $CERT_LEAN_RESULT |" >> $GITHUB_STEP_SUMMARY
         echo "| Certified Rocq result audit | $CERT_ROCQ_RESULT |" >> $GITHUB_STEP_SUMMARY
+        echo "| Issue 624 completion | $ISSUE624_RESULT |" >> $GITHUB_STEP_SUMMARY
 
         if [ "$AGDA_RESULT" = "skipped" ]; then
           echo "| Agda | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
@@ -411,6 +477,12 @@ jobs:
         CERT_LEAN_RESULT="${{ needs.certified-lean.result }}"
         CERT_ROCQ_RESULT="${{ needs.certified-rocq.result }}"
         AGDA_RESULT="${{ needs.agda-verification.result }}"
+        ISSUE624_RESULT="${{ needs.issue624-completion.result }}"
+
+        if [[ "${ISSUE624_REQUIRED:-false}" = "true" && "$ISSUE624_RESULT" != "success" ]]; then
+          echo "::error::Issue 624 completion did not pass ($ISSUE624_RESULT)"
+          exit 1
+        fi
 
         if [ "$DETECT_RESULT" != "success" ]; then
           echo "::error::Change detection failed ($DETECT_RESULT)"

@@ -43,7 +43,24 @@ Cook–Levin construction. #624 must remain open.
 
 `check.sh` reproduces the local Python, Lean, Rocq, and pinned-container Agda
 workflow checks. Select an individual suite with `python`, `lean`, `rocq`, or
-`agda`. Save large logs under `ci-logs/`.
+`agda`. Save large logs under `ci-logs/`. Passing these prerequisite checks
+does not establish completion. `bash experiments/issue624/check.sh completion`
+additionally requires all full-deliverable contracts in both kernels. It
+currently fails on missing endpoints and the remaining bridge premises.
+
+The completion checker and workflow regressions reproduce the previous gap:
+the certified-result audit could accept the registered prerequisites while
+`satHard` was absent. They also test deleted registrations, duplicate entries,
+admissions in imported files, expanded assumption policies, type mismatches,
+and failed/cancelled/skipped completion jobs. The real-kernel experiment
+`check_completion_kernels.py --lean` / `--rocq` verifies that explicit,
+implicit, and aliased premises, a restricted witness type, and an input-dependent
+machine constructor cannot pass unconditional contract checks. Its temporary probes contain no
+admissions or global axioms.
+
+[The completion plan](COMPLETION_PLAN.md) tracks the full requirement and
+the required CI result. [The checker documentation](../../scripts/README.md#check_issue624_completionpy)
+describes the paired contract interface and required merge check.
 
 [TABLEAU_DESIGN.md](TABLEAU_DESIGN.md) records the proposed variable layout,
 transition guards, size obligations, and the input-dependent emitter's

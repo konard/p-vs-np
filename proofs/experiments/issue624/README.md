@@ -10,6 +10,13 @@ finite-table output primitive.
 Classification: **known theorem mechanized**, for these prerequisites only.
 Nothing here establishes an answer to P versus NP.
 
+PR #630 now has an independent completion gate requiring all full-deliverable
+contracts in both kernels, including the finite reduction's charged `Computes`
+proof and unconditional public bridge signatures. Its missing-endpoint failure
+propagates to the required `Verification Summary` merge check; green checks
+for the prerequisites below cannot establish completion. See the
+[completion checker](../../../scripts/README.md#check_issue624_completionpy).
+
 ## Certificate CNF
 
 `CertificateCNF.lean` and `CertificateCNF.v` have matching public theorem names.

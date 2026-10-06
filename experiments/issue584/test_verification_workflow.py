@@ -122,14 +122,14 @@ class VerificationWorkflowTests(unittest.TestCase):
         self.assertEqual(values, {"lean": "true", "rocq": "false", "agda": "false"})
 
     def test_certified_checker_change_runs_both_provers(self):
-        for filename in ("scripts/check_proof_status.py", "scripts/proof_status.json"):
+        for filename in ("scripts/check_proof_status.py", "scripts/check_issue624_completion.py", "scripts/proof_status.json"):
             with self.subTest(filename=filename):
                 result, values = self.run_detector("pull_request", f"{filename}\n")
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(values, {"lean": "true", "rocq": "true", "agda": "false"})
 
     def test_failed_certified_audit_fails_summary(self):
-        script = step_script("Check results")
+        script = step_script("Check results").replace("${{ needs.issue624-completion.result }}", "success")
         for job in ("detect-changes", "lean-verification", "rocq-verification", "agda-verification", "certified-lean"):
             script = script.replace(f"${{{{ needs.{job}.result }}}}", "success")
         script = script.replace("${{ needs.certified-rocq.result }}", "failure")
@@ -145,7 +145,7 @@ class VerificationWorkflowTests(unittest.TestCase):
         self.assertEqual(values, {})
 
     def test_failed_detector_fails_summary(self):
-        script = step_script("Check results")
+        script = step_script("Check results").replace("${{ needs.issue624-completion.result }}", "success")
         for job in ("lean-verification", "rocq-verification", "certified-lean", "certified-rocq", "agda-verification"):
             script = script.replace(f"${{{{ needs.{job}.result }}}}", "skipped")
         script = script.replace("${{ needs.detect-changes.result }}", "failure")

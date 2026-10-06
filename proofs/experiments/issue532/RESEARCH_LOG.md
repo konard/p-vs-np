@@ -41,6 +41,13 @@ verdicts:
 
 ## Cook–Levin prerequisites (#624, October 2026)
 
+PR #630 now enforces the entire #624 deliverable through an independent
+`Issue 624 Completion` job. Its paired contract checks require the full
+tableau, unary encoded-size bound, charged reduction machine, hardness and
+completeness proofs, negative cases, and unconditional SAT bridge signatures.
+The required `Verification Summary` merge check fails while those endpoints
+are absent. This changes completion enforcement; it adds no hardness proof.
+
 The paired [certificate fragment](../issue624/README.md) now represents every
 polynomially bounded, variable-length certificate with presence/value cells,
 suffix-closed blanks, and a forced absent sentinel. Its model-extraction and
