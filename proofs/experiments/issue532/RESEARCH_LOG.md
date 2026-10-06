@@ -258,6 +258,19 @@ is Idea 34, which needs `lake build proofs.complexity.lean.Complexity` first.
 
 ## Verification log
 
+Issue 625 candidate phase proofs (2026-10-06). The paired generated probes now
+prove four universal results about the exact 83-state table: malformed-input
+rejection in `|x| + 1` steps, tape-preserving entry into certificate matching
+in `2 * |x| + 2` steps, initial wire marking and return to the active gate in
+`2 * |suffix| + 4` steps, and the final output pass in `|wires| + 3` steps.
+Lean uses only `propext` and `Quot.sound`; Rocq reports closed global contexts.
+The runner scans the generated sources and their imports, then checks every
+assumption report; regressions reject mixed or missing reports. Certificate
+matching, arbitrary cursor advancement, operand restoration, NAND appending,
+and the aggregate polynomial run bound remain unproved. These phase results
+do not supply `circuitSATInNP`, so the completion gate still fails. See
+[`experiments/issue625`](../../../experiments/issue625/README.md).
+
 Issue 625 direct evaluator experiment (2026-10-06). An 83-state candidate
 table now preserves certificates during length checking, performs unary
 wire lookups, and appends NAND results. The Python suite compares 3,174

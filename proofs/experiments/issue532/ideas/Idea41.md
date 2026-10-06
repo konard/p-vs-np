@@ -68,8 +68,10 @@ programs, `WF`, `output`, `InPPoly`).
   hypothesis.
   The [direct evaluator experiment](../../../../experiments/issue625/README.md)
   supplies an 83-state candidate with fourteen concrete runs checked in Lean
-  and Rocq. Its universal evaluator and polynomial runtime proofs remain open,
-  so it does not discharge this hypothesis or satisfy the completion gate.
+  and Rocq. Four paired universal phase proofs cover syntax rejection, entry
+  into certificate matching, initial wire marking, and the final output pass.
+  Its whole evaluator and polynomial runtime proofs remain open, so it does
+  not discharge this hypothesis or satisfy the completion gate.
 * **Exhaustive search.** `bruteCircuitSAT n C` evaluates `C` on the `2^n`
   vectors of `allAssignments n`. It evaluates `2^n · |C|` gates
   (`bruteForceGateEvaluations_eq`).

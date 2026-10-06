@@ -118,9 +118,9 @@ conditional, and an assumption audit does not discharge its explicit parameter.
   workspace or prove an invariant for it.
 
 The initial investigation did not obtain an evaluator table. The bounded
-candidate experiment below now supplies a prospective table, but its universal
-invariants and polynomial `Run` theorem remain unproved. Concrete runs do not
-discharge these obligations.
+candidate experiment below now supplies a prospective table, but its whole
+evaluator correctness and polynomial `Run` theorem remain unproved. Concrete
+runs do not discharge these obligations.
 
 ## Direct evaluator candidate, 2026-10-06
 
@@ -149,9 +149,42 @@ The intended invariants still need general proofs:
    succeeds exactly when its index is below the current wire-list length.
 3. Restoring a lookup preserves the original circuit cells and every wire
    value. Appending a gate produces the same list as `Circuits.wires`.
-4. Certificate matching and all malformed-input exits terminate. The number
+4. Certificate matching and all lookup-failure exits terminate. The number
    of shuttles and their charged instructions have one explicit polynomial
    bound in the encoded paired-input length.
+
+### Universally proved candidate phases
+
+The paired [`EvaluatorInvariants.lean.in`](EvaluatorInvariants.lean.in) and
+[`EvaluatorInvariants.v.in`](EvaluatorInvariants.v.in) are compiled with the
+exact candidate table. State references are filled from that table's state
+index, so these are proofs about its charged instructions. They establish:
+
+- `malformed_reject`: every word outside the circuit encoding grammar is
+  rejected for every certificate in exactly `|x| + 1` instructions.
+- `valid_start`: every syntactically valid word reaches `count_first` in
+  exactly `2 * |x| + 2` nonhalting instructions. The circuit and certificate
+  cells are preserved, with an explicit blank at the left end of the tape.
+- `lookup_first_initial`: for every bit-word suffix and nonempty wire list,
+  the first lookup marks the first wire and returns to the active gate in
+  exactly `2 * |suffix| + 4` nonhalting instructions, preserving all other
+  cells. This covers both false/blank and true/separator cursor encodings.
+- `gate_empty_run`: when the gate loop reaches its final list marker, it
+  returns the last wire, defaulting to false on an empty wire list, in exactly
+  `|wires| + 3` instructions.
+
+These results quantify over arbitrary words and tape contexts. They are not
+finite-input examples. They still do not prove the certificate-matching
+phase, advancement of the wire cursor for arbitrary unary indices, operand
+and marker restoration, or NAND appending. Consequently no whole verifier
+run bound, `circuitSATInNP`, or premise-free bridge follows from them.
+
+The runner scans the generated source and its local imports for admissions
+and forbidden assumptions, then checks every printed assumption report. The
+new phase results use only `propext` and `Quot.sound` in Lean; Rocq reports
+closed global contexts. Regression tests reject a later Lean admission, a
+mixture of closed and open Rocq reports, and missing reports. These candidate
+phase proofs have not been registered as unconditional membership results.
 
 The bounded Python suite compares the table against an independent executable
 specification on 3,174 input/certificate pairs. It covers all raw words up to
@@ -185,30 +218,27 @@ membership premises remain, and the PR remains draft and incomplete.
 
 ## CI failure investigation, 2026-10-06
 
-The candidate [run 37464814143](https://github.com/konard/p-vs-np/actions/runs/37464814143)
-started at 12:39:17 UTC on `d56b26989a36b5b13aedd94a318f3f754897dd25`,
-after that commit at 12:39:11 UTC. Its full log is preserved locally as
-`ci-logs/verification-37464814143.log`. Both paired candidate probes pass
-(lines 156 and 797). Membership remains missing (Lean line 163, Rocq line 806),
-and the bridge probes reject the extra premise (Lean lines 165–201, Rocq
-lines 809–814). Both completion jobs and the summary fail; all six other jobs
-pass. The summary reports the Lean completion failure at line 9568. This run
-confirms the experimental table's concrete runs, not unconditional membership.
+The run at the beginning of this investigation,
+[37465392079](https://github.com/konard/p-vs-np/actions/runs/37465392079),
+started at 12:43:55 UTC on `39bd105e46cf663e07c68786c8506eaf0ab88425`,
+after that commit at 12:43:49 UTC. Thus the reported failures are current.
+The branch already contains the fetched default branch `ecedd2b`.
+Full logs for all four failed runs among the latest five were downloaded into
+the ignored `ci-logs/` directory. In `verification-37465392079.log`:
 
-The failing [run 37459212307](https://github.com/konard/p-vs-np/actions/runs/37459212307)
-started at 11:51:35 UTC on `d1ea2a16cf6a3ba5488d072bdb7bfdc4d1c95941`,
-after that commit at 11:51:17 UTC. Thus the failures are current. The branch
-already contains the fetched default branch. The full downloaded log is
-preserved locally as `ci-logs/verification-37459212307.log`.
+- Candidate concrete-run probes pass at Lean line 843 and Rocq line 1500.
+- Lean line 850 reports unknown identifier
+  `Issue532.Idea41.circuitSATInNP`; the six bridge errors begin at line 852
+  because their types still have the membership premise.
+- Rocq line 1509 reports that `Idea41.circuitSATInNP` was not found; the
+  bridge type mismatch begins at line 1512 for the same reason.
+- Both jobs reject missing certification entries. The summary fails at line
+  9600 after the Lean completion failure. Both completion jobs and the summary
+  fail; all six other jobs pass.
 
-- Lean log line 1437 reports unknown identifier
-  `Issue532.Idea41.circuitSATInNP`; lines 1439–1474 show that all six consequence
-  contracts retain their membership premise.
-- Rocq log line 1224 reports that `Idea41.circuitSATInNP` was not found;
-  lines 1226–1235 show the first bridge's extra membership argument.
-- Both jobs also reject missing certification entries. `Verification Summary`
-  fails at line 9547 because the Lean completion job failed. Both completion
-  jobs failed; the summary's first failing check exits before its Rocq check.
+This run precedes the four universal phase proofs above. The updated probes
+pass locally in both provers, while the exact membership targets retain the
+same failure. Fresh CI results for the updated head are recorded in PR #631.
 
 Full local Lean and Rocq builds reproduce successful compilation. The exact
 completion command still exits 1, matching those missing proof obligations.
@@ -286,6 +316,9 @@ python3 scripts/check_proof_status.py --rocq
 
 `check_repository.sh` retains the Python and prover regression commands from
 the current CI workflow and ends with the mandatory paired completion gate.
-It now exits 1 at that gate on the incomplete tree. The Agda job uses the
-workflow's pinned container. A passing build or syntax mutation suite alone
+On the updated tree, all 131 Python tests and the preceding prover regression
+checks pass, including the four universal candidate phase results. The script
+then exits 1 at the membership gate. Full Lean and Rocq builds, the certified
+source and assumption audits in both provers, and the six Agda checks in the
+workflow's pinned container pass. A passing build or phase invariant alone
 does not establish or certify unconditional circuit membership.
