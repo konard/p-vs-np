@@ -1,0 +1,30 @@
+import proofs.experiments.issue567.lean.CircuitSyntax
+import proofs.experiments.issue532.lean.SATVerifier
+
+open Complexity Issue532.Machines Issue532.Idea41 Issue567.CircuitSyntax
+
+-- Dropping the polynomial time bound already makes this weaker than the
+-- hypothesis of circuitSATInNP_of_verifier_run. Neither existing table can
+-- satisfy even this contract on the unchanged paired circuit encoding.
+def EvaluatesCircuit (m : Machine) : Prop :=
+  ∀ x cert, cert.length ≤ x.length + 1 →
+    ∃ t, Run m (pairedInput x cert) t (verifyCircuit x cert)
+
+theorem syntax_table_cannot_evaluate : ¬ EvaluatesCircuit circuitSyntaxMachine := by
+  intro h
+  obtain ⟨t, hr⟩ := h (encCircuit 1 []) [false] (by decide)
+  have he := (run_deterministic hr
+    (circuitSyntaxMachine_run (encCircuit 1 []) [false])).2
+  change false = true at he
+  contradiction
+
+theorem sat_table_cannot_evaluate : ¬ EvaluatesCircuit Issue532.SATVerifier.verifier := by
+  intro h
+  obtain ⟨t, hr⟩ := h (encCircuit 1 []) [true] (by decide)
+  obtain ⟨t', _, hr'⟩ := Issue532.SATVerifier.verifier_run (encCircuit 1 []) [true]
+  have he := (run_deterministic hr hr').2
+  change true = false at he
+  contradiction
+
+#print axioms syntax_table_cannot_evaluate
+#print axioms sat_table_cannot_evaluate

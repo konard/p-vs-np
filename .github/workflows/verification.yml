@@ -328,8 +328,10 @@ jobs:
     - name: Require complete CircuitSAT membership in Lean
       run: |
         lake build proofs.experiments.issue10.lean.NPNotSubsetP \
-          proofs.experiments.issue567.lean.CircuitSyntax
+          proofs.experiments.issue567.lean.CircuitSyntax \
+          proofs.experiments.issue532.lean.SATVerifier
         python3 experiments/issue567/check_machines.py --lean
+        python3 experiments/issue625/check_verifier_reuse.py --lean
         python3 experiments/issue625/check_membership.py --lean
     - name: Preserve Lean completion diagnostics
       if: always()
@@ -357,8 +359,10 @@ jobs:
           python3 -m unittest experiments.issue611.test_rocq_project -v
           rocq makefile -f _CoqProject -o Makefile.coq
           make -f Makefile.coq proofs/experiments/issue10/rocq/NPNotSubsetP.vo \
-            proofs/experiments/issue567/rocq/CircuitSyntax.vo
+            proofs/experiments/issue567/rocq/CircuitSyntax.vo \
+            proofs/experiments/issue532/rocq/SATVerifier.vo
           python3 experiments/issue567/check_machines.py --rocq
+          python3 experiments/issue625/check_verifier_reuse.py --rocq
           python3 experiments/issue625/check_membership.py --rocq
     - name: Revert permissions
       if: always()

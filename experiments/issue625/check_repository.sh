@@ -41,4 +41,5 @@ bash experiments/issue573/check.sh --rocq
 bash experiments/issue587/check.sh --lean
 bash experiments/issue587/check.sh --rocq
 python3 -m unittest experiments.issue611.test_rocq_project -v
+python3 experiments/issue625/check_verifier_reuse.py --lean --rocq
 python3 experiments/issue625/check_membership.py --lean --rocq
