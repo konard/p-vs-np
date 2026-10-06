@@ -498,3 +498,15 @@ rocq CookLevin.tableauCNF_wrong_successor_rejected: (none)
 rocq CookLevin.encodeCNF_length_append: (none)
 rocq CookLevin.tableauCNF_encoded_size: (none)
 ```
+
+## Existing Idea 36 bridge
+
+The bridge's required type already has no SAT-hardness premise. The paired
+registration retains its separate vertex-cover hardness and rounding premises,
+as required by the original completion contract. `existing_bridge_probe.py`
+checks that unapplied type and its kernel-reported assumptions:
+
+```text
+lean Issue532.Idea36.exactRounding_gives_pEqualsNP: Classical.choice, Quot.sound, propext
+rocq Idea36.exactRounding_gives_pEqualsNP: (none)
+```

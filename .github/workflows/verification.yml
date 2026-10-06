@@ -271,6 +271,7 @@ jobs:
           proofs.p_vs_np_decidable.lean.PvsNPDecidable \
           proofs.p_not_equal_np.lean.PNotEqualNP \
           proofs.experiments.issue532.lean.Idea01 \
+          proofs.experiments.issue532.lean.Idea36 \
           proofs.experiments.issue568.lean.Tableau \
           proofs.experiments.issue624.lean.VerifierTableau \
           proofs.experiments.issue624.lean.FixedWindow \
@@ -291,6 +292,7 @@ jobs:
           proofs.experiments.issue7.lean.ClockedSAT
         python3 scripts/check_proof_status.py --lean
         python3 experiments/issue624/check_tableau_contracts.py --lean
+        python3 experiments/issue624/existing_bridge_probe.py --lean
 
   certified-rocq:
     name: Certified Rocq Results
@@ -309,6 +311,7 @@ jobs:
           set -e
           rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea36.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/SATVerifier.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea01.v
           rocq compile -Q . '' proofs/experiments/issue568/rocq/Tableau.v
@@ -337,6 +340,7 @@ jobs:
           rocq compile -Q . '' proofs/experiments/issue7/rocq/ClockedSAT.v
           python3 scripts/check_proof_status.py --rocq
           python3 experiments/issue624/check_tableau_contracts.py --rocq
+          python3 experiments/issue624/existing_bridge_probe.py --rocq
     - name: Revert permissions
       if: always()
       run: sudo chown -R 1001:116 .

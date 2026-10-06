@@ -111,7 +111,7 @@ The seven tableau endpoints match the completion gate’s original types. Concre
 regressions reject wrong initial state/head/tape contents and cover empty, short,
 full, and zero-bound certificates with both verifier constructors.
 
-The local completion preflight now has 44 diagnostics, down from 58. The
+The local completion preflight now has 42 diagnostics, down from 58. The
 remaining endpoints are `red_computes`, `satHard`, and `cookLevin` in each
 prover, plus the existing public bridge premises/registrations. Polynomial
 output size is proved; polynomial charged running time is not. No single
@@ -123,3 +123,8 @@ Local validation passed: the complete Python suite, 256-job Lean build,
 full Rocq build, both 234-result source/assumption audits, seven original
 tableau contract types in each kernel, and Agda checks. Workflow lint and
 `git diff --check` also passed. Expected negative kernel probes were rejected.
+
+The existing Idea 36 bridge also matches the completion gate's required type.
+Its missing registration is fixed in both provers; `existing_bridge_probe.py`
+checks the exact type and assumptions. Its separate vertex-cover hardness
+premise remains required. There are now 235 certified conclusions per prover.

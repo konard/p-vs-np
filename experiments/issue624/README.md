@@ -64,6 +64,8 @@ rocq repl -quiet -Q . '' < experiments/issue624/initial_probe.in
 python3 experiments/issue624/run_assumptions.py
 python3 experiments/issue624/check_tableau_contracts.py --lean
 python3 experiments/issue624/check_tableau_contracts.py --rocq
+python3 experiments/issue624/existing_bridge_probe.py --lean
+python3 experiments/issue624/existing_bridge_probe.py --rocq
 ```
 
 [PLAN.md](PLAN.md) tracks the completed prerequisites and the remaining
@@ -95,3 +97,7 @@ layout and the input-dependent emitter's missing machine operations.
 `check_tableau_contracts.py` checks the seven implemented tableau results
 against the completion gate's original, unapplied types in each kernel. It
 does not replace the full completion check or certify the missing reduction.
+
+`existing_bridge_probe.py` checks the registered Idea 36 bridge at the
+completion gate's exact type. Its separate `VCHard`, `CoverCheckInP`, and
+`ExactRoundingObligation` premises remain part of that original contract.

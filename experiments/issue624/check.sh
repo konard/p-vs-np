@@ -51,6 +51,7 @@ check_lean() {
   python3 experiments/issue624/check_completion_kernels.py --lean
   python3 experiments/issue624/check_completion_types.py --lean
   python3 experiments/issue624/check_tableau_contracts.py --lean
+  python3 experiments/issue624/existing_bridge_probe.py --lean
 }
 
 check_rocq() {
@@ -64,6 +65,7 @@ check_rocq() {
   python3 experiments/issue624/check_completion_kernels.py --rocq
   python3 experiments/issue624/check_completion_types.py --rocq
   python3 experiments/issue624/check_tableau_contracts.py --rocq
+  python3 experiments/issue624/existing_bridge_probe.py --rocq
 }
 
 check_agda() {
