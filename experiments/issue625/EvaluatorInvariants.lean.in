@@ -1,6 +1,6 @@
 /-! Universal tape lemmas for the exact candidate table. State numbers are
 filled from the same table as the concrete probes; no transition oracle is
-introduced. These lemmas are building blocks for the pending whole run proof. -/
+introduced. The certified CircuitVerifier module extends these lemmas to the whole run proof. -/
 
 open Issue532.Machines
 

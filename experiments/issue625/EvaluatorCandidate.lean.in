@@ -2,8 +2,8 @@ import proofs.experiments.issue532.lean.Idea41
 import proofs.experiments.issue567.lean.CircuitSyntax
 
 /-!
-A candidate finite table with kernel-checked concrete runs and universal phase
-invariants. The whole evaluator's correctness and polynomial bound are pending.
+The generated table equals the certified CircuitVerifier table. Interpreter,
+concrete-run, and phase regressions complement its universal polynomial proof.
 -/
 set_option maxRecDepth 4096
 set_option maxHeartbeats 2000000

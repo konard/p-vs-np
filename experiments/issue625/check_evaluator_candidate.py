@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Kernel-check circuit-evaluator runs and universal phase invariants.
 
-This candidate still needs its universal evaluator theorem and polynomial
-bound. Passing this script cannot satisfy the CircuitSAT completion gate.
+The generated table must equal the certified verifier table. This checks
+concrete runs, universal proof assumptions, and four invalid machine mutations.
 """
 
 import argparse
@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT))
 
 from experiments.issue567.check_machines import compile_probe
 from experiments.issue625.evaluator_candidate import (
-    Halt, STATES, STATE_INDEX, TABLE, enc_circuit, run_machine,
+    BLANK, RIGHT, LEFT, Halt, Move, STATES, STATE_INDEX, TABLE, enc_circuit, run_machine,
 )
 from scripts import check_proof_status as proof_status
 
@@ -27,13 +27,20 @@ AUDITED_THEOREMS = (
     'dependent_gate_run', 'forward_wire_run', 'lookup_first_initial',
     'malformed_reject', 'valid_start', 'gate_empty_run', 'count_success', 'count_reject',
 )
+CERTIFIED_THEOREMS = (
+    'lookup_advance', 'lookup_short', 'lookup_read', 'lookup_initial', 'lookup_empty',
+    'lookup_tail_success', 'lookup_tail_reject', 'lookup_success', 'lookup_reject',
+    'append_gate', 'gate_empty_padded', 'gate_step', 'gate_reject', 'gate_loop', 'verifier_run',
+    'verifier_correct', 'verifier_accepts',
+)
+AUDITED_THEOREMS += CERTIFIED_THEOREMS
 
 
 def audit_reports(language, output):
     """Check every printed report, including reports after an allowed one."""
     if language == 'lean':
         reports = dict(re.findall(
-            r"(?m)^'Issue625\.EvaluatorCandidate\.(\w+)' (.+)$", output,
+            r"(?m)^'(?:Issue625\.EvaluatorCandidate|Issue532\.CircuitVerifier)\.(\w+)' (.+)$", output,
         ))
         for name in AUDITED_THEOREMS:
             if name not in reports:
@@ -82,11 +89,11 @@ def bool_source(value):
     return 'true' if value else 'false'
 
 
-def table_source(language):
+def table_source(language, program=TABLE):
     symbols = ['blank', 'zero', 'one', 'separator']
     directions = {-1: 'left', 0: 'stay', 1: 'right'}
     rows = []
-    for index, (state, row) in enumerate(zip(STATES, TABLE)):
+    for index, (state, row) in enumerate(zip(STATES, program)):
         instructions = []
         for instruction in row:
             if isinstance(instruction, Halt):
@@ -134,7 +141,60 @@ def probe_source(language):
     source = source.replace('@INVARIANTS@', invariants)
     for state, index in STATE_INDEX.items():
         source = source.replace(f'@STATE_{state}@', str(index))
+    if language == 'lean':
+        certified = 'example : candidate = Issue532.CircuitVerifier.candidate := by rfl\n'
+        certified += '\n'.join('#print axioms Issue532.CircuitVerifier.' + n for n in CERTIFIED_THEOREMS)
+        source = source.replace('end Issue625.EvaluatorCandidate', certified + '\nend Issue625.EvaluatorCandidate')
+    else:
+        certified = 'Example certified_table : candidate = CircuitVerifier.candidate.\nProof. reflexivity. Qed.\n'
+        certified += '\n'.join('Print Assumptions CircuitVerifier.' + n + '.' for n in CERTIFIED_THEOREMS)
+        source = source.replace('End EvaluatorCandidate.', certified + '\nEnd EvaluatorCandidate.')
     return source
+
+
+def machine_mutations():
+    """Each finite witness distinguishes a bad machine from verifyCircuit."""
+    wrong_length = [row.copy() for row in TABLE]
+    wrong_length[STATE_INDEX['start_left']][BLANK] = Move('advance_second', BLANK, RIGHT)
+    forward_wire = [row.copy() for row in TABLE]
+    forward_wire[STATE_INDEX['lookup_first_mark_next']][BLANK] = Move('lookup_first_back_sep', BLANK, LEFT)
+    return {
+        'zero_step': (TABLE, [], [], [], True),
+        'ignore_certificate': (TABLE, enc_circuit(1, []), [True], [False], False),
+        'wrong_length': (wrong_length, enc_circuit(1, []), [True, True], [True, True], False),
+        'forward_wire': (forward_wire, enc_circuit(1, [(1, 0)]), [True], [True], False),
+    }
+
+
+def check_mutations(language, logs):
+    suffix = '.lean' if language == 'lean' else '.v'
+    template = (HERE / f'EvaluatorCandidate{suffix}.in').read_text()
+    template = re.sub(r'(?m)^#print axioms .*\n|^Print Assumptions .*\n', '', template)
+    with tempfile.TemporaryDirectory(prefix='verifier_mutations_', dir=HERE) as directory:
+        for name, (program, word, cert, supplied, zero_step) in machine_mutations().items():
+            w = list_source([bool_source(b) for b in word], language)
+            c = list_source([bool_source(b) for b in cert], language)
+            actual = list_source([bool_source(b) for b in supplied], language)
+            steps = 0 if zero_step else run_machine(word, supplied, program=program).steps
+            if language == 'lean':
+                proof = 'by\n  apply Run.halt\n  rfl' if zero_step else (
+                    f'execute_sound candidate {steps} _ _ _ (by decide)')
+                witness = f'example : Run candidate (pairedInput {w} {actual}) {steps} (verifyCircuit {w} {c}) :=\n  {proof}\n'
+            else:
+                proof = 'apply run_halt. reflexivity.' if zero_step else (
+                    f'apply (execute_sound candidate {steps}). vm_compute. reflexivity.')
+                witness = f'Example mutation : Run candidate (pairedInput {w} {actual}) {steps} (verifyCircuit {w} {c}).\nProof. {proof} Qed.\n'
+            source = template.replace('@TABLE@', table_source(language, program)).replace('@EXAMPLES@', witness).replace('@INVARIANTS@', '')
+            path = Path(directory) / ('Mutation_' + name + suffix)
+            path.write_text(source)
+            result = compile_probe(language, path, logs / f'{language}-machine-{name}.log',
+                                   extra_args=('-j', '2', '-M', '1024') if language == 'lean' else ())
+            output = result.stdout + result.stderr
+            expected = ('could not unify the conclusion of `@Run.halt`' if zero_step else
+                        'Tactic `decide` proved that the proposition') if language == 'lean' else 'Unable to unify'
+            if result.returncode == 0 or expected not in output:
+                raise RuntimeError(f'{language}: mutation {name} failed unexpectedly or was accepted; see {logs}')
+            print(f'{language}: rejected actual verifier mutation {name}')
 
 
 def check(language):
@@ -157,8 +217,9 @@ def check(language):
             raise RuntimeError(f'{language}: evaluator probe failed; see {log}\n'
                                + (result.stdout + result.stderr).rstrip())
         audit_reports(language, result.stdout + result.stderr)
-    print(f'{language}: 83-state candidate, {len(CASES) + len(RAW_CASES)} concrete runs '
-          'and six universal phase results checked; whole evaluator proof pending')
+    check_mutations(language, logs)
+    print(f'{language}: certified 83-state table, {len(CASES) + len(RAW_CASES)} concrete runs '
+          'and universal polynomial verifier proof checked')
 
 
 def main():

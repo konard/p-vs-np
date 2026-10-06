@@ -1,6 +1,6 @@
 # Idea 41 — Williams' algorithmic method (fast circuit satisfiability ⇒ circuit lower bounds)
 
-**Verdict:** Developed to an open obligation (conditional theorem proved). Williams' method turns a satisfiability algorithm into a circuit lower bound. The files state it in the shared machine model: if one machine decides satisfiability of NAND circuits with `n` inputs and `(n+1)^k` gates in `2^n / n^{ω(1)}` `Run` steps (`FastCircuitSAT`, the open obligation), then `NEXP ⊄ P/poly` (`williams_method`). Three known theorems enter as named explicit hypotheses: the nondeterministic time hierarchy (`NTimeHierarchy`), the easy-witness lemma (`EasyWitnessLemma`) and Williams' speedup construction (`WilliamsSpeedup`). The diagonal part of the hierarchy theorem is proved (`lazy_diagonal`, `nTimeHierarchy_of_lazyDiagonal`), leaving a pure simulation statement. The hierarchy hypothesis is the one [Idea 16](Idea16.md) states: both files use one class `NTIME(T)` (`inNTIME_iff_idea16`), Idea 16's `NTimeHierarchy` gives the one used here (`nTimeHierarchy_of_idea16`, `williams_method_idea16`), and the simulation statement for every `k ≥ 3` gives Idea 16's (`idea16_nTimeHierarchy_of_lazyDiagonal`). Idea 16's statement is itself a named known theorem, not a proof, so this replaces one hypothesis by a shared one; it does not remove it. The obligation is tied to P versus NP in both directions. `P = NP` implies it (`fastCircuitSAT_of_pEqualsNP`, proved from the membership of circuit satisfiability in NP, `CircuitSATInNP`, which is a named hypothesis here), so refuting it would prove `P ≠ NP` (`pNotEqualsNP_of_not_fastCircuitSAT`). Proving it gives `NEXP ⊄ P/poly`, which is not known to imply `P ≠ NP`. For `ACC⁰` circuits instead of general circuits the algorithm exists, and the method gives the unconditional `NEXP ⊄ ACC⁰` (Williams 2011) and `NQP ⊄ ACC⁰` (Murray–Williams 2018), which are cited and not mechanised.
+**Verdict:** Developed to an open obligation (conditional theorem proved). Williams' method turns a satisfiability algorithm into a circuit lower bound. The files state it in the shared machine model: if one machine decides satisfiability of NAND circuits with `n` inputs and `(n+1)^k` gates in `2^n / n^{ω(1)}` `Run` steps (`FastCircuitSAT`, the open obligation), then `NEXP ⊄ P/poly` (`williams_method`). Three known theorems enter as named explicit hypotheses: the nondeterministic time hierarchy (`NTimeHierarchy`), the easy-witness lemma (`EasyWitnessLemma`) and Williams' speedup construction (`WilliamsSpeedup`). The diagonal part of the hierarchy theorem is proved (`lazy_diagonal`, `nTimeHierarchy_of_lazyDiagonal`), leaving a pure simulation statement. The hierarchy hypothesis is the one [Idea 16](Idea16.md) states: both files use one class `NTIME(T)` (`inNTIME_iff_idea16`), Idea 16's `NTimeHierarchy` gives the one used here (`nTimeHierarchy_of_idea16`, `williams_method_idea16`), and the simulation statement for every `k ≥ 3` gives Idea 16's (`idea16_nTimeHierarchy_of_lazyDiagonal`). Idea 16's statement is itself a named known theorem, not a proof, so this replaces one hypothesis by a shared one; it does not remove it. The obligation is tied to P versus NP in both directions. `P = NP` implies it (`fastCircuitSAT_of_pEqualsNP`, proved using unconditional `circuitSATInNP`), so refuting it would prove `P ≠ NP` (`pNotEqualsNP_of_not_fastCircuitSAT`). Proving it gives `NEXP ⊄ P/poly`, which is not known to imply `P ≠ NP`. For `ACC⁰` circuits instead of general circuits the algorithm exists, and the method gives the unconditional `NEXP ⊄ ACC⁰` (Williams 2011) and `NQP ⊄ ACC⁰` (Murray–Williams 2018), which are cited and not mechanised.
 
 ## 1. The idea at full strength
 
@@ -64,15 +64,12 @@ programs, `WF`, `output`, `InPPoly`).
   the gate list with the unary prefix-free codes of `Machines.lean`.
   `CircuitSatisfiable n C :≡ ∃ x, |x| = n ∧ output x C = true`, and
   `CircuitSAT w = true` iff `w` encodes a well-formed satisfiable circuit.
-  `CircuitSATInNP :≡ InNP CircuitSAT` is a known theorem, used only as a
-  hypothesis.
-  The [direct evaluator experiment](../../../../experiments/issue625/README.md)
-  supplies an 83-state candidate with fourteen concrete runs checked in Lean
-  and Rocq. Six paired universal phase results cover syntax rejection, entry
-  into certificate matching, initial wire marking, the final output pass,
-  and certificate-length matching or rejection within a polynomial bound.
-  Its whole evaluator and polynomial runtime proofs remain open, so it does
-  not discharge this hypothesis or satisfy the completion gate.
+  `CircuitSATInNP :≡ InNP CircuitSAT` is proved unconditionally by
+  `circuitSATInNP`. The [certified evaluator](../../../../experiments/issue625/README.md)
+  is an 83-state finite-table machine. Its paired `verifier_run` theorems
+  establish the exact `verifyCircuit` answer on every word and certificate
+  within `1024 * (|x| + |cert| + 12)^3` charged instructions. The NP record
+  uses certificate polynomial `⟨1, 1⟩` and time polynomial `⟨221184, 3⟩`.
 * **Exhaustive search.** `bruteCircuitSAT n C` evaluates `C` on the `2^n`
   vectors of `allAssignments n`. It evaluates `2^n · |C|` gates
   (`bruteForceGateEvaluations_eq`).
@@ -110,9 +107,10 @@ programs, `WF`, `output`, `InPPoly`).
 | `williams_method_idea16` | The method with Idea 16's hierarchy statement as the hypothesis. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
 | `idea16_nTimeHierarchy_of_lazyDiagonal` | The simulation statement for every `k ≥ 3` implies Idea 16's hierarchy statement. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
 | `fastCircuitSAT_of_inP` | A polynomial-time `CircuitSAT` decider meets the obligation. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
-| `fastCircuitSAT_of_pEqualsNP` | `CircuitSATInNP` and `P = NP` imply `FastCircuitSAT`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
-| `fastCircuitSAT_of_inP_sat` | `SATHard`, `CircuitSATInNP` and `InP SAT` imply `FastCircuitSAT`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
-| `pNotEqualsNP_of_not_fastCircuitSAT` | Refuting the obligation proves `P ≠ NP`, given `CircuitSATInNP`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
+| `circuitSATInNP` | A finite verifier establishes `InNP CircuitSAT` unconditionally. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
+| `fastCircuitSAT_of_pEqualsNP` | `P = NP` implies `FastCircuitSAT`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
+| `fastCircuitSAT_of_inP_sat` | `SATHard` and `InP SAT` imply `FastCircuitSAT`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
+| `pNotEqualsNP_of_not_fastCircuitSAT` | Refuting the obligation proves `P ≠ NP`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
 | `pNotEqualsNP_of_nexpSubsetPPoly` | Under the known theorems, `NEXP ⊆ P/poly` would prove `P ≠ NP`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
 | `not_nexpSubsetPPoly_of_pEqualsNP` | Under the known theorems, `P = NP` refutes `NEXP ⊆ P/poly`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
 | `poly_le_two_pow` | For all `a, e` there is `N` with `a·(n+1)^e ≤ 2^n` for `n ≥ N`. | [Lean](../lean/Idea41.lean) | [Rocq](../rocq/Idea41.v) |
@@ -126,7 +124,7 @@ programs, `WF`, `output`, `InPPoly`).
 
 `FastCircuitSAT` is a `def … : Prop` in Lean and a `Definition … : Prop` in
 Rocq. It is never assumed. `NTimeHierarchy`, `EasyWitnessLemma`,
-`WilliamsSpeedup`, `LazyDiagonalSimulation` and `CircuitSATInNP` are true
+`WilliamsSpeedup` and `LazyDiagonalSimulation` are true
 statements of the literature. They are not mechanised here, and every use is
 an explicit hypothesis. No theorem in either file proves or refutes P = NP.
 
@@ -146,8 +144,8 @@ last group is audited by `experiments/issue532_idea41/Assumptions.v`). It differ
   exactly the language. The decoder is a left inverse of `encCircuit` and
   rejects trailing bits. Rocq's `CircuitSAT` uses the decoder,
   well-formedness check, and `bruteCircuitSAT`; `circuitSAT_iff` shows it is
-  exactly the Lean language. The `verifyCircuit` function is not yet a
-  shared-model `Machine` with a proved polynomial `Run` bound.
+  exactly the Lean language. The paired `CircuitVerifier` modules implement
+  `verifyCircuit` as a shared-model `Machine` with a proved polynomial `Run` bound.
 * **`acceptedLanguage` is computable.** It enumerates the certificates of
   bounded length and replays each run with the step-bounded interpreter
   `runFor` (`acceptedLanguage_spec`).
@@ -208,7 +206,7 @@ of the interval it decides `L(1^l)` by exhaustive search, which fits in the
 time budget because `u` is exponentially larger than `l`. The polynomial gap
 `(n+1)^c` absorbs the logarithmic clock overhead of simulating on one tape.
 
-**P = NP implies the obligation.** Under `P = NP` and `CircuitSATInNP`,
+**P = NP implies the obligation.** Under `P = NP`, using `circuitSATInNP`,
 `CircuitSAT` has a machine `m` and a polynomial `p` with
 `DecidesWithin m p CircuitSAT` (`polyDec_iff_inP`). Fix `k` and `c`. Every
 gate of a well-formed circuit on `n` inputs reads a wire below `n + |C|`
@@ -270,7 +268,8 @@ argument: reading the input takes `poly(n)` steps, far below
   * the identification of the hierarchy hypothesis with Idea 16's
     (`inNTIME_iff_idea16`, `nTimeHierarchy_of_idea16`,
     `williams_method_idea16`, `idea16_nTimeHierarchy_of_lazyDiagonal`);
-  * `P = NP → FastCircuitSAT` from `CircuitSATInNP`
+  * unconditional `circuitSATInNP : InNP CircuitSAT`, with a certified finite verifier;
+  * `P = NP → FastCircuitSAT` using that membership
     (`fastCircuitSAT_of_pEqualsNP`), and hence
     `¬ FastCircuitSAT → P ≠ NP`;
   * the non-vacuity of the time classes.
@@ -287,12 +286,9 @@ argument: reading the input takes `poly(n)` steps, far below
     `AllAlgorithmsSuperpolynomial`.
 * **Known theorems used as hypotheses:** `NTimeHierarchy` (or Idea 16's
   `Idea16.NTimeHierarchy`, or the simulation statement
-  `LazyDiagonalSimulation`), `EasyWitnessLemma`, `WilliamsSpeedup`
-  and `CircuitSATInNP`. The next slices are:
-  1. the universal nondeterministic simulation behind
-     `LazyDiagonalSimulation`;
-  2. the finite-machine implementation and polynomial runtime proof for the
-     now-specified circuit verifier behind `CircuitSATInNP`.
+  `LazyDiagonalSimulation`), `EasyWitnessLemma`, and `WilliamsSpeedup`.
+  The next slice is the universal nondeterministic simulation behind
+  `LazyDiagonalSimulation`. CircuitSAT membership is now proved.
   The easy-witness lemma and the speedup construction are long proofs and
   are not attempted here.
 * **For `P ≠ NP`** the method would need an NP-level version: a lower bound
@@ -319,22 +315,17 @@ argument: reading the input takes `poly(n)` steps, far below
 
 ## 8. Reproduction
 
-Issue 625 adds a paired finite-machine **syntax** slice:
-`Issue567.CircuitSyntax.circuitSyntaxMachine_run` (Lean) and
-`CircuitSyntax.circuitSyntaxMachine_run` (Rocq) recognize precisely the
-`encCircuit` grammar in `|x| + 1` steps, for every paired input. This is not
-`CircuitSATInNP`: valid syntax can still contain forward wires, and this syntax
-machine does not check certificate length or evaluate gates. The direct
-candidate's certificate phase is now proved separately; its full gate-loop
-and polynomial run proofs remain open.
-`circuitSATInNP_of_verifier_run` assembles the NP record from the full
-machine's polynomial run theorem as an explicit hypothesis. It does not
-discharge membership. The original `CircuitSATInNP` arguments are retained.
-Both provers now run a mandatory CI completion gate that requires unconditional
-membership, removal of those premises from the six issue 625 bridges, and
-certification of the seven resulting targets. The required verification
-summary fails while any of these obligations remains unresolved.
-See [the remaining obligations](../../../../experiments/issue625/README.md).
+Issue 625 supplies unconditional `circuitSATInNP` using a finite evaluator,
+its universal correctness and acceptance theorems, and a cubic charged run
+bound. `Idea41Core` holds the circuit definitions and Williams lemmas;
+`CircuitVerifier` uses that core and the six-state syntax recognizer;
+`Idea41` assembles the NP record and removes the membership premises from
+the bridges. The dossier checker audits the imported core by the same rules
+as the public module, including its machine-bound open obligations.
+
+The mandatory completion gates require unconditional membership, the six
+intended bridge types, manifest registrations, and transitive assumption
+reports in both provers. See [the complete proof and regressions](../../../../experiments/issue625/README.md).
 
 From the repository root:
 
@@ -343,7 +334,8 @@ lake build proofs.experiments.issue532.lean.Idea41
 rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
 rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
-rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
+rocq makefile -f _CoqProject -o Makefile.coq
+make -f Makefile.coq proofs/experiments/issue532/rocq/Idea41.vo
 ```
 
 The commands print nothing beyond the build summary on success. Remove the

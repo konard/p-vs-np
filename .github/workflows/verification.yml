@@ -305,9 +305,11 @@ jobs:
           rocq compile -Q . '' proofs/experiments/issue609/rocq/KnownBarriers.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea16.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41Core.v
+          rocq compile -Q . '' proofs/experiments/issue567/rocq/CircuitSyntax.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/CircuitVerifier.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
           rocq compile -Q . '' proofs/experiments/issue567/rocq/ResidualKey.v
-          rocq compile -Q . '' proofs/experiments/issue567/rocq/CircuitSyntax.v
           rocq compile -Q . '' proofs/experiments/issue10/rocq/NPNotSubsetP.v
           rocq compile -Q . '' proofs/experiments/issue8/rocq/NPSubsetP.v
           rocq compile -Q . '' proofs/experiments/issue7/rocq/ClockedSAT.v

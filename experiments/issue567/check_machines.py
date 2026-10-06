@@ -2,7 +2,8 @@
 """Compile paired regressions and require four invalid proof mutations to fail.
 
 These checks cover syntax-machine runs and finite verifier semantics. They do
-not substitute for the still-missing circuit evaluator or membership theorem.
+not substitute for the full evaluator and membership proofs in CircuitVerifier
+and Idea41, which the separate completion gate checks.
 """
 
 import argparse

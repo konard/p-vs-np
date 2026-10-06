@@ -83,7 +83,7 @@ verdicts:
 | 38 | [Relativization audit](ideas/Idea38.md) ([Lean](lean/Idea38.lean), [Rocq](rocq/Idea38.v)) | Refuted in full strength | A decision tree of depth `< N` cannot decide OR on `N` oracle bits, while one nondeterministic query does. A relativizing method settles nothing that is oracle-dependent. | Baker–Gill–Solovay (cited). |
 | 39 | [Proof-system scope](ideas/Idea39.md) ([Lean](lean/Idea39.lean), [Rocq](rocq/Idea39.v)) | Open obligation | Lower bounds transfer down along p-simulation with a composed polynomial. p-simulation is a preorder. A weak lower bound is compatible with strong short proofs. | `AllTautSystemsSuperpolynomial`: every Cook–Reckhow system `CRSystem` for TAUT, over machine verifiers, has a superpolynomial lower bound (Cook–Reckhow's program). |
 | 40 | [Size-uniform invariants](ideas/Idea40.md) ([Lean](lean/Idea40.lean), [Rocq](rocq/Idea40.v)) | Correct tool | Additive recurrences are polynomial. Doubling recurrences are at least `2^n` and beat every polynomial. | `SATMachineSelfReduction`, which gives `InP SAT` (with the named `IterationClosure`) and restates P = NP. |
-| 41 | [Williams' algorithmic method](ideas/Idea41.md) ([Lean](lean/Idea41.lean), [Rocq](rocq/Idea41.v)) | Open obligation | `williams_method`: in the shared model, a Circuit-SAT algorithm faster than `2^n/n^ω(1)` (`FastCircuitSAT`, over `Run`) together with three known theorems taken as explicit hypotheses (the nondeterministic time hierarchy, the easy-witness lemma, and the speedup step `WilliamsSpeedup`) refutes NEXP ⊆ P/poly. The hierarchy is derived from a lazy-diagonalisation lemma (`lazy_diagonal`, proved) plus a universal simulator (`LazyDiagonalSimulation`, an explicit hypothesis). The class `NTIME(T)` is Idea 16's (`inNTIME_iff_idea16`), and Idea 16's `NTimeHierarchy` discharges the hierarchy hypothesis (`williams_method_idea16`); that statement is itself a named known theorem, so one hypothesis is shared, not removed. P = NP gives `FastCircuitSAT` (proved, given `CircuitSATInNP`), so a refutation of `FastCircuitSAT` gives P ≠ NP. | `FastCircuitSAT` for general circuits is open; NEXP ⊄ P/poly is not known to give P ≠ NP. This is the only route here that turns a modest algorithmic gain into an unconditional lower bound (Williams 2011, Murray–Williams 2018, cited). |
+| 41 | [Williams' algorithmic method](ideas/Idea41.md) ([Lean](lean/Idea41.lean), [Rocq](rocq/Idea41.v)) | Open obligation | `williams_method`: in the shared model, a Circuit-SAT algorithm faster than `2^n/n^ω(1)` (`FastCircuitSAT`, over `Run`) together with three known theorems taken as explicit hypotheses (the nondeterministic time hierarchy, the easy-witness lemma, and the speedup step `WilliamsSpeedup`) refutes NEXP ⊆ P/poly. The hierarchy is derived from a lazy-diagonalisation lemma (`lazy_diagonal`, proved) plus a universal simulator (`LazyDiagonalSimulation`, an explicit hypothesis). The class `NTIME(T)` is Idea 16's (`inNTIME_iff_idea16`), and Idea 16's `NTimeHierarchy` discharges the hierarchy hypothesis (`williams_method_idea16`); that statement is itself a named known theorem, so one hypothesis is shared, not removed. P = NP gives `FastCircuitSAT` using unconditional `circuitSATInNP`, so a refutation of `FastCircuitSAT` gives P ≠ NP. | `FastCircuitSAT` for general circuits is open; NEXP ⊄ P/poly is not known to give P ≠ NP. This is the only route here that turns a modest algorithmic gain into an unconditional lower bound (Williams 2011, Murray–Williams 2018, cited). |
 
 ## The shared model
 
@@ -257,6 +257,20 @@ Each file can also be checked on its own with
 is Idea 34, which needs `lake build proofs.complexity.lean.Complexity` first.
 
 ## Verification log
+
+Issue 625 full evaluator proof (2026-10-06). Both `CircuitVerifier` modules
+now prove arbitrary wire lookup and rejection, restoration, NAND appending,
+and gate-loop correctness for the same 83-state finite table. `verifier_run`
+returns exactly `verifyCircuit x cert` for every word and certificate within
+`1024 * (|x| + |cert| + 12)^3` charged steps. `Idea41.circuitSATInNP` is now
+unconditional; the six required bridges and the SAT bridge use the proved
+membership. The seven completion targets are registered and audited with
+unchanged assumption ceilings. Lean uses only its three standard permitted
+principles; Rocq reports closed global contexts. Actual table mutations test
+length bypass and forward-wire acceptance alongside zero-cost and ignored
+certificate probes. The earlier issue 625 entries below describe intermediate
+checkpoints that this full proof supersedes. See
+[`experiments/issue625`](../../../experiments/issue625/README.md).
 
 Issue 625 certificate-phase proofs (2026-10-06). The exact 83-state candidate
 now has paired universal `count_success` and `count_reject` results. For every

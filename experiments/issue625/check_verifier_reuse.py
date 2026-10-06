@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check finite counterexamples to reusing existing tables for circuit evaluation.
 
-Passing these probes does not establish the missing CircuitSAT membership.
+The separate certified evaluator and completion gate establish CircuitSAT membership.
 Each prover proves the negation of the proposed evaluator run contract.
 """
 

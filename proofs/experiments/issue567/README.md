@@ -1,8 +1,8 @@
 # Issue 567: circuit verifier slice and a residual-key counterexample
 
 **Status:** a known circuit-verification fact mechanized in part, plus a scoped
-adversarial result. This work does not establish `CircuitSATInNP`, `NP ⊈ P`, or
-a time lower bound for a SAT solver.
+adversarial result. Issue 625 completes `CircuitSATInNP` using this encoding layer. The work does
+not establish `NP ⊈ P` or a time lower bound for a SAT solver.
 
 ## Circuit verifier slice
 
@@ -23,9 +23,9 @@ length, and intermediate wire-list length by the encoded data size.
 
 The Lean `CircuitSAT` remains a classical truth predicate, but its acceptance
 relation is now proved equivalent to an executable certificate check. The
-check is implemented in the prover, not yet by a finite `Complexity.Machine`
-on `pairedInput`; no polynomial `Run` bound has been proved. Consequently the
-named `CircuitSATInNP` premise in Idea 41 and issue 10 remains explicit.
+check is implemented by the finite evaluator added for issue 625, with a
+universal polynomial `Run` bound. `Idea41.circuitSATInNP` is unconditional,
+and the Idea 41 and issue 10 bridges use that proof.
 
 ### Machine-level syntax slice (issue 625)
 
@@ -46,7 +46,7 @@ evaluate NAND gates. Its certified status applies only to the listed syntax
 theorems.
 
 `Idea41.circuitSATInNP_of_verifier_run` now proves the NP-record assembly from
-a machine and a polynomial satisfying the **explicit** remaining obligation:
+a machine and a polynomial satisfying the **explicit** run contract:
 
 ```text
 ∀ x cert, |cert| ≤ |x| + 1 →
@@ -54,13 +54,12 @@ a machine and a polynomial satisfying the **explicit** remaining obligation:
     Run m (pairedInput x cert) t (verifyCircuit x cert)
 ```
 
-It uses the existing certificate bound and run determinism. It does not prove
-that such a machine exists, and no `mem : CircuitSATInNP` argument has been
-removed. The [issue 625 investigation](../../../experiments/issue625/README.md)
-records the failing unconditional target and the remaining work. Both provers
-now check unconditional membership, premise removal and certification in
-mandatory CI jobs; this syntax slice cannot make the required verification
-summary pass while the full membership proof remains absent.
+It uses the existing certificate bound and run determinism. The paired
+`CircuitVerifier.verifier_run` theorems now discharge that contract for an
+83-state evaluator within `1024 * (|x| + |cert| + 12)^3` instructions.
+The [issue 625 proof](../../../experiments/issue625/README.md) records
+unconditional membership, removed premises, and assumption audits. The syntax
+machine remains a separate recognizer with the narrower contract above.
 
 ## Adversarial claim for issue 568
 
@@ -81,10 +80,9 @@ The public conclusions are listed in `scripts/proof_status.json`. Lean reports
 only `propext`, `Classical.choice`, and `Quot.sound` where applicable; Rocq
 reports a closed global context. The syntax and residual-key conclusions take
 no problem-specific hypothesis; the assembly theorem retains its evaluator-run
-hypothesis. The remaining major premises are `CircuitSATInNP`,
+hypothesis, discharged in `Idea41` by the full evaluator. Other major premises are
 `PSubsetPPoly`, `SATHard` (for the converse clocked-SAT bridge), and the
-Williams/hierarchy premises described in Idea 41. No premise is discharged
-by this slice.
+Williams/hierarchy premises described in Idea 41. The Williams premises remain explicit.
 
 ```sh
 lake build proofs.experiments.issue532.lean.Idea41

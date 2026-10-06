@@ -5,9 +5,9 @@
     finite-table [Machine]; circuits are the shared gate lists, whose length
     is the size and whose semantics is [output].  The algorithm-to-lower-bound
     direction is Idea 41 ([williams_method]).  Known theorems are hypotheses;
-    nothing is assumed as an axiom.  The next ingredient to discharge is
-    [CircuitSATInNP], the circuit-evaluating verifier;
-    [satisfying_input_within_certBound] is its certificate-length half. *)
+    nothing is assumed as an axiom. Idea 41 proves [CircuitSATInNP] with a
+    finite verifier; [satisfying_input_within_certBound] records its linear
+    certificate bound independently. *)
 
 From Stdlib Require Import Arith PeanoNat Lia Bool List.
 Import ListNotations.
@@ -255,19 +255,19 @@ Proof. exact williams_method. Qed.
 
 (** NEXP not contained in P/poly also follows from P = NP under the same
     theorems. *)
-Theorem nexp_lower_bound_of_pEqualsNP : CircuitSATInNP -> NTimeHierarchy ->
+Theorem nexp_lower_bound_of_pEqualsNP : NTimeHierarchy ->
   EasyWitnessLemma -> WilliamsSpeedup -> PEqualsNP -> ~ NEXPSubsetPPoly.
 Proof. exact not_nexpSubsetPPoly_of_pEqualsNP. Qed.
 
 (** The route that does reach NP not contained in P. *)
-Theorem npNotSubsetP_of_not_fastCircuitSAT : CircuitSATInNP -> ~ FastCircuitSAT ->
+Theorem npNotSubsetP_of_not_fastCircuitSAT : ~ FastCircuitSAT ->
   NPNotSubsetP.
 Proof. exact pNotEqualsNP_of_not_fastCircuitSAT. Qed.
 
-(** ** The next ingredient: [CircuitSATInNP]
+(** ** The certificate bound for the proved [CircuitSATInNP]
 
     The certificate is a satisfying input of [n] bits; the encoding starts
-    with [n + 1] bits.  The remaining part is the evaluating [Machine]. *)
+    with [n + 1] bits. Idea 41 supplies the evaluating [Machine] and run bound. *)
 Theorem satisfying_input_within_certBound : forall n C, CircuitSatisfiable n C ->
   exists x : Word, length x <= evalPoly {| coefficient := 1; degree := 1 |}
                                  (length (encCircuit n C)) /\ output x C = true.

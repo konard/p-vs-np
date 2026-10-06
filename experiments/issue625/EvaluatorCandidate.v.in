@@ -4,8 +4,8 @@ From proofs.experiments.issue532.rocq Require Import Idea41.
 From proofs.experiments.issue567.rocq Require Import CircuitSyntax.
 Import Complexity Machines Circuits.
 
-(* The table, examples and universal phase invariants are experimental.
-   Whole evaluator correctness and polynomial termination remain pending. *)
+(* The generated table equals the certified CircuitVerifier table. These
+   interpreter and concrete-run regressions complement its universal proof. *)
 Module EvaluatorCandidate.
 
 @TABLE@

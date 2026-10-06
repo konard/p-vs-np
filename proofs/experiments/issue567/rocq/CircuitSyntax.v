@@ -2,7 +2,7 @@
     This checks syntax only, not wire bounds, length or NAND evaluation. *)
 From Stdlib Require Import List Bool Arith Lia.
 Import ListNotations.
-From proofs.experiments.issue532.rocq Require Import Idea41.
+From proofs.experiments.issue532.rocq Require Import Idea41Core.
 Import Complexity Machines Circuits.
 
 Module CircuitSyntax.

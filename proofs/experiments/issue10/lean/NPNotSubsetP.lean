@@ -26,9 +26,9 @@ The file proves:
 * the corrected bridges: `NP ⊄ P/poly` gives `NP ⊈ P` given `P ⊆ P/poly`, and
   Williams gives only `NEXP ⊄ P/poly`.
 
-Nothing here asserts an unproved theorem. Known theorems are hypotheses. The
-next ingredient to discharge is `CircuitSATInNP`, the circuit-evaluating
-verifier; `satisfying_input_within_certBound` is its certificate-length half.
+Known Williams theorems remain explicit hypotheses. CircuitSAT membership is
+proved by Idea 41's finite verifier; `satisfying_input_within_certBound` records
+the linear certificate bound independently.
 -/
 
 namespace Issue10.NPNotSubsetP
@@ -264,22 +264,21 @@ theorem williams_nexp_lower_bound (hier : NTimeHierarchy) (ewl : EasyWitnessLemm
 
 /-- `NEXP ⊄ P/poly` also follows from `P = NP` under the same theorems, so it
 cannot by itself give `NP ⊈ P`. -/
-theorem nexp_lower_bound_of_pEqualsNP (mem : CircuitSATInNP) (hier : NTimeHierarchy)
+theorem nexp_lower_bound_of_pEqualsNP (hier : NTimeHierarchy)
     (ewl : EasyWitnessLemma) (speedup : WilliamsSpeedup) (h : PEqualsNP) :
     ¬ NEXPSubsetPPoly :=
-  not_nexpSubsetPPoly_of_pEqualsNP mem hier ewl speedup h
+  not_nexpSubsetPPoly_of_pEqualsNP hier ewl speedup h
 
 /-- The route that does reach `NP ⊈ P`: refute the fast algorithm itself. -/
-theorem npNotSubsetP_of_not_fastCircuitSAT (mem : CircuitSATInNP) (h : ¬ FastCircuitSAT) :
+theorem npNotSubsetP_of_not_fastCircuitSAT (h : ¬ FastCircuitSAT) :
     NPNotSubsetP :=
-  pNotEqualsNP_of_not_fastCircuitSAT mem h
+  pNotEqualsNP_of_not_fastCircuitSAT h
 
-/-! ## The next ingredient: `CircuitSATInNP`
+/-! ## The certificate bound for the proved `CircuitSATInNP`
 
 A verifier for `CircuitSAT` takes a satisfying input as certificate. The
 certificate is short: it has `n` bits and the encoding starts with `n + 1`
-bits. The remaining part is the evaluating `Machine` and its polynomial
-`Run` bound. -/
+bits. Idea 41 supplies the evaluating `Machine` and its polynomial `Run` bound. -/
 
 theorem satisfying_input_within_certBound (n : Nat) (C : Circuit)
     (h : CircuitSatisfiable n C) :

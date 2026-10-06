@@ -82,7 +82,12 @@
     {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_rejectAll_empty_clause", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_rejectAll_empty_cnf", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.rejectAll_defeated", "allowed_axioms": ["propext"]},
-    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_zero_clock", "allowed_axioms": ["propext"]}
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_zero_clock", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue532/lean/Idea41.lean", "theorem": "Issue532.Idea41.circuitSATInNP", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue532/lean/Idea41.lean", "theorem": "Issue532.Idea41.pNotEqualsNP_of_not_fastCircuitSAT", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue532/lean/Idea41.lean", "theorem": "Issue532.Idea41.fastCircuitSAT_of_pEqualsNP", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue532/lean/Idea41.lean", "theorem": "Issue532.Idea41.pNotEqualsNP_of_nexpSubsetPPoly", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue532/lean/Idea41.lean", "theorem": "Issue532.Idea41.not_nexpSubsetPPoly_of_pEqualsNP", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]}
   ],
   "rocq": [
     {"source": "proofs/complexity/rocq/Complexity.v", "theorem": "Complexity.pSubsetNP", "allowed_axioms": []},
@@ -167,6 +172,11 @@
     {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_rejectAll_empty_clause", "allowed_axioms": []},
     {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_rejectAll_empty_cnf", "allowed_axioms": []},
     {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.rejectAll_defeated", "allowed_axioms": []},
-    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_zero_clock", "allowed_axioms": []}
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_zero_clock", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Idea41.v", "theorem": "Idea41.circuitSATInNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Idea41.v", "theorem": "Idea41.pNotEqualsNP_of_not_fastCircuitSAT", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Idea41.v", "theorem": "Idea41.fastCircuitSAT_of_pEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Idea41.v", "theorem": "Idea41.pNotEqualsNP_of_nexpSubsetPPoly", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Idea41.v", "theorem": "Idea41.not_nexpSubsetPPoly_of_pEqualsNP", "allowed_axioms": []}
   ]
 }

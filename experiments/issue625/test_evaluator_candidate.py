@@ -1,4 +1,4 @@
-"""Bounded experiments for a prospective circuit-evaluation instruction table.
+"""Bounded regressions for the certified circuit-evaluation instruction table.
 
 These checks compare actual charged machine instructions with the circuit
 specification. They do not replace a universally quantified prover theorem.
@@ -16,10 +16,21 @@ from experiments.issue625.evaluator_candidate import (
     run_machine,
     verify_circuit,
 )
-from experiments.issue625.check_evaluator_candidate import AUDITED_THEOREMS, audit_reports
+from experiments.issue625.check_evaluator_candidate import (
+    AUDITED_THEOREMS, audit_reports, machine_mutations,
+)
 
 
 class EvaluatorCandidateTests(unittest.TestCase):
+    def test_mutations_disagree_with_verifier(self):
+        for name, (program, word, cert, supplied, zero_step) in machine_mutations().items():
+            with self.subTest(mutation=name):
+                result = run_machine(word, supplied, program=program)
+                if zero_step:
+                    self.assertGreater(result.steps, 0)
+                else:
+                    self.assertNotEqual(result.answer, verify_circuit(word, cert))
+
     def check_pair(self, word, certificate):
         result = run_machine(word, certificate)
         self.assertEqual(result.answer, verify_circuit(word, certificate),
@@ -107,6 +118,10 @@ class CandidateAssumptionTests(unittest.TestCase):
     def test_certificate_phase_admission_rejected(self):
         with self.assertRaisesRegex(ValueError, 'count_success uses unapproved assumptions'):
             audit_reports('lean', self.lean_reports({'count_success': 'sorryAx'}))
+
+    def test_whole_verifier_admission_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'verifier_run uses unapproved assumptions'):
+            audit_reports('lean', self.lean_reports({'verifier_run': 'sorryAx'}))
 
     def test_missing_lean_report_rejected(self):
         with self.assertRaisesRegex(ValueError, 'missing assumption report'):

@@ -25,4 +25,5 @@ by a fixed assignment, omitting its length check, and omitting the wire bounds.
 It checks the failure diagnostic as well as the exit status so a broken import
 does not count as a rejected mutation. Logs are kept in the ignored `logs/`
 directory. These are mutation checks for the proven syntax slice and the finite
-verifier; they do not claim a machine-level NAND evaluation proof.
+verifier function. The additional [issue 625 mutations](../issue625/README.md)
+exercise actual transition rows of the certified NAND evaluator.

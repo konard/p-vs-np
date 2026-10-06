@@ -7,6 +7,7 @@ For every idea NN the checker requires:
   headings, one allowed verdict, and a section-3 table whose theorem names
   are declared in both the Lean and the Rocq file;
 * ``lean/IdeaNN.lean`` in namespace ``Issue532.IdeaNN`` and ``rocq/IdeaNN.v``,
+  with any imported ``IdeaNNCore`` companion checked by the same rules,
   both free of admissions, axioms, and trivial ``True`` conclusions;
 * every definition whose doc comment calls it an "open obligation" lives in a
   file that imports the shared machine model, mentions that model (directly or
@@ -194,6 +195,13 @@ def paths(number: int) -> dict[str, Path]:
     }
 
 
+def prover_files(number: int, language: str) -> list[Path]:
+    """Public entry point and its optional core, which must really be imported."""
+    main = paths(number)[language]
+    core = main.with_name(f"Idea{number:02d}Core{main.suffix}")
+    return [main, core] if core.is_file() else [main]
+
+
 def table_rows(markdown: str) -> list[list[str]]:
     """Backticked names in the first column of each section-3 table row."""
     start = markdown.find(SECTIONS[2])
@@ -260,12 +268,19 @@ def check_idea(number: int) -> list[str]:
             errors.append(f"Idea{number:02d}.md: no link to {target}")
 
     for language in ("lean", "rocq"):
-        errors.extend(check_prover_file(language, files[language], number))
-        # An idea that claims an open obligation must state it in the file,
+        proof_files = prover_files(number, language)
+        for path in proof_files:
+            errors.extend(check_prover_file(language, path, number))
+        if len(proof_files) > 1:
+            closure = source_closure(ROOT, [{"source": str(files[language].relative_to(ROOT))}])
+            if proof_files[1] not in closure:
+                errors.append(f"{files[language].name}: core companion is not imported")
+        # An idea that claims an open obligation must state it in its files,
         # where `check_obligations` ties it to the machine model.
         if verdict and verdict.group(1).startswith(VERDICTS[2]) and not any(
             OBLIGATION.search(match.group("doc"))
-            for match in DOCUMENTED[language].finditer(files[language].read_text())
+            for path in proof_files
+            for match in DOCUMENTED[language].finditer(path.read_text())
         ):
             errors.append(
                 f"Idea{number:02d}: verdict claims an open obligation but {files[language].name} "
@@ -280,7 +295,7 @@ def check_idea(number: int) -> list[str]:
     sources = {
         language: "\n".join(
             strip_comments_and_strings(path.read_text(), language)
-            for path in [files[language], *SHARED[language]]
+            for path in [*prover_files(number, language), *SHARED[language]]
             if path.is_file()
         )
         for language in ("lean", "rocq")

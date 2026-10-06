@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Local counterparts of the repository's Python and prover regression checks.
 # Run after lake build and make -f Makefile.coq. The final mandatory completion
-# gate fails until the full issue 625 deliverable has been proved and certified.
+# gate checks the unconditional membership proof and all six bridge signatures.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 python3 scripts/check_gubin_audit.py

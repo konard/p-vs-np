@@ -1,4 +1,4 @@
-import proofs.experiments.issue532.lean.Idea41
+import proofs.experiments.issue532.lean.Idea41Core
 
 /-!
 The regular grammar of `encCircuit`, checked by a six-state finite machine.

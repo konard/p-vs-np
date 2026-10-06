@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Experimental single-tape circuit evaluator; its universal proof is pending.
+"""Executable counterpart of the certified single-tape circuit evaluator.
 
 The table uses exactly Complexity's four symbols and charged instructions.
 It never calls the decoder or evaluator. Unary indices are counted by shuttling
 between one marked gate and a marked wire-list cursor. Each gate's output is
 appended to the certificate region only after both lookups succeed.
 
-This is a bounded executable experiment, NOT a proof of CircuitSATInNP.
+The paired CircuitVerifier modules prove this table correct for all inputs.
+This bounded interpreter is used only for concrete regression traces.
 """
 
 import argparse
@@ -188,15 +189,16 @@ STATES, TABLE = instruction_table()
 STATE_INDEX = {state: index for index, state in enumerate(STATES)}
 
 
-def run_machine(word, certificate, *, trace=False, step_limit=None):
+def run_machine(word, certificate, *, trace=False, step_limit=None, program=None):
     """Follow Complexity.moveHead exactly, including explicit blank cells."""
+    program = TABLE if program is None else program
     symbols = [ONE if bit else ZERO for bit in word] + [SEPARATOR] + [ONE if bit else ZERO for bit in certificate]
     left, head, right = [], symbols[0], deque(symbols[1:])
     state = 0
     if step_limit is None:
         step_limit = 128 * (len(word) + len(certificate) + 2) ** 2
     for steps in range(1, step_limit + 1):
-        instruction = TABLE[state][head]
+        instruction = program[state][head]
         if trace:
             print(json.dumps({'step': steps, 'state': STATES[state], 'left': left,
                               'head': head, 'right': list(right)}, separators=(',', ':')))

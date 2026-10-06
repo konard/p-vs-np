@@ -7,6 +7,8 @@ import subprocess
 import tempfile
 import unittest
 
+from scripts.check_proof_status import local_imports
+
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github/workflows/verification.yml"
@@ -29,6 +31,19 @@ def step_script(name):
 
 
 class VerificationWorkflowTests(unittest.TestCase):
+    def test_explicit_rocq_build_orders_local_dependencies(self):
+        compiled = set()
+        sources = re.findall(
+            r"(?m)^\s+rocq compile -Q \. '' (\S+\.v)$", WORKFLOW.read_text()
+        )
+        self.assertTrue(sources, "No explicit Rocq build found")
+        for source in sources:
+            path = ROOT / source
+            missing = local_imports(ROOT, path) - compiled
+            names = sorted(str(p.relative_to(ROOT)) for p in missing)
+            self.assertFalse(missing, f"{source} is compiled before {names}")
+            compiled.add(path)
+
     def run_detector(self, event, files="", base="main", git_failure=False):
         with tempfile.TemporaryDirectory() as temp:
             temp = Path(temp)
