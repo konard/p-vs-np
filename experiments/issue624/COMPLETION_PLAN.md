@@ -271,6 +271,6 @@ reduction, hardness, and unconditional bridge obligations are incomplete.
   `ci-logs/repeat-full.log`; completion still exits 1 with 42 diagnostics.
 - [ ] Finish copying, nested schema loops, input reads, setup/restoration,
   `red_computes`, hardness/completeness, and the unconditional bridge proofs.
-- [ ] Commit useful checked work, push only the prepared branch, update PR
+- [x] Commit useful checked work, push only the prepared branch, update PR
   #630, and inspect the new CI run's SHA, timestamp, and non-passing logs.
 - [ ] Pass the full completion checks and mark the PR ready.
