@@ -70,7 +70,7 @@ theorem readNormalize_reaches (b : Bool) (x : Word) (pre post : List Nat) (out :
         (x.map Symbol.ofBool ++ .separator :: tape (regWords (pre ++ 0 :: post) ++ [out]))
       have h := reaches_append (incr pre.length 1) hh
       simpa [readNormalize, readNormalizeTime, encode, home, blocks, regWords,
-        tape, List.append_assoc] using h
+        tape, Symbol.ofBool, List.append_assoc] using h
   | true =>
       have hh := readNormalizeHead_one (incr pre.length 1).program.length
         (x.map Symbol.ofBool ++ .separator :: tape (regWords (pre ++ 0 :: post) ++ [out]))
@@ -89,7 +89,7 @@ theorem readNormalize_reaches (b : Bool) (x : Word) (pre post : List Nat) (out :
           (encode 0 (true :: x) ⟨pre ++ 0 :: post, out⟩) 3
           (encode 4 (true :: x) ⟨pre ++ 0 :: post, out⟩) := by
         simpa [readNormalize, encode, home, blocks, regWords, tape,
-          List.append_assoc] using hhead
+          Symbol.ofBool, List.append_assoc] using hhead
       simpa [readNormalizeTime, Nat.add_assoc] using hhead'.trans htail'
 
 /-- Cost of deleting the now-normalized leading one from the input block. -/
@@ -115,7 +115,7 @@ theorem dropNormalized_reaches (x : Word) (st : State) :
         · exact tape_nonblank (regWords st.regs ++ [st.out]) a h))
   have hs' : Reaches (pop 0) (encode 0 (true :: x) st) 1
       ⟨(seek 0).program.length, [.blank], .one, xs⟩ := by
-    simpa [pop, encode, home, blocks, tape, regWords, xs] using hs
+    simpa [pop, encode, home, blocks, tape, regWords, Symbol.ofBool, scanConfig, xs] using hs
   have hd' : Reaches (pop 0)
       ⟨(seek 0).program.length, [.blank], .one, xs⟩
       (4 * xs.length + 4)
@@ -125,9 +125,10 @@ theorem dropNormalized_reaches (x : Word) (st : State) :
   refine ⟨⟨(pop 0).program.length, [], .blank, xs ++ [.blank, .blank]⟩, ?_, ?_⟩
   · have hlen : xs.length =
         x.length + 1 + (tape (regWords st.regs ++ [st.out])).length := by
-      simp [xs]
-    rw [dropNormalizedTime, hlen]
-    omega
+      simp [xs, tape]
+      omega
+    convert hs'.trans hd' using 1 <;>
+      simp [dropNormalizedTime, hlen] <;> omega
   · refine ⟨rfl, rfl, rfl, ?_⟩
     refine ⟨tape (blocks x st), 0, 2, ?_, ?_⟩
     · simp [blanks, encode, home]
