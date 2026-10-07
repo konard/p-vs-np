@@ -1,0 +1,92 @@
+From Stdlib Require Import List Bool Arith Lia.
+From proofs.experiments.issue624.rocq Require Import RegisterMachine.
+Import ListNotations Complexity.Complexity Machines RegisterMachine.
+
+Example generic_push : forall (pre post : list Word) (w : Word) (b : bool),
+  Reaches (push (length pre) b) (home 0 (pre ++ w :: post))
+    (pushTime (pre ++ w :: post))
+    (home (length (program (push (length pre) b))) (pre ++ (w ++ [b]) :: post)).
+Proof. exact push_reaches. Qed.
+
+Fixpoint probe (m : Machine) (fuel : nat) (c : Config) : option Config :=
+  match fuel with
+  | 0 => None
+  | S f => if Nat.eqb (state c) (length (program m)) then Some c else
+    match step m c with inl _ => None | inr d => probe m f d end
+  end.
+Definition result (slot : nat) (b : bool) (blocks : list Word) :=
+  option_map (fun c => (state c, tapeLeft c, tapeHead c, tapeRight c))
+    (probe (push slot b) (S (pushTime blocks)) (home 0 blocks)).
+Example empty_blocks : result 0 true [[]; []; []] =
+  Some (6, [], blank, [one; separator; separator; separator]).
+Proof. reflexivity. Qed.
+Example retained_suffix : result 1 true [[false; true]; []; [true; false]] =
+  Some (7, [], blank, [zero; one; separator; one; separator; one; zero; separator]).
+Proof. reflexivity. Qed.
+Example final_output : result 2 false [[true]; [true; true]; [true; false]] =
+  Some (8, [], blank, [one; separator; one; one; separator; one; zero; zero; separator]).
+Proof. reflexivity. Qed.
+Example insufficient_fuel : probe (push 1 true) (pushTime [[false]; []; [true]])
+  (home 0 [[false]; []; [true]]) = None.
+Proof. reflexivity. Qed.
+Example missing_home : step (push 0 true)
+  {| state := 0; tapeLeft := []; tapeHead := one; tapeRight := [] |} = inl false.
+Proof. reflexivity. Qed.
+Print Assumptions push_reaches.
+
+Example generic_word : forall pre post old w,
+  Reaches (pushWord (length pre) w) (home 0 (pre ++ old :: post))
+    (wordTime (length w) (length (tape (pre ++ old :: post))))
+    (home (length (program (pushWord (length pre) w))) (pre ++ (old ++ w) :: post)).
+Proof. exact pushWord_reaches. Qed.
+Definition fromState (m : Machine) (x : Word) (st : State) (count : nat) :=
+  option_map (fun c => (state c, tapeLeft c, tapeHead c, tapeRight c))
+    (probe m (S (wordTime count (length (tape (blocks x st))))) (encode 0 x st)).
+Example increment_middle : fromState (incr 1 2) [false; true] (mkState [1; 0; 1] [false]) 2 =
+  Some (16, [], blank, [zero; one; separator; one; separator;
+    one; one; separator; one; separator; zero; separator]).
+Proof. reflexivity. Qed.
+Example output_append : fromState (emitConst 2 [true; false]) [false] (mkState [0; 1] [true]) 2 =
+  Some (18, [], blank, [zero; separator; separator; one; separator; one; one; zero; separator]).
+Proof. reflexivity. Qed.
+Example output_empty : fromState (emitConst 0 []) [true] (mkState [] [false]) 0 =
+  Some (0, [], blank, [one; separator; zero; separator]).
+Proof. reflexivity. Qed.
+Example polynomial_cost : forall count size,
+  wordTime count size <= evalPoly emissionPolynomial (size+count).
+Proof. exact wordTime_polynomial. Qed.
+Print Assumptions pushWord_reaches.
+Print Assumptions incr_reaches.
+Print Assumptions emitConst_reaches.
+Print Assumptions wordTime_polynomial.
+
+Definition composed : Prog := seq (increment 0 2) (seq (emit [false]) (increment 1 1)).
+Example composed_well_formed : WellFormed 2 composed.
+Proof. cbn; repeat split; auto. Qed.
+Example composed_cost : cost [true] composed (mkState [0; 1] [true]) = 84.
+Proof. reflexivity. Qed.
+Example composed_execution : option_map
+  (fun c => (state c, tapeLeft c, tapeHead c, tapeRight c))
+  (probe (compile 2 composed) 85 (encode 0 [true] (mkState [0; 1] [true]))) =
+  Some (31, [], blank, [one; separator; one; one; separator;
+    one; one; separator; one; zero; separator]).
+Proof. reflexivity. Qed.
+Example generic_compiler : forall x k p st, WellFormed k p -> length (regs st) = k ->
+  Reaches (compile k p) (encode 0 x st) (cost x p st)
+    (encode (length (program (compile k p))) x (runProg p st)).
+Proof. exact compile_reaches. Qed.
+
+Example invalid_register : ~ WellFormed 0 (increment 0 1).
+Proof. cbn; lia. Qed.
+Example composed_short_fuel : probe (compile 2 composed) 84
+  (encode 0 [true] (mkState [0; 1] [true])) = None.
+Proof. reflexivity. Qed.
+Example empty_compiler : probe (compile 2 empty) 1 (encode 0 [] (mkState [0; 1] [])) =
+  Some (encode 0 [] (mkState [0; 1] [])).
+Proof. reflexivity. Qed.
+Example generic_cost_bound : forall x k p st, WellFormed k p -> length (regs st) = k ->
+  cost x p st <= evalPoly emissionPolynomial (length (tape (blocks x st)) + growth p).
+Proof. exact cost_polynomial. Qed.
+Print Assumptions compile_reaches.
+Print Assumptions cost_eq_wordTime.
+Print Assumptions cost_polynomial.

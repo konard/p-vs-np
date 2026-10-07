@@ -184,6 +184,34 @@ premise remains required. That checkpoint registered 235 conclusions per prover.
   the findings in the PR description.
 - [ ] Verify the full deliverable and all CI pass, then mark PR #630 ready.
 
+- [x] Inspect run `37555408647`, verify its timestamp and `f4cc36b` SHA,
+  download the failing job logs, and reproduce all 42 completion diagnostics.
+  Fetch the latest default branch; `origin/main` is already included.
+- [x] Add paired register insertion regressions before implementation and
+  preserve the initial missing-module failures in `ci-logs/`.
+- [x] Generate the finite seek/carry/return tables from one source and prove
+  their home-preserving `Reaches` contracts in both kernels. Retain every
+  input/register/output symbol and charge exactly `2 * payload.length + 4`.
+- [x] Compose the table into fixed-count increments and constant output
+  append. Prove exact cost `c * (2 * payload.length + c + 3)` and an explicit
+  polynomial bound; test empty words, middle registers, and retained suffixes.
+- [x] Register all 33 paired conclusions using kernel-reported assumptions;
+  add the modules and regressions to both project/certification builds and
+  local checks. Check regeneration, theorem parity, and 2,058 finite executions.
+- [x] Build the straight-line `Prog` compiler for increments, constant emission,
+  and sequencing; prove its generic execution contract against pure `runProg`
+  and exact `cost` semantics. Prove tape growth, the closed-form total cost,
+  and its polynomial envelope in both kernels; execute a mixed program and
+  reject insufficient fuel and invalid register indices.
+- [x] Run full Python/Lean/Rocq/Agda verification, both 321-result kernel
+  audits, the original tableau/bridge type checks, and negative kernel probes.
+  Review the diff and pass workflow lint and `git diff --check`; preserve
+  `ci-logs/register-full.log`. The completion command with both kernel flags
+  still exits 1 with the same 42 diagnostics.
+- [ ] Finish the register program compiler, dynamic arithmetic/loop/input-bit
+  blocks, schema emission, setup, and tape restoration; consume them in
+  `red_computes`, assemble hardness/completeness, and remove bridge premises.
+
 The counter's output is a tape-block configuration, not `Computes red`.
 No formula-emitting reduction table or charged bound for it is established.
 All probes use finite inputs; no deliberate stack or memory stress is used.

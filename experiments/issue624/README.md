@@ -30,6 +30,20 @@ entry from `initial x`, including genuinely empty input, input retention, and
 construction of the unary input length. The generic block contracts and
 explicit polynomial envelopes are proved in both kernels.
 
+`RegisterRegression` checks a shared generated insertion table on empty and
+mixed-bit blocks, middle-register and final-output insertion, insufficient
+fuel, and a missing home marker. The paired generic contracts quantify over
+every input, register, and output block. Inserting one bit costs exactly
+`2 * payload.length + 4`; appending `c` bits costs
+`c * (2 * payload.length + c + 3)`. Fixed-count increments and constant
+emission preserve the retained input and all other blocks. Regeneration and
+bounded execution tests cover 2,058 small configurations from the same tables.
+The straight-line `Prog` compiler sequences these operations with pure
+`runProg` and `cost` semantics. Its generic execution theorem checks register
+indices and preserves the number of registers. A complete program costs
+`wordTime (growth p) payload.length`; the regressions execute a mixed
+increment/emission sequence and reject one fewer unit of fuel.
+
 After building the imported modules, run:
 
 ```sh
@@ -43,6 +57,7 @@ lake env lean experiments/issue624/SuccessorRegression.lean
 lake env lean experiments/issue624/RunCNFRegression.lean
 lake env lean experiments/issue624/TableauCNFRegression.lean
 lake env lean experiments/issue624/CounterRegression.lean
+lake env lean experiments/issue624/RegisterRegression.lean
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 bash experiments/issue624/check.sh all
@@ -70,12 +85,14 @@ rocq repl -quiet -Q proofs proofs < experiments/issue624/successor_decode_probe.
 rocq repl -quiet < experiments/issue624/successor_arithmetic_probe.in
 rocq repl -quiet -Q . '' < experiments/issue624/run_probe.in
 rocq repl -quiet -Q . '' < experiments/issue624/initial_probe.in
+rocq repl -quiet -Q . '' < experiments/issue624/register_probe.in
 python3 experiments/issue624/run_assumptions.py
 python3 experiments/issue624/check_tableau_contracts.py --lean
 python3 experiments/issue624/check_tableau_contracts.py --rocq
 python3 experiments/issue624/existing_bridge_probe.py --lean
 python3 experiments/issue624/existing_bridge_probe.py --rocq
 python3 experiments/issue624/counter_assumptions.py
+python3 experiments/issue624/register_assumptions.py
 ```
 
 [PLAN.md](PLAN.md) tracks the completed prerequisites and the remaining

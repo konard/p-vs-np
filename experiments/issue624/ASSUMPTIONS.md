@@ -7,7 +7,7 @@ certificate CNF, exact-clock recovery, fixed-window verifier semantics,
 local CNF combinators, shared NAND-circuit, finite-row successor and bounded
 accepting-trace compilers, and a finite fixed-output machine. The full tableau
 and its unary size bound are covered by the continuation reports below.
-`satHard` and the input-dependent reduction machine remain
+`satHard` and the input-independent reduction machine remain
 unimplemented.
 
 ## Direct Lean reports
@@ -581,3 +581,87 @@ The permitted assumptions of the completion gate remain unchanged.
 These equations preserve the original tableau contracts through exact list
 equality. They do not discharge `red_computes`, `satHard`, or `cookLevin`;
 the completion preflight still reports the same 42 diagnostics.
+
+## Charged register program reports (2026-10-07)
+
+`python3 experiments/issue624/register_assumptions.py` queries all 33 paired
+conclusions. `RegisterRegression` independently prints the eight main contracts.
+The generated finite tables use the shared charged machine semantics and
+`appendMachine`; no additional assumptions or counter semantics are introduced.
+
+```text
+lean Issue624.RegisterMachine.tape_append: propext
+lean Issue624.RegisterMachine.tape_cons: propext
+lean Issue624.RegisterMachine.tape_nonblank: Quot.sound, propext
+lean Issue624.RegisterMachine.seekRows_length: propext
+lean Issue624.RegisterMachine.seek_states: propext
+lean Issue624.RegisterMachine.push_states: propext
+lean Issue624.RegisterMachine.seekRows_get: Quot.sound, propext
+lean Issue624.RegisterMachine.seek_instruction: Quot.sound, propext
+lean Issue624.RegisterMachine.seek_scan: Quot.sound, propext
+lean Issue624.RegisterMachine.seek_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.grow_carry_instruction: propext
+lean Issue624.RegisterMachine.shift_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.grow_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.push_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.pushWord_states: propext
+lean Issue624.RegisterMachine.wordTime_succ: Quot.sound, propext
+lean Issue624.RegisterMachine.pushWord_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.wordTime_polynomial: Quot.sound, propext
+lean Issue624.RegisterMachine.incr_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.emitConst_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.incrementRegs_length: propext
+lean Issue624.RegisterMachine.incrementRegs_split: propext
+lean Issue624.RegisterMachine.register_decomposition: propext
+lean Issue624.RegisterMachine.runProg_regs_length: propext
+lean Issue624.RegisterMachine.increment_state_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.compile_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.tape_regWords_length: Quot.sound, propext
+lean Issue624.RegisterMachine.blocks_length: Quot.sound, propext
+lean Issue624.RegisterMachine.incrementRegs_sum: propext
+lean Issue624.RegisterMachine.runProg_tape_length: Quot.sound, propext
+lean Issue624.RegisterMachine.wordTime_add: Quot.sound, propext
+lean Issue624.RegisterMachine.cost_eq_wordTime: Quot.sound, propext
+lean Issue624.RegisterMachine.cost_polynomial: Quot.sound, propext
+rocq RegisterMachine.tape_append: (none)
+rocq RegisterMachine.tape_cons: (none)
+rocq RegisterMachine.tape_nonblank: (none)
+rocq RegisterMachine.seekRows_length: (none)
+rocq RegisterMachine.seek_states: (none)
+rocq RegisterMachine.push_states: (none)
+rocq RegisterMachine.seekRows_get: (none)
+rocq RegisterMachine.seek_instruction: (none)
+rocq RegisterMachine.seek_scan: (none)
+rocq RegisterMachine.seek_reaches: (none)
+rocq RegisterMachine.grow_carry_instruction: (none)
+rocq RegisterMachine.shift_reaches: (none)
+rocq RegisterMachine.grow_reaches: (none)
+rocq RegisterMachine.push_reaches: (none)
+rocq RegisterMachine.pushWord_states: (none)
+rocq RegisterMachine.wordTime_succ: (none)
+rocq RegisterMachine.pushWord_reaches: (none)
+rocq RegisterMachine.wordTime_polynomial: (none)
+rocq RegisterMachine.incr_reaches: (none)
+rocq RegisterMachine.emitConst_reaches: (none)
+rocq RegisterMachine.incrementRegs_length: (none)
+rocq RegisterMachine.incrementRegs_split: (none)
+rocq RegisterMachine.register_decomposition: (none)
+rocq RegisterMachine.runProg_regs_length: (none)
+rocq RegisterMachine.increment_state_reaches: (none)
+rocq RegisterMachine.compile_reaches: (none)
+rocq RegisterMachine.tape_regWords_length: (none)
+rocq RegisterMachine.blocks_length: (none)
+rocq RegisterMachine.incrementRegs_sum: (none)
+rocq RegisterMachine.runProg_tape_length: (none)
+rocq RegisterMachine.wordTime_add: (none)
+rocq RegisterMachine.cost_eq_wordTime: (none)
+rocq RegisterMachine.cost_polynomial: (none)
+```
+
+These contracts establish insertion into any delimited block, fixed-count
+unary register increment, constant output append, and the straight-line `Prog`
+compiler. `compile_reaches` checks pure `runProg` and exact `cost` semantics.
+The compiler preserves input and register count and returns the head to home;
+`cost_eq_wordTime` accounts for tape growth between instructions. Dynamic
+arithmetic, loops, the final reduction machine and charged `Computes` proof,
+and hardness remain outstanding.

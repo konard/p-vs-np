@@ -1,0 +1,14 @@
+From Stdlib Require Import List.
+From proofs.experiments.issue624.rocq Require Import RegisterMachine.
+Import ListNotations Complexity.Complexity Machines RegisterMachine.
+
+(* The state-offset normalization used to join adjacent register blocks. *)
+Goal forall off q blocks,
+  shiftConfig off (home q blocks) = home (q+off) blocks.
+Proof.
+  intros. unfold home, shiftConfig.
+  cbn [state tapeLeft tapeHead tapeRight]. Show.
+  reflexivity.
+Qed.
+Print Assumptions compile_reaches.
+Print Assumptions cost_polynomial.

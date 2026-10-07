@@ -417,6 +417,23 @@ nested indices, one-hot clause order, zero certificate bounds, and bit reads.
 The schema is consumed by the complete tableau definition; a generic machine
 compiler and charged reduction contract remain to be proved.
 
+The paired `RegisterMachine` modules begin the compiler layer. A blank home
+marker precedes `x # r₁ # … # rₖ # out #`. A generated finite seek/carry/return
+table inserts one bit into any block, shifts the full suffix, and returns to
+home without changing any other symbol. `push_reaches` charges exactly
+`2 * payload.length + 4`. Its repeated composition gives fixed-count unary
+increments and constant output append with cost
+`wordTime c size = c * (2 * size + c + 3)`.
+
+`Prog` currently contains empty programs, fixed increments, constant emission,
+and sequencing. `compile_reaches` checks every well-formed program against
+the pure `runProg` and `cost` semantics in the shared finite machine model.
+The compiled table depends only on the program and register count.
+`cost_eq_wordTime` and `cost_polynomial` account for growth of the tape between
+instructions. These proofs consume `push_reaches` and its register contracts;
+dynamic arithmetic, loops, schema emission, setup, and tape restoration remain
+necessary to construct `CookLevin.red`.
+
 ## Verification and limits
 
 The paired [regressions](../../../experiments/issue624/) cover zero bounds,
@@ -467,9 +484,12 @@ lake env lean experiments/issue624/SuccessorRegression.lean
 lake env lean experiments/issue624/RunCNFRegression.lean
 lake env lean experiments/issue624/TableauCNFRegression.lean
 lake env lean experiments/issue624/CounterRegression.lean
+lake env lean experiments/issue624/RegisterRegression.lean
 lake env lean experiments/issue624/SchemaRegression.lean
 python3 experiments/issue624/generate_schema.py --check
 python3 -m unittest experiments.issue624.test_schema -v
+python3 experiments/issue624/generate_register_machine.py --check
+python3 -m unittest experiments.issue624.test_register_machine -v
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py
