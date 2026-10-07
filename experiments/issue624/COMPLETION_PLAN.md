@@ -236,5 +236,11 @@ All probes use finite inputs; no deliberate stack or memory stress is used.
   the manifest now contains 342 conclusions per prover.
 - [ ] Finish dynamic copying/loops, input reads, schema compilation, setup,
   restoration, and reduction/hardness/bridge proofs without changing the gate.
-- [ ] Run the full local suite once before pushing, inspect logs and diff,
-  commit atomic checked work, update PR #630, and inspect the fresh CI run.
+- [x] Run the full local Python/Lean/Rocq/Agda suite once before pushing,
+  both 342-result kernel audits, tableau/bridge contracts, and negative
+  probes; inspect logs and diff and commit atomic checked work. Preserve
+  `ci-logs/dynamic-full.log`. The separate completion command with both
+  kernel flags still exits 1 with the same 42 diagnostics.
+
+Fresh CI evidence is recorded in PR #630. The PR remains draft while the
+reduction, hardness, and unconditional bridge obligations are incomplete.
