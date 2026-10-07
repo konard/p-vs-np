@@ -31,6 +31,22 @@ Fixpoint pushWord (slot : nat) (w : Word) : Machine :=
 Definition incr (slot count : nat) : Machine := pushWord (slot+1) (repeat true count).
 Definition emitConst (registers : nat) (w : Word) : Machine := pushWord (registers+1) w.
 
+Definition deleteFirst : Machine := {| program := [
+  [halt false; halt false; move 1 blank right; move 8 separator left];
+  [move 7 blank left; move 2 zero left; move 3 one left; move 4 separator left];
+  [move 5 zero right; halt false; halt false; halt false];
+  [move 5 one right; halt false; halt false; halt false];
+  [move 5 separator right; halt false; halt false; halt false];
+  [halt false; move 1 blank right; move 1 blank right; move 1 blank right];
+  [move 9 blank stay; move 6 zero left; move 6 one left; move 6 separator left];
+  [move 6 blank left; halt false; halt false; halt false];
+  [move 10 blank stay; move 8 zero left; move 8 one left; move 8 separator left]] |}.
+Definition pop (slot : nat) : Machine := appendMachine (seek slot) deleteFirst.
+Definition clearTarget (slot q : nat) : nat :=
+  if q <? length (program (pop slot)) then q else
+  if q =? length (program (pop slot)) then 0 else length (program (pop slot)).
+Definition clear (slot : nat) : Machine := retargetMachine (pop slot) (clearTarget slot).
+
 (* END GENERATED REGISTER TABLES *)
 
 Definition tape (blocks : list Word) : list Symbol :=
@@ -434,5 +450,270 @@ Qed.
 Theorem cost_polynomial : forall x k p st, WellFormed k p -> length (regs st) = k ->
   cost x p st <= evalPoly emissionPolynomial (length (tape (blocks x st)) + growth p).
 Proof. intros. rewrite (cost_eq_wordTime x k p st H H0). apply wordTime_polynomial. Qed.
+
+
+Theorem pop_states : forall slot, length (program (pop slot)) = slot+10.
+Proof.
+  intros. unfold pop, appendMachine. cbn [program]. rewrite length_app, length_map, seek_states.
+  cbn [deleteFirst program length]. lia.
+Qed.
+Theorem clear_states : forall slot,
+  length (program (clear slot)) = length (program (pop slot)).
+Proof. intros. unfold clear, retargetMachine. cbn [program]. apply length_map. Qed.
+Definition deleteCarry (a : Symbol) : nat :=
+  match a with zero => 2 | one => 3 | separator => 4 | blank => 2 end.
+Theorem delete_shift : forall xs l, (forall a, In a xs -> a <> blank) ->
+  Reaches deleteFirst (scanConfig 1 (blank::l) xs) (3*length xs+2)
+    (scanLeftConfig 6 [blank; blank] (rev xs ++ l)).
+Proof.
+  intros xs. induction xs as [|a xs IH]; intros l hx.
+  - cbn [length]. replace (3*0+2) with 2 by lia.
+    eapply reaches_next; [|eapply reaches_next; [|apply reaches_refl]];
+      destruct l; reflexivity.
+  - assert (ha : a <> blank) by (apply hx; left; reflexivity).
+    assert (h1 : step deleteFirst (scanConfig 1 (blank::l) (a::xs)) =
+      inr {| state := deleteCarry a; tapeLeft := l; tapeHead := blank; tapeRight := a::xs |})
+      by (destruct a; [contradiction|reflexivity|reflexivity|reflexivity]).
+    assert (h2 : step deleteFirst
+      {| state := deleteCarry a; tapeLeft := l; tapeHead := blank; tapeRight := a::xs |} =
+      inr {| state := 5; tapeLeft := a::l; tapeHead := a; tapeRight := xs |})
+      by (destruct a; [contradiction|reflexivity|reflexivity|reflexivity]).
+    assert (h3 : step deleteFirst
+      {| state := 5; tapeLeft := a::l; tapeHead := a; tapeRight := xs |} =
+      inr (scanConfig 1 (blank::a::l) xs))
+      by (destruct a; [contradiction|..]; destruct xs; reflexivity).
+    cbn [length rev]. rewrite <- app_assoc. cbn [app].
+    replace (3*S (length xs)+2) with (S (S (S (3*length xs+2)))) by lia.
+    eapply reaches_next; [exact h1|]. eapply reaches_next; [exact h2|].
+    eapply reaches_next; [exact h3|]. apply IH. intros b hb. apply hx. right; exact hb.
+Qed.
+Theorem delete_positive : forall p xs,
+  (forall a, In a p -> a <> blank) -> (forall a, In a xs -> a <> blank) ->
+  Reaches deleteFirst (scanConfig 0 (rev p ++ [blank]) (one::xs))
+    (length p+4*length xs+4)
+    {| state := 9; tapeLeft := []; tapeHead := blank; tapeRight := p ++ xs ++ [blank; blank] |}.
+Proof.
+  intros p xs hp hx.
+  assert (hstart : step deleteFirst (scanConfig 0 (rev p ++ [blank]) (one::xs)) =
+    inr (scanConfig 1 (blank::(rev p ++ [blank])) xs)) by (destruct xs; reflexivity).
+  pose proof (delete_shift xs (rev p ++ [blank]) hx) as hs.
+  assert (hb : Reaches deleteFirst
+    (scanLeftConfig 6 [blank; blank] (rev (p++xs) ++ [blank])) (length (p++xs))
+    {| state := 6; tapeLeft := []; tapeHead := blank; tapeRight := p ++ xs ++ [blank; blank] |}).
+  { pose proof (scan_left deleteFirst 6 (rev (p++xs)) [blank; blank] [blank]) as h.
+    rewrite length_rev, rev_involutive in h. repeat rewrite <- app_assoc in h. apply h. intros a ha.
+    apply (proj2 (in_rev _ _)) in ha. apply in_app_or in ha.
+    assert (a <> blank) by (destruct ha; [apply hp|apply hx]; assumption).
+    destruct a; [contradiction|reflexivity|reflexivity|reflexivity]. }
+  assert (hf : step deleteFirst
+    {| state := 6; tapeLeft := []; tapeHead := blank; tapeRight := p ++ xs ++ [blank; blank] |} =
+    inr {| state := 9; tapeLeft := []; tapeHead := blank; tapeRight := p ++ xs ++ [blank; blank] |}) by reflexivity.
+  rewrite rev_app_distr, <- app_assoc in hb.
+  rewrite length_app in hb.
+  replace (length p+4*length xs+4) with (S ((3*length xs+2)+(length p+length xs+1))) by lia.
+  eapply reaches_next; [exact hstart|]. eapply reaches_trans; [exact hs|].
+  replace (length p+length xs+1) with ((length p+length xs)+1) by lia.
+  eapply reaches_trans; [exact hb|]. eapply reaches_next; [exact hf|apply reaches_refl].
+Qed.
+Theorem delete_empty : forall p r, (forall a, In a p -> a <> blank) ->
+  Reaches deleteFirst {| state := 0; tapeLeft := rev p ++ [blank]; tapeHead := separator; tapeRight := r |}
+    (length p+2) {| state := 10; tapeLeft := []; tapeHead := blank; tapeRight := p ++ separator::r |}.
+Proof.
+  intros p r hp.
+  assert (hs : step deleteFirst
+    {| state := 0; tapeLeft := rev p ++ [blank]; tapeHead := separator; tapeRight := r |} =
+    inr (scanLeftConfig 8 (separator::r) (rev p ++ [blank]))) by (destruct (rev p); reflexivity).
+  assert (hb : Reaches deleteFirst
+    (scanLeftConfig 8 (separator::r) (rev p ++ [blank])) (length p)
+    {| state := 8; tapeLeft := []; tapeHead := blank; tapeRight := p ++ separator::r |}).
+  { pose proof (scan_left deleteFirst 8 (rev p) (separator::r) [blank]) as h.
+    rewrite length_rev, rev_involutive in h. repeat rewrite <- app_assoc in h. apply h. intros a ha.
+    apply (proj2 (in_rev _ _)) in ha. specialize (hp a ha).
+    destruct a; [contradiction|reflexivity|reflexivity|reflexivity]. }
+  replace (length p+2) with (S (length p+1)) by lia.
+  eapply reaches_next; [exact hs|]. eapply reaches_trans; [exact hb|].
+  eapply reaches_next; [reflexivity|apply reaches_refl].
+Qed.
+Theorem pop_positive : forall pre post n,
+  Reaches (pop (length pre)) (home 0 (pre ++ repeat true (n+1)::post))
+    (2*length (tape pre)+4*(n+1+length (tape post))+5)
+    {| state := length (program (pop (length pre))); tapeLeft := []; tapeHead := blank;
+       tapeRight := tape (pre ++ repeat true n::post) ++ [blank; blank] |}.
+Proof.
+  intros pre post n.
+  set (xs := map ofBool (repeat true n) ++ separator::tape post).
+  assert (hx : forall a, In a xs -> a <> blank).
+  { intros a ha. unfold xs in ha. apply in_app_or in ha. destruct ha as [h|[<-|h]].
+    - apply in_map_iff in h. destruct h as [b [<- _]]. destruct b; discriminate.
+    - discriminate.
+    - apply (tape_nonblank post a h). }
+  pose proof (reaches_append _ deleteFirst _ _ _ (seek_reaches pre (one::xs))) as hs.
+  pose proof (reaches_append_right (seek (length pre)) _ _ _ _
+    (delete_positive (tape pre) xs (tape_nonblank pre) hx)) as hd.
+  assert (hlen : length xs = n+1+length (tape post)) by
+    (unfold xs; rewrite length_app, length_map, repeat_length; cbn; lia).
+  rewrite pop_states. unfold pop in *.
+  unfold home. rewrite !tape_append, !tape_cons.
+  rewrite Nat.add_1_r. cbn [repeat map]. unfold xs in hs, hd.
+  cbn [shiftConfig state tapeLeft tapeHead tapeRight] in hd. rewrite seek_states in hd, hs.
+  cbn [scanConfig] in hs, hd. rewrite <- app_assoc in hd.
+  replace (length pre+10) with (9+(length pre+1)) by lia.
+  replace (2*length (tape pre)+4*(S n+length (tape post))+5) with
+    ((1+length (tape pre))+(length (tape pre)+4*length xs+4)) by (rewrite hlen; lia).
+  eapply reaches_trans; [exact hs|]. unfold shiftConfig in hd. cbn [state tapeLeft tapeHead tapeRight] in hd.
+  repeat rewrite <- app_assoc in hd. cbn [app Nat.add] in hd.
+  repeat rewrite <- app_assoc. cbn [app Nat.add]. exact hd.
+Qed.
+Theorem pop_empty : forall pre post,
+  Reaches (pop (length pre)) (home 0 (pre ++ []::post)) (2*length (tape pre)+3)
+    (home (length (program (pop (length pre)))+1) (pre ++ []::post)).
+Proof.
+  intros pre post.
+  pose proof (reaches_append _ deleteFirst _ _ _ (seek_reaches pre (separator::tape post))) as hs.
+  pose proof (reaches_append_right (seek (length pre)) _ _ _ _
+    (delete_empty (tape pre) (tape post) (tape_nonblank pre))) as hd.
+  unfold home. rewrite !tape_append, !tape_cons. cbn [map app]. rewrite pop_states.
+  unfold pop in *. rewrite seek_states in hs, hd. cbn [scanConfig] in hs.
+  cbn [shiftConfig state tapeLeft tapeHead tapeRight] in hd.
+  replace (length pre+10+1) with (10+(length pre+1)) by lia.
+  replace (2*length (tape pre)+3) with ((1+length (tape pre))+(length (tape pre)+2)) by lia.
+  eapply reaches_trans; [exact hs|exact hd].
+Qed.
+Definition clearTime (pre value post : nat) : nat := value*(2*pre+4*post+2*value+7)+2*pre+3.
+Theorem clearTime_succ : forall pre value post,
+  clearTime pre (value+1) post = (2*pre+4*(value+1+post)+5)+clearTime pre value post.
+Proof. intros. unfold clearTime. nia. Qed.
+Theorem clearTarget_inside : forall slot q, q < length (program (pop slot)) -> clearTarget slot q = q.
+Proof. intros. unfold clearTarget. apply Nat.ltb_lt in H. rewrite H. reflexivity. Qed.
+Theorem clearTarget_positive : forall slot, clearTarget slot (length (program (pop slot))) = 0.
+Proof. intros. unfold clearTarget. rewrite Nat.ltb_irrefl, Nat.eqb_refl. reflexivity. Qed.
+Theorem clearTarget_empty : forall slot,
+  clearTarget slot (length (program (pop slot))+1) = length (program (pop slot)).
+Proof.
+  intros. unfold clearTarget.
+  assert (h1 : (length (program (pop slot))+1 <? length (program (pop slot))) = false) by (apply Nat.ltb_ge; lia).
+  assert (h2 : (length (program (pop slot))+1 =? length (program (pop slot))) = false) by (apply Nat.eqb_neq; lia).
+  rewrite h1, h2. reflexivity.
+Qed.
+Theorem clear_reaches : forall pre post n,
+  exists c, Reaches (clear (length pre)) (home 0 (pre ++ repeat true n::post))
+    (clearTime (length (tape pre)) n (length (tape post))) c /\
+    Similar (home (length (program (clear (length pre)))) (pre ++ []::post)) c.
+Proof.
+  intros pre post n. induction n as [|n IH].
+  - pose proof (retarget_reaches _ _ _ _ (pop_empty pre post)
+      (clearTarget (length pre)) (clearTarget_inside (length pre))) as h.
+    exists (home (length (program (clear (length pre)))) (pre ++ []::post)). split.
+    + change (Reaches (clear (length pre))
+        (home (clearTarget (length pre) 0) (pre ++ []::post))
+        (2*length (tape pre)+3)
+        (home (clearTarget (length pre) (length (program (pop (length pre)))+1)) (pre ++ []::post))) in h.
+      rewrite clearTarget_empty, clearTarget_inside in h by (rewrite pop_states; lia).
+      unfold clearTime. cbn [repeat Nat.mul Nat.add]. rewrite clear_states. exact h.
+    + unfold Similar. repeat split. apply blankPad_refl.
+  - pose proof (retarget_reaches _ _ _ _ (pop_positive pre post n)
+      (clearTarget (length pre)) (clearTarget_inside (length pre))) as h.
+    assert (h' : Reaches (clear (length pre)) (home 0 (pre ++ repeat true (n+1)::post))
+      (2*length (tape pre)+4*(n+1+length (tape post))+5)
+      {| state := 0; tapeLeft := []; tapeHead := blank;
+         tapeRight := tape (pre ++ repeat true n::post) ++ [blank; blank] |}).
+    { change (Reaches (clear (length pre))
+        (home (clearTarget (length pre) 0) (pre ++ repeat true (n+1)::post))
+        (2*length (tape pre)+4*(n+1+length (tape post))+5)
+        {| state := clearTarget (length pre) (length (program (pop (length pre))));
+           tapeLeft := []; tapeHead := blank;
+           tapeRight := tape (pre ++ repeat true n::post) ++ [blank; blank] |}) in h.
+      rewrite clearTarget_positive, clearTarget_inside in h by (rewrite pop_states; lia). exact h. }
+    destruct IH as [c [hc hsim]].
+    assert (hp : Similar (home 0 (pre ++ repeat true n::post))
+      {| state := 0; tapeLeft := []; tapeHead := blank;
+         tapeRight := tape (pre ++ repeat true n::post) ++ [blank; blank] |}).
+    { unfold Similar, home. repeat split. exists (tape (pre ++ repeat true n::post)), 0, 2.
+      cbn [blanks repeat]. rewrite app_nil_r. auto. }
+    destruct (reaches_of_similar _ _ _ _ hc _ hp) as [d [hd hcd]].
+    exists d. split; [|eapply similar_trans; eauto].
+    rewrite <- Nat.add_1_r, clearTime_succ. eapply reaches_trans; eauto.
+Qed.
+Definition clearPolynomial : Polynomial := {| coefficient := 10; degree := 2 |}.
+Theorem clearTime_polynomial : forall pre value post,
+  clearTime pre value post <= evalPoly clearPolynomial (pre+value+post+1).
+Proof. intros. unfold clearTime, clearPolynomial, evalPoly. cbn [coefficient degree Nat.pow]. nia. Qed.
+
+
+Definition clearThen (slot registers : nat) (p : Prog) : Machine :=
+  appendMachine (clear (slot+1)) (compile registers p).
+Theorem clear_then_compile_reaches : forall x pre post value out k p,
+  WellFormed k p -> length (pre ++ 0::post) = k ->
+  exists c, Reaches (clearThen (length pre) k p) (encode 0 x (mkState (pre ++ value::post) out))
+    (clearTime (length (tape (x::regWords pre))) value (length (tape (regWords post ++ [out]))) +
+      cost x p (mkState (pre ++ 0::post) out)) c /\
+    Similar (encode (length (program (clearThen (length pre) k p))) x
+      (runProg p (mkState (pre ++ 0::post) out))) c.
+Proof.
+  intros x pre post value out k p hp hk.
+  destruct (clear_reaches (x::regWords pre) (regWords post ++ [out]) value) as [c [hc hsim]].
+  assert (hstart : Reaches (clear (length pre+1)) (encode 0 x (mkState (pre ++ value::post) out))
+    (clearTime (length (tape (x::regWords pre))) value (length (tape (regWords post ++ [out])))) c).
+  { unfold encode, blocks, regWords. cbn [regs RegisterMachine.out]. rewrite map_app. cbn [map].
+    unfold regWords in hc. cbn [length] in hc. rewrite length_map in hc.
+    replace (S (length pre)) with (length pre+1) in hc by lia.
+    repeat rewrite <- app_assoc. exact hc. }
+  assert (hsim' : Similar (encode (length (program (clear (length pre+1)))) x
+    (mkState (pre ++ 0::post) out)) c).
+  { unfold encode, blocks, regWords. cbn [regs RegisterMachine.out]. rewrite map_app. cbn [map repeat].
+    unfold regWords in hsim. cbn [length] in hsim. rewrite length_map in hsim.
+    replace (S (length pre)) with (length pre+1) in hsim by lia.
+    repeat rewrite <- app_assoc. exact hsim. }
+  pose proof (reaches_append_right (clear (length pre+1)) _ _ _ _
+    (compile_reaches x k p (mkState (pre ++ 0::post) out) hp hk)) as hr.
+  assert (hr' : Reaches (clearThen (length pre) k p)
+    (encode (length (program (clear (length pre+1)))) x (mkState (pre ++ 0::post) out))
+    (cost x p (mkState (pre ++ 0::post) out))
+    (encode (length (program (clearThen (length pre) k p))) x
+      (runProg p (mkState (pre ++ 0::post) out)))).
+  { unfold clearThen, encode, home in *. cbn [shiftConfig state tapeLeft tapeHead tapeRight] in hr.
+    unfold appendMachine. cbn [program]. rewrite length_app, length_map.
+    unfold shiftConfig in hr. cbn [state tapeLeft tapeHead tapeRight] in hr.
+    rewrite Nat.add_0_l in hr.
+    replace (length (program (clear (length pre+1))) + length (program (compile k p)))
+      with (length (program (compile k p)) + length (program (clear (length pre+1)))) by lia.
+    exact hr. }
+  destruct (reaches_of_similar _ _ _ _ hr' c hsim') as [d [hd he]].
+  exists d. split; [|exact he].
+  eapply reaches_trans; [|exact hd]. apply reaches_append. exact hstart.
+Qed.
+
+Theorem clear_then_cost_polynomial : forall x pre post value out k p,
+  WellFormed k p -> length (pre ++ 0::post) = k ->
+  clearTime (length (tape (x::regWords pre))) value (length (tape (regWords post ++ [out]))) +
+    cost x p (mkState (pre ++ 0::post) out) <=
+  evalPoly (polyAdd clearPolynomial emissionPolynomial)
+    (length (tape (blocks x (mkState (pre ++ value::post) out))) + growth p).
+Proof.
+  intros x pre post value out k p hp hk.
+  set (size := length (tape (blocks x (mkState (pre ++ value::post) out)))).
+  assert (hsize : length (tape (x::regWords pre)) + value +
+    length (tape (regWords post ++ [out])) + 1 = size).
+  { unfold size, blocks, regWords. cbn [regs RegisterMachine.out].
+    rewrite map_app. cbn [map].
+    repeat (rewrite tape_cons || rewrite tape_append).
+    repeat first [rewrite length_app | rewrite length_map | rewrite repeat_length | progress cbn [length]].
+    lia. }
+  assert (hz : length (tape (blocks x (mkState (pre ++ 0::post) out))) <= size).
+  { unfold size, blocks, regWords. cbn [regs RegisterMachine.out].
+    repeat rewrite map_app. cbn [map].
+    repeat (rewrite tape_cons || rewrite tape_append).
+    repeat first [rewrite length_app | rewrite length_map | rewrite repeat_length | progress cbn [length]].
+    lia. }
+  pose proof (clearTime_polynomial (length (tape (x::regWords pre))) value
+    (length (tape (regWords post ++ [out])))) as hc.
+  pose proof (cost_polynomial x k p (mkState (pre ++ 0::post) out) hp hk) as he.
+  eapply Nat.le_trans; [|apply polyAdd_eval].
+  apply Nat.add_le_mono.
+  - eapply Nat.le_trans; [exact hc|].
+    unfold clearPolynomial, evalPoly. cbn [coefficient degree Nat.pow]. nia.
+  - eapply Nat.le_trans; [exact he|].
+    unfold emissionPolynomial, evalPoly. cbn [coefficient degree Nat.pow]. nia.
+Qed.
 
 End RegisterMachine.

@@ -130,6 +130,19 @@ empty/mixed-bit examples, arbitrary retained prefixes, insufficient fuel, and
 malformed counter symbols are checked. Eleven new conclusions per prover bring
 the manifest to 246, with each entry's actual kernel assumptions recorded.
 
+The register continuation generates paired insertion/decrement instruction
+tables from one source. Fixed increments, constant emission, and a
+straight-line compiler have exact charged contracts. The dynamic `clear`
+loop removes every tick from a scratch register while retaining the input,
+other registers, and output. Its exact runtime and quadratic envelope are
+proved; its final tape differs only by trailing blanks. Shared charged
+simulation and exit retargeting are consumed by the clear loop and by
+`clear_then_compile_reaches`, which composes it with any well-formed compiled
+program. The combined cost bound uses shared `polyAdd`. Paired regressions
+execute clearing, increment, and emission in 83 charged steps and reject
+insufficient fuel and malformed unary contents. This continuation registers
+21 new conclusions per prover, bringing the complete manifest to 342.
+
 This is **known theorem mechanized** for the tableau and machine primitives.
 The counter has a `Reaches` tape-block contract; no formula-emitting reduction
 table or polynomial charged `Computes` proof has been constructed. `satHard`

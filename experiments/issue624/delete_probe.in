@@ -1,0 +1,14 @@
+From Stdlib Require Import List.
+From proofs.experiments.issue624.rocq Require Import UnaryCounter.
+Import ListNotations Complexity.Complexity.
+(* Inspect the append normalization needed for a deleted tick's trailing blanks. *)
+Print app_assoc.
+Goal forall p w r : list Symbol, p ++ w ++ separator :: r ++ [blank;blank] = (p ++ w ++ separator :: r) ++ [blank;blank].
+intros.
+Show.
+repeat rewrite <- app_assoc.
+Show.
+cbn [app].
+Show.
+reflexivity.
+Qed.

@@ -44,6 +44,22 @@ indices and preserves the number of registers. A complete program costs
 `wordTime (growth p) payload.length`; the regressions execute a mixed
 increment/emission sequence and reject one fewer unit of fuel.
 
+The same generator also supplies unary decrement and clear tables. Clearing
+the register between payloads of lengths `pre` and `post`, initially holding
+`value` ticks, costs exactly
+`value * (2 * pre + 4 * post + 2 * value + 7) + 2 * pre + 3`.
+It preserves every surrounding symbol, returns to home, and permits only
+trailing blanks in its final configuration. A polynomial envelope is proved
+in both kernels. The regressions cover 196 finite clear executions, empty
+registers, malformed unary contents, invalid slots, and insufficient fuel.
+`clear_then_compile_reaches` consumes the clear contract before any
+well-formed straight-line program. Its composition regression clears two
+ticks, increments the scratch register, and appends a bit in exactly 83 steps.
+`clear_then_cost_polynomial` combines both charged bounds using the shared
+`polyAdd`, measured against the original payload and the program's growth.
+These proofs reuse shared `Reaches` simulation and exit retargeting; they do
+not yet construct the formula-emitting reduction machine.
+
 After building the imported modules, run:
 
 ```sh
@@ -86,6 +102,7 @@ rocq repl -quiet < experiments/issue624/successor_arithmetic_probe.in
 rocq repl -quiet -Q . '' < experiments/issue624/run_probe.in
 rocq repl -quiet -Q . '' < experiments/issue624/initial_probe.in
 rocq repl -quiet -Q . '' < experiments/issue624/register_probe.in
+rocq repl -quiet -Q proofs proofs < experiments/issue624/delete_probe.in
 python3 experiments/issue624/run_assumptions.py
 python3 experiments/issue624/check_tableau_contracts.py --lean
 python3 experiments/issue624/check_tableau_contracts.py --rocq
@@ -93,6 +110,7 @@ python3 experiments/issue624/existing_bridge_probe.py --lean
 python3 experiments/issue624/existing_bridge_probe.py --rocq
 python3 experiments/issue624/counter_assumptions.py
 python3 experiments/issue624/register_assumptions.py
+python3 experiments/issue624/dynamic_assumptions.py
 ```
 
 [PLAN.md](PLAN.md) tracks the completed prerequisites and the remaining

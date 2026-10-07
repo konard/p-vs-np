@@ -79,3 +79,47 @@ example (x : Word) (k : Nat) (p : Prog) (st : State) (hp : WellFormed k p)
 #print axioms compile_reaches
 #print axioms cost_eq_wordTime
 #print axioms cost_polynomial
+
+-- Destructive unary registers must retain both surrounding blocks.
+example (pre post : List Word) (n : Nat) :
+    ∃ c, Reaches (clear pre.length) (home 0 (pre ++ List.replicate n true :: post))
+      (clearTime (tape pre).length n (tape post).length) c ∧
+      Similar (home (clear pre.length).program.length (pre ++ [] :: post)) c :=
+  clear_reaches pre post n
+example : ((probe (clear 1) 200 (home 0 [[false, true], [true, true], [true, false]])).map
+    (fun c => (c.state, c.left, c.head, c.right))) =
+    some (11, [], .blank, [.zero, .one, .separator, .separator,
+      .one, .zero, .separator, .blank, .blank, .blank]) := by decide
+example : ((probe (clear 1) 20 (home 0 [[], [], []])).map
+    (fun c => c.right)) = some [.separator, .separator, .separator] := by decide
+example : step (clear 0) ⟨0, [], .one, []⟩ = .inl false := rfl
+#print axioms clear_reaches
+example : probe (clear 1) 100 (home 0 [[true], [true, false], []]) = none := by decide
+
+-- Clearing is consumed by charged compilation, including residual blanks.
+private def afterClear : Prog := .seq (.increment 0 1) (.emit [false])
+example : ((probe (clearThen 0 1 afterClear) 200
+    (encode 0 [true] ⟨[2], [true]⟩)).map
+    (fun c => (c.state, c.left, c.head, c.right))) =
+    some (26, [], .blank, [.one, .separator, .one, .separator,
+      .one, .zero, .separator, .blank]) := by decide
+example (x : Word) (pre post : List Nat) (value : Nat) (out : Word) (k : Nat)
+    (p : Prog) (hp : WellFormed k p) (hk : (pre ++ 0 :: post).length = k) :
+    ∃ c, Reaches (clearThen pre.length k p) (encode 0 x ⟨pre ++ value :: post, out⟩)
+      (clearTime (tape (x :: regWords pre)).length value
+        (tape (regWords post ++ [out])).length + cost x p ⟨pre ++ 0 :: post, out⟩) c ∧
+      Similar (encode (clearThen pre.length k p).program.length x
+        (runProg p ⟨pre ++ 0 :: post, out⟩)) c :=
+  clear_then_compile_reaches x pre post value out k p hp hk
+example : clearTime 2 2 2 + cost [true] afterClear ⟨[0], [true]⟩ = 83 := by decide
+example : probe (clearThen 0 1 afterClear) 83 (encode 0 [true] ⟨[2], [true]⟩) = none := by decide
+#print axioms clear_then_compile_reaches
+#print axioms clearTime_polynomial
+example (x : Word) (pre post : List Nat) (value : Nat) (out : Word) (k : Nat)
+    (p : Prog) (hp : WellFormed k p) (hk : (pre ++ 0 :: post).length = k) :
+    clearTime (tape (x :: regWords pre)).length value
+        (tape (regWords post ++ [out])).length + cost x p ⟨pre ++ 0 :: post, out⟩ ≤
+      (polyAdd clearPolynomial emissionPolynomial).eval
+        ((tape (blocks x ⟨pre ++ value :: post, out⟩)).length + growth p) :=
+  clear_then_cost_polynomial x pre post value out k p hp hk
+#print axioms clear_then_cost_polynomial

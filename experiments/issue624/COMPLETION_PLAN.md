@@ -215,3 +215,26 @@ premise remains required. That checkpoint registered 235 conclusions per prover.
 The counter's output is a tape-block configuration, not `Computes red`.
 No formula-emitting reduction table or charged bound for it is established.
 All probes use finite inputs; no deliberate stack or memory stress is used.
+
+## Dynamic register continuation
+
+- [x] Start with the completion preflight: 42 diagnostics. Fetch `main`,
+  verify inclusion, read the issue and all comment types, and preserve the
+  latest five run logs under `ci-logs/`.
+- [x] Confirm run `37560627463` checks `592fbd4` after its commit timestamp.
+  The completion job lists missing proofs; the summary fails downstream.
+- [x] Add paired clear-register regressions before implementation; retain
+  their missing-declaration failures locally.
+- [x] Generate decrement/clear instruction tables from the existing source;
+  prove charged contracts for arbitrary surrounding input/register/output
+  blocks, including trailing-blank simulation for shrinking tapes.
+- [x] Consume clear in charged program composition and register all paired
+  conclusions with actual kernel assumptions; cover finite execution,
+  insufficient fuel, malformed unary registers, and regeneration parity.
+  Both kernels also check the combined polynomial bound through `polyAdd`.
+  Register 21 new conclusions per prover with their actual assumptions;
+  the manifest now contains 342 conclusions per prover.
+- [ ] Finish dynamic copying/loops, input reads, schema compilation, setup,
+  restoration, and reduction/hardness/bridge proofs without changing the gate.
+- [ ] Run the full local suite once before pushing, inspect logs and diff,
+  commit atomic checked work, update PR #630, and inspect the fresh CI run.

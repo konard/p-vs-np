@@ -29,6 +29,27 @@ def table(slot, bit):
     return rows
 
 
+def clear_table(slot):
+    rows = table(slot, True)[:slot + 1]
+    offset = len(rows)
+    size = offset + len(generator.DELETE)
+    for row in generator.DELETE:
+        output = []
+        for instruction in row:
+            if instruction[0] == "halt":
+                output.append(instruction)
+                continue
+            _, target, symbol, direction = instruction
+            target = int(target) + offset
+            if target == size:
+                target = 0
+            elif target == size + 1:
+                target = size
+            output.append(("move", str(target), symbol, direction))
+        rows.append(output)
+    return rows
+
+
 def execute(rows, payload, steps):
     """A bounded execution of ordinary table instructions on a finite tape."""
     tape = ["blank", *payload]
@@ -102,6 +123,31 @@ class RegisterMachineTests(unittest.TestCase):
 
     def test_invalid_slot_rejects(self):
         self.assertIsNone(execute(table(3, True), flatten([[], [], []]), 30))
+
+    def test_clear_charges_exactly_and_retains_all_surrounding_symbols(self):
+        words = [list(bits) for size in range(3)
+                 for bits in itertools.product((False, True), repeat=size)]
+        for before, after in itertools.product(words, repeat=2):
+            for value in range(4):
+                blocks = [before, [True] * value, after]
+                pre = len(flatten([before]))
+                post = len(flatten([after]))
+                cost = value * (2 * pre + 4 * post + 2 * value + 7) + 2 * pre + 3
+                rows = clear_table(1)
+                expected = ["blank", *flatten([before, [], after])]
+                if value:
+                    expected += ["blank"] * (value + 1)
+                with self.subTest(before=before, after=after, value=value):
+                    self.assertEqual(execute(rows, flatten(blocks), cost),
+                                     (cost, 0, expected))
+                    self.assertIsNone(execute(rows, flatten(blocks), cost - 1))
+                    self.assertLessEqual(cost, 10 * (pre + value + post + 2) ** 2)
+
+    def test_clear_rejects_non_unary_register_and_invalid_slot(self):
+        for value in ([False], [True, False], [True, True, False]):
+            with self.subTest(value=value):
+                self.assertIsNone(execute(clear_table(1), flatten([[], value, []]), 100))
+        self.assertIsNone(execute(clear_table(3), flatten([[], [], []]), 100))
 
     def test_public_theorem_names_match(self):
         import re

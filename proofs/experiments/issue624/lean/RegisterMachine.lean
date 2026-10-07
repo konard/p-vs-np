@@ -28,6 +28,24 @@ def pushWord (slot : Nat) : Word → Machine
 def incr (slot count : Nat) : Machine := pushWord (slot+1) (List.replicate count true)
 def emitConst (registers : Nat) (w : Word) : Machine := pushWord (registers+1) w
 
+def deleteFirst : Machine := ⟨[
+  [.halt false, .halt false, .move 1 .blank .right, .move 8 .separator .left],
+  [.move 7 .blank .left, .move 2 .zero .left, .move 3 .one .left, .move 4 .separator .left],
+  [.move 5 .zero .right, .halt false, .halt false, .halt false],
+  [.move 5 .one .right, .halt false, .halt false, .halt false],
+  [.move 5 .separator .right, .halt false, .halt false, .halt false],
+  [.halt false, .move 1 .blank .right, .move 1 .blank .right, .move 1 .blank .right],
+  [.move 9 .blank .stay, .move 6 .zero .left, .move 6 .one .left, .move 6 .separator .left],
+  [.move 6 .blank .left, .halt false, .halt false, .halt false],
+  [.move 10 .blank .stay, .move 8 .zero .left, .move 8 .one .left, .move 8 .separator .left]]⟩
+def pop (slot : Nat) : Machine := appendMachine (seek slot) deleteFirst
+
+def clearTarget (slot q : Nat) : Nat :=
+  if q < (pop slot).program.length then q else
+  if q = (pop slot).program.length then 0 else (pop slot).program.length
+
+def clear (slot : Nat) : Machine := retargetMachine (pop slot) (clearTarget slot)
+
 -- END GENERATED REGISTER TABLES
 
 def tape (blocks : List Word) : List Symbol :=
@@ -464,5 +482,273 @@ theorem cost_polynomial (x : Word) (k : Nat) (p : Prog) (st : State)
     cost x p st ≤ emissionPolynomial.eval ((tape (blocks x st)).length + growth p) := by
   rw [cost_eq_wordTime x k p st hp hs]
   exact wordTime_polynomial _ _
+
+
+@[simp] theorem pop_states (slot : Nat) : (pop slot).program.length = slot+10 := by
+  simp [pop, appendMachine, deleteFirst]
+@[simp] theorem clear_states (slot : Nat) : (clear slot).program.length = (pop slot).program.length := by
+  simp [clear, retargetMachine]
+
+def deleteCarry (a : Symbol) : Nat :=
+  match a with | .zero => 2 | .one => 3 | .separator => 4 | .blank => 2
+
+theorem delete_shift (xs l : List Symbol) (hx : ∀ a ∈ xs, a ≠ .blank) :
+    Reaches deleteFirst (scanConfig 1 (.blank :: l) xs) (3*xs.length+2)
+      (scanLeftConfig 6 [.blank, .blank] (xs.reverse ++ l)) := by
+  induction xs generalizing l with
+  | nil =>
+    have h1 : step deleteFirst (scanConfig 1 (.blank :: l) []) =
+        .inr ⟨7, l, .blank, [.blank]⟩ := rfl
+    have h2 : step deleteFirst ⟨7, l, .blank, [.blank]⟩ =
+        .inr (scanLeftConfig 6 [.blank, .blank] l) := by cases l <;> rfl
+    exact Reaches.next h1 (Reaches.next h2 (Reaches.refl _))
+  | cons a xs ih =>
+    have ha := hx a (by simp)
+    have h1 : step deleteFirst (scanConfig 1 (.blank :: l) (a :: xs)) =
+        .inr ⟨deleteCarry a, l, .blank, a :: xs⟩ := by cases a <;> first | contradiction | rfl
+    have h2 : step deleteFirst ⟨deleteCarry a, l, .blank, a :: xs⟩ =
+        .inr ⟨5, a :: l, a, xs⟩ := by cases a <;> first | contradiction | rfl
+    have h3 : step deleteFirst ⟨5, a :: l, a, xs⟩ =
+        .inr (scanConfig 1 (.blank :: a :: l) xs) := by
+      cases a <;> first | contradiction | (cases xs <;> rfl)
+    have h := Reaches.next h1 (Reaches.next h2 (Reaches.next h3
+      (ih (a :: l) (fun s hs => hx s (by simp [hs])))))
+    simpa [List.reverse_cons, List.append_assoc, Nat.mul_add, Nat.add_assoc] using h
+
+theorem delete_positive (p xs : List Symbol)
+    (hp : ∀ a ∈ p, a ≠ .blank) (hx : ∀ a ∈ xs, a ≠ .blank) :
+    Reaches deleteFirst (scanConfig 0 (p.reverse ++ [.blank]) (.one :: xs))
+      (p.length+4*xs.length+4)
+      ⟨9, [], .blank, p ++ xs ++ [.blank, .blank]⟩ := by
+  have hstart : step deleteFirst (scanConfig 0 (p.reverse ++ [.blank]) (.one :: xs)) =
+      .inr (scanConfig 1 (.blank :: (p.reverse ++ [.blank])) xs) := by cases xs <;> rfl
+  have hs := delete_shift xs (p.reverse ++ [.blank]) hx
+  have hb := scan_left deleteFirst 6 (p ++ xs).reverse [.blank, .blank] [.blank] (by
+    intro a ha
+    have ha' : a ≠ .blank := by
+      rcases List.mem_append.mp (List.mem_reverse.mp ha) with h | h
+      · exact hp a h
+      · exact hx a h
+    cases a <;> simp_all [deleteFirst, Machine.instruction, Symbol.index])
+  have hfinish : step deleteFirst ⟨6, [], .blank, p ++ xs ++ [.blank, .blank]⟩ =
+      .inr ⟨9, [], .blank, p ++ xs ++ [.blank, .blank]⟩ := rfl
+  have hb' : Reaches deleteFirst
+      (scanLeftConfig 6 [.blank, .blank] (xs.reverse ++ (p.reverse ++ [.blank])))
+      (p.length+xs.length) ⟨6, [], .blank, p ++ xs ++ [.blank, .blank]⟩ := by
+    simpa only [List.length_reverse, List.length_append, List.reverse_reverse,
+      List.reverse_append, List.append_assoc, scanLeftConfig, Nat.add_comm] using hb
+  rw [show p.length+4*xs.length+4 = ((3*xs.length+2)+(p.length+xs.length+(0+1)))+1 by omega]
+  exact Reaches.next hstart (hs.trans (hb'.trans (Reaches.next hfinish (Reaches.refl _))))
+
+theorem delete_empty (p r : List Symbol) (hp : ∀ a ∈ p, a ≠ .blank) :
+    Reaches deleteFirst ⟨0, p.reverse ++ [.blank], .separator, r⟩ (p.length+2)
+      ⟨10, [], .blank, p ++ .separator :: r⟩ := by
+  have hstart : step deleteFirst ⟨0, p.reverse ++ [.blank], .separator, r⟩ =
+      .inr (scanLeftConfig 8 (.separator :: r) (p.reverse ++ [.blank])) := by cases p.reverse <;> rfl
+  have hb := scan_left deleteFirst 8 p.reverse (.separator :: r) [.blank] (by
+    intro a ha
+    have hn := hp a (List.mem_reverse.mp ha)
+    cases a <;> simp_all [deleteFirst, Machine.instruction, Symbol.index])
+  have hf : step deleteFirst ⟨8, [], .blank, p ++ .separator :: r⟩ =
+      .inr ⟨10, [], .blank, p ++ .separator :: r⟩ := rfl
+  have hb' : Reaches deleteFirst
+      (scanLeftConfig 8 (.separator :: r) (p.reverse ++ [.blank])) p.length
+      ⟨8, [], .blank, p ++ .separator :: r⟩ := by
+    simpa only [List.reverse_reverse, List.length_reverse, scanLeftConfig] using hb
+  rw [show p.length+2 = (p.length+1)+1 by omega]
+  exact Reaches.next hstart (hb'.trans (Reaches.next hf (Reaches.refl _)))
+
+theorem pop_positive (pre post : List Word) (n : Nat) :
+    Reaches (pop pre.length) (home 0 (pre ++ List.replicate (n+1) true :: post))
+      (2*(tape pre).length+4*(n+1+(tape post).length)+5)
+      ⟨(pop pre.length).program.length, [], .blank,
+        tape (pre ++ List.replicate n true :: post) ++ [.blank, .blank]⟩ := by
+  let xs := (List.replicate n true).map Symbol.ofBool ++ .separator :: tape post
+  have hs := reaches_append deleteFirst (seek_reaches pre (.one :: xs))
+  have hd := reaches_append_right (seek pre.length)
+    (delete_positive (tape pre) xs (tape_nonblank pre) (by
+      intro a ha
+      rcases List.mem_append.mp ha with h | h
+      · obtain ⟨b, hb, rfl⟩ := List.mem_map.mp h
+        cases b <;> decide
+      · rcases List.mem_cons.mp h with h | h
+        · subst a; decide
+        · exact tape_nonblank post a h))
+  have hs' : Reaches (pop pre.length) (home 0 (pre ++ List.replicate (n+1) true :: post))
+      (1+(tape pre).length) (scanConfig (seek pre.length).program.length
+        ((tape pre).reverse ++ [.blank]) (.one :: xs)) := by
+    simpa [pop, home, tape_append, tape_cons, List.replicate_succ, xs, Symbol.ofBool] using hs
+  have hd' : Reaches (pop pre.length)
+      (scanConfig (seek pre.length).program.length ((tape pre).reverse ++ [.blank]) (.one :: xs))
+      ((tape pre).length+4*xs.length+4)
+      ⟨(pop pre.length).program.length, [], .blank, tape (pre ++ List.replicate n true :: post) ++ [.blank, .blank]⟩ := by
+    simpa [pop, shiftConfig, scanConfig, xs, tape_append, tape_cons, List.append_assoc,
+      appendMachine, seek_states, deleteFirst, Nat.add_comm] using hd
+  have ht : xs.length = n+1+(tape post).length := by simp [xs]; omega
+  rw [ht] at hd'
+  rw [show 2*(tape pre).length+4*(n+1+(tape post).length)+5 =
+    (1+(tape pre).length)+((tape pre).length+4*(n+1+(tape post).length)+4) by omega]
+  exact hs'.trans hd'
+
+theorem pop_empty (pre post : List Word) :
+    Reaches (pop pre.length) (home 0 (pre ++ [] :: post)) (2*(tape pre).length+3)
+      (home ((pop pre.length).program.length+1) (pre ++ [] :: post)) := by
+  have hs := reaches_append deleteFirst (seek_reaches pre (.separator :: tape post))
+  have hd := reaches_append_right (seek pre.length)
+    (delete_empty (tape pre) (tape post) (tape_nonblank pre))
+  have hs' : Reaches (pop pre.length) (home 0 (pre ++ [] :: post))
+      (1+(tape pre).length) ⟨(seek pre.length).program.length,
+        (tape pre).reverse ++ [.blank], .separator, tape post⟩ := by
+    simpa [pop, home, tape_append, tape_cons, scanConfig] using hs
+  have hd' : Reaches (pop pre.length) ⟨(seek pre.length).program.length,
+        (tape pre).reverse ++ [.blank], .separator, tape post⟩
+      ((tape pre).length+2) (home ((pop pre.length).program.length+1) (pre ++ [] :: post)) := by
+    have he : 10+(seek pre.length).program.length = (pop pre.length).program.length+1 := by
+      rw [seek_states, pop_states]; omega
+    simpa only [shiftConfig, he, pop, home, tape_append, tape_cons, List.map_nil,
+      List.nil_append, Nat.zero_add] using hd
+  rw [show 2*(tape pre).length+3 = (1+(tape pre).length)+((tape pre).length+2) by omega]
+  exact hs'.trans hd'
+
+def clearTime (pre value post : Nat) : Nat := value*(2*pre+4*post+2*value+7)+2*pre+3
+
+theorem clearTime_succ (pre value post : Nat) :
+    clearTime pre (value+1) post =
+      (2*pre+4*(value+1+post)+5) + clearTime pre value post := by
+  simp [clearTime, Nat.mul_add, Nat.add_mul]; omega
+
+theorem clearTarget_inside (slot q : Nat) (hq : q < (pop slot).program.length) :
+    clearTarget slot q = q := by unfold clearTarget; rw [ite_eq_left hq]
+
+theorem clearTarget_positive (slot : Nat) :
+    clearTarget slot (pop slot).program.length = 0 := by simp [clearTarget]
+
+theorem clearTarget_empty (slot : Nat) :
+    clearTarget slot ((pop slot).program.length+1) = (pop slot).program.length := by
+  simp [clearTarget]
+
+theorem clear_reaches (pre post : List Word) (n : Nat) :
+    ∃ c, Reaches (clear pre.length) (home 0 (pre ++ List.replicate n true :: post))
+      (clearTime (tape pre).length n (tape post).length) c ∧
+      Similar (home (clear pre.length).program.length (pre ++ [] :: post)) c := by
+  induction n with
+  | zero =>
+    have h := retarget_reaches (pop_empty pre post) (clearTarget pre.length)
+      (clearTarget_inside pre.length)
+    refine ⟨home (clear pre.length).program.length (pre ++ [] :: post), ?_, ?_⟩
+    · change Reaches (clear pre.length)
+          (home (clearTarget pre.length 0) (pre ++ [] :: post))
+          (2*(tape pre).length+3)
+          (home (clearTarget pre.length ((pop pre.length).program.length+1)) (pre ++ [] :: post)) at h
+      rw [clearTarget_inside pre.length 0 (by simp), clearTarget_empty] at h
+      simpa only [clear_states, clearTime, Nat.zero_mul, Nat.zero_add, List.replicate_zero] using h
+    · exact ⟨rfl, rfl, rfl, BlankPad.refl _⟩
+  | succ n ih =>
+    have h := retarget_reaches (pop_positive pre post n) (clearTarget pre.length)
+      (clearTarget_inside pre.length)
+    have h' : Reaches (clear pre.length)
+        (home 0 (pre ++ List.replicate (n+1) true :: post))
+        (2*(tape pre).length+4*(n+1+(tape post).length)+5)
+        ⟨0, [], .blank, tape (pre ++ List.replicate n true :: post) ++ [.blank, .blank]⟩ := by
+      change Reaches (clear pre.length)
+        (home (clearTarget pre.length 0) (pre ++ List.replicate (n+1) true :: post))
+        (2*(tape pre).length+4*(n+1+(tape post).length)+5)
+        ⟨clearTarget pre.length (pop pre.length).program.length, [], .blank,
+          tape (pre ++ List.replicate n true :: post) ++ [.blank, .blank]⟩ at h
+      rwa [clearTarget_inside pre.length 0 (by simp), clearTarget_positive] at h
+    obtain ⟨c, hc, hsim⟩ := ih
+    have hp : Similar (home 0 (pre ++ List.replicate n true :: post))
+        ⟨0, [], .blank, tape (pre ++ List.replicate n true :: post) ++ [.blank, .blank]⟩ :=
+      ⟨rfl, rfl, rfl, ⟨_, 0, 2, by simp [blanks, home], rfl⟩⟩
+    obtain ⟨d, hd, hcd⟩ := reaches_of_similar hc hp
+    refine ⟨d, ?_, hsim.trans hcd⟩
+    rw [clearTime_succ]
+    exact h'.trans hd
+
+def clearPolynomial : Polynomial := ⟨10, 2⟩
+
+theorem clearTime_polynomial (pre value post : Nat) :
+    clearTime pre value post ≤ clearPolynomial.eval (pre+value+post+1) := by
+  let size := pre+value+post+2
+  have h1 : value ≤ size := by omega
+  have h2 : 2*pre+4*post+2*value+7 ≤ 7*size := by omega
+  have h3 : 2*pre+3 ≤ 3*size*size := by
+    have h : 2*pre+3 ≤ 3*size := by omega
+    exact Nat.le_trans h (Nat.le_mul_of_pos_right _ (by omega))
+  have h := Nat.mul_le_mul h1 h2
+  have h' : value*(2*pre+4*post+2*value+7)+2*pre+3 ≤ 10*size*size := by
+    have hh := Nat.add_le_add h h3
+    have he : size*(7*size)+3*size*size = 10*size*size := by
+      simp only [Nat.mul_assoc]
+      rw [Nat.mul_left_comm size 7 size]
+      omega
+    rw [he] at hh
+    simpa only [Nat.add_assoc] using hh
+  simpa [clearTime, clearPolynomial, Polynomial.eval, Nat.pow_two, size, Nat.mul_assoc,
+    Nat.add_assoc] using h'
+
+
+/-- Clear a scratch register before a compiled block. The table depends only
+on static register indices and the program; the cleared value is dynamic. -/
+def clearThen (slot registers : Nat) (p : Prog) : Machine :=
+  appendMachine (clear (slot+1)) (compile registers p)
+
+theorem clear_then_compile_reaches (x : Word) (pre post : List Nat) (value : Nat)
+    (out : Word) (k : Nat) (p : Prog) (hp : WellFormed k p)
+    (hk : (pre ++ 0 :: post).length = k) :
+    ∃ c, Reaches (clearThen pre.length k p) (encode 0 x ⟨pre ++ value :: post, out⟩)
+      (clearTime (tape (x :: regWords pre)).length value
+        (tape (regWords post ++ [out])).length + cost x p ⟨pre ++ 0 :: post, out⟩) c ∧
+      Similar (encode (clearThen pre.length k p).program.length x
+        (runProg p ⟨pre ++ 0 :: post, out⟩)) c := by
+  obtain ⟨c, hc, hsim⟩ := clear_reaches (x :: regWords pre) (regWords post ++ [out]) value
+  have hstart : Reaches (clear (pre.length+1)) (encode 0 x ⟨pre ++ value :: post, out⟩)
+      (clearTime (tape (x :: regWords pre)).length value
+        (tape (regWords post ++ [out])).length) c := by
+    simpa only [encode, blocks, regWords, List.map_append, List.map_cons,
+      List.append_assoc, List.cons_append, List.length_cons, List.length_map] using hc
+  have hsim' : Similar (encode (clear (pre.length+1)).program.length x
+      ⟨pre ++ 0 :: post, out⟩) c := by
+    simpa only [encode, blocks, regWords, List.map_append, List.map_cons,
+      List.append_assoc, List.cons_append, List.length_cons, List.length_map, List.replicate_zero] using hsim
+  have hr := reaches_append_right (clear (pre.length+1))
+    (compile_reaches x k p ⟨pre ++ 0 :: post, out⟩ hp hk)
+  have hr' : Reaches (clearThen pre.length k p)
+      (encode (clear (pre.length+1)).program.length x ⟨pre ++ 0 :: post, out⟩)
+      (cost x p ⟨pre ++ 0 :: post, out⟩)
+      (encode (clearThen pre.length k p).program.length x
+        (runProg p ⟨pre ++ 0 :: post, out⟩)) := by
+    simpa [clearThen, encode, home, shiftConfig, appendMachine, Nat.add_comm] using hr
+  obtain ⟨d, hd, he⟩ := reaches_of_similar hr' hsim'
+  exact ⟨d, (reaches_append (compile k p) hstart).trans hd, he⟩
+
+theorem clear_then_cost_polynomial (x : Word) (pre post : List Nat) (value : Nat)
+    (out : Word) (k : Nat) (p : Prog) (hp : WellFormed k p)
+    (hk : (pre ++ 0 :: post).length = k) :
+    clearTime (tape (x :: regWords pre)).length value
+        (tape (regWords post ++ [out])).length + cost x p ⟨pre ++ 0 :: post, out⟩ ≤
+      (polyAdd clearPolynomial emissionPolynomial).eval
+        ((tape (blocks x ⟨pre ++ value :: post, out⟩)).length + growth p) := by
+  let size := (tape (blocks x ⟨pre ++ value :: post, out⟩)).length
+  have hsize : (tape (x :: regWords pre)).length + value +
+      (tape (regWords post ++ [out])).length + 1 = size := by
+    simp only [size, blocks, regWords, List.map_append, List.map_cons, tape_cons,
+      tape_append, List.length_append, List.length_map, List.length_cons, List.length_replicate]
+    omega
+  have hz : (tape (blocks x ⟨pre ++ 0 :: post, out⟩)).length ≤ size := by
+    simp [size, blocks_length]
+  have hc := clearTime_polynomial (tape (x :: regWords pre)).length value
+    (tape (regWords post ++ [out])).length
+  have hclear : clearTime (tape (x :: regWords pre)).length value
+      (tape (regWords post ++ [out])).length ≤ clearPolynomial.eval (size + growth p) := by
+    apply Nat.le_trans hc
+    simp only [clearPolynomial, Polynomial.eval]
+    exact Nat.mul_le_mul_left 10 (Nat.pow_le_pow_left (by omega) 2)
+  have hemit := cost_polynomial x k p ⟨pre ++ 0 :: post, out⟩ hp hk
+  have hemit' : cost x p ⟨pre ++ 0 :: post, out⟩ ≤ emissionPolynomial.eval (size + growth p) := by
+    apply Nat.le_trans hemit
+    simp only [emissionPolynomial, Polynomial.eval]
+    exact Nat.mul_le_mul_left 3 (Nat.pow_le_pow_left (by omega) 2)
+  exact Nat.le_trans (Nat.add_le_add hclear hemit') (polyAdd_eval _ _ _)
 
 end Issue624.RegisterMachine

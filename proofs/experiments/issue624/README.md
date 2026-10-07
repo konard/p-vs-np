@@ -434,6 +434,21 @@ instructions. These proofs consume `push_reaches` and its register contracts;
 dynamic arithmetic, loops, schema emission, setup, and tape restoration remain
 necessary to construct `CookLevin.red`.
 
+The generated `pop` table removes one unary tick while retaining every
+surrounding input/register/output symbol. Its two exits distinguish positive
+and empty registers. `clear` redirects the positive exit back to its entry
+and exits on an empty register. Its exact cost is
+`clearTime pre value post = value * (2*pre + 4*post + 2*value + 7) + 2*pre + 3`;
+`clearTime_polynomial` supplies a quadratic envelope. Deletion can leave
+trailing blanks, so `clear_reaches` states its tape contract through the
+existing `Similar` relation. Shared `retarget_reaches` and
+`reaches_of_similar` preserve every charged step. The consuming
+`clear_then_compile_reaches` proves scratch-register clearing followed by
+any well-formed compiled program; `clear_then_cost_polynomial` combines the
+two bounds using the shared polynomial addition. Dynamic copying, input
+reads, general loops, schema compilation, and the reduction's final tape
+restoration remain open.
+
 ## Verification and limits
 
 The paired [regressions](../../../experiments/issue624/) cover zero bounds,

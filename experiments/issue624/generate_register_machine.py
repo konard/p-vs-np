@@ -32,6 +32,21 @@ GROW = [
      move(4, "one", "left"), move(4, "separator", "left")],
 ]
 
+DELETE = [
+    [REJECT, REJECT, move(1, "blank", "right"), move(8, "separator", "left")],
+    [move(7, "blank", "left"), move(2, "zero", "left"),
+     move(3, "one", "left"), move(4, "separator", "left")],
+    *[[move(5, carry, "right"), REJECT, REJECT, REJECT]
+      for carry in ("zero", "one", "separator")],
+    [REJECT, move(1, "blank", "right"), move(1, "blank", "right"),
+     move(1, "blank", "right")],
+    [move(9, "blank", "stay"), move(6, "zero", "left"),
+     move(6, "one", "left"), move(6, "separator", "left")],
+    [move(6, "blank", "left"), REJECT, REJECT, REJECT],
+    [move(10, "blank", "stay"), move(8, "zero", "left"),
+     move(8, "one", "left"), move(8, "separator", "left")],
+]
+
 
 def instruction(i, language):
     if i[0] == "halt":
@@ -54,6 +69,9 @@ def description(language):
     start, seek = row(START, language), row(SEEK, language)
     grow = (",\n  " if language == "lean" else ";\n  ").join(
         row(r, language) for r in GROW
+    )
+    delete = (",\n  " if language == "lean" else ";\n  ").join(
+        row(r, language) for r in DELETE
     )
     if language == "lean":
         return f"""import proofs.experiments.issue624.lean.UnaryCounter
@@ -81,6 +99,16 @@ def pushWord (slot : Nat) : Word → Machine
   | b :: w => appendMachine (push slot b) (pushWord slot w)
 def incr (slot count : Nat) : Machine := pushWord (slot+1) (List.replicate count true)
 def emitConst (registers : Nat) (w : Word) : Machine := pushWord (registers+1) w
+
+def deleteFirst : Machine := ⟨[
+  {delete}]⟩
+def pop (slot : Nat) : Machine := appendMachine (seek slot) deleteFirst
+
+def clearTarget (slot q : Nat) : Nat :=
+  if q < (pop slot).program.length then q else
+  if q = (pop slot).program.length then 0 else (pop slot).program.length
+
+def clear (slot : Nat) : Machine := retargetMachine (pop slot) (clearTarget slot)
 """
     return f"""From Stdlib Require Import List Bool Arith Lia.
 From proofs.complexity.rocq Require Import Complexity.
@@ -110,6 +138,14 @@ Fixpoint pushWord (slot : nat) (w : Word) : Machine :=
   end.
 Definition incr (slot count : nat) : Machine := pushWord (slot+1) (repeat true count).
 Definition emitConst (registers : nat) (w : Word) : Machine := pushWord (registers+1) w.
+
+Definition deleteFirst : Machine := {{| program := [
+  {delete}] |}}.
+Definition pop (slot : nat) : Machine := appendMachine (seek slot) deleteFirst.
+Definition clearTarget (slot q : nat) : nat :=
+  if q <? length (program (pop slot)) then q else
+  if q =? length (program (pop slot)) then 0 else length (program (pop slot)).
+Definition clear (slot : nat) : Machine := retargetMachine (pop slot) (clearTarget slot).
 """
 
 

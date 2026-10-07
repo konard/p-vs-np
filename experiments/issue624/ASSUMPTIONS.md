@@ -665,3 +665,60 @@ The compiler preserves input and register count and returns the head to home;
 `cost_eq_wordTime` accounts for tape growth between instructions. Dynamic
 arithmetic, loops, the final reduction machine and charged `Computes` proof,
 and hardness remain outstanding.
+
+## Dynamic register continuation (2026-10-07)
+
+Both kernels checked 21 additional conclusions, bringing the manifest to
+342 results per prover. The generated unary decrement/clear tables preserve
+surrounding blocks. Their consuming compiler composition and its polynomial
+cost bound are included below. Lean permits only the exact reported subsets
+of its existing three logical axioms; all new Rocq conclusions are closed
+under the global context. No reduction or hardness endpoint is registered.
+
+Reproduce these reports with
+`python3 experiments/issue624/dynamic_assumptions.py`.
+
+```text
+lean Issue624.RegisterMachine.pop_states: propext
+lean Issue624.RegisterMachine.clear_states: propext
+lean Issue624.RegisterMachine.delete_shift: propext
+lean Issue624.RegisterMachine.delete_positive: Quot.sound, propext
+lean Issue624.RegisterMachine.delete_empty: Quot.sound, propext
+lean Issue624.RegisterMachine.pop_positive: Quot.sound, propext
+lean Issue624.RegisterMachine.pop_empty: Quot.sound, propext
+lean Issue624.RegisterMachine.clearTime_succ: Quot.sound, propext
+lean Issue624.RegisterMachine.clearTarget_inside: (none)
+lean Issue624.RegisterMachine.clearTarget_positive: propext
+lean Issue624.RegisterMachine.clearTarget_empty: Classical.choice, Quot.sound, propext
+lean Issue624.RegisterMachine.clear_reaches: Classical.choice, Quot.sound, propext
+lean Issue624.RegisterMachine.clearTime_polynomial: Quot.sound, propext
+lean Issue624.RegisterMachine.clear_then_compile_reaches: Classical.choice, Quot.sound, propext
+lean Issue624.RegisterMachine.clear_then_cost_polynomial: Quot.sound, propext
+lean Issue532.Machines.reaches_of_similar: propext
+lean Issue532.Machines.BlankPad.trans: Quot.sound, propext
+lean Issue532.Machines.Similar.trans: Quot.sound, propext
+lean Issue532.Machines.retarget_instruction: propext
+lean Issue532.Machines.retarget_moveHead: (none)
+lean Issue532.Machines.retarget_reaches: Quot.sound, propext
+rocq RegisterMachine.pop_states: (none)
+rocq RegisterMachine.clear_states: (none)
+rocq RegisterMachine.delete_shift: (none)
+rocq RegisterMachine.delete_positive: (none)
+rocq RegisterMachine.delete_empty: (none)
+rocq RegisterMachine.pop_positive: (none)
+rocq RegisterMachine.pop_empty: (none)
+rocq RegisterMachine.clearTime_succ: (none)
+rocq RegisterMachine.clearTarget_inside: (none)
+rocq RegisterMachine.clearTarget_positive: (none)
+rocq RegisterMachine.clearTarget_empty: (none)
+rocq RegisterMachine.clear_reaches: (none)
+rocq RegisterMachine.clearTime_polynomial: (none)
+rocq RegisterMachine.clear_then_compile_reaches: (none)
+rocq RegisterMachine.clear_then_cost_polynomial: (none)
+rocq Machines.reaches_of_similar: (none)
+rocq Machines.blankPad_trans: (none)
+rocq Machines.similar_trans: (none)
+rocq Machines.retarget_instruction: (none)
+rocq Machines.retarget_moveHead: (none)
+rocq Machines.retarget_reaches: (none)
+```

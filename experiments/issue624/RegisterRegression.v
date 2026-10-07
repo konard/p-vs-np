@@ -90,3 +90,54 @@ Proof. exact cost_polynomial. Qed.
 Print Assumptions compile_reaches.
 Print Assumptions cost_eq_wordTime.
 Print Assumptions cost_polynomial.
+
+Example generic_clear : forall (pre post : list Word) n,
+  exists c, Reaches (clear (length pre)) (home 0 (pre ++ repeat true n :: post))
+    (clearTime (length (tape pre)) n (length (tape post))) c /\
+    Similar (home (length (program (clear (length pre)))) (pre ++ [] :: post)) c.
+Proof. exact clear_reaches. Qed.
+Example clear_retained_suffix : option_map
+  (fun c => (state c, tapeLeft c, tapeHead c, tapeRight c))
+  (probe (clear 1) 200 (home 0 [[false; true]; [true; true]; [true; false]])) =
+  Some (11, [], blank, [zero; one; separator; separator;
+    one; zero; separator; blank; blank; blank]).
+Proof. reflexivity. Qed.
+Example clear_empty : option_map tapeRight (probe (clear 1) 20 (home 0 [[]; []; []])) =
+  Some [separator; separator; separator].
+Proof. reflexivity. Qed.
+Example clear_missing_home : step (clear 0)
+  {| state := 0; tapeLeft := []; tapeHead := one; tapeRight := [] |} = inl false.
+Proof. reflexivity. Qed.
+Print Assumptions clear_reaches.
+Example clear_malformed_unary : probe (clear 1) 100 (home 0 [[true]; [true; false]; []]) = None.
+Proof. reflexivity. Qed.
+
+Definition afterClear : Prog := seq (increment 0 1) (emit [false]).
+Example clear_then_execution : option_map
+  (fun c => (state c, tapeLeft c, tapeHead c, tapeRight c))
+  (probe (clearThen 0 1 afterClear) 200 (encode 0 [true] (mkState [2] [true]))) =
+  Some (26, [], blank, [one; separator; one; separator; one; zero; separator; blank]).
+Proof. reflexivity. Qed.
+Example generic_clear_compiler : forall x pre post value out k p,
+  WellFormed k p -> length (pre ++ 0::post) = k ->
+  exists c, Reaches (clearThen (length pre) k p) (encode 0 x (mkState (pre ++ value::post) out))
+    (clearTime (length (tape (x::regWords pre))) value (length (tape (regWords post ++ [out]))) +
+      cost x p (mkState (pre ++ 0::post) out)) c /\
+    Similar (encode (length (program (clearThen (length pre) k p))) x
+      (runProg p (mkState (pre ++ 0::post) out))) c.
+Proof. exact clear_then_compile_reaches. Qed.
+Example clear_then_cost : clearTime 2 2 2 + cost [true] afterClear (mkState [0] [true]) = 83.
+Proof. reflexivity. Qed.
+Example clear_then_short_fuel : probe (clearThen 0 1 afterClear) 83
+  (encode 0 [true] (mkState [2] [true])) = None.
+Proof. reflexivity. Qed.
+Print Assumptions clear_then_compile_reaches.
+Print Assumptions clearTime_polynomial.
+Example generic_clear_cost_bound : forall x pre post value out k p,
+  WellFormed k p -> length (pre ++ 0::post) = k ->
+  clearTime (length (tape (x::regWords pre))) value (length (tape (regWords post ++ [out]))) +
+    cost x p (mkState (pre ++ 0::post) out) <=
+  evalPoly (polyAdd clearPolynomial emissionPolynomial)
+    (length (tape (blocks x (mkState (pre ++ value::post) out))) + growth p).
+Proof. exact clear_then_cost_polynomial. Qed.
+Print Assumptions clear_then_cost_polynomial.
