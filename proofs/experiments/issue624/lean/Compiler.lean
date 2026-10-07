@@ -135,7 +135,8 @@ theorem dropNormalized_reaches (x : Word) (st : State) :
       omega
     rw [← hcost]
     exact hrun
-  · change BlankPad (tape (blocks x st)) (xs ++ [.blank, .blank])
+  · simp only [Similar, encode, home]
+    refine ⟨rfl, rfl, rfl, ?_⟩
     refine ⟨tape (blocks x st), 0, 2, by simp [blanks], ?_⟩
     simp [xs, blocks, tape, regWords, blanks]
 
