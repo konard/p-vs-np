@@ -302,8 +302,14 @@ reduction, hardness, and unconditional bridge obligations are incomplete.
   Preserve `ci-logs/nested-full.log`; the separate completion command with
   both kernel flags still exits 1 with the same 42 diagnostics in
   `ci-logs/nested-completion-final.log`.
-- [ ] Push only the prepared branch, update PR #630, and inspect the fresh
+- [x] Push only the prepared branch, update PR #630, and inspect the fresh
   run's SHA/timestamp and downloaded non-passing logs.
+  Proof commit `76720d8` is checked by run `37577511633`, created at
+  `2026-10-07T05:40:51Z` after the commit at `05:40:34Z`. All six prerequisite
+  jobs passed, including both certified prover audits. Preserve the full run
+  log and both failed-job logs in `ci-logs/`: completion job lines 230–271
+  list the same 42 obligations, and summary job line 134 reports the downstream
+  failure. The downloaded completion artifact matches the local report exactly.
 - [ ] Finish dynamic arithmetic, input reads, parameter setup, schema
   compilation, final tape restoration, `red_computes`, hardness/completeness,
   and unconditional bridges; pass full completion and mark the PR ready.
