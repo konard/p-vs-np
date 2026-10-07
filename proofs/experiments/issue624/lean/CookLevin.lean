@@ -1,4 +1,4 @@
-import proofs.experiments.issue624.lean.Schema
+import proofs.experiments.issue624.lean.Compiler
 
 /-! Full bounded-verifier tableau and its model correspondence. The reduction
 machine and hardness assembly require separate charged machine proofs. -/
