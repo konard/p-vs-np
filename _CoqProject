@@ -21,6 +21,7 @@ experiments/issue624/RunCNFRegression.v
 experiments/issue624/TableauCNFRegression.v
 experiments/issue624/CounterRegression.v
 experiments/issue624/RegisterRegression.v
+experiments/issue624/ArithmeticRegression.v
 experiments/issue624/SchemaRegression.v
 proofs/attempts/alan-feinstein-2005-pneqnp/rocq/FeinsteinAttempt.v
 proofs/attempts/alan-feinstein-2011-pneqnp/rocq/FeinsteinsProof.v
@@ -266,6 +267,7 @@ proofs/experiments/issue624/rocq/Schema.v
 proofs/experiments/issue624/rocq/CookLevin.v
 proofs/experiments/issue624/rocq/UnaryCounter.v
 proofs/experiments/issue624/rocq/RegisterMachine.v
+proofs/experiments/issue624/rocq/Arithmetic.v
 proofs/experiments/issue624/rocq/CircuitCNF.v
 proofs/experiments/issue624/rocq/ConstantEmitter.v
 proofs/experiments/issue609/rocq/KnownBarriers.v
