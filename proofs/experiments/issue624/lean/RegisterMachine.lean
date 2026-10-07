@@ -46,6 +46,18 @@ def clearTarget (slot q : Nat) : Nat :=
 
 def clear (slot : Nat) : Machine := retargetMachine (pop slot) (clearTarget slot)
 
+def repeatHeadTarget (slot : Nat) (body : Machine) (q : Nat) : Nat :=
+  if q < (pop slot).program.length + 1 then q else
+    (pop slot).program.length + body.program.length + 2
+def repeatHead (slot : Nat) (body : Machine) : Machine :=
+  retargetMachine (pop slot) (repeatHeadTarget slot body)
+def repeatJump : Machine := ⟨[[.move 1 .blank .stay, .halt false, .halt false, .halt false]]⟩
+def repeatBase (slot : Nat) (body : Machine) : Machine :=
+  appendMachine (repeatHead slot body) (appendMachine body repeatJump)
+def repeatMachine (slot : Nat) (body : Machine) : Machine :=
+  retargetMachine (repeatBase slot body) (clearTargetFor (repeatBase slot body).program.length)
+where clearTargetFor size q := if q < size then q else if q = size then 0 else size
+
 -- END GENERATED REGISTER TABLES
 
 def tape (blocks : List Word) : List Symbol :=
@@ -750,5 +762,382 @@ theorem clear_then_cost_polynomial (x : Word) (pre post : List Nat) (value : Nat
     simp only [emissionPolynomial, Polynomial.eval]
     exact Nat.mul_le_mul_left 3 (Nat.pow_le_pow_left (by omega) 2)
   exact Nat.le_trans (Nat.add_le_add hclear hemit') (polyAdd_eval _ _ _)
+
+@[simp] theorem repeatHead_states (slot : Nat) (body : Machine) :
+    (repeatHead slot body).program.length = (pop slot).program.length := by
+  simp [repeatHead, retargetMachine]
+
+@[simp] theorem repeatBase_states (slot : Nat) (body : Machine) :
+    (repeatBase slot body).program.length = (pop slot).program.length + body.program.length + 1 := by
+  simp [repeatBase, appendMachine, repeatJump, Nat.add_assoc]
+
+@[simp] theorem repeatMachine_states (slot : Nat) (body : Machine) :
+    (repeatMachine slot body).program.length = (pop slot).program.length + body.program.length + 1 := by
+  simp [repeatMachine, retargetMachine]
+
+theorem repeatHeadTarget_inside (slot : Nat) (body : Machine) (q : Nat)
+    (hq : q < (pop slot).program.length) : repeatHeadTarget slot body q = q := by
+  unfold repeatHeadTarget
+  rw [ite_eq_left (show q < (pop slot).program.length + 1 by omega)]
+
+theorem repeatTarget_inside (slot : Nat) (body : Machine) (q : Nat)
+    (hq : q < (repeatBase slot body).program.length) :
+    repeatMachine.clearTargetFor (repeatBase slot body).program.length q = q := by
+  unfold repeatMachine.clearTargetFor
+  rw [ite_eq_left hq]
+
+theorem repeatHeadTarget_positive (slot : Nat) (body : Machine) :
+    repeatHeadTarget slot body (pop slot).program.length = (pop slot).program.length := by
+  unfold repeatHeadTarget; rw [ite_eq_left (by omega)]
+theorem repeatHeadTarget_empty (slot : Nat) (body : Machine) :
+    repeatHeadTarget slot body ((pop slot).program.length+1) = (repeatBase slot body).program.length+1 := by
+  simp only [repeatHeadTarget, Nat.lt_irrefl, ite_false, repeatBase_states]
+theorem repeatTarget_back (slot : Nat) (body : Machine) :
+    repeatMachine.clearTargetFor (repeatBase slot body).program.length
+      (repeatBase slot body).program.length = 0 := by simp [repeatMachine.clearTargetFor]
+theorem repeatTarget_exit (slot : Nat) (body : Machine) :
+    repeatMachine.clearTargetFor (repeatBase slot body).program.length
+      ((repeatBase slot body).program.length+1) = (repeatMachine slot body).program.length := by
+  unfold repeatMachine.clearTargetFor
+  rw [ite_eq_right (by omega), ite_eq_right (by omega)]
+  simp only [repeatBase_states, repeatMachine_states]
+
+theorem repeat_empty (pre post : List Word) (body : Machine) :
+    Reaches (repeatMachine pre.length body) (home 0 (pre ++ [] :: post))
+      (2*(tape pre).length+3)
+      (home (repeatMachine pre.length body).program.length (pre ++ [] :: post)) := by
+  have h := retarget_reaches (pop_empty pre post) (repeatHeadTarget pre.length body)
+    (repeatHeadTarget_inside pre.length body)
+  have h' := retarget_reaches (reaches_append (appendMachine body repeatJump) h)
+    (repeatMachine.clearTargetFor (repeatBase pre.length body).program.length)
+    (repeatTarget_inside pre.length body)
+  change Reaches (repeatMachine pre.length body) _ _ _ at h'
+  simpa only [retargetConfig, home, repeatHeadTarget_inside pre.length body 0 (by simp),
+    repeatHeadTarget_empty, repeatTarget_inside pre.length body 0 (by simp), repeatTarget_exit] using h'
+
+theorem repeat_positive (pre post : List Word) (n : Nat) (body : Machine) :
+    ∃ c, Reaches (repeatMachine pre.length body)
+      (home 0 (pre ++ List.replicate (n+1) true :: post))
+      (2*(tape pre).length+4*(n+1+(tape post).length)+5) c ∧
+      Similar (home (pop pre.length).program.length (pre ++ List.replicate n true :: post)) c := by
+  have h := retarget_reaches (pop_positive pre post n) (repeatHeadTarget pre.length body)
+    (repeatHeadTarget_inside pre.length body)
+  have h' := retarget_reaches (reaches_append (appendMachine body repeatJump) h)
+    (repeatMachine.clearTargetFor (repeatBase pre.length body).program.length)
+    (repeatTarget_inside pre.length body)
+  refine ⟨⟨(pop pre.length).program.length, [], .blank,
+    tape (pre ++ List.replicate n true :: post) ++ [.blank, .blank]⟩, ?_, ?_⟩
+  · change Reaches (repeatMachine pre.length body) _ _ _ at h'
+    simpa only [retargetConfig, home, repeatHeadTarget_inside pre.length body 0 (by simp),
+      repeatHeadTarget_positive, repeatTarget_inside pre.length body 0 (by simp),
+      repeatTarget_inside pre.length body (pop pre.length).program.length (by simp only [repeatBase_states]; omega)] using h'
+  · exact ⟨rfl, rfl, rfl, ⟨_, 0, 2, by simp [home, blanks], rfl⟩⟩
+
+theorem similar_shiftConfig (off : Nat) (c d : Config) (h : Similar c d) :
+    Similar (shiftConfig off c) (shiftConfig off d) :=
+  ⟨congrArg (fun q => q + off) h.1, h.2.1, h.2.2.1, h.2.2.2⟩
+
+theorem similar_retargetConfig (target : Nat → Nat) (c d : Config) (h : Similar c d) :
+    Similar (retargetConfig target c) (retargetConfig target d) :=
+  ⟨congrArg target h.1, h.2.1, h.2.2.1, h.2.2.2⟩
+
+/-- Embed a home-preserving body and charge the explicit backward jump.
+The body may leave arbitrary trailing blank padding. -/
+theorem repeat_body_reaches (slot : Nat) (body : Machine) (before after : List Word)
+    (t : Nat) (c : Config) (hc : Reaches body (home 0 before) t c)
+    (hs : Similar (home body.program.length after) c) :
+    ∃ d, Reaches (repeatMachine slot body) (home (pop slot).program.length before)
+      (t+1) d ∧ Similar (home 0 after) d := by
+  let target := repeatMachine.clearTargetFor (repeatBase slot body).program.length
+  have h := reaches_append_right (repeatHead slot body) (reaches_append repeatJump hc)
+  have h' := retarget_reaches h target (repeatTarget_inside slot body)
+  have hs' := similar_retargetConfig target _ _
+    (similar_shiftConfig (repeatHead slot body).program.length _ _ hs)
+  have hbody : Reaches (repeatMachine slot body) (home (pop slot).program.length before) t
+      (retargetConfig target (shiftConfig (repeatHead slot body).program.length c)) := by
+    change Reaches (repeatMachine slot body) _ t _ at h'
+    simpa only [retargetConfig, shiftConfig, home, Nat.zero_add, repeatHead_states,
+      target, repeatTarget_inside slot body (pop slot).program.length (by simp only [repeatBase_states]; omega)] using h'
+  have hsim : Similar (home ((pop slot).program.length + body.program.length) after)
+      (retargetConfig target (shiftConfig (repeatHead slot body).program.length c)) := by
+    simpa [target, retargetConfig, shiftConfig, home, repeatMachine.clearTargetFor,
+      repeatHead_states, Nat.add_comm, Nat.add_assoc] using hs'
+  have hjump : Reaches (repeatMachine slot body)
+      (home ((pop slot).program.length + body.program.length) after) 1 (home 0 after) := by
+    apply Reaches.next (t := 0) _ (Reaches.refl _)
+    unfold step repeatMachine
+    rw [retarget_instruction]
+    have hi : (repeatBase slot body).instruction ((pop slot).program.length + body.program.length) .blank =
+        .move (repeatBase slot body).program.length .blank .stay := by
+      unfold repeatBase
+      rw [show (pop slot).program.length + body.program.length =
+        body.program.length + (repeatHead slot body).program.length by simp; omega,
+        append_instruction_right]
+      rw [show body.program.length = 0 + body.program.length by omega, append_instruction_right]
+      simp [repeatJump, Machine.instruction, Symbol.index, shiftInstruction, appendMachine,
+        Nat.add_assoc, Nat.add_comm]
+    simp only [home] at *
+    rw [hi]
+    simp only [retargetInstruction, repeatTarget_back, moveHead]
+  obtain ⟨d, hd, hsd⟩ := reaches_of_similar hjump hsim
+  exact ⟨d, hbody.trans hd, hsd⟩
+
+def registerAt (slot : Nat) (st : State) : Nat := st.regs[slot]?.getD 0
+def putRegister (slot value : Nat) (st : State) : State := ⟨st.regs.set slot value, st.out⟩
+
+theorem registerAt_split (pre post : List Nat) (value : Nat) (out : Word) :
+    registerAt pre.length ⟨pre ++ value :: post, out⟩ = value := by
+  simp [registerAt]
+
+theorem putRegister_split (pre post : List Nat) (old value : Nat) (out : Word) :
+    putRegister pre.length value ⟨pre ++ old :: post, out⟩ = ⟨pre ++ value :: post, out⟩ := by
+  simp [putRegister]
+
+theorem putRegister_length (slot value : Nat) (st : State) :
+    (putRegister slot value st).regs.length = st.regs.length := by simp [putRegister]
+
+theorem registerAt_putRegister (slot value : Nat) (st : State) (h : slot < st.regs.length) :
+    registerAt slot (putRegister slot value st) = value := by
+  simp [registerAt, putRegister, List.getElem?_set_self h]
+
+/-- Restrict a straight-line body's writes so its loop counter is stable. -/
+def ReadOnly (slot : Nat) : Prog → Prop
+  | .empty => True
+  | .increment dest _ => slot ≠ dest
+  | .emit _ => True
+  | .seq first second => ReadOnly slot first ∧ ReadOnly slot second
+
+theorem incrementRegs_readOnly (slot dest count : Nat) (values : List Nat)
+    (h : slot ≠ dest) :
+    (incrementRegs dest count values)[slot]?.getD 0 = values[slot]?.getD 0 := by
+  induction values generalizing slot dest with
+  | nil => simp [incrementRegs]
+  | cons value rest ih =>
+    cases slot <;> cases dest <;> simp_all [incrementRegs]
+
+theorem runProg_readOnly (slot : Nat) (p : Prog) (st : State) (h : ReadOnly slot p) :
+    registerAt slot (runProg p st) = registerAt slot st := by
+  induction p generalizing st with
+  | empty => rfl
+  | increment dest count => exact incrementRegs_readOnly slot dest count st.regs h
+  | emit w => rfl
+  | seq first second ihf ihs =>
+    exact (ihs _ h.2).trans (ihf _ h.1)
+
+def repeatPrefix (x : Word) (slot : Nat) (st : State) : Nat :=
+  (tape (x :: regWords (st.regs.take slot))).length
+def repeatSuffix (slot : Nat) (st : State) : Nat :=
+  (tape (regWords (st.regs.drop (slot+1)) ++ [st.out])).length
+
+theorem repeatPrefix_split (x : Word) (pre post : List Nat) (value : Nat) (out : Word) :
+    repeatPrefix x pre.length ⟨pre ++ value :: post, out⟩ = (tape (x :: regWords pre)).length := by
+  simp [repeatPrefix]
+theorem repeatSuffix_split (pre post : List Nat) (value : Nat) (out : Word) :
+    repeatSuffix pre.length ⟨pre ++ value :: post, out⟩ = (tape (regWords post ++ [out])).length := by
+  have hd : pre.drop (pre.length+1) = [] := List.drop_eq_nil_iff.mpr (by omega)
+  simp [repeatSuffix, List.drop_append, hd]
+
+def repeatRun (slot : Nat) (p : Prog) : Nat → State → State
+  | 0, st => st
+  | n+1, st => repeatRun slot p n (runProg p (putRegister slot n st))
+def repeatCost (x : Word) (slot : Nat) (p : Prog) : Nat → State → Nat
+  | 0, st => 2*repeatPrefix x slot st + 3
+  | n+1, st =>
+    2*repeatPrefix x slot st + 4*(n+1+repeatSuffix slot st) + 5 +
+      cost x p (putRegister slot n st) + 1 +
+      repeatCost x slot p n (runProg p (putRegister slot n st))
+
+/-- A unary loop's table is fixed by its body and register index. Its dynamic
+number of iterations comes from the tape, and every test, deletion, body step
+and backward jump is charged. -/
+theorem repeat_compile_reaches (x : Word) (k slot : Nat) (p : Prog)
+    (hp : WellFormed k p) (hro : ReadOnly slot p) (hslot : slot < k)
+    (n : Nat) (st : State) (hk : st.regs.length = k) (hn : registerAt slot st = n) :
+    ∃ c, Reaches (repeatMachine (slot+1) (compile k p)) (encode 0 x st)
+      (repeatCost x slot p n st) c ∧
+      Similar (encode (repeatMachine (slot+1) (compile k p)).program.length x
+        (repeatRun slot p n st)) c := by
+  induction n generalizing st with
+  | zero =>
+    rcases st with ⟨values, out⟩
+    obtain ⟨pre, value, post, hpre, hv⟩ := register_decomposition values slot (by change values.length = k at hk; omega)
+    subst values; subst slot
+    have hv : value = 0 := by simpa only [registerAt_split] using hn
+    subst value
+    refine ⟨encode (repeatMachine (pre.length+1) (compile k p)).program.length x
+      ⟨pre ++ 0 :: post, out⟩, ?_, ⟨rfl, rfl, rfl, BlankPad.refl _⟩⟩
+    simpa only [repeatCost, repeatPrefix_split, encode, blocks, regWords, List.map_append,
+      List.map_cons, List.replicate_zero, List.length_cons, List.length_map,
+      List.append_assoc, List.cons_append] using
+      repeat_empty (x :: regWords pre) (regWords post ++ [out]) (compile k p)
+  | succ n ih =>
+    rcases st with ⟨values, out⟩
+    obtain ⟨pre, value, post, hpre, hv⟩ := register_decomposition values slot (by change values.length = k at hk; omega)
+    subst values; subst slot
+    have hv : value = n+1 := by simpa only [registerAt_split] using hn
+    subst value
+    let lower : State := ⟨pre ++ n :: post, out⟩
+    let next := runProg p lower
+    have hl : lower.regs.length = k := by simpa [lower] using hk
+    obtain ⟨c, hc, hsim⟩ := repeat_positive (x :: regWords pre)
+      (regWords post ++ [out]) n (compile k p)
+    have hc' : Reaches (repeatMachine (pre.length+1) (compile k p))
+        (encode 0 x ⟨pre ++ (n+1) :: post, out⟩)
+        (2*repeatPrefix x pre.length ⟨pre ++ (n+1) :: post, out⟩ +
+          4*(n+1+repeatSuffix pre.length ⟨pre ++ (n+1) :: post, out⟩)+5) c := by
+      simpa only [repeatPrefix_split, repeatSuffix_split, encode, blocks, regWords,
+        List.map_append, List.map_cons, List.append_assoc, List.cons_append,
+        List.length_cons, List.length_map] using hc
+    have hsim' : Similar (home (pop (pre.length+1)).program.length (blocks x lower)) c := by
+      simpa only [lower, blocks, regWords, List.map_append, List.map_cons,
+        List.append_assoc, List.cons_append, List.length_cons, List.length_map] using hsim
+    obtain ⟨d, hd, hsd⟩ := repeat_body_reaches (pre.length+1) (compile k p)
+      (blocks x lower) (blocks x next) _ _ (compile_reaches x k p lower hp hl)
+      ⟨rfl, rfl, rfl, BlankPad.refl _⟩
+    obtain ⟨e, he, hde⟩ := reaches_of_similar hd hsim'
+    have heq : registerAt pre.length next = n := by
+      rw [runProg_readOnly _ p lower hro]; exact registerAt_split pre post n out
+    obtain ⟨f, hf, hsf⟩ := ih next ((runProg_regs_length p lower).trans hl) heq
+    obtain ⟨g, hg, hfg⟩ := reaches_of_similar hf (hsd.trans hde)
+    refine ⟨g, ?_, ?_⟩
+    · simpa only [repeatCost, repeatRun, putRegister_split, Nat.add_assoc,
+        lower, next] using hc'.trans (he.trans hg)
+    · simpa only [repeatRun, putRegister_split, lower, next] using hsf.trans hfg
+
+/-- Emit the repository's two true bits per unary unit, using a register on
+the tape rather than an input-dependent instruction table. The counter is
+consumed; a caller that needs it again must copy it into scratch first. -/
+def emitTicks (registers slot : Nat) : Machine :=
+  repeatMachine (slot+1) (emitConst registers [true, true])
+def ticksTime (pre value post : Nat) : Nat :=
+  value * (6*pre + 8*post + 12*value + 12) + 2*pre + 3
+def ticksPolynomial : Polynomial := ⟨20, 2⟩
+
+theorem repeatRun_ticks (pre post : List Nat) (n : Nat) (out : Word) :
+    repeatRun pre.length (.emit [true, true]) n ⟨pre ++ n :: post, out⟩ =
+      ⟨pre ++ 0 :: post, out ++ List.replicate (2*n) true⟩ := by
+  induction n generalizing out with
+  | zero => simp [repeatRun]
+  | succ n ih =>
+    simp only [repeatRun, putRegister_split, runProg, ih]
+    rw [show 2*(n+1) = 2+2*n by omega, ← List.replicate_append_replicate]
+    simp [List.append_assoc]
+
+theorem repeatCost_ticks (x : Word) (pre post : List Nat) (n : Nat) (out : Word) :
+    repeatCost x pre.length (.emit [true, true]) n ⟨pre ++ n :: post, out⟩ =
+      ticksTime (tape (x :: regWords pre)).length n (tape (regWords post ++ [out])).length := by
+  induction n generalizing out with
+  | zero => simp [repeatCost, repeatPrefix_split, ticksTime]
+  | succ n ih =>
+    simp only [repeatCost, repeatPrefix_split, repeatSuffix_split, putRegister_split,
+      cost, runProg, ih, List.length_cons, List.length_nil]
+    have hsize : (tape (blocks x ⟨pre ++ n :: post, out⟩)).length =
+        (tape (x :: regWords pre)).length + n +
+          (tape (regWords post ++ [out])).length + 1 := by
+      simp only [blocks, regWords, List.map_append, List.map_cons, tape_append, tape_cons,
+        List.length_append, List.length_cons, List.length_map, List.length_replicate]
+      omega
+    have hout : (tape (regWords post ++ [out ++ [true, true]])).length =
+        (tape (regWords post ++ [out])).length + 2 := by simp [tape]; omega
+    rw [hsize, hout]
+    simp [ticksTime, wordTime, Nat.mul_add, Nat.add_mul]; omega
+
+theorem ticksTime_polynomial (pre value post : Nat) :
+    ticksTime pre value post ≤ ticksPolynomial.eval (pre+value+post) := by
+  let size := pre+value+post+1
+  have h1 : value ≤ size := by omega
+  have h2 : 6*pre+8*post+12*value+12 ≤ 12*size := by omega
+  have h3 : 2*pre+3 ≤ 3*size*size := by
+    have hs : 1 ≤ size := by omega
+    have hc : 2*pre+3 ≤ 3*size := by omega
+    exact Nat.le_trans hc (Nat.le_mul_of_pos_right _ hs)
+  have h := Nat.add_le_add (Nat.mul_le_mul h1 h2) h3
+  have hh : size*(12*size)+3*size*size ≤ 20*size*size := by
+    simp only [Nat.mul_assoc, Nat.mul_left_comm size 12 size]; omega
+  simpa [ticksTime, ticksPolynomial, Polynomial.eval, Nat.pow_two, size,
+    Nat.add_assoc, Nat.mul_assoc] using Nat.le_trans h hh
+
+theorem emitTicks_reaches (x : Word) (pre post : List Nat) (n : Nat) (out : Word) :
+    ∃ c, Reaches (emitTicks (pre ++ n :: post).length pre.length)
+      (encode 0 x ⟨pre ++ n :: post, out⟩)
+      (ticksTime (tape (x :: regWords pre)).length n (tape (regWords post ++ [out])).length) c ∧
+      Similar (encode (emitTicks (pre ++ n :: post).length pre.length).program.length x
+        ⟨pre ++ 0 :: post, out ++ List.replicate (2*n) true⟩) c := by
+  have h := repeat_compile_reaches x (pre ++ n :: post).length pre.length
+    (.emit [true, true]) trivial trivial (by simp) n
+    ⟨pre ++ n :: post, out⟩ rfl (registerAt_split pre post n out)
+  simpa only [compile, repeatCost_ticks, repeatRun_ticks, emitTicks] using h
+
+theorem compose_home_reaches (first second : Machine) (before middle after : List Word)
+    (t u : Nat) (c d : Config) (hc : Reaches first (home 0 before) t c)
+    (hs : Similar (home first.program.length middle) c)
+    (hd : Reaches second (home 0 middle) u d)
+    (he : Similar (home second.program.length after) d) :
+    ∃ e, Reaches (appendMachine first second) (home 0 before) (t+u) e ∧
+      Similar (home (appendMachine first second).program.length after) e := by
+  have h := reaches_append_right first hd
+  have h' : Reaches (appendMachine first second) (home first.program.length middle) u
+      (shiftConfig first.program.length d) := by simpa only [shiftConfig, home, Nat.zero_add] using h
+  obtain ⟨e, hreach, hsim⟩ := reaches_of_similar h' hs
+  refine ⟨e, (reaches_append second hc).trans hreach, ?_⟩
+  have he' := (similar_shiftConfig first.program.length _ _ he).trans hsim
+  simpa [home, shiftConfig, appendMachine, Nat.add_comm] using he'
+
+def emitLiteral (registers slot : Nat) (pos : Bool) : Machine :=
+  appendMachine (emitTicks registers slot) (emitConst registers [false, pos])
+def literalTime (pre value post : Nat) : Nat :=
+  ticksTime pre value post + wordTime 2 (pre+post+2*value+1)
+def literalPolynomial : Polynomial := ⟨40, 2⟩
+
+theorem ticks_eq_replicate (n : Nat) : ticks n = List.replicate (2*n) true := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [show 2*(n+1) = 2+(2*n) by omega, ← List.replicate_append_replicate]
+    simp only [ticks, ih]; rfl
+
+theorem literalTime_polynomial (pre value post : Nat) :
+    literalTime pre value post ≤ literalPolynomial.eval (pre+value+post) := by
+  have ht := ticksTime_polynomial pre value post
+  have hw : wordTime 2 (pre+post+2*value+1) ≤ 20*(pre+value+post+1)^2 := by
+    let size := pre+value+post+1
+    have hf : 2*(pre+post+2*value+1)+5 ≤ 10*size := by omega
+    have hh := Nat.mul_le_mul_left 2 hf
+    have hs : 1 ≤ size := by omega
+    have hb := Nat.mul_le_mul_left 20 (Nat.le_mul_of_pos_right size hs)
+    have hc : 2*(10*size) ≤ 20*(size*size) := by
+      simpa only [Nat.mul_assoc, Nat.mul_comm, Nat.mul_left_comm] using hb
+    simpa only [wordTime, Nat.pow_two, size] using Nat.le_trans hh hc
+  have h := Nat.add_le_add ht hw
+  change ticksTime pre value post + wordTime 2 (pre+post+2*value+1) ≤
+    40*((pre+value+post+1)^2)
+  change ticksTime pre value post + wordTime 2 (pre+post+2*value+1) ≤
+    20*((pre+value+post+1)^2) + 20*((pre+value+post+1)^2) at h
+  omega
+
+/-- Consume the dynamic unary emitter to produce the exact shared literal
+encoding, including its delimiter and polarity. -/
+theorem emitLiteral_reaches (x : Word) (pre post : List Nat) (n : Nat) (out : Word) (pos : Bool) :
+    ∃ c, Reaches (emitLiteral (pre ++ n :: post).length pre.length pos)
+      (encode 0 x ⟨pre ++ n :: post, out⟩)
+      (literalTime (tape (x :: regWords pre)).length n (tape (regWords post ++ [out])).length) c ∧
+      Similar (encode (emitLiteral (pre ++ n :: post).length pre.length pos).program.length x
+        ⟨pre ++ 0 :: post, out ++ encodeLit ⟨n, pos⟩⟩) c := by
+  let lower : State := ⟨pre ++ 0 :: post, out ++ List.replicate (2*n) true⟩
+  obtain ⟨c, hc, hs⟩ := emitTicks_reaches x pre post n out
+  have hlen : lower.regs.length = (pre ++ n :: post).length := by simp [lower]
+  have h := emitConst_reaches x lower [false, pos]
+  rw [hlen] at h
+  obtain ⟨d, hd, he⟩ := compose_home_reaches _ _ _ _ _ _ _ _ _ hc hs h
+    ⟨rfl, rfl, rfl, BlankPad.refl _⟩
+  have hsize : (tape (blocks x lower)).length = (tape (x :: regWords pre)).length +
+      (tape (regWords post ++ [out])).length + 2*n+1 := by
+    simp only [lower, blocks, regWords, List.map_append, List.map_cons, tape_append, tape_cons,
+      List.length_append, List.length_cons, List.length_map, List.length_replicate]
+    omega
+  refine ⟨d, ?_, ?_⟩
+  · simpa [emitLiteral, literalTime, encode, List.length_cons, List.length_nil, hsize] using hd
+  · simpa only [emitLiteral, encode, home, lower, encodeLit, ticks_eq_replicate,
+      List.append_assoc] using he
 
 end Issue624.RegisterMachine

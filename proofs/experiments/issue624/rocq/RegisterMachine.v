@@ -47,6 +47,21 @@ Definition clearTarget (slot q : nat) : nat :=
   if q =? length (program (pop slot)) then 0 else length (program (pop slot)).
 Definition clear (slot : nat) : Machine := retargetMachine (pop slot) (clearTarget slot).
 
+Definition repeatHeadTarget (slot : nat) (body : Machine) (q : nat) : nat :=
+  if q <? length (program (pop slot)) + 1 then q else
+    length (program (pop slot)) + length (program body) + 2.
+Definition repeatHead (slot : nat) (body : Machine) : Machine :=
+  retargetMachine (pop slot) (repeatHeadTarget slot body).
+Definition repeatJump : Machine :=
+  {| program := [[move 1 blank stay; halt false; halt false; halt false]] |}.
+Definition repeatBase (slot : nat) (body : Machine) : Machine :=
+  appendMachine (repeatHead slot body) (appendMachine body repeatJump).
+Definition repeatMachine_clearTargetFor (size q : nat) :=
+  if q <? size then q else if q =? size then 0 else size.
+Definition repeatMachine (slot : nat) (body : Machine) : Machine :=
+  retargetMachine (repeatBase slot body)
+    (repeatMachine_clearTargetFor (length (program (repeatBase slot body)))).
+
 (* END GENERATED REGISTER TABLES *)
 
 Definition tape (blocks : list Word) : list Symbol :=
@@ -714,6 +729,376 @@ Proof.
     unfold clearPolynomial, evalPoly. cbn [coefficient degree Nat.pow]. nia.
   - eapply Nat.le_trans; [exact he|].
     unfold emissionPolynomial, evalPoly. cbn [coefficient degree Nat.pow]. nia.
+Qed.
+
+Theorem repeatHead_states : forall slot body,
+  length (program (repeatHead slot body)) = length (program (pop slot)).
+Proof. intros. unfold repeatHead, retargetMachine. cbn [program]. apply length_map. Qed.
+Theorem repeatBase_states : forall slot body,
+  length (program (repeatBase slot body)) = length (program (pop slot)) + length (program body) + 1.
+Proof.
+  intros. unfold repeatBase, appendMachine. cbn [program].
+  repeat first [rewrite length_app | rewrite length_map | progress cbn [program repeatJump]].
+  rewrite repeatHead_states. cbn [length]. lia.
+Qed.
+Theorem repeatMachine_states : forall slot body,
+  length (program (repeatMachine slot body)) = length (program (pop slot)) + length (program body) + 1.
+Proof.
+  intros. unfold repeatMachine, retargetMachine. cbn [program].
+  rewrite length_map. apply repeatBase_states.
+Qed.
+Theorem repeatHeadTarget_inside : forall slot body q,
+  q < length (program (pop slot)) -> repeatHeadTarget slot body q = q.
+Proof.
+  intros. unfold repeatHeadTarget.
+  assert ((q <? length (program (pop slot))+1) = true) as h by (apply Nat.ltb_lt; lia).
+  rewrite h. reflexivity.
+Qed.
+Theorem repeatTarget_inside : forall slot body q,
+  q < length (program (repeatBase slot body)) ->
+  repeatMachine_clearTargetFor (length (program (repeatBase slot body))) q = q.
+Proof. intros. unfold repeatMachine_clearTargetFor. apply Nat.ltb_lt in H. rewrite H. reflexivity. Qed.
+Theorem repeatHeadTarget_positive : forall slot body,
+  repeatHeadTarget slot body (length (program (pop slot))) = length (program (pop slot)).
+Proof.
+  intros. unfold repeatHeadTarget.
+  assert ((length (program (pop slot)) <? length (program (pop slot))+1) = true) as h by (apply Nat.ltb_lt; lia).
+  rewrite h. reflexivity.
+Qed.
+Theorem repeatHeadTarget_empty : forall slot body,
+  repeatHeadTarget slot body (length (program (pop slot))+1) = length (program (repeatBase slot body))+1.
+Proof. intros. unfold repeatHeadTarget. rewrite Nat.ltb_irrefl, repeatBase_states. lia. Qed.
+Theorem repeatTarget_back : forall slot body,
+  repeatMachine_clearTargetFor (length (program (repeatBase slot body)))
+    (length (program (repeatBase slot body))) = 0.
+Proof. intros. unfold repeatMachine_clearTargetFor. rewrite Nat.ltb_irrefl, Nat.eqb_refl. reflexivity. Qed.
+Theorem repeatTarget_exit : forall slot body,
+  repeatMachine_clearTargetFor (length (program (repeatBase slot body)))
+    (length (program (repeatBase slot body))+1) = length (program (repeatMachine slot body)).
+Proof.
+  intros. unfold repeatMachine_clearTargetFor.
+  assert ((length (program (repeatBase slot body))+1 <? length (program (repeatBase slot body))) = false) as h1
+    by (apply Nat.ltb_ge; lia).
+  assert ((length (program (repeatBase slot body))+1 =? length (program (repeatBase slot body))) = false) as h2
+    by (apply Nat.eqb_neq; lia).
+  rewrite h1, h2, repeatMachine_states, repeatBase_states. reflexivity.
+Qed.
+Theorem repeat_empty : forall (pre post : list Word) body,
+  Reaches (repeatMachine (length pre) body) (home 0 (pre ++ []::post))
+    (2*length (tape pre)+3)
+    (home (length (program (repeatMachine (length pre) body))) (pre ++ []::post)).
+Proof.
+  intros. pose proof (retarget_reaches _ _ _ _ (pop_empty pre post)
+    (repeatHeadTarget (length pre) body) (repeatHeadTarget_inside (length pre) body)) as h.
+  pose proof (retarget_reaches _ _ _ _ (reaches_append _ (appendMachine body repeatJump) _ _ _ h)
+    (repeatMachine_clearTargetFor (length (program (repeatBase (length pre) body))))
+    (repeatTarget_inside (length pre) body)) as h'.
+  unfold retargetConfig, home in h'. cbn [state tapeLeft tapeHead tapeRight] in h'.
+  rewrite repeatHeadTarget_inside, repeatHeadTarget_empty, repeatTarget_inside, repeatTarget_exit in h'
+    by (rewrite ?pop_states, ?repeatBase_states; lia). exact h'.
+Qed.
+Theorem repeat_positive : forall (pre post : list Word) n body,
+  exists c, Reaches (repeatMachine (length pre) body) (home 0 (pre ++ repeat true (n+1)::post))
+    (2*length (tape pre)+4*(n+1+length (tape post))+5) c /\
+    Similar (home (length (program (pop (length pre)))) (pre ++ repeat true n::post)) c.
+Proof.
+  intros. pose proof (retarget_reaches _ _ _ _ (pop_positive pre post n)
+    (repeatHeadTarget (length pre) body) (repeatHeadTarget_inside (length pre) body)) as h.
+  pose proof (retarget_reaches _ _ _ _ (reaches_append _ (appendMachine body repeatJump) _ _ _ h)
+    (repeatMachine_clearTargetFor (length (program (repeatBase (length pre) body))))
+    (repeatTarget_inside (length pre) body)) as h'.
+  unfold retargetConfig, home in h'. cbn [state tapeLeft tapeHead tapeRight] in h'.
+  rewrite repeatHeadTarget_inside, repeatHeadTarget_positive, !repeatTarget_inside in h'
+    by (rewrite ?pop_states, ?repeatBase_states; lia).
+  eexists. split; [exact h'|]. unfold Similar, home. cbn [state tapeLeft tapeHead tapeRight]. repeat split.
+  - symmetry. apply repeatTarget_inside. rewrite repeatBase_states. lia.
+  - exists (tape (pre ++ repeat true n::post)), 0, 2. cbn [blanks repeat]. rewrite app_nil_r. auto.
+Qed.
+Theorem similar_shiftConfig : forall off c d, Similar c d -> Similar (shiftConfig off c) (shiftConfig off d).
+Proof. intros off c d [hs [hl [hh hr]]]. unfold Similar, shiftConfig. cbn. repeat split; congruence. Qed.
+Theorem similar_retargetConfig : forall target c d, Similar c d -> Similar (retargetConfig target c) (retargetConfig target d).
+Proof. intros target c d [hs [hl [hh hr]]]. unfold Similar, retargetConfig. cbn. repeat split; congruence. Qed.
+Theorem repeat_body_reaches : forall slot body before after t c,
+  Reaches body (home 0 before) t c -> Similar (home (length (program body)) after) c ->
+  exists d, Reaches (repeatMachine slot body) (home (length (program (pop slot))) before) (t+1) d /\
+    Similar (home 0 after) d.
+Proof.
+  intros slot body before after t c hc hs.
+  set (target := repeatMachine_clearTargetFor (length (program (repeatBase slot body)))).
+  pose proof (reaches_append_right (repeatHead slot body) _ _ _ _
+    (reaches_append _ repeatJump _ _ _ hc)) as h.
+  pose proof (retarget_reaches _ _ _ _ h target (repeatTarget_inside slot body)) as h'.
+  pose proof (similar_retargetConfig target _ _
+    (similar_shiftConfig (length (program (repeatHead slot body))) _ _ hs)) as hs'.
+  assert (hbody : Reaches (repeatMachine slot body) (home (length (program (pop slot))) before) t
+    (retargetConfig target (shiftConfig (length (program (repeatHead slot body))) c))).
+  {
+    unfold retargetConfig, shiftConfig, home in h'. cbn [state tapeLeft tapeHead tapeRight] in h'.
+    rewrite Nat.add_0_l, repeatHead_states in h'. unfold target in h'.
+    rewrite repeatTarget_inside in h' by (rewrite repeatBase_states; lia).
+    unfold target, retargetConfig, shiftConfig, home. cbn [state tapeLeft tapeHead tapeRight].
+    rewrite repeatHead_states. exact h'. }
+  assert (hsim : Similar (home (length (program (pop slot))+length (program body)) after)
+    (retargetConfig target (shiftConfig (length (program (repeatHead slot body))) c))).
+  { unfold retargetConfig, shiftConfig, home in hs'. cbn [state tapeLeft tapeHead tapeRight] in hs'.
+    rewrite repeatHead_states in hs'. unfold target in hs'.
+    rewrite repeatTarget_inside in hs' by (rewrite repeatBase_states; lia).
+    replace (length (program body)+length (program (pop slot))) with
+      (length (program (pop slot))+length (program body)) in hs' by lia.
+    unfold target, retargetConfig, shiftConfig, home. cbn [state tapeLeft tapeHead tapeRight].
+    rewrite repeatHead_states. exact hs'. }
+  assert (hjump : Reaches (repeatMachine slot body)
+    (home (length (program (pop slot))+length (program body)) after) 1 (home 0 after)).
+  { apply reaches_next with (c' := home 0 after) (t := 0); [|apply reaches_refl].
+    unfold step, repeatMachine. rewrite retarget_instruction. cbn [home state tapeHead].
+    assert (hi : instruction (repeatBase slot body)
+      (length (program (pop slot))+length (program body)) blank =
+      move (length (program (repeatBase slot body))) blank stay).
+    { rewrite repeatBase_states. unfold repeatBase. rewrite <- repeatHead_states with (body := body) (slot := slot).
+      replace (length (program (repeatHead slot body))+length (program body)) with
+        (length (program body)+length (program (repeatHead slot body))) by lia.
+      rewrite append_instruction_right.
+      replace (length (program body)) with (0+length (program body)) at 1 by lia.
+      rewrite append_instruction_right. cbn [repeatJump instruction program nth_error symbolIndex shiftInstruction].
+      rewrite repeatHead_states. f_equal. lia. }
+    rewrite hi. cbn [retargetInstruction]. rewrite repeatTarget_back. reflexivity. }
+  destruct (reaches_of_similar _ _ _ _ hjump _ hsim) as [d [hd hsd]].
+  exists d. split; [eapply reaches_trans; eauto|exact hsd].
+Qed.
+
+Fixpoint setRegister (slot value : nat) (values : list nat) : list nat :=
+  match values, slot with
+  | [], _ => []
+  | _::rest, 0 => value::rest
+  | old::rest, S slot => old::setRegister slot value rest
+  end.
+Definition registerAt (slot : nat) (st : State) := nth slot (regs st) 0.
+Definition putRegister (slot value : nat) (st : State) := mkState (setRegister slot value (regs st)) (out st).
+Theorem registerAt_split : forall pre post value out,
+  registerAt (length pre) (mkState (pre ++ value::post) out) = value.
+Proof. intros pre post value out. unfold registerAt. cbn [regs]. induction pre; cbn; auto. Qed.
+Theorem putRegister_split : forall pre post old value out,
+  putRegister (length pre) value (mkState (pre ++ old::post) out) = mkState (pre ++ value::post) out.
+Proof.
+  intros pre post old value out. unfold putRegister. cbn [regs RegisterMachine.out].
+  assert (hset : setRegister (length pre) value (pre ++ old::post) = pre ++ value::post).
+  { induction pre; cbn; [reflexivity|rewrite IHpre; reflexivity]. }
+  rewrite hset. reflexivity.
+Qed.
+Theorem putRegister_length : forall slot value st, length (regs (putRegister slot value st)) = length (regs st).
+Proof.
+  intros slot value [values out]. unfold putRegister. cbn [regs].
+  revert slot. induction values; intros [|slot]; cbn [setRegister length]; auto.
+Qed.
+Theorem registerAt_putRegister : forall slot value st, slot < length (regs st) ->
+  registerAt slot (putRegister slot value st) = value.
+Proof.
+  intros slot value [values out]. unfold registerAt, putRegister. cbn [regs].
+  revert slot. induction values; intros [|slot] h; cbn [setRegister nth length] in *; try lia; auto. apply IHvalues. lia.
+Qed.
+Fixpoint ReadOnly (slot : nat) (p : Prog) : Prop :=
+  match p with
+  | empty => True
+  | increment dest _ => slot <> dest
+  | emit _ => True
+  | seq first second => ReadOnly slot first /\ ReadOnly slot second
+  end.
+Theorem incrementRegs_readOnly : forall slot dest count values, slot <> dest ->
+  nth slot (incrementRegs dest count values) 0 = nth slot values 0.
+Proof.
+  intros slot dest count values. revert slot dest.
+  induction values; intros [|slot] [|dest] h; cbn [incrementRegs nth]; auto; try congruence.
+Qed.
+Theorem runProg_readOnly : forall slot p st, ReadOnly slot p -> registerAt slot (runProg p st) = registerAt slot st.
+Proof.
+  intros slot p. induction p; intros st h; cbn [ReadOnly runProg registerAt regs] in *; auto.
+  - apply incrementRegs_readOnly; exact h.
+  - rewrite IHp2, IHp1; tauto.
+Qed.
+Definition repeatPrefix (x : Word) (slot : nat) (st : State) := length (tape (x::regWords (firstn slot (regs st)))).
+Definition repeatSuffix (slot : nat) (st : State) := length (tape (regWords (skipn (slot+1) (regs st)) ++ [out st])).
+Theorem repeatPrefix_split : forall x pre post value out,
+  repeatPrefix x (length pre) (mkState (pre ++ value::post) out) = length (tape (x::regWords pre)).
+Proof.
+  intros. unfold repeatPrefix. cbn [regs]. rewrite firstn_app, firstn_all, Nat.sub_diag. cbn [firstn]. rewrite app_nil_r. reflexivity.
+Qed.
+Theorem repeatSuffix_split : forall pre post value out,
+  repeatSuffix (length pre) (mkState (pre ++ value::post) out) = length (tape (regWords post ++ [out])).
+Proof.
+  intros. unfold repeatSuffix. cbn [regs]. rewrite skipn_app.
+  replace (length pre+1-length pre) with 1 by lia. cbn [skipn].
+  rewrite skipn_all2 by lia. reflexivity.
+Qed.
+Fixpoint repeatRun (slot : nat) (p : Prog) (n : nat) (st : State) : State :=
+  match n with 0 => st | S n => repeatRun slot p n (runProg p (putRegister slot n st)) end.
+Fixpoint repeatCost (x : Word) (slot : nat) (p : Prog) (n : nat) (st : State) : nat :=
+  match n with
+  | 0 => 2*repeatPrefix x slot st+3
+  | S n => 2*repeatPrefix x slot st+4*(n+1+repeatSuffix slot st)+5+
+    cost x p (putRegister slot n st)+1+repeatCost x slot p n (runProg p (putRegister slot n st))
+  end.
+Theorem repeat_compile_reaches : forall x k slot p, WellFormed k p -> ReadOnly slot p -> slot < k ->
+  forall n st, length (regs st) = k -> registerAt slot st = n ->
+  exists c, Reaches (repeatMachine (slot+1) (compile k p)) (encode 0 x st) (repeatCost x slot p n st) c /\
+    Similar (encode (length (program (repeatMachine (slot+1) (compile k p)))) x (repeatRun slot p n st)) c.
+Proof.
+  intros x k slot p hp hro hslot n. induction n as [|n IH]; intros [values out] hk hn.
+  - destruct (register_decomposition values slot) as [pre [value [post [hpre hv]]]]; [cbn [regs] in hk; lia|].
+    subst values slot. rewrite registerAt_split in hn. subst value.
+    exists (encode (length (program (repeatMachine (length pre+1) (compile k p)))) x (mkState (pre ++ 0::post) out)).
+    split; [|unfold Similar; repeat split; apply blankPad_refl].
+    pose proof (repeat_empty (x::regWords pre) (regWords post ++ [out]) (compile k p)) as h.
+    cbn [repeatCost]. rewrite repeatPrefix_split. unfold encode, blocks, regWords in *. cbn [regs RegisterMachine.out] in *.
+    rewrite map_app. cbn [map repeat]. cbn [length] in h. rewrite ?length_map in h.
+    replace (S (length pre)) with (length pre+1) in h by lia.
+    repeat rewrite <- app_assoc. exact h.
+  - destruct (register_decomposition values slot) as [pre [value [post [hpre hv]]]]; [cbn [regs] in hk; lia|].
+    subst values slot. rewrite registerAt_split in hn. subst value.
+    set (lower := mkState (pre ++ n::post) out).
+    set (next := runProg p lower).
+    assert (hl : length (regs lower) = k) by (unfold lower; cbn [regs] in *; rewrite !length_app in *; cbn in *; lia).
+    destruct (repeat_positive (x::regWords pre) (regWords post ++ [out]) n (compile k p)) as [c [hc hsim]].
+    assert (hc' : Reaches (repeatMachine (length pre+1) (compile k p))
+      (encode 0 x (mkState (pre ++ (n+1)::post) out))
+      (2*repeatPrefix x (length pre) (mkState (pre ++ (n+1)::post) out)+
+        4*(n+1+repeatSuffix (length pre) (mkState (pre ++ (n+1)::post) out))+5) c).
+    { rewrite repeatPrefix_split, repeatSuffix_split. unfold encode, blocks, regWords.
+      cbn [regs RegisterMachine.out]. rewrite map_app. cbn [map].
+      unfold regWords in hc. cbn [length] in hc. rewrite length_map in hc.
+      replace (S (length pre)) with (length pre+1) in hc by lia.
+      repeat rewrite <- app_assoc. exact hc. }
+    assert (hsim' : Similar (home (length (program (pop (length pre+1)))) (blocks x lower)) c).
+    { unfold lower, blocks, regWords. cbn [regs RegisterMachine.out]. rewrite map_app. cbn [map].
+      unfold regWords in hsim. cbn [length] in hsim. rewrite length_map in hsim.
+      replace (S (length pre)) with (length pre+1) in hsim by lia.
+      repeat rewrite <- app_assoc. exact hsim. }
+    destruct (repeat_body_reaches (length pre+1) (compile k p) (blocks x lower) (blocks x next) _ _
+      (compile_reaches x k p lower hp hl)) as [d [hd hsd]].
+    { unfold Similar. repeat split. apply blankPad_refl. }
+    destruct (reaches_of_similar _ _ _ _ hd _ hsim') as [e [he hde]].
+    assert (heq : registerAt (length pre) next = n).
+    { unfold next. rewrite runProg_readOnly by exact hro. apply registerAt_split. }
+    destruct (IH next) as [f [hf hsf]].
+    { unfold next. rewrite runProg_regs_length. exact hl. }
+    { exact heq. }
+    destruct (reaches_of_similar _ _ _ _ hf _ (similar_trans _ _ _ hsd hde)) as [g [hg hfg]].
+    exists g. split.
+    + cbn [repeatCost]. rewrite putRegister_split.
+      unfold lower, next in *. replace (S n) with (n+1) by lia.
+      pose proof (reaches_trans _ _ _ _ _ _ hc'
+        (reaches_trans _ _ _ _ _ _ he hg)) as hr.
+      repeat rewrite Nat.add_assoc in hr. exact hr.
+    + cbn [repeatRun]. rewrite putRegister_split. exact (similar_trans _ _ _ hsf hfg).
+Qed.
+
+Definition emitTicks (registers slot : nat) : Machine := repeatMachine (slot+1) (emitConst registers [true; true]).
+Definition ticksTime (pre value post : nat) := value*(6*pre+8*post+12*value+12)+2*pre+3.
+Definition ticksPolynomial : Polynomial := {| coefficient := 20; degree := 2 |}.
+Theorem repeatRun_ticks : forall pre post n out,
+  repeatRun (length pre) (emit [true; true]) n (mkState (pre ++ n::post) out) =
+    mkState (pre ++ 0::post) (out ++ repeat true (2*n)).
+Proof.
+  intros pre post n. induction n; intros out; cbn [repeatRun]; [rewrite app_nil_r; reflexivity|].
+  rewrite putRegister_split. cbn [runProg regs RegisterMachine.out]. rewrite IHn.
+  replace (2*S n) with (2+2*n) by lia. rewrite repeat_app.
+  cbn [repeat]. rewrite app_assoc. reflexivity.
+Qed.
+Theorem repeatCost_ticks : forall x pre post n out,
+  repeatCost x (length pre) (emit [true; true]) n (mkState (pre ++ n::post) out) =
+    ticksTime (length (tape (x::regWords pre))) n (length (tape (regWords post ++ [out]))).
+Proof.
+  intros x pre post n. induction n; intros out.
+  - cbn [repeatCost]. rewrite repeatPrefix_split. unfold ticksTime. cbn. reflexivity.
+  - cbn [repeatCost]. rewrite repeatPrefix_split, repeatSuffix_split, putRegister_split.
+    cbn [cost runProg regs RegisterMachine.out length]. rewrite IHn.
+    assert (hsize : length (tape (blocks x (mkState (pre ++ n::post) out))) =
+      length (tape (x::regWords pre))+n+length (tape (regWords post ++ [out]))+1).
+    { unfold blocks, regWords. cbn [regs RegisterMachine.out]. rewrite map_app. cbn [map].
+      repeat (rewrite tape_cons || rewrite tape_append).
+      repeat first [rewrite length_app | rewrite length_map | rewrite repeat_length | progress cbn [length]]. lia. }
+    assert (hout : length (tape (regWords post ++ [out ++ [true; true]])) =
+      length (tape (regWords post ++ [out]))+2).
+    { rewrite !tape_append. cbn [tape flat_map]. repeat first [rewrite length_app | rewrite length_map | progress cbn [length]]. lia. }
+    rewrite hsize. unfold Word in hout |- *. rewrite hout. unfold ticksTime, wordTime. nia.
+Qed.
+Theorem ticksTime_polynomial : forall pre value post,
+  ticksTime pre value post <= evalPoly ticksPolynomial (pre+value+post).
+Proof. intros. unfold ticksTime, ticksPolynomial, evalPoly. cbn [coefficient degree Nat.pow]. nia. Qed.
+Theorem emitTicks_reaches : forall x pre post n out,
+  exists c, Reaches (emitTicks (length (pre ++ n::post)) (length pre))
+    (encode 0 x (mkState (pre ++ n::post) out))
+    (ticksTime (length (tape (x::regWords pre))) n (length (tape (regWords post ++ [out])))) c /\
+    Similar (encode (length (program (emitTicks (length (pre ++ n::post)) (length pre)))) x
+      (mkState (pre ++ 0::post) (out ++ repeat true (2*n)))) c.
+Proof.
+  intros x pre post n out.
+  pose proof (repeat_compile_reaches x (length (pre ++ n::post)) (length pre) (emit [true; true])
+    I I ltac:(rewrite length_app; cbn; lia) n (mkState (pre ++ n::post) out) eq_refl
+    (registerAt_split pre post n out)) as h.
+  rewrite repeatCost_ticks, repeatRun_ticks in h. exact h.
+Qed.
+
+Theorem compose_home_reaches : forall first second before middle after t u c d,
+  Reaches first (home 0 before) t c -> Similar (home (length (program first)) middle) c ->
+  Reaches second (home 0 middle) u d -> Similar (home (length (program second)) after) d ->
+  exists e, Reaches (appendMachine first second) (home 0 before) (t+u) e /\
+    Similar (home (length (program (appendMachine first second))) after) e.
+Proof.
+  intros first second before middle after t u c d hc hs hd he.
+  pose proof (reaches_append_right first _ _ _ _ hd) as h.
+  assert (h' : Reaches (appendMachine first second) (home (length (program first)) middle) u
+    (shiftConfig (length (program first)) d)).
+  { unfold shiftConfig, home in h. cbn [state tapeLeft tapeHead tapeRight] in h.
+    rewrite Nat.add_0_l in h. exact h. }
+  destruct (reaches_of_similar _ _ _ _ h' _ hs) as [e [hr hsim]].
+  exists e. split.
+  - eapply reaches_trans; [exact (reaches_append _ second _ _ _ hc)|exact hr].
+  - pose proof (similar_trans _ _ _ (similar_shiftConfig (length (program first)) _ _ he) hsim) as hhe.
+    unfold shiftConfig, home, appendMachine in *. cbn [state tapeLeft tapeHead tapeRight program] in *.
+    rewrite length_app, length_map. rewrite Nat.add_comm. exact hhe.
+Qed.
+
+Definition emitLiteral (registers slot : nat) (pos : bool) : Machine :=
+  appendMachine (emitTicks registers slot) (emitConst registers [false; pos]).
+Definition literalTime (pre value post : nat) := ticksTime pre value post + wordTime 2 (pre+post+2*value+1).
+Definition literalPolynomial : Polynomial := {| coefficient := 40; degree := 2 |}.
+Theorem ticks_eq_replicate : forall n, ticks n = repeat true (2*n).
+Proof.
+  induction n; [reflexivity|]. cbn [ticks]. rewrite IHn.
+  replace (2*S n) with (2+2*n) by lia. reflexivity.
+Qed.
+Theorem literalTime_polynomial : forall pre value post,
+  literalTime pre value post <= evalPoly literalPolynomial (pre+value+post).
+Proof.
+  intros. pose proof (ticksTime_polynomial pre value post) as ht.
+  unfold ticksPolynomial, evalPoly in ht. cbn [coefficient degree Nat.pow] in ht.
+  unfold literalTime, literalPolynomial, evalPoly, wordTime. cbn [coefficient degree Nat.pow]. nia.
+Qed.
+Theorem emitLiteral_reaches : forall x pre post n out pos,
+  exists c, Reaches (emitLiteral (length (pre ++ n::post)) (length pre) pos)
+    (encode 0 x (mkState (pre ++ n::post) out))
+    (literalTime (length (tape (x::regWords pre))) n (length (tape (regWords post ++ [out])))) c /\
+    Similar (encode (length (program (emitLiteral (length (pre ++ n::post)) (length pre) pos))) x
+      (mkState (pre ++ 0::post) (out ++ encodeLit (mkLit n pos)))) c.
+Proof.
+  intros x pre post n out pos.
+  set (lower := mkState (pre ++ 0::post) (out ++ repeat true (2*n))).
+  destruct (emitTicks_reaches x pre post n out) as [c [hc hs]].
+  assert (hlen : length (regs lower) = length (pre ++ n::post)).
+  { unfold lower. cbn [regs]. rewrite !length_app. cbn. reflexivity. }
+  pose proof (emitConst_reaches x lower [false; pos]) as h. rewrite hlen in h.
+  destruct (compose_home_reaches _ _ _ _
+    (blocks x (mkState (regs lower) (RegisterMachine.out lower ++ [false; pos]))) _ _ _ _ hc hs h) as [d [hd he]].
+  { unfold Similar. repeat split. apply blankPad_refl. }
+  assert (hsize : length (tape (blocks x lower)) = length (tape (x::regWords pre))+
+    length (tape (regWords post ++ [out]))+2*n+1).
+  { unfold lower, blocks, regWords. cbn [regs RegisterMachine.out]. rewrite map_app. cbn [map repeat].
+    repeat (rewrite tape_cons || rewrite tape_append).
+    repeat first [rewrite length_app | rewrite length_map | rewrite repeat_length | progress cbn [length]]. lia. }
+  exists d. split.
+  - cbn [length] in hd. rewrite hsize in hd. exact hd.
+  - unfold lower, encode, encodeLit in *. rewrite ticks_eq_replicate. cbn [Machines.var Machines.pos runProg regs RegisterMachine.out] in he.
+    rewrite <- app_assoc in he. exact he.
 Qed.
 
 End RegisterMachine.

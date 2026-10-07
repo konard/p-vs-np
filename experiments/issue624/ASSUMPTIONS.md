@@ -722,3 +722,84 @@ rocq Machines.retarget_instruction: (none)
 rocq Machines.retarget_moveHead: (none)
 rocq Machines.retarget_reaches: (none)
 ```
+
+
+## Charged unary loop and literal continuation (2026-10-07)
+
+Both kernels checked 31 additional conclusions, bringing the manifest to
+373 results per prover. The loop's exact cost includes the backward jump and
+final empty-counter test. Its body must preserve the counter; all other
+register/output writes come from the existing well-formed straight-line
+compiler. The dynamic tick emitter and its consuming `encodeLit` emitter
+preserve surrounding blocks and have explicit quadratic charged bounds.
+
+Reproduce these reports with
+`python3 experiments/issue624/loop_assumptions.py`. All new Rocq conclusions
+are closed under the global context. No reduction or hardness endpoint is
+registered; copying, nested schema loops, input reads and final assembly are
+still outstanding.
+
+```text
+lean Issue624.RegisterMachine.repeatHead_states: propext
+lean Issue624.RegisterMachine.repeatBase_states: propext
+lean Issue624.RegisterMachine.repeatMachine_states: propext
+lean Issue624.RegisterMachine.repeatHeadTarget_inside: Quot.sound, propext
+lean Issue624.RegisterMachine.repeatTarget_inside: (none)
+lean Issue624.RegisterMachine.repeatHeadTarget_positive: Quot.sound, propext
+lean Issue624.RegisterMachine.repeatHeadTarget_empty: propext
+lean Issue624.RegisterMachine.repeatTarget_back: propext
+lean Issue624.RegisterMachine.repeatTarget_exit: Quot.sound, propext
+lean Issue624.RegisterMachine.repeat_empty: Quot.sound, propext
+lean Issue624.RegisterMachine.repeat_positive: Quot.sound, propext
+lean Issue624.RegisterMachine.similar_shiftConfig: (none)
+lean Issue624.RegisterMachine.similar_retargetConfig: (none)
+lean Issue624.RegisterMachine.repeat_body_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.registerAt_split: Quot.sound, propext
+lean Issue624.RegisterMachine.putRegister_split: Quot.sound, propext
+lean Issue624.RegisterMachine.putRegister_length: propext
+lean Issue624.RegisterMachine.registerAt_putRegister: propext
+lean Issue624.RegisterMachine.incrementRegs_readOnly: propext
+lean Issue624.RegisterMachine.runProg_readOnly: propext
+lean Issue624.RegisterMachine.repeatPrefix_split: propext
+lean Issue624.RegisterMachine.repeatSuffix_split: Quot.sound, propext
+lean Issue624.RegisterMachine.repeat_compile_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.repeatRun_ticks: Quot.sound, propext
+lean Issue624.RegisterMachine.repeatCost_ticks: Quot.sound, propext
+lean Issue624.RegisterMachine.ticksTime_polynomial: Quot.sound, propext
+lean Issue624.RegisterMachine.emitTicks_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.compose_home_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.ticks_eq_replicate: Quot.sound, propext
+lean Issue624.RegisterMachine.literalTime_polynomial: Quot.sound, propext
+lean Issue624.RegisterMachine.emitLiteral_reaches: Quot.sound, propext
+rocq RegisterMachine.repeatHead_states: (none)
+rocq RegisterMachine.repeatBase_states: (none)
+rocq RegisterMachine.repeatMachine_states: (none)
+rocq RegisterMachine.repeatHeadTarget_inside: (none)
+rocq RegisterMachine.repeatTarget_inside: (none)
+rocq RegisterMachine.repeatHeadTarget_positive: (none)
+rocq RegisterMachine.repeatHeadTarget_empty: (none)
+rocq RegisterMachine.repeatTarget_back: (none)
+rocq RegisterMachine.repeatTarget_exit: (none)
+rocq RegisterMachine.repeat_empty: (none)
+rocq RegisterMachine.repeat_positive: (none)
+rocq RegisterMachine.similar_shiftConfig: (none)
+rocq RegisterMachine.similar_retargetConfig: (none)
+rocq RegisterMachine.repeat_body_reaches: (none)
+rocq RegisterMachine.registerAt_split: (none)
+rocq RegisterMachine.putRegister_split: (none)
+rocq RegisterMachine.putRegister_length: (none)
+rocq RegisterMachine.registerAt_putRegister: (none)
+rocq RegisterMachine.incrementRegs_readOnly: (none)
+rocq RegisterMachine.runProg_readOnly: (none)
+rocq RegisterMachine.repeatPrefix_split: (none)
+rocq RegisterMachine.repeatSuffix_split: (none)
+rocq RegisterMachine.repeat_compile_reaches: (none)
+rocq RegisterMachine.repeatRun_ticks: (none)
+rocq RegisterMachine.repeatCost_ticks: (none)
+rocq RegisterMachine.ticksTime_polynomial: (none)
+rocq RegisterMachine.emitTicks_reaches: (none)
+rocq RegisterMachine.compose_home_reaches: (none)
+rocq RegisterMachine.ticks_eq_replicate: (none)
+rocq RegisterMachine.literalTime_polynomial: (none)
+rocq RegisterMachine.emitLiteral_reaches: (none)
+```

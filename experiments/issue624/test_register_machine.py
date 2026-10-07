@@ -29,10 +29,9 @@ def table(slot, bit):
     return rows
 
 
-def clear_table(slot):
+def pop_table(slot):
     rows = table(slot, True)[:slot + 1]
     offset = len(rows)
-    size = offset + len(generator.DELETE)
     for row in generator.DELETE:
         output = []
         for instruction in row:
@@ -41,13 +40,41 @@ def clear_table(slot):
                 continue
             _, target, symbol, direction = instruction
             target = int(target) + offset
-            if target == size:
-                target = 0
-            elif target == size + 1:
-                target = size
             output.append(("move", str(target), symbol, direction))
         rows.append(output)
     return rows
+
+
+def retarget(rows, target):
+    return [[i if i[0] == "halt" else
+             ("move", str(target(int(i[1]))), i[2], i[3]) for i in row]
+            for row in rows]
+
+
+def append(first, second):
+    return first + retarget(second, lambda q: q + len(first))
+
+
+def clear_table(slot):
+    rows = pop_table(slot)
+    return retarget(rows, lambda q: q if q < len(rows) else
+                    0 if q == len(rows) else len(rows))
+
+
+def word_table(slot, word):
+    rows = []
+    for bit in word:
+        rows = append(rows, table(slot, bit))
+    return rows
+
+
+def repeat_table(slot, body):
+    controller = pop_table(slot)
+    head = retarget(controller, lambda q: q if q < len(controller) + 1 else
+                    len(controller) + len(body) + 2)
+    base = append(head, append(body, generator.JUMP))
+    return retarget(base, lambda q: q if q < len(base) else
+                    0 if q == len(base) else len(base))
 
 
 def execute(rows, payload, steps):
@@ -148,6 +175,67 @@ class RegisterMachineTests(unittest.TestCase):
             with self.subTest(value=value):
                 self.assertIsNone(execute(clear_table(1), flatten([[], value, []]), 100))
         self.assertIsNone(execute(clear_table(3), flatten([[], [], []]), 100))
+
+    def test_dynamic_ticks_emit_exact_unary_identifiers_and_charge_the_jump(self):
+        words = [list(bits) for size in range(3)
+                 for bits in itertools.product((False, True), repeat=size)]
+        # 588 finite cases cover every register position and both-bit payloads.
+        for before, after in itertools.product(words, repeat=2):
+            for slot in range(3):
+                for value in range(4):
+                    registers = [[True], [], [True, True]]
+                    registers[slot] = [True] * value
+                    blocks = [before, *registers, after]
+                    pre = len(flatten(blocks[:slot + 1]))
+                    post = len(flatten(blocks[slot + 2:]))
+                    charged = value * (6 * pre + 8 * post + 12 * value + 12) + 2 * pre + 3
+                    rows = repeat_table(slot + 1, word_table(4, [True, True]))
+                    final = [before, *registers, after + [True] * (2 * value)]
+                    final[slot + 1] = []
+                    with self.subTest(before=before, after=after, slot=slot, value=value):
+                        result = execute(rows, flatten(blocks), charged)
+                        self.assertIsNotNone(result)
+                        steps, head, tape = result
+                        self.assertEqual((steps, head), (charged, 0))
+                        while tape and tape[-1] == "blank":
+                            tape.pop()
+                        self.assertEqual(tape, ["blank", *flatten(final)])
+                        self.assertIsNone(execute(rows, flatten(blocks), charged - 1))
+                        self.assertLessEqual(charged, 20 * (pre + value + post + 1) ** 2)
+
+    def test_repeat_empty_body_and_malformed_counter(self):
+        rows = repeat_table(1, [])
+        self.assertEqual(execute(rows, flatten([[False], [], [True]]), 7),
+                         (7, 0, ["blank", *flatten([[False], [], [True]])]))
+        self.assertIsNone(execute(rows, flatten([[False], [True, False], [True]]), 100))
+
+    def test_dynamic_literal_includes_delimiter_and_both_polarities(self):
+        # Identifiers come from the tape; one fixed table handles all values.
+        for slot in range(3):
+            for positive in (False, True):
+                rows = append(repeat_table(slot + 1, word_table(4, [True, True])),
+                              word_table(4, [False, positive]))
+                for value in range(5):
+                    registers = [[True], [], [True, True]]
+                    registers[slot] = [True] * value
+                    blocks = [[False, True], *registers, [False]]
+                    pre = len(flatten(blocks[:slot + 1]))
+                    post = len(flatten(blocks[slot + 2:]))
+                    ticks_cost = value * (6 * pre + 8 * post + 12 * value + 12) + 2 * pre + 3
+                    charged = ticks_cost + 2 * (2 * (pre + post + 2 * value + 1) + 5)
+                    expected = [list(block) for block in blocks]
+                    expected[slot + 1] = []
+                    expected[-1] += [True] * (2 * value) + [False, positive]
+                    with self.subTest(slot=slot, positive=positive, value=value):
+                        result = execute(rows, flatten(blocks), charged)
+                        self.assertIsNotNone(result)
+                        steps, head, tape = result
+                        self.assertEqual((steps, head), (charged, 0))
+                        while tape and tape[-1] == "blank":
+                            tape.pop()
+                        self.assertEqual(tape, ["blank", *flatten(expected)])
+                        self.assertIsNone(execute(rows, flatten(blocks), charged - 1))
+                        self.assertLessEqual(charged, 40 * (pre + value + post + 1) ** 2)
 
     def test_public_theorem_names_match(self):
         import re

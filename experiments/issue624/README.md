@@ -20,7 +20,7 @@ and explicit polynomial bounds. `TableauCNFRegression` checks the complete
 formula, its unary size contract, and concrete models for both verifier
 constructors with empty/short/full certificates. Wrong-state, wrong-head, and
 wrong-tape assignments satisfy the earlier fragments but fail the initial row.
-The input-dependent reduction machine and SAT hardness remain outstanding.
+The input-independent reduction machine and SAT hardness remain outstanding.
 
 `CounterRegression` executes a fixed nine-state counter on empty and mixed-bit
 inputs, with arbitrary retained left tape and an existing counter. It checks
@@ -59,6 +59,33 @@ ticks, increments the scratch register, and appends a bit in exactly 83 steps.
 `polyAdd`, measured against the original payload and the program's growth.
 These proofs reuse shared `Reaches` simulation and exit retargeting; they do
 not yet construct the formula-emitting reduction machine.
+
+The generator now supplies a unary loop controller and its charged backward
+jump. `repeat_compile_reaches` executes any well-formed straight-line body
+that leaves the loop register unchanged. Its table depends only on the body
+and register index; the number of iterations comes from the tape. The pure
+`repeatRun`/`repeatCost` semantics charge every pop, body instruction, backward
+jump, and final empty-register test. `repeat_body_reaches` also embeds an
+arbitrary home-preserving body, including its trailing blank padding.
+
+`emitTicks` consumes this controller to append two true bits per unary unit.
+For prefix/suffix tape lengths `pre`/`post` and counter `value`, its exact
+cost is `value * (6 * pre + 8 * post + 12 * value + 12) + 2 * pre + 3`,
+bounded by `20 * (pre + value + post + 1)^2`. `emitLiteral` consumes it with
+the shared delimiter/polarity bits, appending the exact original `encodeLit`
+and clearing only its scratch counter. Its cost adds
+`wordTime 2 (pre + post + 2 * value + 1)` and is bounded by
+`40 * (pre + value + post + 1)^2`. Both kernels check the generic contracts.
+
+Regressions cover 588 finite tick executions and 30 literal executions with
+every tested register position, both polarities, empty counters, retained
+mixed-bit input/output, exact fuel boundaries, malformed unary counters,
+and bodies that write their own loop counter. A paired regression checks
+that the literal table is independent of the identifier on the tape.
+`compose_home_reaches` combines arbitrary home-preserving blocks with blank
+padding and is used in the literal proof. Dynamic copying, nested schema
+loops, input reads, setup/restoration, and the complete reduction remain
+outstanding; these contracts alone do not establish `red_computes`.
 
 After building the imported modules, run:
 
@@ -111,6 +138,7 @@ python3 experiments/issue624/existing_bridge_probe.py --rocq
 python3 experiments/issue624/counter_assumptions.py
 python3 experiments/issue624/register_assumptions.py
 python3 experiments/issue624/dynamic_assumptions.py
+python3 experiments/issue624/loop_assumptions.py
 ```
 
 [PLAN.md](PLAN.md) tracks the completed prerequisites and the remaining
@@ -138,7 +166,7 @@ the required CI result. [The checker documentation](../../scripts/README.md#chec
 describes the paired contract interface and required merge check.
 
 [TABLEAU_DESIGN.md](TABLEAU_DESIGN.md) records the implemented full-tableau
-layout and the input-dependent emitter's missing machine operations.
+layout and the input-independent formula emitter's remaining machine operations.
 `check_tableau_contracts.py` checks the seven implemented tableau results
 against the completion gate's original, unapplied types in each kernel. It
 does not replace the full completion check or certify the missing reduction.

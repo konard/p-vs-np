@@ -431,7 +431,7 @@ the pure `runProg` and `cost` semantics in the shared finite machine model.
 The compiled table depends only on the program and register count.
 `cost_eq_wordTime` and `cost_polynomial` account for growth of the tape between
 instructions. These proofs consume `push_reaches` and its register contracts;
-dynamic arithmetic, loops, schema emission, setup, and tape restoration remain
+dynamic arithmetic, nested loops, schema emission, setup, and tape restoration remain
 necessary to construct `CookLevin.red`.
 
 The generated `pop` table removes one unary tick while retaining every
@@ -446,8 +446,28 @@ existing `Similar` relation. Shared `retarget_reaches` and
 `clear_then_compile_reaches` proves scratch-register clearing followed by
 any well-formed compiled program; `clear_then_cost_polynomial` combines the
 two bounds using the shared polynomial addition. Dynamic copying, input
-reads, general loops, schema compilation, and the reduction's final tape
+reads, nested schema loops, schema compilation, and the reduction's final tape
 restoration remain open.
+
+The same generated tables provide `repeatMachine`: decrement a unary counter,
+execute a fixed home-preserving body, charge a backward jump, and exit when
+the counter is empty. `repeat_body_reaches` embeds any body with a checked
+`Reaches` contract, including trailing blank padding. `repeat_compile_reaches`
+checks a well-formed straight-line body against pure `repeatRun`/`repeatCost`
+semantics when the body preserves the counter. The number of iterations is
+read from the tape and does not affect the compiled table.
+
+`emitTicks` consumes the loop to emit the original two true bits per unary
+unit. `emitLiteral` consumes this emitter and constant delimiter/polarity bits
+to append the exact shared `encodeLit`. For surrounding tape lengths `pre`
+and `post` and counter `value`, its exact charged cost is
+`ticksTime pre value post + wordTime 2 (pre + post + 2 * value + 1)`, bounded
+by `40 * (pre + value + post + 1)^2`. Only the scratch counter is consumed;
+all input, other registers, and prior output are retained. The generic
+`compose_home_reaches` theorem handles residual blank padding and is consumed
+by the literal proof. These 31 new conclusions per prover bring the manifest
+to 373 entries per prover. They are register-layer primitives, not the full
+formula-emitting `Computes` proof.
 
 ## Verification and limits
 
@@ -505,6 +525,7 @@ python3 experiments/issue624/generate_schema.py --check
 python3 -m unittest experiments.issue624.test_schema -v
 python3 experiments/issue624/generate_register_machine.py --check
 python3 -m unittest experiments.issue624.test_register_machine -v
+python3 experiments/issue624/loop_assumptions.py
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py
@@ -519,8 +540,9 @@ locally under `ci-logs/`.
 
 ## Remaining construction
 
-1. Build counters and copy/emission loops over the shared four-symbol alphabet
-   and prove `Computes red (fun x => encodeCNF (tableauCNF np x)) r` for an
+1. Finish register copying, dynamic arithmetic, nested schema loops, input
+   reads, parameter setup, schema compilation and final tape restoration.
+   Prove `Computes red (fun x => encodeCNF (tableauCNF np x)) r` for an
    explicit polynomial `r`, with the required final tape/head configuration.
 2. Assemble `satHard` and `cookLevin`, then remove the existing hardness
    premises and update the Idea dossiers. Keep those premises until this step.

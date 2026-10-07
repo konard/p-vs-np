@@ -141,3 +141,72 @@ Example generic_clear_cost_bound : forall x pre post value out k p,
     (length (tape (blocks x (mkState (pre ++ value::post) out))) + growth p).
 Proof. exact clear_then_cost_polynomial. Qed.
 Print Assumptions clear_then_cost_polynomial.
+
+Example dynamic_repeat_execution : option_map
+  (fun c => (state c, tapeLeft c, tapeHead c, firstn 10 (tapeRight c)))
+  (probe (repeatMachine 1 (emitConst 1 [true; true])) 300
+    (encode 0 [false; true] (mkState [2] [false]))) =
+  Some (28, [], blank, [zero; one; separator; separator;
+    zero; one; one; one; one; separator]).
+Proof. reflexivity. Qed.
+Example dynamic_repeat_empty : option_map tapeRight
+  (probe (repeatMachine 1 (emitConst 1 [true; true])) 20
+    (encode 0 [] (mkState [0] []))) = Some [separator; separator; separator].
+Proof. reflexivity. Qed.
+
+Example dynamic_ticks_short_fuel : probe (emitTicks 1 0) 149
+  (encode 0 [false; true] (mkState [2] [false])) = None.
+Proof. reflexivity. Qed.
+Example dynamic_ticks_cost : ticksTime 3 2 2 = 149.
+Proof. reflexivity. Qed.
+Example invalid_loop_body : ~ ReadOnly 0 (seq (emit [true]) (increment 0 1)).
+Proof. cbn; tauto. Qed.
+Example dynamic_register_transfer : repeatRun 0 (increment 1 1) 2 (mkState [2; 1] []) = mkState [0; 3] [].
+Proof. reflexivity. Qed.
+Example malformed_loop_counter : probe (repeatMachine 1 (compile 1 (emit [true]))) 100
+  (home 0 [[true]; [true; false]; []]) = None.
+Proof. reflexivity. Qed.
+Example generic_repeat_compiler : forall x k slot p, WellFormed k p -> ReadOnly slot p -> slot < k ->
+  forall n st, length (regs st) = k -> registerAt slot st = n ->
+  exists c, Reaches (repeatMachine (slot+1) (compile k p)) (encode 0 x st) (repeatCost x slot p n st) c /\
+    Similar (encode (length (program (repeatMachine (slot+1) (compile k p)))) x (repeatRun slot p n st)) c.
+Proof. exact repeat_compile_reaches. Qed.
+Example generic_ticks_cost_bound : forall pre value post,
+  ticksTime pre value post <= evalPoly ticksPolynomial (pre+value+post).
+Proof. exact ticksTime_polynomial. Qed.
+Print Assumptions repeat_compile_reaches.
+Print Assumptions emitTicks_reaches.
+Print Assumptions ticksTime_polynomial.
+
+Example literal_cost : literalTime 3 2 2 = 199.
+Proof. reflexivity. Qed.
+Example literal_execution : option_map
+  (fun c => (state c, tapeLeft c, tapeHead c, firstn 12 (tapeRight c)))
+  (probe (emitLiteral 1 0 false) 200 (encode 0 [false; true] (mkState [2] [false]))) =
+  Some (44, [], blank, [zero; one; separator; separator;
+    zero; one; one; one; one; zero; zero; separator]).
+Proof. reflexivity. Qed.
+Example literal_zero_positive : option_map (fun c => firstn 5 (tapeRight c))
+  (probe (emitLiteral 1 0 true) 30 (encode 0 [] (mkState [0] []))) =
+  Some [separator; separator; zero; one; separator].
+Proof. reflexivity. Qed.
+Example literal_short_fuel : probe (emitLiteral 1 0 false) 199
+  (encode 0 [false; true] (mkState [2] [false])) = None.
+Proof. reflexivity. Qed.
+Example generic_literal : forall x pre post n out pos,
+  exists c, Reaches (emitLiteral (length (pre ++ n::post)) (length pre) pos)
+    (encode 0 x (mkState (pre ++ n::post) out))
+    (literalTime (length (tape (x::regWords pre))) n (length (tape (regWords post ++ [out])))) c /\
+    Similar (encode (length (program (emitLiteral (length (pre ++ n::post)) (length pre) pos))) x
+      (mkState (pre ++ 0::post) (out ++ encodeLit (mkLit n pos)))) c.
+Proof. exact emitLiteral_reaches. Qed.
+Example generic_literal_cost_bound : forall pre value post,
+  literalTime pre value post <= evalPoly literalPolynomial (pre+value+post).
+Proof. exact literalTime_polynomial. Qed.
+Print Assumptions compose_home_reaches.
+Print Assumptions emitLiteral_reaches.
+Print Assumptions literalTime_polynomial.
+Example literal_table_independent : forall (pre post : list nat) (n m : nat) (pos : bool),
+  emitLiteral (length (pre ++ n::post)) (length pre) pos =
+    emitLiteral (length (pre ++ m::post)) (length pre) pos.
+Proof. intros. rewrite !length_app. cbn [length]. reflexivity. Qed.

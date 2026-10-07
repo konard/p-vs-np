@@ -123,3 +123,59 @@ example (x : Word) (pre post : List Nat) (value : Nat) (out : Word) (k : Nat)
         ((tape (blocks x ⟨pre ++ value :: post, out⟩)).length + growth p) :=
   clear_then_cost_polynomial x pre post value out k p hp hk
 #print axioms clear_then_cost_polynomial
+
+-- A dynamic controller must repeat a fixed body, consume its unary counter,
+-- retain the input and charge the backward jump on every iteration.
+example : ((probe (repeatMachine 1 (emitConst 1 [true, true])) 300
+    (encode 0 [false, true] ⟨[2], [false]⟩)).map
+    (fun c => (c.state, c.left, c.head, c.right.take 10))) =
+    some (28, [], .blank, [.zero, .one, .separator, .separator,
+      .zero, .one, .one, .one, .one, .separator]) := by decide
+example : ((probe (repeatMachine 1 (emitConst 1 [true, true])) 20
+    (encode 0 [] ⟨[0], []⟩)).map (fun c => c.right)) =
+    some [.separator, .separator, .separator] := by decide
+
+example : probe (emitTicks 1 0) 149 (encode 0 [false, true] ⟨[2], [false]⟩) = none := by decide
+example : ticksTime 3 2 2 = 149 := by decide
+example : ¬ ReadOnly 0 (.seq (.emit [true]) (.increment 0 1)) := by simp [ReadOnly]
+example : repeatRun 0 (.increment 1 1) 2 ⟨[2, 1], []⟩ = ⟨[0, 3], []⟩ := rfl
+example : probe (repeatMachine 1 (compile 1 (.emit [true]))) 100
+    (home 0 [[true], [true, false], []]) = none := by decide
+example (x : Word) (k slot : Nat) (p : Prog) (hp : WellFormed k p) (hro : ReadOnly slot p)
+    (hslot : slot < k) (n : Nat) (st : State) (hk : st.regs.length = k) (hn : registerAt slot st = n) :
+    ∃ c, Reaches (repeatMachine (slot+1) (compile k p)) (encode 0 x st)
+      (repeatCost x slot p n st) c ∧
+      Similar (encode (repeatMachine (slot+1) (compile k p)).program.length x (repeatRun slot p n st)) c :=
+  repeat_compile_reaches x k slot p hp hro hslot n st hk hn
+example (pre value post : Nat) : ticksTime pre value post ≤ ticksPolynomial.eval (pre+value+post) :=
+  ticksTime_polynomial pre value post
+#print axioms repeat_compile_reaches
+#print axioms emitTicks_reaches
+#print axioms ticksTime_polynomial
+
+-- Consume dynamic ticks with the shared literal delimiter and polarity.
+example : literalTime 3 2 2 = 199 := by decide
+example : ((probe (emitLiteral 1 0 false) 200
+    (encode 0 [false, true] ⟨[2], [false]⟩)).map
+    (fun c => (c.state, c.left, c.head, c.right.take 12))) =
+    some (44, [], .blank, [.zero, .one, .separator, .separator,
+      .zero, .one, .one, .one, .one, .zero, .zero, .separator]) := by decide
+example : ((probe (emitLiteral 1 0 true) 30 (encode 0 [] ⟨[0], []⟩)).map
+    (fun c => c.right.take 5)) =
+    some [.separator, .separator, .zero, .one, .separator] := by decide
+example : probe (emitLiteral 1 0 false) 199 (encode 0 [false, true] ⟨[2], [false]⟩) = none := by decide
+example (x : Word) (pre post : List Nat) (n : Nat) (out : Word) (pos : Bool) :
+    ∃ c, Reaches (emitLiteral (pre ++ n :: post).length pre.length pos)
+      (encode 0 x ⟨pre ++ n :: post, out⟩)
+      (literalTime (tape (x :: regWords pre)).length n (tape (regWords post ++ [out])).length) c ∧
+      Similar (encode (emitLiteral (pre ++ n :: post).length pre.length pos).program.length x
+        ⟨pre ++ 0 :: post, out ++ encodeLit ⟨n, pos⟩⟩) c :=
+  emitLiteral_reaches x pre post n out pos
+example (pre value post : Nat) : literalTime pre value post ≤ literalPolynomial.eval (pre+value+post) :=
+  literalTime_polynomial pre value post
+#print axioms compose_home_reaches
+#print axioms emitLiteral_reaches
+#print axioms literalTime_polynomial
+example (pre post : List Nat) (n m : Nat) (pos : Bool) :
+    emitLiteral (pre ++ n :: post).length pre.length pos =
+      emitLiteral (pre ++ m :: post).length pre.length pos := by simp

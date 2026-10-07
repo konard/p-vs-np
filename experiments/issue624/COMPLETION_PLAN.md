@@ -244,3 +244,33 @@ All probes use finite inputs; no deliberate stack or memory stress is used.
 
 Fresh CI evidence is recorded in PR #630. The PR remains draft while the
 reduction, hardness, and unconditional bridge obligations are incomplete.
+
+## Charged unary loop and literal continuation
+
+- [x] Start with 42 completion diagnostics; read every issue/PR comment type,
+  fetch `main`, and verify it is already an ancestor of the prepared branch.
+  Download the latest five failed run logs. Run `37565699570` checks
+  `36b65f6` after its commit; full log lines 921–962 contain the missing
+  reduction/hardness/bridge diagnostics, and line 9849 reports the summary.
+- [x] Add paired dynamic-loop regressions before implementation and preserve
+  their missing-declaration failures in `ci-logs/repeat-before-*.log`.
+- [x] Generate the finite loop controller and backward jump from the same
+  source as decrement; prove both exits, arbitrary home-preserving body
+  embedding, and the charged loop compiler with an explicit read-only
+  counter condition in both kernels.
+- [x] Consume the loop in `emitTicks`, then consume it with constant bits to
+  emit the exact original `encodeLit`. Prove exact charged costs and
+  quadratic envelopes in both kernels, including trailing-blank composition.
+  Cover 588 tick and 30 literal executions, empty counters, mixed payloads,
+  both polarities, register positions, malformed unary values, insufficient
+  fuel, and invalid counter writes. Check regeneration and theorem parity.
+- [x] Capture all 31 paired kernel assumption reports and register the new
+  conclusions. Pass the full Python suite, 259-job Lean build, full Rocq
+  build, both 373-result kernel audits, original contract/negative probes
+  and Agda checks; review the diff and pass workflow lint. Preserve
+  `ci-logs/repeat-full.log`; completion still exits 1 with 42 diagnostics.
+- [ ] Finish copying, nested schema loops, input reads, setup/restoration,
+  `red_computes`, hardness/completeness, and the unconditional bridge proofs.
+- [ ] Commit useful checked work, push only the prepared branch, update PR
+  #630, and inspect the new CI run's SHA, timestamp, and non-passing logs.
+- [ ] Pass the full completion checks and mark the PR ready.

@@ -47,6 +47,8 @@ DELETE = [
      move(8, "one", "left"), move(8, "separator", "left")],
 ]
 
+JUMP = [[move(1, "blank", "stay"), REJECT, REJECT, REJECT]]
+
 
 def instruction(i, language):
     if i[0] == "halt":
@@ -67,6 +69,7 @@ def row(r, language):
 
 def description(language):
     start, seek = row(START, language), row(SEEK, language)
+    jump = row(JUMP[0], language)
     grow = (",\n  " if language == "lean" else ";\n  ").join(
         row(r, language) for r in GROW
     )
@@ -109,6 +112,18 @@ def clearTarget (slot q : Nat) : Nat :=
   if q = (pop slot).program.length then 0 else (pop slot).program.length
 
 def clear (slot : Nat) : Machine := retargetMachine (pop slot) (clearTarget slot)
+
+def repeatHeadTarget (slot : Nat) (body : Machine) (q : Nat) : Nat :=
+  if q < (pop slot).program.length + 1 then q else
+    (pop slot).program.length + body.program.length + 2
+def repeatHead (slot : Nat) (body : Machine) : Machine :=
+  retargetMachine (pop slot) (repeatHeadTarget slot body)
+def repeatJump : Machine := ⟨[{jump}]⟩
+def repeatBase (slot : Nat) (body : Machine) : Machine :=
+  appendMachine (repeatHead slot body) (appendMachine body repeatJump)
+def repeatMachine (slot : Nat) (body : Machine) : Machine :=
+  retargetMachine (repeatBase slot body) (clearTargetFor (repeatBase slot body).program.length)
+where clearTargetFor size q := if q < size then q else if q = size then 0 else size
 """
     return f"""From Stdlib Require Import List Bool Arith Lia.
 From proofs.complexity.rocq Require Import Complexity.
@@ -146,6 +161,21 @@ Definition clearTarget (slot q : nat) : nat :=
   if q <? length (program (pop slot)) then q else
   if q =? length (program (pop slot)) then 0 else length (program (pop slot)).
 Definition clear (slot : nat) : Machine := retargetMachine (pop slot) (clearTarget slot).
+
+Definition repeatHeadTarget (slot : nat) (body : Machine) (q : nat) : nat :=
+  if q <? length (program (pop slot)) + 1 then q else
+    length (program (pop slot)) + length (program body) + 2.
+Definition repeatHead (slot : nat) (body : Machine) : Machine :=
+  retargetMachine (pop slot) (repeatHeadTarget slot body).
+Definition repeatJump : Machine :=
+  {{| program := [{jump}] |}}.
+Definition repeatBase (slot : nat) (body : Machine) : Machine :=
+  appendMachine (repeatHead slot body) (appendMachine body repeatJump).
+Definition repeatMachine_clearTargetFor (size q : nat) :=
+  if q <? size then q else if q =? size then 0 else size.
+Definition repeatMachine (slot : nat) (body : Machine) : Machine :=
+  retargetMachine (repeatBase slot body)
+    (repeatMachine_clearTargetFor (length (program (repeatBase slot body)))).
 """
 
 
