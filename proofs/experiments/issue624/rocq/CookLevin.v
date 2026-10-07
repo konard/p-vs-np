@@ -3,14 +3,14 @@ From proofs.complexity.rocq Require Import Complexity.
 From proofs.experiments.issue532.rocq Require Import Machines.
 From proofs.experiments.issue568.rocq Require Import Tableau.
 From proofs.experiments.issue624.rocq Require Import
-  LocalCNF MachineCNF SuccessorCNF RunCNF CertificateCNF VerifierTableau FixedWindow InitialCNF.
+  LocalCNF MachineCNF SuccessorCNF RunCNF CertificateCNF VerifierTableau FixedWindow InitialCNF Schema.
 Import ListNotations.
 
 (** Full bounded-verifier tableau and its model correspondence. The reduction
     machine and hardness assembly require separate charged machine proofs. *)
 Module CookLevin.
 Import Complexity Machines Tableau LocalCNF MachineCNF SuccessorCNF.
-Import CertificateCNF VerifierTableau FixedWindow InitialCNF.
+Import CertificateCNF VerifierTableau FixedWindow InitialCNF Schema.
 
 Definition rowBase (np : ClassNP) (x : Word) := 2 * evalPoly (np_certBound np) (length x) + 1.
 Definition sources (np : ClassNP) (x : Word) :=
@@ -20,11 +20,17 @@ Definition initialRow (np : ClassNP) (x : Word) (a : Assignment) :=
   fitWindow (verifierInitial (np_verifier np) x (decodeCertificate a 0 (evalPoly (np_certBound np) (length x))))
     (maxClock np (length x)) (windowWidth np (length x)).
 Definition tableauCNF (np : ClassNP) (x : Word) : CNF :=
+  evalSchema (tableauSchema np) (tableauParams np (length x)) x (fun _ => 0).
+Theorem tableauSchema_eq : forall np x,
+  evalSchema (tableauSchema np) (tableauParams np (length x)) x (fun _ => 0) = tableauCNF np x.
+Proof. reflexivity. Qed.
+Theorem tableauCNF_fragments : forall np x, tableauCNF np x =
   (certificateCNF 0 (evalPoly (np_certBound np) (length x)) ++
     initialCNF (rowBase np x) (length (program (verifierMachine (np_verifier np))))
       (maxClock np (length x)) (sources np x)) ++
     RunCNF.runCNF (verifierMachine (np_verifier np)) (rowBase np x)
       (windowWidth np (length x)) (maxClock np (length x)).
+Proof. intros; apply tableauSchema_fragments. Qed.
 Definition decodeTrace (np : ClassNP) (x : Word) (a : Assignment) : list Config :=
   RunCNF.decodeTrace (verifierMachine (np_verifier np)) (rowBase np x)
     (windowWidth np (length x)) (maxClock np (length x)) a.
@@ -65,7 +71,7 @@ Theorem tableauCNF_unfold : forall np x a,
       (maxClock np (length x)) (sources np x)) = true /\
     evalCNF a (RunCNF.runCNF (verifierMachine (np_verifier np)) (rowBase np x)
       (windowWidth np (length x)) (maxClock np (length x))) = true.
-Proof. intros. unfold tableauCNF. rewrite !evalCNF_append, !andb_true_iff. tauto. Qed.
+Proof. intros. rewrite tableauCNF_fragments. rewrite !evalCNF_append, !andb_true_iff. tauto. Qed.
 Theorem tableauCNF_sound : forall np x a, evalCNF a (tableauCNF np x) = true ->
   WindowVerifierTableau np x a (decodeTrace np x a).
 Proof.
@@ -152,7 +158,7 @@ Proof.
     - apply overlong_rejected. exact h.
     - intros v hv. apply he. unfold rowBase in hv. lia.
     - unfold rowBase. apply certificateCNF_variables. }
-  unfold tableauCNF. rewrite !evalCNF_append, hc. reflexivity.
+  rewrite tableauCNF_fragments. rewrite !evalCNF_append, hc. reflexivity.
 Qed.
 Theorem tableauCNF_wrong_successor_rejected : forall np x a c d rest,
   step (verifierMachine (np_verifier np)) c <> inr d -> decodeTrace np x a = c :: d :: rest ->
@@ -160,7 +166,7 @@ Theorem tableauCNF_wrong_successor_rejected : forall np x a c d rest,
 Proof.
   intros np x a c d rest hs hd.
   pose proof (RunCNF.runCNF_wrong_successor_rejected _ _ _ _ a c d rest hs hd) as h.
-  unfold tableauCNF. rewrite !evalCNF_append, h, andb_false_r. reflexivity.
+  rewrite tableauCNF_fragments. rewrite !evalCNF_append, h, andb_false_r. reflexivity.
 Qed.
 Definition offsetPolynomial (np : ClassNP) : Polynomial :=
   polyAdd (polyMul {| coefficient := 2; degree := 0 |} (np_certBound np)) {| coefficient := 1; degree := 0 |}.
@@ -194,7 +200,7 @@ Proof.
     (offsetPolynomial np) (windowPolynomial np) (clockPolynomial np) (length x)
     (rowBase np x) (windowWidth np (length x)) (maxClock np (length x)) hb hw ht) as hr.
   pose proof (certificateCNF_polynomial_size (np_certBound np) (length x)) as hc.
-  unfold tableauCNF, sizePolynomial. rewrite !encodeCNF_length_append.
+  rewrite tableauCNF_fragments. unfold sizePolynomial. rewrite !encodeCNF_length_append.
   eapply Nat.le_trans; [|apply polyAdd_eval].
   rewrite <- Nat.add_assoc. apply Nat.add_le_mono; [exact hc|].
   eapply Nat.le_trans; [apply Nat.add_le_mono; eassumption|apply polyAdd_eval].

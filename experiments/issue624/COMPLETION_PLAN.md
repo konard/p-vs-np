@@ -27,6 +27,19 @@ establish completion. No formal impossibility has been established.
   compilation and audits. Store large logs in `ci-logs/` and inspect them.
 - [x] Finish the full tableau construction and explicit encoded-size polynomial
   in both provers.
+- [x] Complete review Step A: generate paired finite tableau schemas from one
+  source, prove their exact original-fragment equation in both kernels, and
+  consume them in `CookLevin.tableauCNF`. Preserve all public correctness and
+  encoded-size contracts; add paired regressions and regeneration tests.
+- [x] Register the 42 new conclusions per prover with kernel-reported
+  assumptions; include `Schema` and its regressions in the project, certified
+  builds, and local checks in the same commit.
+- [x] Verify the schema continuation with the full Python suite, 258-job Lean
+  build, full Rocq build, Agda checks, both 288-result kernel audits, and the
+  original tableau/bridge contract checks. Refresh two existing Lean assumption
+  records to match the consuming proofs and rerun the audit and dependent
+  checks. Preserve logs in `ci-logs/schema-*.log`; the final completion preflight
+  still reports the same 42 diagnostics.
 - [ ] Finish the finite reduction machine and charged `Computes` proof.
 - [ ] Assemble hardness/completeness, remove the specified bridge premises,
   update dossiers and documentation, and pass the completion check.
@@ -164,8 +177,11 @@ premise remains required. That checkpoint registered 235 conclusions per prover.
   certification-build coverage regression that fails on this omission,
   then include `UnaryCounter` in the Lean certification targets. The
   regression, target build, and workflow lint pass after the fix.
-- [ ] Inspect fresh CI logs against the pushed SHA and timestamp; record their
-  findings in the PR description.
+- [x] Inspect the final counter CI run `37492004086` against `5dd64a3` and its
+  timestamp. All six prerequisite jobs passed; completion log lines 227–268
+  contain the same 42 remaining obligations, and summary line 134 reports the
+  downstream completion failure. Preserve the logs under `ci-logs/` and report
+  the findings in the PR description.
 - [ ] Verify the full deliverable and all CI pass, then mark PR #630 ready.
 
 The counter's output is a tape-block configuration, not `Computes red`.

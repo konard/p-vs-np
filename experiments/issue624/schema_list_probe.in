@@ -1,0 +1,3 @@
+From Stdlib Require Import List.
+Print seq_shift.
+Print seq_S.

@@ -1,11 +1,11 @@
-import proofs.experiments.issue624.lean.InitialCNF
+import proofs.experiments.issue624.lean.Schema
 
 /-! Full bounded-verifier tableau and its model correspondence. The reduction
 machine and hardness assembly require separate charged machine proofs. -/
 namespace Issue624.CookLevin
 open Complexity Issue532.Machines Issue568.Tableau Issue624.LocalCNF
 open Issue624.CertificateCNF Issue624.VerifierTableau Issue624.FixedWindow
-open Issue624.SuccessorCNF Issue624.InitialCNF
+open Issue624.SuccessorCNF Issue624.InitialCNF Issue624.Schema
 
 def rowBase (np : ClassNP) (x : Word) : Nat := 2 * np.certBound.eval x.length + 1
 def sources (np : ClassNP) (x : Word) : List Source :=
@@ -15,11 +15,19 @@ def initialRow (np : ClassNP) (x : Word) (a : Assignment) : Config :=
   fitWindow (verifierInitial np.verifier x (decodeCertificate a 0 (np.certBound.eval x.length)))
     (maxClock np x.length) (windowWidth np x.length)
 def tableauCNF (np : ClassNP) (x : Word) : CNF :=
+  evalSchema (tableauSchema np) (tableauParams np x.length) x (fun _ => 0)
+
+theorem tableauSchema_eq (np : ClassNP) (x : Word) :
+    evalSchema (tableauSchema np) (tableauParams np x.length) x (fun _ => 0) =
+      tableauCNF np x := rfl
+
+theorem tableauCNF_fragments (np : ClassNP) (x : Word) : tableauCNF np x =
   certificateCNF 0 (np.certBound.eval x.length) ++
     initialCNF (rowBase np x) (verifierMachine np.verifier).program.length
       (maxClock np x.length) (sources np x) ++
     Issue624.RunCNF.runCNF (verifierMachine np.verifier) (rowBase np x)
-      (windowWidth np x.length) (maxClock np x.length)
+      (windowWidth np x.length) (maxClock np x.length) := by
+  exact tableauSchema_fragments np x (fun _ => 0)
 def decodeTrace (np : ClassNP) (x : Word) (a : Assignment) : List Config :=
   Issue624.RunCNF.decodeTrace (verifierMachine np.verifier) (rowBase np x)
     (windowWidth np x.length) (maxClock np x.length) a
@@ -58,7 +66,7 @@ theorem tableauCNF_unfold (np : ClassNP) (x : Word) (a : Assignment) :
         (maxClock np x.length) (sources np x)) = true ∧
       evalCNF a (Issue624.RunCNF.runCNF (verifierMachine np.verifier) (rowBase np x)
         (windowWidth np x.length) (maxClock np x.length)) = true := by
-  simp [tableauCNF]
+  simp [tableauCNF_fragments]
 
 theorem tableauCNF_sound (np : ClassNP) (x : Word) (a : Assignment)
     (hf : evalCNF a (tableauCNF np x) = true) :
@@ -151,14 +159,14 @@ theorem tableauCNF_overlong_rejected (np : ClassNP) (x cert : Word) (a : Assignm
     (certificateCNF 0 (np.certBound.eval x.length))
     (fun v hv => he v (by unfold rowBase at hv; omega)) (by simpa [rowBase] using certificateCNF_variables 0 (np.certBound.eval x.length))
   rw [overlong_rejected cert _ h] at hc
-  simp [tableauCNF, hc]
+  simp [tableauCNF_fragments, hc]
 
 theorem tableauCNF_wrong_successor_rejected (np : ClassNP) (x : Word) (a : Assignment)
     (c d : Config) (rest : List Config)
     (hs : step (verifierMachine np.verifier) c ≠ .inr d)
     (hd : decodeTrace np x a = c :: d :: rest) : evalCNF a (tableauCNF np x) = false := by
   have h := Issue624.RunCNF.runCNF_wrong_successor_rejected _ _ _ _ a c d rest hs hd
-  simp [tableauCNF, h]
+  simp [tableauCNF_fragments, h]
 
 def offsetPolynomial (np : ClassNP) : Polynomial :=
   polyAdd (polyMul ⟨2, 0⟩ np.certBound) ⟨1, 0⟩
@@ -194,6 +202,6 @@ theorem tableauCNF_encoded_size (np : ClassNP) (x : Word) :
   have hc := certificateCNF_polynomial_size np.certBound x.length
   have hs := Nat.le_trans (Nat.add_le_add hi hr) (polyAdd_eval _ _ x.length)
   have hall := Nat.le_trans (Nat.add_le_add hc hs) (polyAdd_eval _ _ x.length)
-  simpa only [tableauCNF, encodeCNF_length_append, sizePolynomial, Nat.add_assoc] using hall
+  simpa only [tableauCNF_fragments, encodeCNF_length_append, sizePolynomial, Nat.add_assoc] using hall
 
 end Issue624.CookLevin

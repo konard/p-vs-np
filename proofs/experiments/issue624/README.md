@@ -14,6 +14,8 @@ output primitive and input-retaining unary counter blocks.
 `RunCNF` assembles those moves and accepting termination into a bounded trace
 formula. `InitialCNF` connects its first row to the input and decoded certificate;
 `CookLevin` assembles the full formula and its language correspondence.
+`Schema` describes that same formula as finite syntax depending only on the
+verifier witness; `CookLevin.tableauCNF` now evaluates this description.
 
 Classification: **known theorem mechanized**, for these prerequisites only.
 Nothing here establishes an answer to P versus NP.
@@ -388,6 +390,33 @@ This is a tape-block interface. Formula emission, counter arithmetic for its
 indices, final tape restoration, and the complete reduction's `Computes`
 contract remain required.
 
+## Finite tableau schema
+
+`Schema.lean` and `Schema.v` share generated descriptions from
+`experiments/issue624/generate_schema.py`. Expressions contain constants,
+parameters, named loop indices, input-bit reads, arithmetic, and conditional
+selection. Clause ranges express the long one-hot clauses and stop prefixes;
+schema loops and guards express the existing CNF fragments. Multiplication
+supports a row index times its variable stride. Missing input bits are false,
+missing parameters are zero, and subtraction is truncated.
+
+`tableauSchema np` has no input argument. Its only static enumeration is the
+fixed verifier's states and four symbols; its input-dependent bounds are the
+parameters `[n, B, T, W]`. Named index slots preserve outer indices in nested
+loops. `tableauSchema_fragments` proves exact equality, including clause and
+literal order, with the original certificate, initial-row, and accepting-run
+fragments for every witness and input. Both verifier constructors are covered.
+`CookLevin.tableauCNF_fragments` transfers all existing correctness, rejection,
+and size proofs to the schema-based definition without changing their types.
+
+Regenerate with `python3 experiments/issue624/generate_schema.py`; use
+`--check` to reject drift. Regeneration preserves the prover-specific proof
+sections. `test_schema.py` tests both drift detection and proof preservation.
+The paired `SchemaRegression` files also check the original-fragment equation,
+nested indices, one-hot clause order, zero certificate bounds, and bit reads.
+The schema is consumed by the complete tableau definition; a generic machine
+compiler and charged reduction contract remain to be proved.
+
 ## Verification and limits
 
 The paired [regressions](../../../experiments/issue624/) cover zero bounds,
@@ -438,6 +467,9 @@ lake env lean experiments/issue624/SuccessorRegression.lean
 lake env lean experiments/issue624/RunCNFRegression.lean
 lake env lean experiments/issue624/TableauCNFRegression.lean
 lake env lean experiments/issue624/CounterRegression.lean
+lake env lean experiments/issue624/SchemaRegression.lean
+python3 experiments/issue624/generate_schema.py --check
+python3 -m unittest experiments.issue624.test_schema -v
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py

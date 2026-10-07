@@ -547,3 +547,37 @@ rocq Machines.reaches_append_right: (none)
 The paired `CounterRegression` files also query the main block contracts
 directly. This audit does not establish the missing formula reduction,
 `satHard`, or `cookLevin`; the full completion gate remains required.
+
+## Finite tableau schema (2026-10-07)
+
+The schema continuation registers 42 additional conclusions per prover:
+39 paired schema lemmas, `tableauSchema`, and the two consuming `CookLevin`
+equations. Their exact assumption sets are recorded in
+`scripts/proof_status.json` and reproduced by
+`python3 scripts/check_proof_status.py --lean --rocq` after building both
+projects. The manifest now contains 288 conclusions per prover.
+
+Every new Rocq conclusion is closed under the global context. New Lean
+conclusions use only their individual kernel-reported subsets of `propext`,
+`Quot.sound`, and `Classical.choice`. In particular:
+
+```text
+lean Issue624.Schema.tableauSchema: propext
+lean Issue624.Schema.tableauSchema_fragments: Classical.choice, Quot.sound, propext
+lean Issue624.CookLevin.tableauSchema_eq: propext
+lean Issue624.CookLevin.tableauCNF_fragments: Classical.choice, Quot.sound, propext
+rocq Schema.tableauSchema: (none)
+rocq Schema.tableauSchema_fragments: (none)
+rocq CookLevin.tableauSchema_eq: (none)
+rocq CookLevin.tableauCNF_fragments: (none)
+```
+
+Two existing consuming proofs, `CookLevin.tableauCNF_unfold` and
+`CookLevin.tableauCNF_overlong_rejected`, now also report `Classical.choice`,
+`Quot.sound`, and `propext` in Lean because they use the schema equality.
+Their individual manifest entries are refreshed to those exact reports.
+The permitted assumptions of the completion gate remain unchanged.
+
+These equations preserve the original tableau contracts through exact list
+equality. They do not discharge `red_computes`, `satHard`, or `cookLevin`;
+the completion preflight still reports the same 42 diagnostics.

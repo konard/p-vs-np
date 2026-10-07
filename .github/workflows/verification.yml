@@ -31,7 +31,7 @@ jobs:
       run: python3 -m unittest scripts.test_check_proof_status -v
 
     - name: Test issue 624 completion gate
-      run: python3 -m unittest experiments.issue624.test_completion experiments.issue624.test_completion_workflow -v
+      run: python3 -m unittest experiments.issue624.test_completion experiments.issue624.test_completion_workflow experiments.issue624.test_schema -v
 
     - name: Test issue listing script
       run: python3 -m unittest scripts.test_list_issues -v
@@ -189,6 +189,7 @@ jobs:
           lake env lean experiments/issue624/RunCNFRegression.lean
           lake env lean experiments/issue624/TableauCNFRegression.lean
           lake env lean experiments/issue624/CounterRegression.lean
+          lake env lean experiments/issue624/SchemaRegression.lean
           python3 experiments/issue532_vacuity/check.py
           bash experiments/issue571/check.sh
           if lake_test_output=$(lake test 2>&1); then
@@ -281,6 +282,7 @@ jobs:
           proofs.experiments.issue624.lean.SuccessorCNF \
           proofs.experiments.issue624.lean.RunCNF \
           proofs.experiments.issue624.lean.InitialCNF \
+          proofs.experiments.issue624.lean.Schema \
           proofs.experiments.issue624.lean.CookLevin \
           proofs.experiments.issue624.lean.CircuitCNF \
           proofs.experiments.issue624.lean.ConstantEmitter \
@@ -325,6 +327,7 @@ jobs:
           rocq compile -Q . '' proofs/experiments/issue624/rocq/SuccessorCNF.v
           rocq compile -Q . '' proofs/experiments/issue624/rocq/RunCNF.v
           rocq compile -Q . '' proofs/experiments/issue624/rocq/InitialCNF.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/Schema.v
           rocq compile -Q . '' proofs/experiments/issue624/rocq/CookLevin.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
           rocq compile -Q . '' proofs/experiments/issue624/rocq/CircuitCNF.v

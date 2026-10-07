@@ -4,9 +4,10 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 check_python() {
+  python3 experiments/issue624/generate_schema.py --check
   python3 scripts/check_gubin_audit.py
   python3 -m unittest scripts.test_check_attempt_structure scripts.test_check_proof_status scripts.test_list_issues -v
-  python3 -m unittest experiments.issue624.test_completion experiments.issue624.test_completion_workflow -v
+  python3 -m unittest experiments.issue624.test_completion experiments.issue624.test_completion_workflow experiments.issue624.test_schema -v
   python3 scripts/check_proof_status.py
   python3 experiments/issue578/check_paper_lp.py
   for issue in issue577 issue580 issue584 issue532 issue587 sat_solvers issue588; do
@@ -31,7 +32,8 @@ check_lean() {
     experiments/issue624/CNFRegression.lean experiments/issue624/EmitterRegression.lean \
     experiments/issue624/CircuitCNFRegression.lean experiments/issue624/MachineCNFRegression.lean \
     experiments/issue624/SuccessorRegression.lean experiments/issue624/RunCNFRegression.lean \
-    experiments/issue624/TableauCNFRegression.lean experiments/issue624/CounterRegression.lean; do
+    experiments/issue624/TableauCNFRegression.lean experiments/issue624/CounterRegression.lean \
+    experiments/issue624/SchemaRegression.lean; do
     lake env lean "$file"
   done
   python3 experiments/issue532_vacuity/check.py
