@@ -1,0 +1,14 @@
+From Stdlib Require Import List Bool Arith Lia.
+From proofs.experiments.issue624.rocq Require Import VerifierTableau.
+Import ListNotations Complexity.Complexity Machines VerifierTableau.
+
+(** Interactive diagnostic: distinguish the paired separator/certificate from
+    the input, including the [length (map ...)] exposed after simplification. *)
+Goal forall x cert, Tableau.Tableau.span (pairedInput x cert) <=
+  length x + length cert + 2.
+Proof.
+  intros x cert. destruct x; unfold pairedInput, initialSymbols, Tableau.Tableau.span;
+    simpl; repeat rewrite length_app; repeat rewrite length_map; simpl.
+  Show.
+  all: rewrite ?length_map; lia.
+Qed.

@@ -4,6 +4,7 @@ import tempfile
 import unittest
 import re
 import json
+from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,10 +14,31 @@ from scripts.check_proof_status import (
     parse_lean_axioms,
     parse_rocq_assumptions,
     strip_comments_and_strings,
+    query_assumptions,
 )
 
 
 class ProofStatusTests(unittest.TestCase):
+    def test_typed_queries_audit_the_checked_term_in_both_provers(self):
+        for language in ("lean", "rocq"):
+            with self.subTest(language=language):
+                suffix = "lean" if language == "lean" else "v"
+                entry = {"source": f"proofs/Result.{suffix}", "theorem": "Result.endpoint"}
+                probes = []
+
+                def compile_probe(command, **_):
+                    probes.append(Path(command[-1]).read_text())
+                    output = ("'completion_contract' does not depend on any axioms\n" if language == "lean"
+                              else "Closed under the global context\n")
+                    return SimpleNamespace(returncode=0, stdout=output, stderr="")
+
+                with patch("scripts.check_proof_status.subprocess.run", side_effect=compile_probe):
+                    assumptions = query_assumptions(Path("."), language, entry, expected_type="True")
+                self.assertEqual(assumptions, set())
+                self.assertIn("@Result.endpoint", probes[0])
+                self.assertIn("completion_contract : True :=", probes[0])
+                self.assertIn("axioms completion_contract" if language == "lean" else "Assumptions completion_contract", probes[0])
+
     def test_issue532_public_results_have_assumption_policies(self):
         manifest = json.loads((Path(__file__).with_name('proof_status.json')).read_text())
         for language in ('lean', 'rocq'):

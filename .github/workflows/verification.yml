@@ -30,6 +30,9 @@ jobs:
     - name: Test proof status checker
       run: python3 -m unittest scripts.test_check_proof_status -v
 
+    - name: Test issue 624 completion gate
+      run: python3 -m unittest experiments.issue624.test_completion experiments.issue624.test_completion_workflow experiments.issue624.test_schema experiments.issue624.test_register_machine -v
+
     - name: Test issue listing script
       run: python3 -m unittest scripts.test_list_issues -v
 
@@ -106,7 +109,7 @@ jobs:
               rocq=true
               agda=true
             fi
-            if grep -Eq '^scripts/(check_proof_status\.py|proof_status\.json)$' <<< "$changed_files"; then
+            if grep -Eq '^scripts/(check_proof_status\.py|check_issue624_completion\.py|proof_status\.json)$' <<< "$changed_files"; then
               lean=true
               rocq=true
             fi
@@ -176,6 +179,19 @@ jobs:
           lean experiments/issue7_undecidability_formalization.lean
           lake env lean experiments/issue572/Independent.lean
           lake env lean experiments/issue568/TraceRegression.lean
+          lake env lean experiments/issue624/CertificateRegression.lean
+          lake env lean experiments/issue624/WindowRegression.lean
+          lake env lean experiments/issue624/CNFRegression.lean
+          lake env lean experiments/issue624/EmitterRegression.lean
+          lake env lean experiments/issue624/CircuitCNFRegression.lean
+          lake env lean experiments/issue624/MachineCNFRegression.lean
+          lake env lean experiments/issue624/SuccessorRegression.lean
+          lake env lean experiments/issue624/RunCNFRegression.lean
+          lake env lean experiments/issue624/TableauCNFRegression.lean
+          lake env lean experiments/issue624/CounterRegression.lean
+          lake env lean experiments/issue624/RegisterRegression.lean
+          lake env lean experiments/issue624/ArithmeticRegression.lean
+          lake env lean experiments/issue624/SchemaRegression.lean
           python3 experiments/issue532_vacuity/check.py
           bash experiments/issue571/check.sh
           if lake_test_output=$(lake test 2>&1); then
@@ -259,7 +275,22 @@ jobs:
           proofs.p_vs_np_decidable.lean.PvsNPDecidable \
           proofs.p_not_equal_np.lean.PNotEqualNP \
           proofs.experiments.issue532.lean.Idea01 \
+          proofs.experiments.issue532.lean.Idea36 \
           proofs.experiments.issue568.lean.Tableau \
+          proofs.experiments.issue624.lean.VerifierTableau \
+          proofs.experiments.issue624.lean.FixedWindow \
+          proofs.experiments.issue624.lean.LocalCNF \
+          proofs.experiments.issue624.lean.MachineCNF \
+          proofs.experiments.issue624.lean.SuccessorCNF \
+          proofs.experiments.issue624.lean.RunCNF \
+          proofs.experiments.issue624.lean.InitialCNF \
+          proofs.experiments.issue624.lean.Schema \
+          proofs.experiments.issue624.lean.CookLevin \
+          proofs.experiments.issue624.lean.CircuitCNF \
+          proofs.experiments.issue624.lean.ConstantEmitter \
+          proofs.experiments.issue624.lean.UnaryCounter \
+          proofs.experiments.issue624.lean.RegisterMachine \
+          proofs.experiments.issue624.lean.Arithmetic \
           proofs.experiments.issue609.lean.PEqualsNPAttempt \
           proofs.experiments.issue609.lean.KnownBarriers \
           proofs.experiments.issue532.lean.Idea41 \
@@ -268,6 +299,8 @@ jobs:
           proofs.experiments.issue8.lean.NPSubsetP \
           proofs.experiments.issue7.lean.ClockedSAT
         python3 scripts/check_proof_status.py --lean
+        python3 experiments/issue624/check_tableau_contracts.py --lean
+        python3 experiments/issue624/existing_bridge_probe.py --lean
 
   certified-rocq:
     name: Certified Rocq Results
@@ -286,15 +319,31 @@ jobs:
           set -e
           rocq compile -Q . '' proofs/complexity/rocq/Complexity.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Machines.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea36.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/SATVerifier.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea01.v
           rocq compile -Q . '' proofs/experiments/issue568/rocq/Tableau.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/CertificateCNF.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/VerifierTableau.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/FixedWindow.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/LocalCNF.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/MachineCNF.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/SuccessorCNF.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/RunCNF.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/InitialCNF.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/Schema.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/CookLevin.v
+          rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/CircuitCNF.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/ConstantEmitter.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/UnaryCounter.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/RegisterMachine.v
+          rocq compile -Q . '' proofs/experiments/issue624/rocq/Arithmetic.v
           rocq compile -Q . '' proofs/p_vs_np_decidable/rocq/PSubsetNP.v
           rocq compile -Q . '' proofs/p_vs_np_decidable/rocq/PvsNPDecidable.v
           rocq compile -Q . '' proofs/p_not_equal_np/rocq/PNotEqualNP.v
           rocq compile -Q . '' proofs/experiments/issue609/rocq/PEqualsNPAttempt.v
           rocq compile -Q . '' proofs/experiments/issue609/rocq/KnownBarriers.v
-          rocq compile -Q . '' proofs/experiments/issue532/rocq/Circuits.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea16.v
           rocq compile -Q . '' proofs/experiments/issue532/rocq/Idea41.v
           rocq compile -Q . '' proofs/experiments/issue567/rocq/ResidualKey.v
@@ -302,6 +351,8 @@ jobs:
           rocq compile -Q . '' proofs/experiments/issue8/rocq/NPSubsetP.v
           rocq compile -Q . '' proofs/experiments/issue7/rocq/ClockedSAT.v
           python3 scripts/check_proof_status.py --rocq
+          python3 experiments/issue624/check_tableau_contracts.py --rocq
+          python3 experiments/issue624/existing_bridge_probe.py --rocq
     - name: Revert permissions
       if: always()
       run: sudo chown -R 1001:116 .
@@ -331,11 +382,72 @@ jobs:
             agda -i . experiments/issue572/Independent.agda
           '
 
+  issue624-completion:
+    name: Issue 624 Completion
+    runs-on: ubuntu-latest
+    # This job deliberately has no dependency on change detection. Even a
+    # documentation-only update must check the full endpoint on this PR.
+    if: >-
+      (github.event_name == 'pull_request' &&
+       (github.event.pull_request.number == 630 || github.head_ref == 'issue-624-0b9b9b6c5d75')) ||
+      (github.event_name == 'workflow_dispatch' && github.ref_name == 'issue-624-0b9b9b6c5d75')
+    timeout-minutes: 60
+    steps:
+    - uses: actions/checkout@v4
+    - name: Require complete issue 624 sources and manifest entries
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p ci-logs
+        python3 scripts/check_issue624_completion.py 2>&1 | tee ci-logs/issue624-completion-preflight.log
+    - name: Install Lean
+      run: |
+        curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+        echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+    - name: Check complete Lean contracts and assumptions
+      shell: bash
+      run: |
+        set -euo pipefail
+        lake build
+        python3 experiments/issue624/check_completion_kernels.py --lean
+        python3 experiments/issue624/check_completion_types.py --lean
+        python3 scripts/check_issue624_completion.py --lean 2>&1 | tee ci-logs/issue624-completion-lean.log
+        python3 scripts/check_proof_status.py --lean
+    - name: Fix permissions for docker
+      run: sudo chown -R 1000:1000 .
+    - name: Check complete Rocq contracts and assumptions
+      uses: coq-community/docker-coq-action@v1
+      with:
+        custom_image: 'rocq/rocq-prover:9.0'
+        custom_script: |
+          set -euo pipefail
+          rocq makefile -f _CoqProject -o Makefile.coq
+          make -f Makefile.coq
+          python3 experiments/issue624/check_completion_kernels.py --rocq
+          python3 experiments/issue624/check_completion_types.py --rocq
+          python3 scripts/check_issue624_completion.py --rocq 2>&1 | tee ci-logs/issue624-completion-rocq.log
+          python3 scripts/check_proof_status.py --rocq
+    - name: Revert permissions
+      if: always()
+      run: sudo chown -R 1001:116 .
+    - name: Preserve completion diagnostics
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: issue624-completion-diagnostics
+        path: ci-logs/issue624-completion-*.log
+        if-no-files-found: error
+
   summary:
     name: Verification Summary
     runs-on: ubuntu-latest
-    needs: [detect-changes, lean-verification, rocq-verification, certified-lean, certified-rocq, agda-verification]
+    needs: [detect-changes, lean-verification, rocq-verification, certified-lean, certified-rocq, agda-verification, issue624-completion]
     if: always()
+    env:
+      ISSUE624_REQUIRED: >-
+        ${{ (github.event_name == 'pull_request' &&
+             (github.event.pull_request.number == 630 || github.head_ref == 'issue-624-0b9b9b6c5d75')) ||
+            (github.event_name == 'workflow_dispatch' && github.ref_name == 'issue-624-0b9b9b6c5d75') }}
 
     steps:
     - name: Summary
@@ -351,6 +463,7 @@ jobs:
         CERT_LEAN_RESULT="${{ needs.certified-lean.result }}"
         CERT_ROCQ_RESULT="${{ needs.certified-rocq.result }}"
         AGDA_RESULT="${{ needs.agda-verification.result }}"
+        ISSUE624_RESULT="${{ needs.issue624-completion.result }}"
 
         echo "| Change detection | $DETECT_RESULT |" >> $GITHUB_STEP_SUMMARY
 
@@ -369,6 +482,7 @@ jobs:
 
         echo "| Certified Lean result audit | $CERT_LEAN_RESULT |" >> $GITHUB_STEP_SUMMARY
         echo "| Certified Rocq result audit | $CERT_ROCQ_RESULT |" >> $GITHUB_STEP_SUMMARY
+        echo "| Issue 624 completion | $ISSUE624_RESULT |" >> $GITHUB_STEP_SUMMARY
 
         if [ "$AGDA_RESULT" = "skipped" ]; then
           echo "| Agda | skipped (no changes) |" >> $GITHUB_STEP_SUMMARY
@@ -395,6 +509,12 @@ jobs:
         CERT_LEAN_RESULT="${{ needs.certified-lean.result }}"
         CERT_ROCQ_RESULT="${{ needs.certified-rocq.result }}"
         AGDA_RESULT="${{ needs.agda-verification.result }}"
+        ISSUE624_RESULT="${{ needs.issue624-completion.result }}"
+
+        if [[ "${ISSUE624_REQUIRED:-false}" = "true" && "$ISSUE624_RESULT" != "success" ]]; then
+          echo "::error::Issue 624 completion did not pass ($ISSUE624_RESULT)"
+          exit 1
+        fi
 
         if [ "$DETECT_RESULT" != "success" ]; then
           echo "::error::Change detection failed ($DETECT_RESULT)"

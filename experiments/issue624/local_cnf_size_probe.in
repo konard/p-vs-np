@@ -1,0 +1,13 @@
+From Stdlib Require Import List Arith Lia.
+Import ListNotations.
+Fixpoint pairCounts (base size : nat) : list (list nat) :=
+  match size with
+  | 0 => []
+  | S n => map (fun i => [base; base + 1 + i]) (seq 0 n) ++ pairCounts (base + 1) n
+  end.
+Goal forall base size, length (pairCounts base size) <= size * size.
+intros base size. revert base. induction size; intro base; cbn [pairCounts]; [simpl; lia|].
+rewrite length_app, length_map, length_seq. specialize (IHsize (base + 1)).
+Show.
+nia.
+Qed.

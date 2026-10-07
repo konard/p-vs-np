@@ -1,0 +1,7 @@
+From Stdlib Require Import List Bool Arith Lia.
+Search ((_ + _) =? (_ + _)).
+Check Nat.div_add_l.
+Check Nat.add_mod.
+Check Nat.mul_mod.
+Check Nat.mod_small.
+Check Nat.div_small.

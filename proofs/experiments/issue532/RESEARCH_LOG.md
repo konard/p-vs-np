@@ -39,6 +39,117 @@ verdicts:
 | Developed to an open obligation (conditional theorem proved) | The idea is correct as far as it goes. What remains is stated as one precise proposition, and the files prove what would follow from it. | 01, 13, 14, 23, 30, 32, 37, 39, 41 |
 | Correct tool, insufficient alone (general theorem proved) | The tool is proved correct in general and is needed by any solution, but by itself it cannot decide P vs NP. The files prove why. | 03, 12, 15, 22, 24, 25, 28, 29, 34, 36, 40 |
 
+## Cook–Levin prerequisites (#624, October 2026)
+
+PR #630 now enforces the entire #624 deliverable through an independent
+`Issue 624 Completion` job. Its paired contract checks require the full
+tableau, unary encoded-size bound, charged reduction machine, hardness and
+completeness proofs, negative cases, and unconditional SAT bridge signatures.
+The required `Verification Summary` merge check fails while those endpoints
+are absent. This changes completion enforcement; it adds no hardness proof.
+
+The paired [certificate fragment](../issue624/README.md) now represents every
+polynomially bounded, variable-length certificate with presence/value cells,
+suffix-closed blanks, and a forced absent sentinel. Its model-extraction and
+representation theorems are certified, and its actual `encodeCNF` bit length
+is `8B² + 14B + 4` at offset zero. Both `VerifierProgram` constructors are
+connected to #568's existing `LocalTrace`, preserving the decoded certificate's
+actual length and acceptance clock. A uniform polynomial clock and tape-cell
+envelope support the rectangular tableau.
+
+The continuation in PR #630 also proves that determinism and termination
+recover the actual certificate-dependent clock from every accepting run.
+Paired `FixedWindow` modules prove blank-padding simulation on both sides of
+the two-way tape, constant-width local traces for all `ClassNP` witnesses,
+and an explicit polynomial bound on the width. `LocalCNF` supplies certified
+implication and exactly-one constraints and unary encoded-size bounds.
+`ConstantEmitter` provides a finite machine that erases its input, emits a
+fixed word, and restores its head, with a checked `Computes` contract and
+polynomial charged-step bound. Its write and return blocks have reusable
+instruction-table contracts.
+
+An earlier continuation adds `CircuitCNF`, a three-clause-per-NAND compiler
+using the existing circuit wire indices and evaluator. It proves each model
+agrees with the computed wires and that the output-asserting formula is
+satisfiable exactly when the circuit is. Zero wires produce an empty clause.
+The unary encoded length is at most `8*(3g+1)*(n+g+1)`, where `g` is the
+number of gates and `n` is the number of input wires. A polynomial wire-count
+bound gives an explicit polynomial encoded-length bound. Shared wire and
+encoding lemmas replace duplicate proofs; previous qualified public names
+remain available through wrappers. Paired regressions reject incorrect gate
+outputs and an unsatisfiable contradiction circuit.
+
+The instruction-dispatch continuation adds paired `MachineCNF` modules. Their three one-hot
+blocks select the state, scanned symbol, and instruction from the existing
+finite machine table. The model theorem recovers exactly `Machine.instruction`,
+including default rejection for missing columns. A constructive assignment
+represents every bounded state and symbol at any offset; injective instruction
+codes preserve the next state, written symbol, and movement direction. The
+compiler agrees with the existing charged `step`, and its actual unary encoded
+length has an explicit polynomial bound for polynomially bounded offsets.
+Paired regressions select an incorrect instruction while satisfying all three
+one-hot fragments and verify that the table clauses reject it. Fourteen
+conclusions are registered in each prover.
+
+The successor continuation adds paired `SuccessorCNF` modules. One-hot row
+clauses extract a unique configuration by bounded search, and a constructive
+assignment represents each bounded configuration. Guarded state/head/write
+and copy constraints compile one move from the actual finite machine table.
+The equivalence and extraction results use the original charged `step`; both
+window edges are rejected without wrapping or truncation. Clause, variable,
+width, and unary encoded-size bounds are proved. Thirty-eight further
+conclusions per prover bring the #624 registration count to 100 and the
+whole manifest to 178. Paired regressions distinguish wrong writes, copied
+cells, heads, and states from otherwise well-formed rows.
+
+The accepting-trace continuation adds paired `RunCNF` modules. Row stop bits
+choose accepting termination or a charged successor and a bounded suffix.
+Every satisfying assignment decodes to #568's accepting local trace; every
+fixed-width accepting trace has a canonical model that decodes exactly.
+Clock exhaustion, rejecting halts, and wrong successors are rejected. Inactive
+suffix variables are unconstrained. Checked clause-count, identifier, and
+width bounds give an actual unary encoded-size bound and an explicit shared
+polynomial envelope. Twenty-four further #624 conclusions and two shared
+polynomial-arithmetic conclusions per prover bring the whole manifest to 204.
+
+The initial-input continuation adds paired `InitialCNF` and `CookLevin`
+modules. They join the actual input and variable-length certificate to the
+accepting-trace CNF, prove both tableau model directions, and bound the actual
+unary encoded output length by an explicit polynomial. Wrong initial rows,
+overlong certificates, rejecting verifiers, and wrong successors are rejected.
+These conclusions and the existing Idea 36 bridge bring the manifest to 235
+conclusions per prover.
+
+The counter continuation adds shared charged scans and computation composition,
+then constructs paired `UnaryCounter` modules. A fixed nine-state block retains
+the input and increments an existing unary counter once per bit. Its exact
+time is `n * (2 * (n + k) + 6) + 2`. A seven-state setup block starts from
+`initial x`; their 16-state composition retains every input bit and constructs
+the unary input length within `12 * (n + 1)^2` charged steps. Generic contracts,
+empty/mixed-bit examples, arbitrary retained prefixes, insufficient fuel, and
+malformed counter symbols are checked. Eleven new conclusions per prover bring
+the manifest to 246, with each entry's actual kernel assumptions recorded.
+
+The register continuation generates paired insertion/decrement instruction
+tables from one source. Fixed increments, constant emission, and a
+straight-line compiler have exact charged contracts. The dynamic `clear`
+loop removes every tick from a scratch register while retaining the input,
+other registers, and output. Its exact runtime and quadratic envelope are
+proved; its final tape differs only by trailing blanks. Shared charged
+simulation and exit retargeting are consumed by the clear loop and by
+`clear_then_compile_reaches`, which composes it with any well-formed compiled
+program. The combined cost bound uses shared `polyAdd`. Paired regressions
+execute clearing, increment, and emission in 83 charged steps and reject
+insufficient fuel and malformed unary contents. This continuation registers
+21 new conclusions per prover, bringing the complete manifest to 342.
+
+This is **known theorem mechanized** for the tableau and machine primitives.
+The counter has a `Reaches` tape-block contract; no formula-emitting reduction
+table or polynomial charged `Computes` proof has been constructed. `satHard`
+and `cookLevin` remain absent, and `SATHard` remains an explicit premise of the
+Idea bridges. The completion preflight still reports 42 diagnostics and #624
+remains open. See the [paired assumption reports](../../../experiments/issue624/ASSUMPTIONS.md).
+
 ## The forty-one ideas
 
 | No. | Idea (dossier, Lean, Rocq) | Verdict | Principal machine-checked result | What remains, or why the route fails |

@@ -1,0 +1,13 @@
+From Stdlib Require Import List Bool Arith.
+From proofs.experiments.issue624.rocq Require Import CertificateCNF InitialCNF.
+Import ListNotations Complexity.Complexity CertificateCNF InitialCNF.
+
+(* A present false bit differs from an absent blank. Inputs are finite. *)
+Goal map (sourceEval (encodeCertificate [false])) (certificateSources 0 2) = [zero; blank].
+Proof. cbn. Show. reflexivity. Qed.
+
+(* Inspect the complete assignment-by-assignment initial-row contract. *)
+Check initialCNF_models.
+Print Assumptions initialCNF_models.
+Check initialCNF_polynomial_size.
+Print Assumptions initialCNF_polynomial_size.

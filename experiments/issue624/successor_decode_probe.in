@@ -1,0 +1,11 @@
+From Stdlib Require Import List Bool Arith Lia.
+From proofs.experiments.issue568.rocq Require Import Tableau.
+From proofs.experiments.issue624.rocq Require Import SuccessorCNF.
+Import ListNotations Complexity Machines Tableau SuccessorCNF.
+
+Goal forall c, decodeConfig (state c) (length (tapeLeft c)) (flatten c) = c.
+Proof. intro c. Show. apply decodeConfig_flatten. Qed.
+
+Goal forall base states width c, span c = width -> state c < states ->
+  RowRepresents (rowAssignment base states width c) base states width c.
+Proof. intros. Show. apply rowAssignment_represents; assumption. Qed.

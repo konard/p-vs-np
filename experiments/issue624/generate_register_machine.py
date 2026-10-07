@@ -1,0 +1,199 @@
+"""One source for the charged register primitives' Lean and Rocq tables.
+
+The generated tables are ordinary finite single-tape instructions. Regeneration
+preserves each prover's proof section after the marker.
+"""
+
+import argparse
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+MARKERS = {
+    "lean": "-- END GENERATED REGISTER TABLES\n",
+    "rocq": "(* END GENERATED REGISTER TABLES *)\n",
+}
+
+
+def move(q, symbol, direction):
+    return ("move", str(q), symbol, direction)
+
+
+REJECT = ("halt", False)
+START = [move(1, "blank", "right"), REJECT, REJECT, REJECT]
+SEEK = [REJECT, move("base", "zero", "right"),
+        move("base", "one", "right"), move("base + 1", "separator", "right")]
+GROW = [
+    [REJECT, move(0, "zero", "right"), move(0, "one", "right"),
+     move(3, "bit", "right")],
+    *[[move(4, carry, "stay"), move(1, carry, "right"),
+       move(2, carry, "right"), move(3, carry, "right")]
+      for carry in ("zero", "one", "separator")],
+    [move(5, "blank", "stay"), move(4, "zero", "left"),
+     move(4, "one", "left"), move(4, "separator", "left")],
+]
+
+DELETE = [
+    [REJECT, REJECT, move(1, "blank", "right"), move(8, "separator", "left")],
+    [move(7, "blank", "left"), move(2, "zero", "left"),
+     move(3, "one", "left"), move(4, "separator", "left")],
+    *[[move(5, carry, "right"), REJECT, REJECT, REJECT]
+      for carry in ("zero", "one", "separator")],
+    [REJECT, move(1, "blank", "right"), move(1, "blank", "right"),
+     move(1, "blank", "right")],
+    [move(9, "blank", "stay"), move(6, "zero", "left"),
+     move(6, "one", "left"), move(6, "separator", "left")],
+    [move(6, "blank", "left"), REJECT, REJECT, REJECT],
+    [move(10, "blank", "stay"), move(8, "zero", "left"),
+     move(8, "one", "left"), move(8, "separator", "left")],
+]
+
+JUMP = [[move(1, "blank", "stay"), REJECT, REJECT, REJECT]]
+
+
+def instruction(i, language):
+    if i[0] == "halt":
+        return ".halt false" if language == "lean" else "halt false"
+    _, q, symbol, direction = i
+    q = f"({q})" if "+" in q else q
+    if language == "lean":
+        symbol = "(.ofBool b)" if symbol == "bit" else f".{symbol}"
+        return f".move {q} {symbol} .{direction}"
+    symbol = "(ofBool b)" if symbol == "bit" else symbol
+    return f"move {q} {symbol} {direction}"
+
+
+def row(r, language):
+    separator = ", " if language == "lean" else "; "
+    return "[" + separator.join(instruction(i, language) for i in r) + "]"
+
+
+def description(language):
+    start, seek = row(START, language), row(SEEK, language)
+    jump = row(JUMP[0], language)
+    grow = (",\n  " if language == "lean" else ";\n  ").join(
+        row(r, language) for r in GROW
+    )
+    delete = (",\n  " if language == "lean" else ";\n  ").join(
+        row(r, language) for r in DELETE
+    )
+    if language == "lean":
+        return f"""import proofs.experiments.issue624.lean.UnaryCounter
+
+/-! Home-preserving register primitives. Generated tables come from
+`experiments/issue624/generate_register_machine.py`; each execution step is
+charged in the existing `Reaches` semantics. Home is the unique blank before
+the input and delimited registers/output. -/
+namespace Issue624.RegisterMachine
+open Complexity Issue532.Machines
+
+def seekRows (base : Nat) : Nat → List (List Instruction)
+  | 0 => []
+  | k + 1 => {seek} :: seekRows (base + 1) k
+
+def seek (slot : Nat) : Machine := ⟨{start} :: seekRows 1 slot⟩
+
+def grow (b : Bool) : Machine := ⟨[
+  {grow}]⟩
+
+def push (slot : Nat) (b : Bool) : Machine := appendMachine (seek slot) (grow b)
+
+def pushWord (slot : Nat) : Word → Machine
+  | [] => ⟨[]⟩
+  | b :: w => appendMachine (push slot b) (pushWord slot w)
+def incr (slot count : Nat) : Machine := pushWord (slot+1) (List.replicate count true)
+def emitConst (registers : Nat) (w : Word) : Machine := pushWord (registers+1) w
+
+def deleteFirst : Machine := ⟨[
+  {delete}]⟩
+def pop (slot : Nat) : Machine := appendMachine (seek slot) deleteFirst
+
+def clearTarget (slot q : Nat) : Nat :=
+  if q < (pop slot).program.length then q else
+  if q = (pop slot).program.length then 0 else (pop slot).program.length
+
+def clear (slot : Nat) : Machine := retargetMachine (pop slot) (clearTarget slot)
+
+def repeatHeadTarget (slot : Nat) (body : Machine) (q : Nat) : Nat :=
+  if q < (pop slot).program.length + 1 then q else
+    (pop slot).program.length + body.program.length + 2
+def repeatHead (slot : Nat) (body : Machine) : Machine :=
+  retargetMachine (pop slot) (repeatHeadTarget slot body)
+def repeatJump : Machine := ⟨[{jump}]⟩
+def repeatBase (slot : Nat) (body : Machine) : Machine :=
+  appendMachine (repeatHead slot body) (appendMachine body repeatJump)
+def repeatMachine (slot : Nat) (body : Machine) : Machine :=
+  retargetMachine (repeatBase slot body) (clearTargetFor (repeatBase slot body).program.length)
+where clearTargetFor size q := if q < size then q else if q = size then 0 else size
+"""
+    return f"""From Stdlib Require Import List Bool Arith Lia.
+From proofs.complexity.rocq Require Import Complexity.
+From proofs.experiments.issue532.rocq Require Import Machines.
+From proofs.experiments.issue624.rocq Require Import UnaryCounter.
+Import ListNotations.
+
+(** Home-preserving register primitives. Generated by
+    generate_register_machine.py; uses the shared charged Reaches semantics. *)
+Module RegisterMachine.
+Import Complexity Machines.
+
+Fixpoint seekRows (base count : nat) : list (list Instruction) :=
+  match count with
+  | 0 => []
+  | S k => {seek} :: seekRows (base + 1) k
+  end.
+Definition seek (slot : nat) : Machine :=
+  {{| program := {start} :: seekRows 1 slot |}}.
+Definition grow (b : bool) : Machine := {{| program := [
+  {grow}] |}}.
+Definition push (slot : nat) (b : bool) : Machine := appendMachine (seek slot) (grow b).
+Fixpoint pushWord (slot : nat) (w : Word) : Machine :=
+  match w with
+  | [] => {{| program := [] |}}
+  | b::rest => appendMachine (push slot b) (pushWord slot rest)
+  end.
+Definition incr (slot count : nat) : Machine := pushWord (slot+1) (repeat true count).
+Definition emitConst (registers : nat) (w : Word) : Machine := pushWord (registers+1) w.
+
+Definition deleteFirst : Machine := {{| program := [
+  {delete}] |}}.
+Definition pop (slot : nat) : Machine := appendMachine (seek slot) deleteFirst.
+Definition clearTarget (slot q : nat) : nat :=
+  if q <? length (program (pop slot)) then q else
+  if q =? length (program (pop slot)) then 0 else length (program (pop slot)).
+Definition clear (slot : nat) : Machine := retargetMachine (pop slot) (clearTarget slot).
+
+Definition repeatHeadTarget (slot : nat) (body : Machine) (q : nat) : nat :=
+  if q <? length (program (pop slot)) + 1 then q else
+    length (program (pop slot)) + length (program body) + 2.
+Definition repeatHead (slot : nat) (body : Machine) : Machine :=
+  retargetMachine (pop slot) (repeatHeadTarget slot body).
+Definition repeatJump : Machine :=
+  {{| program := [{jump}] |}}.
+Definition repeatBase (slot : nat) (body : Machine) : Machine :=
+  appendMachine (repeatHead slot body) (appendMachine body repeatJump).
+Definition repeatMachine_clearTargetFor (size q : nat) :=
+  if q <? size then q else if q =? size then 0 else size.
+Definition repeatMachine (slot : nat) (body : Machine) : Machine :=
+  retargetMachine (repeatBase slot body)
+    (repeatMachine_clearTargetFor (length (program (repeatBase slot body)))).
+"""
+
+
+def generate(check=False):
+    for language, suffix, end in (("lean", "lean", "end Issue624.RegisterMachine\n"),
+                                  ("rocq", "v", "End RegisterMachine.\n")):
+        path = ROOT / f"proofs/experiments/issue624/{language}/RegisterMachine.{suffix}"
+        old = path.read_text() if path.exists() else ""
+        tail = old.split(MARKERS[language], 1)[1] if MARKERS[language] in old else "\n" + end
+        expected = description(language) + "\n" + MARKERS[language] + tail
+        if check:
+            if old != expected:
+                raise SystemExit(f"stale generated register tables: {path}")
+        else:
+            path.write_text(expected)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true")
+    generate(parser.parse_args().check)

@@ -1,0 +1,15 @@
+import proofs.experiments.issue624.lean.LocalCNF
+#check List.find?_eq_none
+#check List.find?_some
+#check List.mem_of_find?_eq_some
+#check List.getElem_take
+#check List.getElem?_take
+#check List.getElem?_drop
+#check List.set_append_left
+#check List.set_append_right
+#check List.take_append_of_le_length
+#check List.take_add
+#check List.drop_eq_getElem_cons
+#check List.ext_getElem
+#check Nat.add_mul_div_left
+#check Nat.add_mul_mod_self_left

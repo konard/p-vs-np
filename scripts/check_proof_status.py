@@ -146,15 +146,31 @@ def parse_rocq_assumptions(output: str) -> set[str]:
     return names
 
 
-def query_assumptions(root: Path, language: str, entry: dict) -> set[str]:
+def query_assumptions(
+    root: Path, language: str, entry: dict, *, expected_type: str | None = None,
+    preamble: str = "",
+) -> set[str]:
+    """Optionally check an exact public contract before auditing its assumptions.
+
+    Using the unapplied declaration prevents an extra implicit or explicit
+    theorem premise from being silently supplied by the probe.
+    """
     module = entry["source"].removesuffix(".lean").removesuffix(".v").replace("/", ".")
     if language == "lean":
-        source = f"import {module}\n#print axioms {entry['theorem']}\n"
+        source = f"import {module}\n{preamble}"
+        if expected_type is not None:
+            source += f"def completion_contract : {expected_type} := @{entry['theorem']}\n"
+        audited_name = "completion_contract" if expected_type is not None else entry['theorem']
+        source += f"#print axioms {audited_name}\n"
         command = ["lake", "env", "lean"]
         suffix = ".lean"
     else:
         parent, name = module.rsplit(".", 1)
-        source = f"From {parent} Require Import {name}.\nPrint Assumptions {entry['theorem']}.\n"
+        source = f"From {parent} Require Import {name}.\n{preamble}"
+        if expected_type is not None:
+            source += f"Definition completion_contract : {expected_type} := @{entry['theorem']}.\n"
+        audited_name = "completion_contract" if expected_type is not None else entry['theorem']
+        source += f"Print Assumptions {audited_name}.\n"
         command = ["rocq", "compile", "-Q", ".", ""]
         suffix = ".v"
     with tempfile.TemporaryDirectory(prefix="proof_status_") as directory:
