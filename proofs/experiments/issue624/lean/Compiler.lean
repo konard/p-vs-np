@@ -69,6 +69,7 @@ theorem readNormalize_reaches (b : Bool) (x : Word) (pre post : List Nat) (out :
       have hh := readNormalizeHead_zero (incr pre.length 1).program.length
         (x.map Symbol.ofBool ++ .separator :: tape (regWords (pre ++ 0 :: post) ++ [out]))
       have h := reaches_append (incr pre.length 1) hh
+      rw [readNormalize_states]
       simpa [readNormalize, readNormalizeTime, encode, home, blocks, regWords,
         tape, Symbol.ofBool, List.append_assoc] using h
   | true =>
@@ -127,12 +128,16 @@ theorem dropNormalized_reaches (x : Word) (st : State) :
         x.length + 1 + (tape (regWords st.regs ++ [st.out])).length := by
       simp [xs, tape]
       omega
-    convert hs'.trans hd' using 1 <;>
-      simp [dropNormalizedTime, hlen] <;> omega
-  · refine ⟨rfl, rfl, rfl, ?_⟩
-    refine ⟨tape (blocks x st), 0, 2, ?_, ?_⟩
-    · simp [blanks, encode, home]
-    · simp [xs, blocks, tape, regWords, blanks]
+    have hrun := hs'.trans hd'
+    have hcost : 1 + (4 * xs.length + 4) = dropNormalizedTime x st := by
+      rw [hlen]
+      unfold dropNormalizedTime
+      omega
+    rw [← hcost]
+    exact hrun
+  · change BlankPad (tape (blocks x st)) (xs ++ [.blank, .blank])
+    refine ⟨tape (blocks x st), 0, 2, by simp [blanks], ?_⟩
+    simp [xs, blocks, tape, regWords, blanks]
 
 def bitNat (b : Bool) : Nat := if b then 1 else 0
 
