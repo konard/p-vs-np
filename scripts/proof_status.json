@@ -396,7 +396,19 @@
     {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.putRegister_size_le", "allowed_axioms": ["Quot.sound", "propext"]},
     {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.loopCost_straight_bound", "allowed_axioms": ["Quot.sound", "propext"]},
     {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.loopRun_straight_size_le", "allowed_axioms": ["Quot.sound", "propext"]},
-    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.addToProgram_cost_polynomial", "allowed_axioms": ["Quot.sound", "propext"]}
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.addToProgram_cost_polynomial", "allowed_axioms": ["Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.decrement_states", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.decrementTarget_inside", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.decrementTime_le_clearTime", "allowed_axioms": ["Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.decrementTime_polynomial", "allowed_axioms": ["Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.decrement_reaches", "allowed_axioms": ["Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.decrement_state_reaches", "allowed_axioms": ["Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.subCounter_wider", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.subProgram_wellFormed", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.loopRun_decrements", "allowed_axioms": ["Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.subProgram_registers", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.subProgram_out", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue624/lean/RegisterMachine.lean", "theorem": "Issue624.RegisterMachine.subProgram_reaches", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]}
   ],
   "rocq": [
     {"source": "proofs/complexity/rocq/Complexity.v", "theorem": "Complexity.pSubsetNP", "allowed_axioms": []},
@@ -795,6 +807,18 @@
     {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.putRegister_size_le", "allowed_axioms": []},
     {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.loopCost_straight_bound", "allowed_axioms": []},
     {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.loopRun_straight_size_le", "allowed_axioms": []},
-    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.addToProgram_cost_polynomial", "allowed_axioms": []}
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.addToProgram_cost_polynomial", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.decrement_states", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.decrementTarget_inside", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.decrementTime_le_clearTime", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.decrementTime_polynomial", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.decrement_reaches", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.decrement_state_reaches", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.subCounter_wider", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.subProgram_wellFormed", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.loopRun_decrements", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.subProgram_registers", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.subProgram_out", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue624/rocq/RegisterMachine.v", "theorem": "RegisterMachine.subProgram_reaches", "allowed_axioms": []}
   ]
 }

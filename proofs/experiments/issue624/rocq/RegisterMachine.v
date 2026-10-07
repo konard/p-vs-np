@@ -1139,24 +1139,85 @@ Proof.
     rewrite <- app_assoc in he. exact he.
 Qed.
 
+(** Join the positive and empty pop exits, preserving zero. *)
+Definition decrementTarget (slot q : nat) :=
+  if q <? length (program (pop slot)) then q else length (program (pop slot)).
+Definition decrementMachine (slot : nat) := retargetMachine (pop slot) (decrementTarget slot).
+Definition decrementTime (pre value post : nat) :=
+  if value =? 0 then 2*pre+3 else 2*pre+4*(value+post)+5.
+Theorem decrement_states : forall slot,
+  length (program (decrementMachine slot)) = length (program (pop slot)).
+Proof. intros. unfold decrementMachine, retargetMachine. cbn [program]. apply length_map. Qed.
+Theorem decrementTarget_inside : forall slot q,
+  q < length (program (pop slot)) -> decrementTarget slot q = q.
+Proof. intros. unfold decrementTarget. apply Nat.ltb_lt in H. rewrite H. reflexivity. Qed.
+Theorem decrementTime_le_clearTime : forall pre value post,
+  decrementTime pre value post <= clearTime pre value post.
+Proof.
+  intros pre [|value] post; unfold decrementTime, clearTime; cbn [Nat.eqb]; nia.
+Qed.
+Theorem decrementTime_polynomial : forall pre value post,
+  decrementTime pre value post <= evalPoly clearPolynomial (pre+value+post+1).
+Proof.
+  intros. eapply Nat.le_trans; [apply decrementTime_le_clearTime|apply clearTime_polynomial].
+Qed.
+Theorem decrement_reaches : forall pre post n,
+  exists c, Reaches (decrementMachine (length pre)) (home 0 (pre ++ repeat true n::post))
+    (decrementTime (length (tape pre)) n (length (tape post))) c /\
+    Similar (home (length (program (decrementMachine (length pre))))
+      (pre ++ repeat true (n-1)::post)) c.
+Proof.
+  intros pre post [|n].
+  - pose proof (retarget_reaches _ _ _ _ (pop_empty pre post)
+      (decrementTarget (length pre)) (decrementTarget_inside (length pre))) as h.
+    exists (home (length (program (decrementMachine (length pre)))) (pre ++ []::post)). split.
+    + change (Reaches (decrementMachine (length pre))
+        (home (decrementTarget (length pre) 0) (pre ++ []::post))
+        (2*length (tape pre)+3)
+        (home (decrementTarget (length pre) (length (program (pop (length pre)))+1))
+          (pre ++ []::post))) in h.
+      rewrite decrementTarget_inside in h by (rewrite pop_states; lia).
+      unfold decrementTarget in h.
+      rewrite (proj2 (Nat.ltb_ge (length (program (pop (length pre)))+1)
+        (length (program (pop (length pre))))) ltac:(lia)) in h.
+      cbn [decrementTime]. rewrite decrement_states. exact h.
+    + unfold Similar. repeat split. apply blankPad_refl.
+  - pose proof (retarget_reaches _ _ _ _ (pop_positive pre post n)
+      (decrementTarget (length pre)) (decrementTarget_inside (length pre))) as h.
+    exists {| state := length (program (decrementMachine (length pre))); tapeLeft := [];
+      tapeHead := blank; tapeRight := tape (pre ++ repeat true n::post) ++ [blank; blank] |}. split.
+    + change (Reaches (decrementMachine (length pre))
+        (home (decrementTarget (length pre) 0) (pre ++ repeat true (n+1)::post))
+        (2*length (tape pre)+4*(n+1+length (tape post))+5)
+        {| state := decrementTarget (length pre) (length (program (pop (length pre))));
+          tapeLeft := []; tapeHead := blank;
+          tapeRight := tape (pre ++ repeat true n::post) ++ [blank; blank] |}) in h.
+      rewrite decrementTarget_inside in h by (rewrite pop_states; lia).
+      unfold decrementTarget in h. rewrite Nat.ltb_irrefl in h.
+      cbn [decrementTime]. rewrite decrement_states. replace (n+1) with (S n) in h by lia. exact h.
+    + replace (S n-1) with n by lia. unfold Similar, home. cbn [state tapeLeft tapeHead tapeRight].
+      repeat split. exists (tape (pre ++ repeat true n::post)), 0, 2. split; cbn [blanks repeat]; rewrite ?app_nil_r; reflexivity.
+Qed.
+
 (** Finite register programs with arbitrarily nested dynamic loops. *)
 Inductive Program :=
   | straight (p : Prog)
   | clearRegister (slot : nat)
+  | decrement (slot : nat)
   | literal (slot : nat) (pos : bool)
   | sequence (first second : Program)
   | loop (slot : nat) (body : Program).
 Fixpoint ProgramReadOnly (slot : nat) (p : Program) : Prop :=
   match p with
   | straight p => ReadOnly slot p
-  | clearRegister dest | literal dest _ => slot <> dest
+  | clearRegister dest | decrement dest | literal dest _ => slot <> dest
   | sequence first second => ProgramReadOnly slot first /\ ProgramReadOnly slot second
   | loop counter body => slot <> counter /\ ProgramReadOnly slot body
   end.
 Fixpoint ProgramWellFormed (registers : nat) (p : Program) : Prop :=
   match p with
   | straight p => WellFormed registers p
-  | clearRegister slot | literal slot _ => slot < registers
+  | clearRegister slot | decrement slot | literal slot _ => slot < registers
   | sequence first second => ProgramWellFormed registers first /\ ProgramWellFormed registers second
   | loop slot body => slot < registers /\ ProgramWellFormed registers body /\ ProgramReadOnly slot body
   end.
@@ -1164,6 +1225,7 @@ Fixpoint programRun (p : Program) (st : State) : State :=
   match p with
   | straight p => runProg p st
   | clearRegister slot => putRegister slot 0 st
+  | decrement slot => putRegister slot (registerAt slot st - 1) st
   | literal slot pos => mkState (regs (putRegister slot 0 st)) (out st ++ encodeLit (mkLit (registerAt slot st) pos))
   | sequence first second => programRun second (programRun first st)
   | loop slot body => loopRun slot (programRun body) (registerAt slot st) st
@@ -1172,6 +1234,7 @@ Fixpoint programCost (x : Word) (p : Program) (st : State) : nat :=
   match p with
   | straight p => cost x p st
   | clearRegister slot => clearTime (repeatPrefix x slot st) (registerAt slot st) (repeatSuffix slot st)
+  | decrement slot => decrementTime (repeatPrefix x slot st) (registerAt slot st) (repeatSuffix slot st)
   | literal slot _ => literalTime (repeatPrefix x slot st) (registerAt slot st) (repeatSuffix slot st)
   | sequence first second => programCost x first st + programCost x second (programRun first st)
   | loop slot body => loopCost x slot (programRun body) (programCost x body) (registerAt slot st) st
@@ -1180,6 +1243,7 @@ Fixpoint compileProgram (k : nat) (p : Program) : Machine :=
   match p with
   | straight p => compile k p
   | clearRegister slot => clearThen slot k empty
+  | decrement slot => decrementMachine (slot+1)
   | literal slot pos => emitLiteral k slot pos
   | sequence first second => appendMachine (compileProgram k first) (compileProgram k second)
   | loop slot body => repeatMachine (slot+1) (compileProgram k body)
@@ -1209,6 +1273,7 @@ Proof.
   intros p. induction p; intros st; cbn [programRun]; auto.
   - apply runProg_regs_length.
   - apply putRegister_length.
+  - apply putRegister_length.
   - cbn [regs]. apply putRegister_length.
   - rewrite IHp2, IHp1. reflexivity.
   - apply loopRun_regs_length. exact IHp.
@@ -1218,6 +1283,7 @@ Theorem programRun_readOnly : forall slot p st, ProgramReadOnly slot p ->
 Proof.
   intros slot p. induction p; intros st h; cbn [ProgramReadOnly programRun] in *.
   - apply runProg_readOnly; exact h.
+  - apply registerAt_putRegister_other; exact h.
   - apply registerAt_putRegister_other; exact h.
   - unfold registerAt at 1. cbn [regs]. change (registerAt slot (putRegister slot0 0 st) = registerAt slot st).
     apply registerAt_putRegister_other; exact h.
@@ -1255,6 +1321,24 @@ Proof.
   rewrite registerAt_split, putRegister_split, repeatPrefix_split, repeatSuffix_split.
   cbn [regs RegisterMachine.out] in hk |- *. rewrite hk in h. exact h.
 Qed.
+Theorem decrement_state_reaches : forall x k slot st,
+  length (regs st) = k -> slot < k ->
+  exists c, Reaches (compileProgram k (decrement slot)) (encode 0 x st)
+    (programCost x (decrement slot) st) c /\
+    Similar (encode (length (program (compileProgram k (decrement slot)))) x
+      (programRun (decrement slot) st)) c.
+Proof.
+  intros x k slot [values out] hk hslot.
+  destruct (register_decomposition values slot) as [pre [value [post [hp hv]]]]; [cbn [regs] in hk; lia|].
+  subst values slot.
+  pose proof (decrement_reaches (x::regWords pre) (regWords post ++ [out]) value) as h.
+  cbn [compileProgram programRun programCost].
+  rewrite registerAt_split, putRegister_split, repeatPrefix_split, repeatSuffix_split.
+  unfold encode, blocks, regWords in *. cbn [regs RegisterMachine.out map] in *.
+  rewrite !map_app in *. cbn [map] in *.
+  cbn [length] in h. rewrite ?length_map in h.
+  repeat rewrite <- app_assoc. replace (length pre+1) with (S (length pre)) by lia. exact h.
+Qed.
 Theorem compileProgram_reaches : forall x k p st,
   ProgramWellFormed k p -> length (regs st) = k ->
   exists c, Reaches (compileProgram k p) (encode 0 x st) (programCost x p st) c /\
@@ -1264,6 +1348,7 @@ Proof.
   - eexists. split; [apply compile_reaches; assumption|].
     unfold Similar. repeat split. apply blankPad_refl.
   - apply clear_state_reaches; assumption.
+  - apply decrement_state_reaches; assumption.
   - apply literal_state_reaches; assumption.
   - destruct (IHp1 st (proj1 hp) hk) as [c [hc hs]].
     assert (hk' : length (regs (programRun p1 st)) = k) by (rewrite programRun_regs_length; exact hk).
@@ -1541,5 +1626,122 @@ Proof.
      loopCost x scratch (runProg restore) (cost x restore) m middle) <= 4000*(size+1)^3).
   clear - hfirstBound hsecondBound hclear. cbn [Nat.pow] in *. nia.
 Qed.
+
+Definition subCounter (a b dest : nat) := Nat.max a (Nat.max b dest) + 1.
+Definition subScratch (a b dest : nat) := subCounter a b dest + 1.
+Definition subProgram (a b dest : nat) : Program :=
+  let counter := subCounter a b dest in
+  let scratch := subScratch a b dest in
+  sequence (clearRegister counter)
+    (sequence (addToProgram b counter scratch)
+      (sequence (clearRegister dest)
+        (sequence (addToProgram a dest scratch) (loop counter (decrement dest))))).
+Theorem subCounter_wider : forall a b dest,
+  a < subCounter a b dest /\ b < subCounter a b dest /\ dest < subCounter a b dest.
+Proof.
+  intros. unfold subCounter. pose proof (Nat.le_max_l a (Nat.max b dest)).
+  pose proof (Nat.le_max_r a (Nat.max b dest)).
+  pose proof (Nat.le_max_l b dest). pose proof (Nat.le_max_r b dest). lia.
+Qed.
+Theorem subProgram_wellFormed : forall k a b dest,
+  subScratch a b dest < k -> a <> dest -> ProgramWellFormed k (subProgram a b dest).
+Proof.
+  intros k a b dest hk had. pose proof (subCounter_wider a b dest) as [ha [hb hd]].
+  unfold subScratch in hk. unfold subProgram.
+  cbn [addToProgram ProgramWellFormed ProgramReadOnly WellFormed ReadOnly].
+  repeat split; unfold subScratch; lia.
+Qed.
+Theorem loopRun_decrements : forall counter target, target <> counter -> forall n st,
+  target < length (regs st) ->
+  registerAt target (loopRun counter (programRun (decrement target)) n st) = registerAt target st - n.
+Proof.
+  intros counter target hneq n. induction n; intros st ht; [cbn [loopRun]; lia|].
+  cbn [loopRun]. rewrite IHn by (rewrite programRun_regs_length, putRegister_length; exact ht).
+  cbn [programRun]. rewrite registerAt_putRegister by (rewrite putRegister_length; exact ht).
+  rewrite registerAt_putRegister_other by exact hneq. lia.
+Qed.
+Theorem subProgram_registers : forall a b dest st,
+  subScratch a b dest < length (regs st) -> a <> dest -> forall slot,
+  registerAt slot (programRun (subProgram a b dest) st) =
+    if (slot =? subCounter a b dest) || (slot =? subScratch a b dest) then 0 else
+    if slot =? dest then registerAt a st - registerAt b st else registerAt slot st.
+Proof.
+  intros a b dest st hk had slot.
+  set (counter := subCounter a b dest). set (scratch := subScratch a b dest).
+  destruct (subCounter_wider a b dest) as [hac [hbc hdc]].
+  change (a < counter) in hac. change (b < counter) in hbc. change (dest < counter) in hdc.
+  assert (hcs : counter < scratch) by (unfold scratch, subScratch; unfold counter; lia).
+  change (scratch < length (regs st)) in hk.
+  set (initial := putRegister counter 0 st).
+  set (captured := programRun (addToProgram b counter scratch) initial).
+  set (copied := programRun (addToProgram a dest scratch) (putRegister dest 0 captured)).
+  assert (hil : length (regs initial) = length (regs st)) by (apply putRegister_length).
+  assert (hcl : length (regs captured) = length (regs st)) by
+    (unfold captured; rewrite programRun_regs_length; exact hil).
+  assert (hdl : length (regs copied) = length (regs st)) by
+    (unfold copied; rewrite programRun_regs_length, putRegister_length; exact hcl).
+  assert (hcap : forall i, registerAt i captured =
+    if i =? scratch then 0 else if i =? counter then registerAt b st else registerAt i st).
+  { intros i. unfold captured. rewrite addToProgram_registers by lia.
+    assert (hb : registerAt b initial = registerAt b st) by
+      (unfold initial; apply registerAt_putRegister_other; lia).
+    assert (hc0 : registerAt counter initial = 0) by
+      (unfold initial; apply registerAt_putRegister; lia).
+    rewrite hb, hc0. cbn [Nat.add]. destruct (i =? scratch); [reflexivity|].
+    destruct (i =? counter) eqn:hic; [reflexivity|]. apply Nat.eqb_neq in hic.
+    unfold initial. apply registerAt_putRegister_other; exact hic. }
+  assert (hcopy : forall i, registerAt i copied =
+    if i =? scratch then 0 else if i =? dest then registerAt a st else
+    if i =? counter then registerAt b st else registerAt i st).
+  { intros i. unfold copied. rewrite addToProgram_registers by (rewrite ?putRegister_length, ?hcl; lia).
+    assert (ha : registerAt a (putRegister dest 0 captured) = registerAt a st).
+    { rewrite registerAt_putRegister_other by exact had. rewrite hcap.
+      rewrite (proj2 (Nat.eqb_neq a scratch) ltac:(lia)), (proj2 (Nat.eqb_neq a counter) ltac:(lia)). reflexivity. }
+    assert (hd : registerAt dest (putRegister dest 0 captured) = 0) by
+      (apply registerAt_putRegister; lia).
+    rewrite ha, hd. cbn [Nat.add]. destruct (i =? scratch) eqn:his; [reflexivity|].
+    destruct (i =? dest) eqn:hid; [reflexivity|]. apply Nat.eqb_neq in hid.
+    rewrite registerAt_putRegister_other by exact hid. rewrite hcap, his. reflexivity. }
+  assert (hcc : registerAt counter copied = registerAt b st).
+  { rewrite hcopy, (proj2 (Nat.eqb_neq counter scratch) ltac:(lia)),
+      (proj2 (Nat.eqb_neq counter dest) ltac:(lia)), Nat.eqb_refl. reflexivity. }
+  assert (hdd : registerAt dest copied = registerAt a st).
+  { rewrite hcopy, (proj2 (Nat.eqb_neq dest scratch) ltac:(lia)), Nat.eqb_refl. reflexivity. }
+  change (registerAt slot (loopRun counter (programRun (decrement dest)) (registerAt counter copied) copied) =
+    if (slot =? counter) || (slot =? scratch) then 0 else
+    if slot =? dest then registerAt a st - registerAt b st else registerAt slot st).
+  destruct (slot =? counter) eqn:hsc.
+  - apply Nat.eqb_eq in hsc. subst slot. cbn [orb].
+    apply loopRun_counter_zero; [apply programRun_regs_length| |lia|reflexivity].
+    intros s. apply programRun_readOnly. cbn [ProgramReadOnly]. lia.
+  - destruct (slot =? scratch) eqn:hss.
+    + apply Nat.eqb_eq in hss. subst slot. cbn [orb].
+      rewrite loopRun_readOnly by (try lia; intros s; apply programRun_readOnly; cbn; lia).
+      rewrite hcopy, Nat.eqb_refl. reflexivity.
+    + cbn [orb]. apply Nat.eqb_neq in hsc. destruct (slot =? dest) eqn:hsd.
+      * apply Nat.eqb_eq in hsd. subst slot.
+        rewrite loopRun_decrements by lia. rewrite hcc, hdd. reflexivity.
+      * apply Nat.eqb_neq in hsd.
+        rewrite loopRun_readOnly by (try assumption; intros s; apply programRun_readOnly; exact hsd).
+        rewrite hcopy, hss, (proj2 (Nat.eqb_neq slot dest) hsd), (proj2 (Nat.eqb_neq slot counter) hsc).
+        reflexivity.
+Qed.
+Theorem subProgram_out : forall a b dest st,
+  out (programRun (subProgram a b dest) st) = out st.
+Proof.
+  intros. unfold subProgram. cbn [programRun].
+  rewrite loopRun_out by (intros; reflexivity).
+  rewrite addToProgram_out.
+  change (out (programRun (addToProgram b (subCounter a b dest) (subScratch a b dest))
+    (putRegister (subCounter a b dest) 0 st)) = out st).
+  rewrite addToProgram_out. reflexivity.
+Qed.
+Theorem subProgram_reaches : forall x k a b dest st,
+  length (regs st) = k -> subScratch a b dest < k -> a <> dest ->
+  exists c, Reaches (compileProgram k (subProgram a b dest)) (encode 0 x st)
+    (programCost x (subProgram a b dest) st) c /\
+    Similar (encode (length (program (compileProgram k (subProgram a b dest)))) x
+      (programRun (subProgram a b dest) st)) c.
+Proof. intros. apply compileProgram_reaches; [apply subProgram_wellFormed; assumption|assumption]. Qed.
 
 End RegisterMachine.

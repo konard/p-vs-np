@@ -543,12 +543,10 @@ python3 experiments/issue624/generate_schema.py --check
 python3 -m unittest experiments.issue624.test_schema -v
 python3 experiments/issue624/generate_register_machine.py --check
 python3 -m unittest experiments.issue624.test_register_machine -v
-python3 experiments/issue624/loop_assumptions.py
 rocq makefile -f _CoqProject -o Makefile.coq
 make -f Makefile.coq
 python3 scripts/check_proof_status.py
-python3 scripts/check_proof_status.py --lean
-python3 scripts/check_proof_status.py --rocq
+python3 scripts/check_proof_status.py --lean --rocq
 bash experiments/issue624/check.sh all
 ```
 
@@ -574,5 +572,4 @@ Importing [Gäher–Kunze's construction](https://drops.dagstuhl.de/entities/doc
 requires a checked model simulation; this PR introduces no such import.
 
 Refs #624, #568, #567, #532. The work plan is in
-[PLAN.md](../../../experiments/issue624/PLAN.md); the current continuation is
-tracked in [COMPLETION_PLAN.md](../../../experiments/issue624/COMPLETION_PLAN.md).
+[COMPLETION_PLAN.md](../../../experiments/issue624/COMPLETION_PLAN.md).

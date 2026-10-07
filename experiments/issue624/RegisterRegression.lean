@@ -228,3 +228,7 @@ example (pre value post : Nat) : literalTime pre value post ≤ literalPolynomia
 example (pre post : List Nat) (n m : Nat) (pos : Bool) :
     emitLiteral (pre ++ n :: post).length pre.length pos =
       emitLiteral (pre ++ m :: post).length pre.length pos := by simp
+
+-- Subtraction saturates at zero and restores sources while clearing scratch.
+example : programRun (subProgram 0 1 2) ⟨[1, 2, 9, 4, 5], [false, true]⟩ =
+  ⟨[1, 2, 0, 0, 0], [false, true]⟩ := rfl

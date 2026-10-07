@@ -143,20 +143,14 @@ rocq repl -quiet -Q . '' < experiments/issue624/run_probe.in
 rocq repl -quiet -Q . '' < experiments/issue624/initial_probe.in
 rocq repl -quiet -Q . '' < experiments/issue624/register_probe.in
 rocq repl -quiet -Q proofs proofs < experiments/issue624/delete_probe.in
-python3 experiments/issue624/run_assumptions.py
+python3 scripts/check_proof_status.py --lean --rocq
 python3 experiments/issue624/check_tableau_contracts.py --lean
 python3 experiments/issue624/check_tableau_contracts.py --rocq
 python3 experiments/issue624/existing_bridge_probe.py --lean
 python3 experiments/issue624/existing_bridge_probe.py --rocq
-python3 experiments/issue624/counter_assumptions.py
-python3 experiments/issue624/register_assumptions.py
-python3 experiments/issue624/dynamic_assumptions.py
-python3 experiments/issue624/loop_assumptions.py
-python3 experiments/issue624/program_assumptions.py
 ```
 
-[PLAN.md](PLAN.md) tracks the completed prerequisites and the remaining
-Cook–Levin construction. #624 must remain open.
+[COMPLETION_PLAN.md](COMPLETION_PLAN.md) is the paired Cook–Levin delivery checklist.
 
 `check.sh` reproduces the local Python, Lean, Rocq, and pinned-container Agda
 workflow checks. Select an individual suite with `python`, `lean`, `rocq`, or
@@ -179,8 +173,6 @@ admissions or global axioms.
 the required CI result. [The checker documentation](../../scripts/README.md#check_issue624_completionpy)
 describes the paired contract interface and required merge check.
 
-[TABLEAU_DESIGN.md](TABLEAU_DESIGN.md) records the implemented full-tableau
-layout and the input-independent formula emitter's remaining machine operations.
 `check_tableau_contracts.py` checks the seven implemented tableau results
 against the completion gate's original, unapplied types in each kernel. It
 does not replace the full completion check or certify the missing reduction.

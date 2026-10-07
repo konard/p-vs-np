@@ -368,9 +368,8 @@ rocq SuccessorCNF.successorCNF_encoded_size: (none)
 
 ## Accepting-trace compiler and shared polynomial arithmetic
 
-Captured on 2026-10-06 with `python3 experiments/issue624/run_assumptions.py`.
-The script checks paired public names and reuses the kernel-query code from
-`scripts/check_proof_status.py`. All entries below are registered with exactly
+Captured on 2026-10-06; reproduce the registered reports with
+`python3 scripts/check_proof_status.py --lean --rocq`. All entries below are registered with exactly
 the reported assumptions. These trace results do not supply initial
 input/certificate wiring or the charged reduction machine.
 
@@ -431,7 +430,7 @@ rocq Complexity.polyMul_eval: (none)
 
 ## Initial row and full tableau
 
-Captured on 2026-10-06 with the extended `run_assumptions.py`. The 30 new
+Captured on 2026-10-06; reproduce with `python3 scripts/check_proof_status.py --lean --rocq`. The 30 new
 paired public conclusions are registered with exactly their kernel-reported
 assumptions. The seven full-tableau endpoint types also match the unchanged
 completion contracts; the reduction and hardness endpoints are still absent.
@@ -513,7 +512,7 @@ rocq Idea36.exactRounding_gives_pEqualsNP: (none)
 
 ## Charged counter and shared tape scans (2026-10-06)
 
-Run `python3 experiments/issue624/counter_assumptions.py` after building
+Run `python3 scripts/check_proof_status.py --lean --rocq` after building
 the paired modules to reproduce these 11 reports per prover. They cover
 the fixed counter table, actual-input setup, composed 16-state block,
 exact charged times, polynomial bounds, and shared scan/composition lemmas.
@@ -584,7 +583,7 @@ the completion preflight still reports the same 42 diagnostics.
 
 ## Charged register program reports (2026-10-07)
 
-`python3 experiments/issue624/register_assumptions.py` queries all 33 paired
+`python3 scripts/check_proof_status.py --lean --rocq` queries all 33 paired
 conclusions. `RegisterRegression` independently prints the eight main contracts.
 The generated finite tables use the shared charged machine semantics and
 `appendMachine`; no additional assumptions or counter semantics are introduced.
@@ -676,7 +675,7 @@ of its existing three logical axioms; all new Rocq conclusions are closed
 under the global context. No reduction or hardness endpoint is registered.
 
 Reproduce these reports with
-`python3 experiments/issue624/dynamic_assumptions.py`.
+`python3 scripts/check_proof_status.py --lean --rocq`.
 
 ```text
 lean Issue624.RegisterMachine.pop_states: propext
@@ -734,7 +733,7 @@ compiler. The dynamic tick emitter and its consuming `encodeLit` emitter
 preserve surrounding blocks and have explicit quadratic charged bounds.
 
 Reproduce these reports with
-`python3 experiments/issue624/loop_assumptions.py`. All new Rocq conclusions
+`python3 scripts/check_proof_status.py --lean --rocq`. All new Rocq conclusions
 are closed under the global context. No reduction or hardness endpoint is
 registered; copying, nested schema loops, input reads and final assembly are
 still outstanding.
@@ -807,10 +806,10 @@ rocq RegisterMachine.emitLiteral_reaches: (none)
 ## Nested compilation and dynamic copy continuation (2026-10-07)
 
 Reproduce these 24 paired reports with
-`python3 experiments/issue624/program_assumptions.py` after building both modules.
+`python3 scripts/check_proof_status.py --lean --rocq` after building both modules.
 Lean uses only the existing logical/kernel axioms shown below; clearing retains
 its existing `Classical.choice` dependency. Every new Rocq conclusion is closed
-under the global context. The manifest now has 397 entries per prover.
+under the global context.
 The original straight-line loop theorem retains its previous assumptions.
 The complete reduction, hardness, and unconditional bridge endpoints remain
 unimplemented and unregistered.

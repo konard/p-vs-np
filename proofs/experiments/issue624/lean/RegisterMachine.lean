@@ -1178,11 +1178,65 @@ theorem emitLiteral_reaches (x : Word) (pre post : List Nat) (n : Nat) (out : Wo
   · simpa only [emitLiteral, encode, home, lower, encodeLit, ticks_eq_replicate,
       List.append_assoc] using he
 
+/-- Both pop exits join at the same halt state; an empty register remains empty. -/
+def decrementTarget (slot q : Nat) : Nat :=
+  if q < (pop slot).program.length then q else (pop slot).program.length
+
+def decrementMachine (slot : Nat) : Machine := retargetMachine (pop slot) (decrementTarget slot)
+def decrementTime (pre value post : Nat) : Nat :=
+  if value = 0 then 2*pre+3 else 2*pre+4*(value+post)+5
+
+@[simp] theorem decrement_states (slot : Nat) :
+    (decrementMachine slot).program.length = (pop slot).program.length := by
+  simp [decrementMachine, retargetMachine]
+
+theorem decrementTarget_inside (slot q : Nat) (hq : q < (pop slot).program.length) :
+    decrementTarget slot q = q := by unfold decrementTarget; rw [ite_eq_left hq]
+
+theorem decrementTime_le_clearTime (pre value post : Nat) :
+    decrementTime pre value post ≤ clearTime pre value post := by
+  cases value with
+  | zero => simp [decrementTime, clearTime]
+  | succ n => simp only [decrementTime, Nat.succ_ne_zero, ite_false, clearTime_succ]; omega
+
+theorem decrementTime_polynomial (pre value post : Nat) :
+    decrementTime pre value post ≤ clearPolynomial.eval (pre+value+post+1) :=
+  Nat.le_trans (decrementTime_le_clearTime pre value post) (clearTime_polynomial pre value post)
+
+theorem decrement_reaches (pre post : List Word) (n : Nat) :
+    ∃ c, Reaches (decrementMachine pre.length)
+      (home 0 (pre ++ List.replicate n true :: post))
+      (decrementTime (tape pre).length n (tape post).length) c ∧
+      Similar (home (decrementMachine pre.length).program.length
+        (pre ++ List.replicate (n-1) true :: post)) c := by
+  cases n with
+  | zero =>
+    have h := retarget_reaches (pop_empty pre post) (decrementTarget pre.length)
+      (decrementTarget_inside pre.length)
+    refine ⟨home (decrementMachine pre.length).program.length (pre ++ [] :: post), ?_,
+      ⟨rfl, rfl, rfl, BlankPad.refl _⟩⟩
+    change Reaches (decrementMachine pre.length)
+      (home (decrementTarget pre.length 0) (pre ++ [] :: post)) _
+      (home (decrementTarget pre.length ((pop pre.length).program.length+1)) (pre ++ [] :: post)) at h
+    simpa [decrementTarget, decrementTime] using h
+  | succ n =>
+    have h := retarget_reaches (pop_positive pre post n) (decrementTarget pre.length)
+      (decrementTarget_inside pre.length)
+    refine ⟨⟨(decrementMachine pre.length).program.length, [], .blank,
+      tape (pre ++ List.replicate n true :: post) ++ [.blank, .blank]⟩, ?_, ?_⟩
+    · change Reaches (decrementMachine pre.length)
+        (home (decrementTarget pre.length 0) (pre ++ List.replicate (n+1) true :: post)) _
+        ⟨decrementTarget pre.length (pop pre.length).program.length, [], .blank,
+          tape (pre ++ List.replicate n true :: post) ++ [.blank, .blank]⟩ at h
+      simpa [decrementTarget, decrementTime] using h
+    · exact ⟨rfl, rfl, rfl, ⟨_, 0, 2, by simp [blanks, home], rfl⟩⟩
+
 /-- A finite register program with destructive counters and nested loops.
 All instructions compile through the shared generated register tables. -/
 inductive Program where
   | straight (p : Prog)
   | clearRegister (slot : Nat)
+  | decrement (slot : Nat)
   | literal (slot : Nat) (pos : Bool)
   | sequence (first second : Program)
   | loop (slot : Nat) (body : Program)
@@ -1191,6 +1245,7 @@ inductive Program where
 def ProgramReadOnly (slot : Nat) : Program → Prop
   | .straight p => ReadOnly slot p
   | .clearRegister dest => slot ≠ dest
+  | .decrement dest => slot ≠ dest
   | .literal dest _ => slot ≠ dest
   | .sequence first second => ProgramReadOnly slot first ∧ ProgramReadOnly slot second
   | .loop counter body => slot ≠ counter ∧ ProgramReadOnly slot body
@@ -1198,6 +1253,7 @@ def ProgramReadOnly (slot : Nat) : Program → Prop
 def ProgramWellFormed (registers : Nat) : Program → Prop
   | .straight p => WellFormed registers p
   | .clearRegister slot => slot < registers
+  | .decrement slot => slot < registers
   | .literal slot _ => slot < registers
   | .sequence first second => ProgramWellFormed registers first ∧ ProgramWellFormed registers second
   | .loop slot body => slot < registers ∧ ProgramWellFormed registers body ∧ ProgramReadOnly slot body
@@ -1212,6 +1268,7 @@ instance (slot : Nat) (p : Prog) : Decidable (ReadOnly slot p) := readOnlyDecida
 def programReadOnlyDecidable (slot : Nat) : (p : Program) → Decidable (ProgramReadOnly slot p)
   | .straight p => readOnlyDecidable slot p
   | .clearRegister dest => inferInstanceAs (Decidable (slot ≠ dest))
+  | .decrement dest => inferInstanceAs (Decidable (slot ≠ dest))
   | .literal dest _ => inferInstanceAs (Decidable (slot ≠ dest))
   | .sequence first second => @instDecidableAnd _ _
       (programReadOnlyDecidable slot first) (programReadOnlyDecidable slot second)
@@ -1222,6 +1279,7 @@ instance (slot : Nat) (p : Program) : Decidable (ProgramReadOnly slot p) := prog
 def programWellFormedDecidable (k : Nat) : (p : Program) → Decidable (ProgramWellFormed k p)
   | .straight p => wellFormedDecidable k p
   | .clearRegister slot => inferInstanceAs (Decidable (slot < k))
+  | .decrement slot => inferInstanceAs (Decidable (slot < k))
   | .literal slot _ => inferInstanceAs (Decidable (slot < k))
   | .sequence first second => @instDecidableAnd _ _
       (programWellFormedDecidable k first) (programWellFormedDecidable k second)
@@ -1232,6 +1290,7 @@ instance (k : Nat) (p : Program) : Decidable (ProgramWellFormed k p) := programW
 def programRun : Program → State → State
   | .straight p, st => runProg p st
   | .clearRegister slot, st => putRegister slot 0 st
+  | .decrement slot, st => putRegister slot (registerAt slot st - 1) st
   | .literal slot pos, st => ⟨(putRegister slot 0 st).regs, st.out ++ encodeLit ⟨registerAt slot st, pos⟩⟩
   | .sequence first second, st => programRun second (programRun first st)
   | .loop slot body, st => loopRun slot (programRun body) (registerAt slot st) st
@@ -1239,6 +1298,7 @@ def programRun : Program → State → State
 def programCost (x : Word) : Program → State → Nat
   | .straight p, st => cost x p st
   | .clearRegister slot, st => clearTime (repeatPrefix x slot st) (registerAt slot st) (repeatSuffix slot st)
+  | .decrement slot, st => decrementTime (repeatPrefix x slot st) (registerAt slot st) (repeatSuffix slot st)
   | .literal slot _, st => literalTime (repeatPrefix x slot st) (registerAt slot st) (repeatSuffix slot st)
   | .sequence first second, st => programCost x first st + programCost x second (programRun first st)
   | .loop slot body, st => loopCost x slot (programRun body) (programCost x body) (registerAt slot st) st
@@ -1246,6 +1306,7 @@ def programCost (x : Word) : Program → State → Nat
 def compileProgram (k : Nat) : Program → Machine
   | .straight p => compile k p
   | .clearRegister slot => clearThen slot k .empty
+  | .decrement slot => decrementMachine (slot+1)
   | .literal slot pos => emitLiteral k slot pos
   | .sequence first second => appendMachine (compileProgram k first) (compileProgram k second)
   | .loop slot body => repeatMachine (slot+1) (compileProgram k body)
@@ -1273,6 +1334,7 @@ theorem programRun_regs_length (p : Program) (st : State) :
   induction p generalizing st with
   | straight p => exact runProg_regs_length p st
   | clearRegister slot => exact putRegister_length slot 0 st
+  | decrement slot => exact putRegister_length slot _ st
   | literal slot pos => exact putRegister_length slot 0 st
   | sequence first second ihf ihs => simp only [programRun, ihs, ihf]
   | loop slot body ih => exact loopRun_regs_length slot (programRun body) ih _ st
@@ -1282,6 +1344,7 @@ theorem programRun_readOnly (slot : Nat) (p : Program) (st : State) (h : Program
   induction p generalizing st with
   | straight p => exact runProg_readOnly slot p st h
   | clearRegister dest => exact registerAt_putRegister_other slot dest 0 st h
+  | decrement dest => exact registerAt_putRegister_other slot dest _ st h
   | literal dest pos => exact registerAt_putRegister_other slot dest 0 st h
   | sequence first second ihf ihs => exact (ihs _ h.2).trans (ihf _ h.1)
   | loop counter body ih => exact loopRun_readOnly slot counter (programRun body) h.1 (fun s => ih s h.2) _ st
@@ -1312,6 +1375,20 @@ theorem literal_state_reaches (x : Word) (k slot : Nat) (pos : Bool) (st : State
   simpa only [compileProgram, programCost, programRun, registerAt_split, putRegister_split,
     repeatPrefix_split, repeatSuffix_split, hk] using h
 
+theorem decrement_state_reaches (x : Word) (k slot : Nat) (st : State)
+    (hk : st.regs.length = k) (hslot : slot < k) :
+    ∃ c, Reaches (compileProgram k (.decrement slot)) (encode 0 x st)
+      (programCost x (.decrement slot) st) c ∧
+      Similar (encode (compileProgram k (.decrement slot)).program.length x
+        (programRun (.decrement slot) st)) c := by
+  rcases st with ⟨values, out⟩
+  obtain ⟨pre, value, post, hp, hv⟩ := register_decomposition values slot
+    (by change values.length = k at hk; omega)
+  subst values; subst slot
+  have h := decrement_reaches (x :: regWords pre) (regWords post ++ [out]) value
+  simpa [compileProgram, programRun, programCost, repeatPrefix_split, repeatSuffix_split,
+    registerAt_split, putRegister_split, encode, blocks, regWords, List.append_assoc] using h
+
 /-- One compiler contract covers sequencing, clearing, exact literal encoding,
 and arbitrarily nested dynamic loops. Tables depend only on the program and
 register count, while all values and loop bounds are read from the tape. -/
@@ -1322,6 +1399,7 @@ theorem compileProgram_reaches (x : Word) (k : Nat) (p : Program) (st : State)
   induction p generalizing st with
   | straight p => exact ⟨_, compile_reaches x k p st hp hk, ⟨rfl, rfl, rfl, BlankPad.refl _⟩⟩
   | clearRegister slot => exact clear_state_reaches x k slot st hk hp
+  | decrement slot => exact decrement_state_reaches x k slot st hk hp
   | literal slot pos => exact literal_state_reaches x k slot pos st hk hp
   | sequence first second ihf ihs =>
     obtain ⟨c, hc, hs⟩ := ihf st hp.1 hk
@@ -1645,5 +1723,140 @@ theorem addToProgram_cost_polynomial (x : Word) (k source dest scratch : Nat) (s
       (Nat.mul_le_mul_right ((size+1)^3) (show 2350 ≤ 4000 by decide))
   simpa only [addToProgram, programCost, programRun, transfer, restore, initial,
     n, middle, m, size, copyPolynomial, Polynomial.eval, Nat.add_assoc] using htotal
+
+/-- Reserve two registers beyond the three operands, independently of their values. -/
+def subCounter (a b dest : Nat) : Nat := max a (max b dest) + 1
+def subScratch (a b dest : Nat) : Nat := subCounter a b dest + 1
+
+def subProgram (a b dest : Nat) : Program :=
+  let counter := subCounter a b dest
+  let scratch := subScratch a b dest
+  .sequence (.clearRegister counter)
+    (.sequence (addToProgram b counter scratch)
+      (.sequence (.clearRegister dest)
+        (.sequence (addToProgram a dest scratch) (.loop counter (.decrement dest)))))
+
+theorem subCounter_wider (a b dest : Nat) :
+    a < subCounter a b dest ∧ b < subCounter a b dest ∧ dest < subCounter a b dest := by
+  simp only [subCounter]; omega
+
+theorem subProgram_wellFormed (k a b dest : Nat) (hk : subScratch a b dest < k)
+    (had : a ≠ dest) : ProgramWellFormed k (subProgram a b dest) := by
+  have h := subCounter_wider a b dest
+  have hscratch : subScratch a b dest = subCounter a b dest + 1 := rfl
+  have h1 := addToProgram_wellFormed k b (subCounter a b dest) (subScratch a b dest)
+    (by omega) (by unfold subScratch at hk; omega) hk (by omega) (by unfold subScratch; omega)
+  have h2 := addToProgram_wellFormed k a dest (subScratch a b dest)
+    (by unfold subScratch at hk; omega) (by unfold subScratch at hk; omega) hk had
+    (by unfold subScratch; omega)
+  change subCounter a b dest < k ∧ ProgramWellFormed k (addToProgram b (subCounter a b dest) (subScratch a b dest)) ∧
+    dest < k ∧ ProgramWellFormed k (addToProgram a dest (subScratch a b dest)) ∧
+    subCounter a b dest < k ∧ dest < k ∧ subCounter a b dest ≠ dest
+  exact ⟨by omega, h1, by omega, h2, by omega, by omega, by omega⟩
+
+theorem loopRun_decrements (counter target : Nat) (hneq : target ≠ counter)
+    (n : Nat) (st : State) (ht : target < st.regs.length) :
+    registerAt target (loopRun counter (programRun (.decrement target)) n st) =
+      registerAt target st - n := by
+  induction n generalizing st with
+  | zero => simp [loopRun]
+  | succ n ih =>
+    rw [loopRun, ih _ (by simpa [programRun, putRegister_length] using ht)]
+    change registerAt target (putRegister target
+      (registerAt target (putRegister counter n st) - 1) (putRegister counter n st)) - n = _
+    rw [registerAt_putRegister _ _ _ (by simpa only [putRegister_length] using ht),
+      registerAt_putRegister_other target counter n st hneq, Nat.sub_sub]
+    omega
+
+theorem subProgram_registers (a b dest : Nat) (st : State)
+    (hk : subScratch a b dest < st.regs.length) (had : a ≠ dest) (slot : Nat) :
+    registerAt slot (programRun (subProgram a b dest) st) =
+      if slot = subCounter a b dest ∨ slot = subScratch a b dest then 0 else
+      if slot = dest then registerAt a st - registerAt b st else registerAt slot st := by
+  let counter := subCounter a b dest
+  let scratch := subScratch a b dest
+  have hwide := subCounter_wider a b dest
+  have hac : a < counter := hwide.1
+  have hbc : b < counter := hwide.2.1
+  have hdc : dest < counter := hwide.2.2
+  have hcs : counter < scratch := by dsimp [counter, scratch, subScratch]; omega
+  have hc : counter < st.regs.length := by change scratch < st.regs.length at hk; omega
+  let initial := putRegister counter 0 st
+  let captured := programRun (addToProgram b counter scratch) initial
+  let copied := programRun (addToProgram a dest scratch) (putRegister dest 0 captured)
+  have hil : initial.regs.length = st.regs.length := putRegister_length _ _ _
+  have hcl : captured.regs.length = st.regs.length := (programRun_regs_length _ _).trans hil
+  have hdl : copied.regs.length = st.regs.length :=
+    (programRun_regs_length _ _).trans ((putRegister_length _ _ _).trans hcl)
+  have hcap (i : Nat) : registerAt i captured =
+      if i = scratch then 0 else if i = counter then registerAt b st else registerAt i st := by
+    have h := addToProgram_registers b counter scratch initial
+      (by omega) (by omega) (by change scratch < st.regs.length at hk; omega)
+      (by omega) (by omega) (by omega) i
+    have hb : registerAt b initial = registerAt b st := registerAt_putRegister_other _ _ _ _ (by omega)
+    have hc0 : registerAt counter initial = 0 := registerAt_putRegister _ _ _ hc
+    simp only [hb, hc0, Nat.zero_add] at h
+    rw [h]
+    split <;> try rfl
+    split <;> try rfl
+    exact registerAt_putRegister_other _ _ _ _ (by assumption)
+  have hcopy (i : Nat) : registerAt i copied =
+      if i = scratch then 0 else if i = dest then registerAt a st else
+      if i = counter then registerAt b st else registerAt i st := by
+    have h := addToProgram_registers a dest scratch (putRegister dest 0 captured)
+      (by simp only [putRegister_length, hcl]; omega)
+      (by simp only [putRegister_length, hcl]; omega)
+      (by simp only [putRegister_length, hcl]; exact hk) had (by omega) (by omega) i
+    have ha : registerAt a (putRegister dest 0 captured) = registerAt a st := by
+      rw [registerAt_putRegister_other _ _ _ _ had, hcap]
+      simp only [ite_eq_right (show a ≠ scratch by omega), ite_eq_right (show a ≠ counter by omega)]
+    have hd : registerAt dest (putRegister dest 0 captured) = 0 :=
+      registerAt_putRegister _ _ _ (by omega)
+    change registerAt i copied = _ at h
+    rw [h, ha, hd, Nat.zero_add]
+    split <;> try rfl
+    split <;> try rfl
+    rw [registerAt_putRegister_other _ _ _ _ (by assumption), hcap]
+    simp only [ite_eq_right (show i ≠ scratch by assumption)]
+  have hcc : registerAt counter copied = registerAt b st := by simp [hcopy, show counter ≠ scratch by omega, show counter ≠ dest by omega]
+  have hdd : registerAt dest copied = registerAt a st := by simp [hcopy, show dest ≠ scratch by omega]
+  change registerAt slot (loopRun counter (programRun (.decrement dest)) (registerAt counter copied) copied) = _
+  by_cases hsc : slot = counter
+  · subst slot
+    simp only [counter, true_or, ite_true]
+    exact loopRun_counter_zero counter (programRun (.decrement dest))
+      (programRun_regs_length _) (fun s => programRun_readOnly counter _ s (by change counter ≠ dest; omega))
+      _ copied (by omega) rfl
+  · by_cases hss : slot = scratch
+    · subst slot
+      rw [loopRun_readOnly scratch counter _ (by omega)
+        (fun s => programRun_readOnly scratch _ s (by change scratch ≠ dest; omega))]
+      simp [hcopy, scratch]
+    · have hneq : ¬(slot = subCounter a b dest ∨ slot = subScratch a b dest) := by
+        change ¬(slot = counter ∨ slot = scratch); exact fun h => h.elim hsc hss
+      rw [ite_eq_right hneq]
+      by_cases hsd : slot = dest
+      · subst slot
+        rw [ite_eq_left rfl, loopRun_decrements counter dest (by omega) _ copied (by omega), hcc, hdd]
+      · rw [ite_eq_right hsd, loopRun_readOnly slot counter _ hsc
+          (fun s => programRun_readOnly slot (.decrement dest) s hsd), hcopy]
+        simp only [ite_eq_right hss, ite_eq_right hsd, ite_eq_right hsc]
+
+theorem subProgram_out (a b dest : Nat) (st : State) :
+    (programRun (subProgram a b dest) st).out = st.out := by
+  change (loopRun _ (programRun (.decrement dest)) _ _).out = _
+  rw [loopRun_out _ (programRun (.decrement dest)) (fun s => rfl), addToProgram_out]
+  change (programRun (addToProgram b (subCounter a b dest) (subScratch a b dest))
+    (putRegister (subCounter a b dest) 0 st)).out = st.out
+  rw [addToProgram_out]; rfl
+
+theorem subProgram_reaches (x : Word) (k a b dest : Nat) (st : State)
+    (hk : st.regs.length = k) (hslots : subScratch a b dest < k)
+    (had : a ≠ dest) :
+    ∃ c, Reaches (compileProgram k (subProgram a b dest)) (encode 0 x st)
+      (programCost x (subProgram a b dest) st) c ∧
+      Similar (encode (compileProgram k (subProgram a b dest)).program.length x
+        (programRun (subProgram a b dest) st)) c :=
+  compileProgram_reaches x k _ st (subProgram_wellFormed k a b dest hslots had) hk
 
 end Issue624.RegisterMachine

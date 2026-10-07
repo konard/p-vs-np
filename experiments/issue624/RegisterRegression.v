@@ -269,3 +269,8 @@ Example literal_table_independent : forall (pre post : list nat) (n m : nat) (po
   emitLiteral (length (pre ++ n::post)) (length pre) pos =
     emitLiteral (length (pre ++ m::post)) (length pre) pos.
 Proof. intros. rewrite !length_app. cbn [length]. reflexivity. Qed.
+
+Example subtraction_truncates :
+  programRun (subProgram 0 1 2) (mkState [1; 2; 9; 4; 5] [false; true]) =
+  mkState [1; 2; 0; 0; 0] [false; true].
+Proof. reflexivity. Qed.
