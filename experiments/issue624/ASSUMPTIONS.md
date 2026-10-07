@@ -803,3 +803,65 @@ rocq RegisterMachine.ticks_eq_replicate: (none)
 rocq RegisterMachine.literalTime_polynomial: (none)
 rocq RegisterMachine.emitLiteral_reaches: (none)
 ```
+
+## Nested compilation and dynamic copy continuation (2026-10-07)
+
+Reproduce these 24 paired reports with
+`python3 experiments/issue624/program_assumptions.py` after building both modules.
+Lean uses only the existing logical/kernel axioms shown below; clearing retains
+its existing `Classical.choice` dependency. Every new Rocq conclusion is closed
+under the global context. The manifest now has 397 entries per prover.
+The original straight-line loop theorem retains its previous assumptions.
+The complete reduction, hardness, and unconditional bridge endpoints remain
+unimplemented and unregistered.
+
+```text
+lean Issue624.RegisterMachine.loop_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.loopRun_repeat: propext
+lean Issue624.RegisterMachine.loopCost_repeat: propext
+lean Issue624.RegisterMachine.registerAt_putRegister_other: propext
+lean Issue624.RegisterMachine.loopRun_regs_length: propext
+lean Issue624.RegisterMachine.loopRun_readOnly: propext
+lean Issue624.RegisterMachine.programRun_regs_length: propext
+lean Issue624.RegisterMachine.programRun_readOnly: propext
+lean Issue624.RegisterMachine.clear_state_reaches: Classical.choice, Quot.sound, propext
+lean Issue624.RegisterMachine.literal_state_reaches: Quot.sound, propext
+lean Issue624.RegisterMachine.compileProgram_reaches: Classical.choice, Quot.sound, propext
+lean Issue624.RegisterMachine.addToProgram_wellFormed: propext
+lean Issue624.RegisterMachine.incrementRegs_registerAt: Quot.sound, propext
+lean Issue624.RegisterMachine.loopRun_counter_zero: propext
+lean Issue624.RegisterMachine.loopRun_adds: Quot.sound, propext
+lean Issue624.RegisterMachine.loopRun_out: propext
+lean Issue624.RegisterMachine.addToProgram_registers: Quot.sound, propext
+lean Issue624.RegisterMachine.addToProgram_out: propext
+lean Issue624.RegisterMachine.addToProgram_reaches: Classical.choice, Quot.sound, propext
+lean Issue624.RegisterMachine.register_span: Quot.sound, propext
+lean Issue624.RegisterMachine.putRegister_size_le: Quot.sound, propext
+lean Issue624.RegisterMachine.loopCost_straight_bound: Quot.sound, propext
+lean Issue624.RegisterMachine.loopRun_straight_size_le: Quot.sound, propext
+lean Issue624.RegisterMachine.addToProgram_cost_polynomial: Quot.sound, propext
+rocq RegisterMachine.loop_reaches: (none)
+rocq RegisterMachine.loopRun_repeat: (none)
+rocq RegisterMachine.loopCost_repeat: (none)
+rocq RegisterMachine.registerAt_putRegister_other: (none)
+rocq RegisterMachine.loopRun_regs_length: (none)
+rocq RegisterMachine.loopRun_readOnly: (none)
+rocq RegisterMachine.programRun_regs_length: (none)
+rocq RegisterMachine.programRun_readOnly: (none)
+rocq RegisterMachine.clear_state_reaches: (none)
+rocq RegisterMachine.literal_state_reaches: (none)
+rocq RegisterMachine.compileProgram_reaches: (none)
+rocq RegisterMachine.addToProgram_wellFormed: (none)
+rocq RegisterMachine.incrementRegs_registerAt: (none)
+rocq RegisterMachine.loopRun_counter_zero: (none)
+rocq RegisterMachine.loopRun_adds: (none)
+rocq RegisterMachine.loopRun_out: (none)
+rocq RegisterMachine.addToProgram_registers: (none)
+rocq RegisterMachine.addToProgram_out: (none)
+rocq RegisterMachine.addToProgram_reaches: (none)
+rocq RegisterMachine.register_span: (none)
+rocq RegisterMachine.putRegister_size_le: (none)
+rocq RegisterMachine.loopCost_straight_bound: (none)
+rocq RegisterMachine.loopRun_straight_size_le: (none)
+rocq RegisterMachine.addToProgram_cost_polynomial: (none)
+```

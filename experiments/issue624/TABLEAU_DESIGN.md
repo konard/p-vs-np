@@ -103,20 +103,30 @@ The reduction's table may depend on `np`, but must be fixed for all inputs
 only certifies a fixed output; its charged writing and return blocks are
 primitives for a future emitter.
 
-Still needed are bounded counters, input retention/copying, row/cell/value
-loops, arithmetic for variable identifiers, unary literal-token emission,
-and clause delimiters over the shared four-symbol tape alphabet. Each loop
-requires a finite instruction table, tape invariant, charged `Reaches`
-bound, and a final `Computes` proof. Neither classical choice of a formula
-nor polynomial output length supplies these operations for free.
+The emitter needs bounded counters, input reads, row/cell/value loops, and
+arithmetic for variable identifiers. Each operation requires a finite
+instruction table, tape invariant, charged `Reaches` bound, and a final
+`Computes` proof. Neither classical choice of a formula nor polynomial output
+length supplies these operations for free.
 
 `UnaryCounter.countedInput` now supplies the first input-dependent machine
 block: a fixed 16-state table retains `x` and constructs a unary `|x|` counter
 from `initial x`, within `12 * (|x| + 1)^2` charged steps. The nine-state inner
 loop also accepts arbitrary existing unary counters and retained left tape.
 Shared right/left scan proofs and shifted `Reaches` composition support later
-blocks. Arithmetic for formula indices, copy/emission loops, and final tape
-restoration still need finite-table implementations and charged contracts.
+blocks.
+
+`RegisterMachine.Program` now compiles fixed increments and output bits,
+clearing, dynamic literal emission, sequences, and nested unary loops through
+the shared generated tables. Its generic contract charges every instruction
+and supports trailing blank padding. Loop bodies must preserve their counter.
+`addToProgram` consumes this compiler for a source-preserving unary transfer;
+its register contract and cubic runtime bound cover arbitrary starting values.
+`emitLiteral` appends the original unary `encodeLit`, and constant emission
+supplies clause delimiters. The complete schema still needs input reads,
+parameter setup and index arithmetic, with growth invariants for its nested
+loops and final tape restoration. These checked primitives have not yet been
+assembled into the reduction's `Computes` contract.
 
 Only after this machine contract is proved can
 `satHard` and `cookLevin` be assembled and the named hardness premises removed.

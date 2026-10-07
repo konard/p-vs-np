@@ -107,7 +107,135 @@ def flatten(blocks):
             [*("one" if b else "zero" for b in block), "separator"]]
 
 
+def compile_program(registers, program):
+    """Compile finite nested programs through the existing generated tables."""
+    op, *args = program
+    if op == "increment":
+        slot, count = args
+        return word_table(slot + 1, [True] * count)
+    if op == "emit":
+        return word_table(registers + 1, args[0])
+    if op == "clear":
+        return clear_table(args[0] + 1)
+    if op == "literal":
+        slot, pos = args
+        return append(repeat_table(slot + 1, word_table(registers + 1, [True, True])),
+                      word_table(registers + 1, [False, pos]))
+    if op == "sequence":
+        return append(compile_program(registers, args[0]), compile_program(registers, args[1]))
+    if op == "loop":
+        return repeat_table(args[0] + 1, compile_program(registers, args[1]))
+    raise ValueError(op)
+
+
+def program_semantics(program, x, registers, output):
+    """Compute the charged contract independently of instruction execution."""
+    registers, output = list(registers), list(output)
+    op, *args = program
+    blocks = [x, *([True] * v for v in registers), output]
+    size = len(flatten(blocks))
+    if op in ("increment", "emit"):
+        if op == "increment":
+            slot, count = args
+            registers[slot] += count
+        else:
+            word = args[0]
+            count = len(word)
+            output += word
+        return count * (2 * size + count + 3), registers, output
+    if op == "sequence":
+        first, registers, output = program_semantics(args[0], x, registers, output)
+        second, registers, output = program_semantics(args[1], x, registers, output)
+        return first + second, registers, output
+    slot = args[0]
+    pre = len(flatten(blocks[:slot + 1]))
+    post = len(flatten(blocks[slot + 2:]))
+    value = registers[slot]
+    if op == "clear":
+        registers[slot] = 0
+        return value * (2 * pre + 4 * post + 2 * value + 7) + 2 * pre + 3, registers, output
+    if op == "literal":
+        registers[slot] = 0
+        output += [True] * (2 * value) + [False, args[1]]
+        charged = value * (6 * pre + 8 * post + 12 * value + 12) + 2 * pre + 3
+        charged += 2 * (2 * (pre + post + 2 * value + 1) + 5)
+        return charged, registers, output
+    if op == "loop":
+        charged = 0
+        for remaining in range(value - 1, -1, -1):
+            blocks = [x, *([True] * v for v in registers), output]
+            pre = len(flatten(blocks[:slot + 1]))
+            post = len(flatten(blocks[slot + 2:]))
+            charged += 2 * pre + 4 * (remaining + 1 + post) + 5
+            registers[slot] = remaining
+            body, registers, output = program_semantics(args[1], x, registers, output)
+            charged += body + 1
+        blocks = [x, *([True] * v for v in registers), output]
+        charged += 2 * len(flatten(blocks[:slot + 1])) + 3
+        return charged, registers, output
+    raise ValueError(op)
+
+
+def copy_program(source, dest, scratch):
+    return ("sequence", ("clear", scratch),
+            ("sequence", ("loop", source,
+                          ("sequence", ("increment", dest, 1), ("increment", scratch, 1))),
+             ("loop", scratch, ("increment", source, 1))))
+
+
 class RegisterMachineTests(unittest.TestCase):
+    def check_program(self, program, x, registers, output):
+        rows = compile_program(len(registers), program)
+        charged, final_regs, final_out = program_semantics(program, x, registers, output)
+        payload = flatten([x, *([True] * v for v in registers), output])
+        result = execute(rows, payload, charged)
+        self.assertIsNotNone(result)
+        actual_charged, head, tape = result
+        self.assertEqual((actual_charged, head), (charged, 0))
+        while tape and tape[-1] == "blank":
+            tape.pop()
+        self.assertEqual(tape, ["blank", *flatten([x, *([True] * v for v in final_regs), final_out])])
+        self.assertIsNone(execute(rows, payload, charged - 1))
+        return final_regs, final_out
+
+    def test_nested_loops_retain_payload_and_charge_every_iteration(self):
+        for value, inner in itertools.product(range(3), repeat=2):
+            program = ("loop", 0, ("sequence", ("increment", 1, inner),
+                                  ("loop", 1, ("emit", [True, False]))))
+            for x, output in itertools.product(([], [False, True]), repeat=2):
+                with self.subTest(value=value, inner=inner, x=x, output=output):
+                    self.assertEqual(self.check_program(program, x, [value, 0], output),
+                                     ([0, 0], output + [True, False] * (value * inner)))
+
+    def test_copy_uses_nested_compiler_and_restores_source_in_every_position(self):
+        for source, dest, scratch in itertools.permutations(range(3)):
+            for registers in itertools.product(range(3), repeat=3):
+                for x, output in itertools.product(([], [False, True]), repeat=2):
+                    with self.subTest(slots=(source, dest, scratch), registers=registers, x=x, output=output):
+                        expected = list(registers)
+                        expected[dest] += registers[source]
+                        expected[scratch] = 0
+                        self.assertEqual(self.check_program(copy_program(source, dest, scratch),
+                                                            x, registers, output), (expected, output))
+
+    def test_copy_then_literal_consumes_dynamic_identifier(self):
+        for source in range(3):
+            for dest in range(3):
+                if source == dest:
+                    continue
+                scratch = 3 - source - dest
+                for values in itertools.product(range(3), repeat=3):
+                    for pos in (False, True):
+                        program = ("sequence", copy_program(source, dest, scratch),
+                                   ("sequence", ("literal", dest, pos), ("emit", [False, False])))
+                        identifier = values[source] + values[dest]
+                        expected = list(values)
+                        expected[dest] = expected[scratch] = 0
+                        with self.subTest(slots=(source, dest, scratch), values=values, pos=pos):
+                            self.assertEqual(self.check_program(program, [False, True], values, [False]),
+                                             (expected, [False] + [True] * (2 * identifier) +
+                                              [False, pos, False, False]))
+
     def test_checked_in_tables_match_generator(self):
         generator.generate(check=True)
 

@@ -83,9 +83,22 @@ mixed-bit input/output, exact fuel boundaries, malformed unary counters,
 and bodies that write their own loop counter. A paired regression checks
 that the literal table is independent of the identifier on the tape.
 `compose_home_reaches` combines arbitrary home-preserving blocks with blank
-padding and is used in the literal proof. Dynamic copying, nested schema
-loops, input reads, setup/restoration, and the complete reduction remain
-outstanding; these contracts alone do not establish `red_computes`.
+padding and is used in the literal proof.
+
+`Program` composes straight-line code, clearing, dynamic literals, sequences,
+and nested loops under one exact charged compiler contract. The regressions
+execute a nested loop and a dynamic copy in both kernels, check insufficient
+fuel, and reject bodies that increment, clear, emit, or recursively consume
+their own loop counter. `addToProgram` restores the source, adds its value to
+the destination, and clears scratch, with a cubic runtime bound measured
+against the original payload. Its generic register contract covers all other
+slots and prior output. The Python interpreter checks 36 nested executions,
+648 copies across every permutation of three distinct register slots, and
+324 copy/literal/clause-delimiter compositions, including exact fuel boundaries
+and retained mixed-bit input/output. All use the original generated tables.
+Input reads, dynamic arithmetic, schema compilation, setup/restoration, and
+the complete reduction remain outstanding; these contracts alone do not
+establish `red_computes`.
 
 After building the imported modules, run:
 
@@ -139,6 +152,7 @@ python3 experiments/issue624/counter_assumptions.py
 python3 experiments/issue624/register_assumptions.py
 python3 experiments/issue624/dynamic_assumptions.py
 python3 experiments/issue624/loop_assumptions.py
+python3 experiments/issue624/program_assumptions.py
 ```
 
 [PLAN.md](PLAN.md) tracks the completed prerequisites and the remaining

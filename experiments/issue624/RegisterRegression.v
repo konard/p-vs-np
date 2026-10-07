@@ -2,6 +2,39 @@ From Stdlib Require Import List Bool Arith Lia.
 From proofs.experiments.issue624.rocq Require Import RegisterMachine.
 Import ListNotations Complexity.Complexity Machines RegisterMachine.
 
+Definition nestedProgram : Program :=
+  loop 0 (sequence (straight (increment 1 2)) (loop 1 (straight (emit [true; false])))).
+Example nested_well_formed : ProgramWellFormed 2 nestedProgram.
+Proof. cbn; repeat split; lia. Qed.
+Example nested_semantics : programRun nestedProgram (mkState [2; 0] [false]) =
+  mkState [0; 0] [false; true; false; true; false; true; false; true; false].
+Proof. reflexivity. Qed.
+Example generic_nested_compiler : forall x k p st,
+  ProgramWellFormed k p -> length (regs st) = k ->
+  exists c, Reaches (compileProgram k p) (encode 0 x st) (programCost x p st) c /\
+    Similar (encode (length (program (compileProgram k p))) x (programRun p st)) c.
+Proof. exact compileProgram_reaches. Qed.
+Example writing_counter_rejected : ~ ProgramWellFormed 1 (loop 0 (straight (increment 0 1))).
+Proof. cbn; tauto. Qed.
+Example clearing_counter_rejected : ~ ProgramWellFormed 1 (loop 0 (clearRegister 0)).
+Proof. cbn; tauto. Qed.
+Example emitting_counter_rejected : ~ ProgramWellFormed 1 (loop 0 (literal 0 true)).
+Proof. cbn; tauto. Qed.
+Example nested_counter_rejected : ~ ProgramWellFormed 1 (loop 0 (loop 0 (straight empty))).
+Proof. cbn; tauto. Qed.
+Example copy_well_formed : ProgramWellFormed 3 (addToProgram 0 1 2).
+Proof. cbn; repeat split; lia. Qed.
+Example copy_retains_source : programRun (addToProgram 0 1 2) (mkState [2; 3; 4] [false; true]) =
+  mkState [2; 5; 0] [false; true].
+Proof. reflexivity. Qed.
+Example copy_reverse_slots : programRun (addToProgram 2 0 1) (mkState [1; 0; 3] [true; false]) =
+  mkState [4; 0; 3] [true; false].
+Proof. reflexivity. Qed.
+Example copy_alias_rejected : ~ ProgramWellFormed 3 (addToProgram 0 0 2).
+Proof. cbn; tauto. Qed.
+Example copy_scratch_alias_rejected : ~ ProgramWellFormed 3 (addToProgram 0 1 0).
+Proof. cbn; tauto. Qed.
+
 Example generic_push : forall (pre post : list Word) (w : Word) (b : bool),
   Reaches (push (length pre) b) (home 0 (pre ++ w :: post))
     (pushTime (pre ++ w :: post))
@@ -17,6 +50,32 @@ Fixpoint probe (m : Machine) (fuel : nat) (c : Config) : option Config :=
 Definition result (slot : nat) (b : bool) (blocks : list Word) :=
   option_map (fun c => (state c, tapeLeft c, tapeHead c, tapeRight c))
     (probe (push slot b) (S (pushTime blocks)) (home 0 blocks)).
+Definition programResult k p x st :=
+  option_map (fun c => (state c, tapeLeft c, tapeHead c,
+    firstn (length (tape (blocks x (programRun p st)))) (tapeRight c)))
+    (probe (compileProgram k p) (S (programCost x p st)) (encode 0 x st)).
+Example nested_execution : programResult 2 nestedProgram [] (mkState [1; 0] []) =
+  Some (length (program (compileProgram 2 nestedProgram)), [], blank,
+    tape (blocks [] (mkState [0; 0] [true; false; true; false]))).
+Proof. reflexivity. Qed.
+Example copy_execution : programResult 3 (addToProgram 0 1 2) [false] (mkState [1; 0; 1] [true]) =
+  Some (length (program (compileProgram 3 (addToProgram 0 1 2))), [], blank,
+    tape (blocks [false] (mkState [1; 1; 0] [true]))).
+Proof. reflexivity. Qed.
+Example copy_short_fuel : probe (compileProgram 3 (addToProgram 0 1 2))
+  (programCost [false] (addToProgram 0 1 2) (mkState [1; 0; 1] [true]))
+  (encode 0 [false] (mkState [1; 0; 1] [true])) = None.
+Proof. reflexivity. Qed.
+Example generic_copy_cost : forall x k source dest scratch st,
+  length (regs st) = k -> source < k -> dest < k -> scratch < k ->
+  source <> dest -> source <> scratch ->
+  programCost x (addToProgram source dest scratch) st <=
+    evalPoly copyPolynomial (length (tape (blocks x st))).
+Proof. exact addToProgram_cost_polynomial. Qed.
+Print Assumptions compileProgram_reaches.
+Print Assumptions addToProgram_registers.
+Print Assumptions addToProgram_reaches.
+Print Assumptions addToProgram_cost_polynomial.
 Example empty_blocks : result 0 true [[]; []; []] =
   Some (6, [], blank, [one; separator; separator; separator]).
 Proof. reflexivity. Qed.

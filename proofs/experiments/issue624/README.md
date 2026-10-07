@@ -430,9 +430,7 @@ and sequencing. `compile_reaches` checks every well-formed program against
 the pure `runProg` and `cost` semantics in the shared finite machine model.
 The compiled table depends only on the program and register count.
 `cost_eq_wordTime` and `cost_polynomial` account for growth of the tape between
-instructions. These proofs consume `push_reaches` and its register contracts;
-dynamic arithmetic, nested loops, schema emission, setup, and tape restoration remain
-necessary to construct `CookLevin.red`.
+instructions. These proofs consume `push_reaches` and its register contracts.
 
 The generated `pop` table removes one unary tick while retaining every
 surrounding input/register/output symbol. Its two exits distinguish positive
@@ -445,9 +443,7 @@ existing `Similar` relation. Shared `retarget_reaches` and
 `reaches_of_similar` preserve every charged step. The consuming
 `clear_then_compile_reaches` proves scratch-register clearing followed by
 any well-formed compiled program; `clear_then_cost_polynomial` combines the
-two bounds using the shared polynomial addition. Dynamic copying, input
-reads, nested schema loops, schema compilation, and the reduction's final tape
-restoration remain open.
+two bounds using the shared polynomial addition.
 
 The same generated tables provide `repeatMachine`: decrement a unary counter,
 execute a fixed home-preserving body, charge a backward jump, and exit when
@@ -466,8 +462,30 @@ by `40 * (pre + value + post + 1)^2`. Only the scratch counter is consumed;
 all input, other registers, and prior output are retained. The generic
 `compose_home_reaches` theorem handles residual blank padding and is consumed
 by the literal proof. These 31 new conclusions per prover bring the manifest
-to 373 entries per prover. They are register-layer primitives, not the full
-formula-emitting `Computes` proof.
+to 373 entries per prover.
+
+`Program` extends `Prog` with clearing, dynamic literal emission, sequencing,
+and arbitrarily nested unary loops. `ProgramWellFormed` checks register bounds
+and rejects any loop body that changes its own counter, including through a
+nested loop or destructive literal emitter. `compileProgram_reaches` proves
+the exact `programCost` and `programRun` contract for every checked program.
+It consumes the generic `loop_reaches` contract and shared composition with
+trailing blanks; the original straight-line loop theorem remains available.
+
+`addToProgram source dest scratch` consumes this compiler to add the source
+value to the destination, restore the source, clear scratch, and retain all
+other registers and output. Its semantic contract requires three distinct
+in-bounds slots. The charged compiler contract and cubic `copyPolynomial`
+bound quantify over arbitrary input, register, and output blocks.
+`loopCost_straight_bound` also supplies an explicit intermediate-size invariant
+for straight-line loop bodies. General nested programs need separate growth
+invariants; the compiler does not assert that every nested program runs in
+polynomial time.
+These are compiler primitives for the remaining formula-emitting `Computes`
+construction.
+The 24 new paired conclusions bring the manifest to 397 entries per prover;
+their actual kernel assumptions are recorded in
+[`ASSUMPTIONS.md`](../../../experiments/issue624/ASSUMPTIONS.md#nested-compilation-and-dynamic-copy-continuation-2026-10-07).
 
 ## Verification and limits
 
@@ -540,8 +558,8 @@ locally under `ci-logs/`.
 
 ## Remaining construction
 
-1. Finish register copying, dynamic arithmetic, nested schema loops, input
-   reads, parameter setup, schema compilation and final tape restoration.
+1. Finish dynamic arithmetic, input reads, parameter setup, schema compilation
+   using nested loops and copying, and final tape restoration.
    Prove `Computes red (fun x => encodeCNF (tableauCNF np x)) r` for an
    explicit polynomial `r`, with the required final tape/head configuration.
 2. Assemble `satHard` and `cookLevin`, then remove the existing hardness
@@ -549,7 +567,7 @@ locally under `ci-logs/`.
 
 The shared model supplies sequencing (`compose_run`), charged scans and
 input retention/counting, and the fixed-output primitive above. A general
-counter-arithmetic/copy/tableau-emission compiler remains to be constructed. A finite CNF function
+tableau-emission compiler remains to be constructed. A finite CNF function
 or its output-size bound cannot stand in for the `Computes` proof. Enumerating
 all certificates or configurations would lose the required polynomial bound.
 Importing [Gäher–Kunze's construction](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITP.2021.20)

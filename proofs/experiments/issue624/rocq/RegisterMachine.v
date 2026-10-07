@@ -937,28 +937,43 @@ Fixpoint repeatCost (x : Word) (slot : nat) (p : Prog) (n : nat) (st : State) : 
   | S n => 2*repeatPrefix x slot st+4*(n+1+repeatSuffix slot st)+5+
     cost x p (putRegister slot n st)+1+repeatCost x slot p n (runProg p (putRegister slot n st))
   end.
-Theorem repeat_compile_reaches : forall x k slot p, WellFormed k p -> ReadOnly slot p -> slot < k ->
-  forall n st, length (regs st) = k -> registerAt slot st = n ->
-  exists c, Reaches (repeatMachine (slot+1) (compile k p)) (encode 0 x st) (repeatCost x slot p n st) c /\
-    Similar (encode (length (program (repeatMachine (slot+1) (compile k p)))) x (repeatRun slot p n st)) c.
+Fixpoint loopRun (slot : nat) (runBody : State -> State) (n : nat) (st : State) : State :=
+  match n with 0 => st | S n => loopRun slot runBody n (runBody (putRegister slot n st)) end.
+Fixpoint loopCost (x : Word) (slot : nat) (runBody : State -> State)
+    (bodyCost : State -> nat) (n : nat) (st : State) : nat :=
+  match n with
+  | 0 => 2*repeatPrefix x slot st+3
+  | S n => 2*repeatPrefix x slot st+4*(n+1+repeatSuffix slot st)+5+
+    bodyCost (putRegister slot n st)+1+loopCost x slot runBody bodyCost n (runBody (putRegister slot n st))
+  end.
+Theorem loop_reaches : forall x k slot body runBody bodyCost,
+  (forall st, length (regs (runBody st)) = length (regs st)) ->
+  (forall st, registerAt slot (runBody st) = registerAt slot st) ->
+  (forall st, length (regs st) = k -> exists c,
+    Reaches body (encode 0 x st) (bodyCost st) c /\
+    Similar (encode (length (program body)) x (runBody st)) c) ->
+  slot < k -> forall n st, length (regs st) = k -> registerAt slot st = n ->
+  exists c, Reaches (repeatMachine (slot+1) body) (encode 0 x st)
+    (loopCost x slot runBody bodyCost n st) c /\
+    Similar (encode (length (program (repeatMachine (slot+1) body))) x (loopRun slot runBody n st)) c.
 Proof.
-  intros x k slot p hp hro hslot n. induction n as [|n IH]; intros [values out] hk hn.
+  intros x k slot body runBody bodyCost hr hro hb hslot n. induction n as [|n IH]; intros [values out] hk hn.
   - destruct (register_decomposition values slot) as [pre [value [post [hpre hv]]]]; [cbn [regs] in hk; lia|].
     subst values slot. rewrite registerAt_split in hn. subst value.
-    exists (encode (length (program (repeatMachine (length pre+1) (compile k p)))) x (mkState (pre ++ 0::post) out)).
+    exists (encode (length (program (repeatMachine (length pre+1) body))) x (mkState (pre ++ 0::post) out)).
     split; [|unfold Similar; repeat split; apply blankPad_refl].
-    pose proof (repeat_empty (x::regWords pre) (regWords post ++ [out]) (compile k p)) as h.
-    cbn [repeatCost]. rewrite repeatPrefix_split. unfold encode, blocks, regWords in *. cbn [regs RegisterMachine.out] in *.
+    pose proof (repeat_empty (x::regWords pre) (regWords post ++ [out]) body) as h.
+    cbn [loopCost]. rewrite repeatPrefix_split. unfold encode, blocks, regWords in *. cbn [regs RegisterMachine.out] in *.
     rewrite map_app. cbn [map repeat]. cbn [length] in h. rewrite ?length_map in h.
     replace (S (length pre)) with (length pre+1) in h by lia.
     repeat rewrite <- app_assoc. exact h.
   - destruct (register_decomposition values slot) as [pre [value [post [hpre hv]]]]; [cbn [regs] in hk; lia|].
     subst values slot. rewrite registerAt_split in hn. subst value.
     set (lower := mkState (pre ++ n::post) out).
-    set (next := runProg p lower).
+    set (next := runBody lower).
     assert (hl : length (regs lower) = k) by (unfold lower; cbn [regs] in *; rewrite !length_app in *; cbn in *; lia).
-    destruct (repeat_positive (x::regWords pre) (regWords post ++ [out]) n (compile k p)) as [c [hc hsim]].
-    assert (hc' : Reaches (repeatMachine (length pre+1) (compile k p))
+    destruct (repeat_positive (x::regWords pre) (regWords post ++ [out]) n body) as [c [hc hsim]].
+    assert (hc' : Reaches (repeatMachine (length pre+1) body)
       (encode 0 x (mkState (pre ++ (n+1)::post) out))
       (2*repeatPrefix x (length pre) (mkState (pre ++ (n+1)::post) out)+
         4*(n+1+repeatSuffix (length pre) (mkState (pre ++ (n+1)::post) out))+5) c).
@@ -972,23 +987,46 @@ Proof.
       unfold regWords in hsim. cbn [length] in hsim. rewrite length_map in hsim.
       replace (S (length pre)) with (length pre+1) in hsim by lia.
       repeat rewrite <- app_assoc. exact hsim. }
-    destruct (repeat_body_reaches (length pre+1) (compile k p) (blocks x lower) (blocks x next) _ _
-      (compile_reaches x k p lower hp hl)) as [d [hd hsd]].
-    { unfold Similar. repeat split. apply blankPad_refl. }
+    destruct (hb lower hl) as [bc [hbc hbs]].
+    destruct (repeat_body_reaches (length pre+1) body (blocks x lower) (blocks x next) _ _
+      hbc hbs) as [d [hd hsd]].
     destruct (reaches_of_similar _ _ _ _ hd _ hsim') as [e [he hde]].
     assert (heq : registerAt (length pre) next = n).
-    { unfold next. rewrite runProg_readOnly by exact hro. apply registerAt_split. }
+    { unfold next. rewrite hro. apply registerAt_split. }
     destruct (IH next) as [f [hf hsf]].
-    { unfold next. rewrite runProg_regs_length. exact hl. }
+    { unfold next. rewrite hr. exact hl. }
     { exact heq. }
     destruct (reaches_of_similar _ _ _ _ hf _ (similar_trans _ _ _ hsd hde)) as [g [hg hfg]].
     exists g. split.
-    + cbn [repeatCost]. rewrite putRegister_split.
+    + cbn [loopCost]. rewrite putRegister_split.
       unfold lower, next in *. replace (S n) with (n+1) by lia.
       pose proof (reaches_trans _ _ _ _ _ _ hc'
-        (reaches_trans _ _ _ _ _ _ he hg)) as hr.
-      repeat rewrite Nat.add_assoc in hr. exact hr.
-    + cbn [repeatRun]. rewrite putRegister_split. exact (similar_trans _ _ _ hsf hfg).
+        (reaches_trans _ _ _ _ _ _ he hg)) as hchain.
+      repeat rewrite Nat.add_assoc in hchain. exact hchain.
+    + cbn [loopRun]. rewrite putRegister_split. exact (similar_trans _ _ _ hsf hfg).
+Qed.
+
+Theorem loopRun_repeat : forall slot p n st,
+  loopRun slot (runProg p) n st = repeatRun slot p n st.
+Proof. intros slot p n. induction n; intros st; cbn [loopRun repeatRun]; auto. Qed.
+Theorem loopCost_repeat : forall x slot p n st,
+  loopCost x slot (runProg p) (cost x p) n st = repeatCost x slot p n st.
+Proof. intros x slot p n. induction n; intros st; cbn [loopCost repeatCost]; auto. Qed.
+
+Theorem repeat_compile_reaches : forall x k slot p, WellFormed k p -> ReadOnly slot p -> slot < k ->
+  forall n st, length (regs st) = k -> registerAt slot st = n ->
+  exists c, Reaches (repeatMachine (slot+1) (compile k p)) (encode 0 x st) (repeatCost x slot p n st) c /\
+    Similar (encode (length (program (repeatMachine (slot+1) (compile k p)))) x (repeatRun slot p n st)) c.
+Proof.
+  intros x k slot p hp hro hslot n st hk hn.
+  pose proof (loop_reaches x k slot (compile k p) (runProg p) (cost x p)
+    (runProg_regs_length p) (fun st => runProg_readOnly slot p st hro)) as h.
+  assert (hb : forall st, length (regs st) = k -> exists c,
+    Reaches (compile k p) (encode 0 x st) (cost x p st) c /\
+    Similar (encode (length (program (compile k p))) x (runProg p st)) c).
+  { intros s hs. eexists. split; [apply compile_reaches; assumption|].
+    unfold Similar. repeat split. apply blankPad_refl. }
+  specialize (h hb hslot n st hk hn). rewrite loopRun_repeat, loopCost_repeat in h. exact h.
 Qed.
 
 Definition emitTicks (registers slot : nat) : Machine := repeatMachine (slot+1) (emitConst registers [true; true]).
@@ -1099,6 +1137,409 @@ Proof.
   - cbn [length] in hd. rewrite hsize in hd. exact hd.
   - unfold lower, encode, encodeLit in *. rewrite ticks_eq_replicate. cbn [Machines.var Machines.pos runProg regs RegisterMachine.out] in he.
     rewrite <- app_assoc in he. exact he.
+Qed.
+
+(** Finite register programs with arbitrarily nested dynamic loops. *)
+Inductive Program :=
+  | straight (p : Prog)
+  | clearRegister (slot : nat)
+  | literal (slot : nat) (pos : bool)
+  | sequence (first second : Program)
+  | loop (slot : nat) (body : Program).
+Fixpoint ProgramReadOnly (slot : nat) (p : Program) : Prop :=
+  match p with
+  | straight p => ReadOnly slot p
+  | clearRegister dest | literal dest _ => slot <> dest
+  | sequence first second => ProgramReadOnly slot first /\ ProgramReadOnly slot second
+  | loop counter body => slot <> counter /\ ProgramReadOnly slot body
+  end.
+Fixpoint ProgramWellFormed (registers : nat) (p : Program) : Prop :=
+  match p with
+  | straight p => WellFormed registers p
+  | clearRegister slot | literal slot _ => slot < registers
+  | sequence first second => ProgramWellFormed registers first /\ ProgramWellFormed registers second
+  | loop slot body => slot < registers /\ ProgramWellFormed registers body /\ ProgramReadOnly slot body
+  end.
+Fixpoint programRun (p : Program) (st : State) : State :=
+  match p with
+  | straight p => runProg p st
+  | clearRegister slot => putRegister slot 0 st
+  | literal slot pos => mkState (regs (putRegister slot 0 st)) (out st ++ encodeLit (mkLit (registerAt slot st) pos))
+  | sequence first second => programRun second (programRun first st)
+  | loop slot body => loopRun slot (programRun body) (registerAt slot st) st
+  end.
+Fixpoint programCost (x : Word) (p : Program) (st : State) : nat :=
+  match p with
+  | straight p => cost x p st
+  | clearRegister slot => clearTime (repeatPrefix x slot st) (registerAt slot st) (repeatSuffix slot st)
+  | literal slot _ => literalTime (repeatPrefix x slot st) (registerAt slot st) (repeatSuffix slot st)
+  | sequence first second => programCost x first st + programCost x second (programRun first st)
+  | loop slot body => loopCost x slot (programRun body) (programCost x body) (registerAt slot st) st
+  end.
+Fixpoint compileProgram (k : nat) (p : Program) : Machine :=
+  match p with
+  | straight p => compile k p
+  | clearRegister slot => clearThen slot k empty
+  | literal slot pos => emitLiteral k slot pos
+  | sequence first second => appendMachine (compileProgram k first) (compileProgram k second)
+  | loop slot body => repeatMachine (slot+1) (compileProgram k body)
+  end.
+Theorem registerAt_putRegister_other : forall slot dest value st, slot <> dest ->
+  registerAt slot (putRegister dest value st) = registerAt slot st.
+Proof.
+  intros slot dest value [values out]. unfold registerAt, putRegister. cbn [regs].
+  revert slot dest. induction values; intros [|slot] [|dest] h; cbn [setRegister nth]; auto; try congruence.
+Qed.
+Theorem loopRun_regs_length : forall slot runBody,
+  (forall st, length (regs (runBody st)) = length (regs st)) -> forall n st,
+  length (regs (loopRun slot runBody n st)) = length (regs st).
+Proof.
+  intros slot runBody hr n. induction n; intros st; cbn [loopRun]; auto.
+  rewrite IHn, hr, putRegister_length. reflexivity.
+Qed.
+Theorem loopRun_readOnly : forall slot counter runBody,
+  slot <> counter -> (forall st, registerAt slot (runBody st) = registerAt slot st) ->
+  forall n st, registerAt slot (loopRun counter runBody n st) = registerAt slot st.
+Proof.
+  intros slot counter runBody hneq hbody n. induction n; intros st; cbn [loopRun]; auto.
+  rewrite IHn, hbody, registerAt_putRegister_other by exact hneq. reflexivity.
+Qed.
+Theorem programRun_regs_length : forall p st, length (regs (programRun p st)) = length (regs st).
+Proof.
+  intros p. induction p; intros st; cbn [programRun]; auto.
+  - apply runProg_regs_length.
+  - apply putRegister_length.
+  - cbn [regs]. apply putRegister_length.
+  - rewrite IHp2, IHp1. reflexivity.
+  - apply loopRun_regs_length. exact IHp.
+Qed.
+Theorem programRun_readOnly : forall slot p st, ProgramReadOnly slot p ->
+  registerAt slot (programRun p st) = registerAt slot st.
+Proof.
+  intros slot p. induction p; intros st h; cbn [ProgramReadOnly programRun] in *.
+  - apply runProg_readOnly; exact h.
+  - apply registerAt_putRegister_other; exact h.
+  - unfold registerAt at 1. cbn [regs]. change (registerAt slot (putRegister slot0 0 st) = registerAt slot st).
+    apply registerAt_putRegister_other; exact h.
+  - rewrite IHp2, IHp1; tauto.
+  - apply loopRun_readOnly; [exact (proj1 h)|]. intros s. apply IHp. exact (proj2 h).
+Qed.
+Theorem clear_state_reaches : forall x k slot st,
+  length (regs st) = k -> slot < k ->
+  exists c, Reaches (compileProgram k (clearRegister slot)) (encode 0 x st)
+    (programCost x (clearRegister slot) st) c /\
+    Similar (encode (length (program (compileProgram k (clearRegister slot)))) x
+      (programRun (clearRegister slot) st)) c.
+Proof.
+  intros x k slot [values out] hk hslot.
+  destruct (register_decomposition values slot) as [pre [value [post [hp hv]]]]; [cbn [regs] in hk; lia|].
+  subst values slot.
+  assert (hk' : length (pre ++ 0::post) = k) by (cbn [regs] in hk; rewrite !length_app in *; cbn in *; lia).
+  pose proof (clear_then_compile_reaches x pre post value out k empty I hk') as h.
+  cbn [compileProgram programRun programCost runProg cost] in *.
+  rewrite registerAt_split, putRegister_split, repeatPrefix_split, repeatSuffix_split.
+  rewrite Nat.add_0_r in h. exact h.
+Qed.
+Theorem literal_state_reaches : forall x k slot pos st,
+  length (regs st) = k -> slot < k ->
+  exists c, Reaches (compileProgram k (literal slot pos)) (encode 0 x st)
+    (programCost x (literal slot pos) st) c /\
+    Similar (encode (length (program (compileProgram k (literal slot pos)))) x
+      (programRun (literal slot pos) st)) c.
+Proof.
+  intros x k slot pos [values out] hk hslot.
+  destruct (register_decomposition values slot) as [pre [value [post [hp hv]]]]; [cbn [regs] in hk; lia|].
+  subst values slot.
+  pose proof (emitLiteral_reaches x pre post value out pos) as h.
+  cbn [compileProgram programRun programCost].
+  rewrite registerAt_split, putRegister_split, repeatPrefix_split, repeatSuffix_split.
+  cbn [regs RegisterMachine.out] in hk |- *. rewrite hk in h. exact h.
+Qed.
+Theorem compileProgram_reaches : forall x k p st,
+  ProgramWellFormed k p -> length (regs st) = k ->
+  exists c, Reaches (compileProgram k p) (encode 0 x st) (programCost x p st) c /\
+    Similar (encode (length (program (compileProgram k p))) x (programRun p st)) c.
+Proof.
+  intros x k p. induction p; intros st hp hk; cbn [ProgramWellFormed] in hp.
+  - eexists. split; [apply compile_reaches; assumption|].
+    unfold Similar. repeat split. apply blankPad_refl.
+  - apply clear_state_reaches; assumption.
+  - apply literal_state_reaches; assumption.
+  - destruct (IHp1 st (proj1 hp) hk) as [c [hc hs]].
+    assert (hk' : length (regs (programRun p1 st)) = k) by (rewrite programRun_regs_length; exact hk).
+    destruct (IHp2 (programRun p1 st) (proj2 hp) hk') as [d [hd he]].
+    exact (compose_home_reaches _ _ _ _ _ _ _ _ _ hc hs hd he).
+  - exact (loop_reaches x k slot (compileProgram k p) (programRun p) (programCost x p)
+      (programRun_regs_length p) (fun s => programRun_readOnly slot p s (proj2 (proj2 hp)))
+      (fun s hs => IHp s (proj1 (proj2 hp)) hs) (proj1 hp) _ st hk eq_refl).
+Qed.
+
+Definition addToProgram (source dest scratch : nat) : Program :=
+  sequence (clearRegister scratch)
+    (sequence (loop source (straight (seq (increment dest 1) (increment scratch 1))))
+      (loop scratch (straight (increment source 1)))).
+Theorem addToProgram_wellFormed : forall k source dest scratch,
+  source < k -> dest < k -> scratch < k -> source <> dest -> source <> scratch ->
+  ProgramWellFormed k (addToProgram source dest scratch).
+Proof. intros. unfold addToProgram. cbn [ProgramWellFormed ProgramReadOnly WellFormed ReadOnly]. repeat split; try assumption; congruence. Qed.
+Theorem incrementRegs_registerAt : forall slot count st, slot < length (regs st) ->
+  registerAt slot (runProg (increment slot count) st) = registerAt slot st + count.
+Proof.
+  intros slot count [values out] h.
+  destruct (register_decomposition values slot) as [pre [value [post [hp hv]]]]; [exact h|].
+  subst values slot.
+  change (registerAt (length pre) (mkState (incrementRegs (length pre) count (pre ++ value::post)) out) =
+    registerAt (length pre) (mkState (pre ++ value::post) out) + count).
+  rewrite incrementRegs_split, !registerAt_split. reflexivity.
+Qed.
+Theorem loopRun_counter_zero : forall counter runBody,
+  (forall st, length (regs (runBody st)) = length (regs st)) ->
+  (forall st, registerAt counter (runBody st) = registerAt counter st) ->
+  forall n st, counter < length (regs st) -> registerAt counter st = n ->
+  registerAt counter (loopRun counter runBody n st) = 0.
+Proof.
+  intros counter runBody hr hbody n. induction n; intros st hslot hn; cbn [loopRun]; [exact hn|].
+  apply IHn.
+  - rewrite hr, putRegister_length. exact hslot.
+  - rewrite hbody, registerAt_putRegister by exact hslot. reflexivity.
+Qed.
+Theorem loopRun_adds : forall counter target count runBody,
+  target <> counter -> (forall st, length (regs (runBody st)) = length (regs st)) ->
+  (forall st, target < length (regs st) -> registerAt target (runBody st) = registerAt target st + count) ->
+  forall n st, target < length (regs st) ->
+  registerAt target (loopRun counter runBody n st) = registerAt target st + n*count.
+Proof.
+  intros counter target count runBody hneq hr hbody n. induction n; intros st htarget; cbn [loopRun]; [lia|].
+  rewrite IHn by (rewrite hr, putRegister_length; exact htarget).
+  rewrite hbody by (rewrite putRegister_length; exact htarget).
+  rewrite registerAt_putRegister_other by exact hneq. nia.
+Qed.
+Theorem loopRun_out : forall counter runBody,
+  (forall st, out (runBody st) = out st) -> forall n st, out (loopRun counter runBody n st) = out st.
+Proof.
+  intros counter runBody hbody n. induction n; intros st; cbn [loopRun]; auto.
+  rewrite IHn, hbody. reflexivity.
+Qed.
+Theorem addToProgram_registers : forall source dest scratch st,
+  source < length (regs st) -> dest < length (regs st) -> scratch < length (regs st) ->
+  source <> dest -> source <> scratch -> dest <> scratch -> forall slot,
+  registerAt slot (programRun (addToProgram source dest scratch) st) =
+    if slot =? scratch then 0 else
+    if slot =? dest then registerAt dest st + registerAt source st else registerAt slot st.
+Proof.
+  intros source dest scratch st hs hd hc hsd hsc hdc slot.
+  set (initial := putRegister scratch 0 st).
+  set (body := runProg (seq (increment dest 1) (increment scratch 1))).
+  set (middle := loopRun source body (registerAt source initial) initial).
+  set (restore := runProg (increment source 1)).
+  assert (hbLength : forall s, length (regs (body s)) = length (regs s)) by (apply runProg_regs_length).
+  assert (hrLength : forall s, length (regs (restore s)) = length (regs s)) by (apply runProg_regs_length).
+  assert (hbSource : forall s, registerAt source (body s) = registerAt source s).
+  { intros s. apply runProg_readOnly. cbn [ReadOnly]. tauto. }
+  assert (hrScratch : forall s, registerAt scratch (restore s) = registerAt scratch s).
+  { intros s. apply runProg_readOnly. cbn [ReadOnly]. congruence. }
+  assert (hlen : length (regs middle) = length (regs st)).
+  { unfold middle. rewrite loopRun_regs_length by exact hbLength. apply putRegister_length. }
+  assert (hiSource : registerAt source initial = registerAt source st).
+  { apply registerAt_putRegister_other. exact hsc. }
+  assert (hiScratch : registerAt scratch initial = 0).
+  { apply registerAt_putRegister. exact hc. }
+  assert (hmSource : registerAt source middle = 0).
+  { apply loopRun_counter_zero; auto. unfold initial. rewrite putRegister_length. exact hs. }
+  assert (hmScratch : registerAt scratch middle = registerAt source st).
+  { assert (hbody : forall s, scratch < length (regs s) -> registerAt scratch (body s) = registerAt scratch s+1).
+    { intros s hl.
+      change (registerAt scratch (runProg (increment scratch 1) (runProg (increment dest 1) s)) = registerAt scratch s+1).
+      rewrite incrementRegs_registerAt by (rewrite runProg_regs_length; exact hl).
+      rewrite runProg_readOnly by (cbn [ReadOnly]; congruence). reflexivity. }
+    pose proof (loopRun_adds source scratch 1 body (not_eq_sym hsc) hbLength hbody
+      (registerAt source initial) initial) as h.
+    assert (hslot : scratch < length (regs initial)) by (unfold initial; rewrite putRegister_length; exact hc).
+    specialize (h hslot). rewrite hiScratch, hiSource, Nat.mul_1_r, Nat.add_0_l in h.
+    unfold middle. rewrite hiSource. exact h. }
+  change (registerAt slot (loopRun scratch restore (registerAt scratch middle) middle) =
+    if slot =? scratch then 0 else
+    if slot =? dest then registerAt dest st + registerAt source st else registerAt slot st).
+  destruct (Nat.eq_dec slot scratch) as [hslotc|hslotc].
+  - subst slot. rewrite Nat.eqb_refl. apply loopRun_counter_zero; auto. rewrite hlen. exact hc.
+  - rewrite (proj2 (Nat.eqb_neq _ _) hslotc).
+    destruct (Nat.eq_dec slot dest) as [hslotd|hslotd].
+    + subst slot. rewrite Nat.eqb_refl.
+      assert (hrestore : forall s, registerAt dest (restore s) = registerAt dest s).
+      { intros s. apply runProg_readOnly. cbn [ReadOnly]. congruence. }
+      rewrite loopRun_readOnly by assumption.
+      assert (hbody : forall s, dest < length (regs s) -> registerAt dest (body s) = registerAt dest s+1).
+      { intros s hl.
+        change (registerAt dest (runProg (increment scratch 1) (runProg (increment dest 1) s)) = registerAt dest s+1).
+        rewrite runProg_readOnly by (cbn [ReadOnly]; exact hdc).
+        apply incrementRegs_registerAt. exact hl. }
+      pose proof (loopRun_adds source dest 1 body (not_eq_sym hsd) hbLength hbody
+        (registerAt source initial) initial) as h.
+      assert (hslot : dest < length (regs initial)) by (unfold initial; rewrite putRegister_length; exact hd).
+      specialize (h hslot). rewrite hiSource, Nat.mul_1_r in h.
+      unfold middle. rewrite hiSource.
+      unfold initial in h |- *. rewrite registerAt_putRegister_other in h by exact hdc. exact h.
+    + rewrite (proj2 (Nat.eqb_neq _ _) hslotd).
+      destruct (Nat.eq_dec slot source) as [hslots|hslots].
+      * subst slot.
+        assert (hrestore : forall s, source < length (regs s) -> registerAt source (restore s) = registerAt source s+1).
+        { apply incrementRegs_registerAt. }
+        pose proof (loopRun_adds scratch source 1 restore hsc hrLength hrestore
+          (registerAt scratch middle) middle) as h.
+        assert (hslot : source < length (regs middle)) by (rewrite hlen; exact hs).
+        specialize (h hslot). rewrite hmSource, hmScratch, Nat.mul_1_r, Nat.add_0_l in h.
+        rewrite hmScratch. exact h.
+      * assert (hrestore : forall s, registerAt slot (restore s) = registerAt slot s).
+        { intros s. apply runProg_readOnly. exact hslots. }
+        rewrite loopRun_readOnly by assumption.
+        assert (hbody : forall s, registerAt slot (body s) = registerAt slot s).
+        { intros s. apply runProg_readOnly. cbn [ReadOnly]. tauto. }
+        unfold middle. rewrite loopRun_readOnly by assumption.
+        apply registerAt_putRegister_other. exact hslotc.
+Qed.
+Theorem addToProgram_out : forall source dest scratch st,
+  out (programRun (addToProgram source dest scratch) st) = out st.
+Proof.
+  intros. unfold addToProgram. cbn [programRun].
+  rewrite loopRun_out by (intros; reflexivity).
+  rewrite loopRun_out by (intros; reflexivity). reflexivity.
+Qed.
+Theorem addToProgram_reaches : forall x k source dest scratch st,
+  length (regs st) = k -> source < k -> dest < k -> scratch < k ->
+  source <> dest -> source <> scratch ->
+  exists c, Reaches (compileProgram k (addToProgram source dest scratch)) (encode 0 x st)
+    (programCost x (addToProgram source dest scratch) st) c /\
+    Similar (encode (length (program (compileProgram k (addToProgram source dest scratch)))) x
+      (programRun (addToProgram source dest scratch) st)) c.
+Proof. intros. apply compileProgram_reaches; [apply addToProgram_wellFormed; assumption|assumption]. Qed.
+
+Theorem register_span : forall x slot st, slot < length (regs st) ->
+  repeatPrefix x slot st + registerAt slot st + repeatSuffix slot st + 1 = length (tape (blocks x st)).
+Proof.
+  intros x slot [values out] h.
+  destruct (register_decomposition values slot) as [pre [value [post [hp hv]]]]; [exact h|].
+  subst values slot. rewrite repeatPrefix_split, repeatSuffix_split, registerAt_split.
+  unfold blocks, regWords. cbn [regs RegisterMachine.out]. rewrite map_app. cbn [map].
+  repeat (rewrite tape_cons || rewrite tape_append).
+  repeat first [rewrite length_app | rewrite length_map | rewrite repeat_length | progress cbn [length]]. lia.
+Qed.
+Theorem putRegister_size_le : forall x slot value st,
+  slot < length (regs st) -> value <= registerAt slot st ->
+  length (tape (blocks x (putRegister slot value st))) <= length (tape (blocks x st)).
+Proof.
+  intros x slot value [values out] hslot hvalue.
+  destruct (register_decomposition values slot) as [pre [old [post [hp hv]]]]; [exact hslot|].
+  subst values slot. rewrite registerAt_split in hvalue. rewrite putRegister_split, !blocks_length.
+  cbn [regs RegisterMachine.out].
+  assert (hsum : list_sum (pre ++ value::post) <= list_sum (pre ++ old::post)).
+  { clear hslot. induction pre; unfold list_sum in *; cbn [app fold_right] in *; lia. }
+  rewrite !length_app. cbn [length]. lia.
+Qed.
+Theorem loopCost_straight_bound : forall x k slot p,
+  WellFormed k p -> ReadOnly slot p -> slot < k ->
+  forall n st, length (regs st) = k -> registerAt slot st = n ->
+  forall limit, length (tape (blocks x st)) + n * growth p <= limit ->
+  loopCost x slot (runProg p) (cost x p) n st <= (n+1)*(20*(limit+growth p+1)^2).
+Proof.
+  intros x k slot p hp hro hslot n. induction n; intros st hk hn limit hlimit.
+  - pose proof (register_span x slot st ltac:(lia)) as hspan.
+    cbn [loopCost Nat.pow] in *. nia.
+  - set (lower := putRegister slot n st).
+    set (next := runProg p lower).
+    assert (hslot' : slot < length (regs st)) by lia.
+    pose proof (putRegister_size_le x slot n st hslot' ltac:(lia)) as hsize.
+    assert (hl : length (regs lower) = k) by (unfold lower; rewrite putRegister_length; exact hk).
+    pose proof (runProg_tape_length x k p lower hp hl) as hnextSize.
+    assert (hnextLength : length (regs next) = k) by (unfold next; rewrite runProg_regs_length; exact hl).
+    assert (hnextN : registerAt slot next = n).
+    { unfold next, lower. rewrite runProg_readOnly by exact hro.
+      rewrite registerAt_putRegister by exact hslot'. reflexivity. }
+    assert (hnextLimit : length (tape (blocks x next)) + n*growth p <= limit).
+    { unfold next. rewrite hnextSize. fold lower in hsize. nia. }
+    pose proof (IHn next hnextLength hnextN limit hnextLimit) as htail.
+    pose proof (cost_polynomial x k p lower hp hl) as hbody.
+    unfold emissionPolynomial, evalPoly in hbody. cbn [coefficient degree] in hbody.
+    assert (hbodyCap : cost x p lower <= 3*(limit+growth p+1)^2).
+    { fold lower in hsize.
+      assert (hsmall : length (tape (blocks x lower))+growth p+1 <= limit+growth p+1) by nia.
+      cbn [Nat.pow] in *. nia. }
+    pose proof (register_span x slot st hslot') as hspan.
+    assert (hcontroller : 2*repeatPrefix x slot st + 4*(n+1+repeatSuffix slot st)+5+1 <=
+      12*(limit+growth p+1)^2) by (cbn [Nat.pow] in *; nia).
+    cbn [loopCost Nat.pow] in *. fold lower next. nia.
+Qed.
+
+Theorem loopRun_straight_size_le : forall x k slot p,
+  WellFormed k p -> ReadOnly slot p -> slot < k ->
+  forall n st, length (regs st) = k -> registerAt slot st = n ->
+  length (tape (blocks x (loopRun slot (runProg p) n st))) <=
+    length (tape (blocks x st)) + n * growth p.
+Proof.
+  intros x k slot p hp hro hslot n. induction n; intros st hk hn.
+  - cbn [loopRun]. lia.
+  - set (lower := putRegister slot n st). set (next := runProg p lower).
+    assert (hs : slot < length (regs st)) by lia.
+    pose proof (putRegister_size_le x slot n st hs ltac:(lia)) as hsize.
+    assert (hl : length (regs lower) = k) by (unfold lower; rewrite putRegister_length; exact hk).
+    pose proof (runProg_tape_length x k p lower hp hl) as hnext.
+    assert (hlen : length (regs next) = k) by (unfold next; rewrite runProg_regs_length; exact hl).
+    assert (hcount : registerAt slot next = n).
+    { unfold next, lower. rewrite runProg_readOnly by exact hro.
+      rewrite registerAt_putRegister by exact hs. reflexivity. }
+    pose proof (IHn next hlen hcount) as h.
+    cbn [loopRun]. fold lower next. fold lower in hsize. fold next in hnext. nia.
+Qed.
+Definition copyPolynomial : Polynomial := {| coefficient := 4000; degree := 3 |}.
+Theorem addToProgram_cost_polynomial : forall x k source dest scratch st,
+  length (regs st) = k -> source < k -> dest < k -> scratch < k ->
+  source <> dest -> source <> scratch ->
+  programCost x (addToProgram source dest scratch) st <=
+    evalPoly copyPolynomial (length (tape (blocks x st))).
+Proof.
+  intros x k source dest scratch st hk hs hd hc hsd hsc.
+  set (size := length (tape (blocks x st))).
+  set (initial := putRegister scratch 0 st).
+  set (transfer := seq (increment dest 1) (increment scratch 1)).
+  set (n := registerAt source initial).
+  set (middle := loopRun source (runProg transfer) n initial).
+  set (restore := increment source 1).
+  set (m := registerAt scratch middle).
+  assert (hiLength : length (regs initial) = k) by (unfold initial; rewrite putRegister_length; exact hk).
+  assert (hmLength : length (regs middle) = k).
+  { unfold middle. rewrite loopRun_regs_length by apply runProg_regs_length. exact hiLength. }
+  assert (hiSize : length (tape (blocks x initial)) <= size).
+  { apply putRegister_size_le; lia. }
+  assert (hn : n <= size).
+  { pose proof (register_span x source initial ltac:(lia)). unfold n. lia. }
+  assert (ht : WellFormed k transfer) by (unfold transfer; cbn [WellFormed]; auto).
+  assert (htr : ReadOnly source transfer) by (unfold transfer; cbn [ReadOnly]; auto).
+  assert (hr : WellFormed k restore) by exact hs.
+  assert (hrr : ReadOnly scratch restore) by (cbn [ReadOnly restore]; congruence).
+  assert (hmSize : length (tape (blocks x middle)) <= 3*size).
+  { pose proof (loopRun_straight_size_le x k source transfer ht htr hs n initial hiLength eq_refl) as h.
+    fold middle in h. cbn [transfer growth] in h. nia. }
+  assert (hm : m <= 3*size).
+  { pose proof (register_span x scratch middle ltac:(lia)). unfold m. lia. }
+  pose proof (loopCost_straight_bound x k source transfer ht htr hs n initial hiLength eq_refl
+    (3*size) ltac:(cbn [transfer growth]; nia)) as hfirst.
+  pose proof (loopCost_straight_bound x k scratch restore hr hrr hc m middle hmLength eq_refl
+    (6*size) ltac:(cbn [restore growth]; nia)) as hsecond.
+  assert (hfirstBound : loopCost x source (runProg transfer) (cost x transfer) n initial <=
+    180*(size+1)^3).
+  { clear - hfirst hn. cbn [transfer growth Nat.pow] in *. nia. }
+  assert (hsecondBound : loopCost x scratch (runProg restore) (cost x restore) m middle <=
+    2160*(size+1)^3).
+  { clear - hsecond hm. cbn [restore growth Nat.pow] in *. nia. }
+  pose proof (clearTime_polynomial (repeatPrefix x scratch st) (registerAt scratch st)
+    (repeatSuffix scratch st)) as hclear.
+  rewrite register_span in hclear by lia. fold size in hclear.
+  unfold clearPolynomial, copyPolynomial, evalPoly in *.
+  cbn [coefficient degree] in hclear |- *.
+  unfold addToProgram. cbn [programCost programRun]. fold initial transfer n middle restore m.
+  change (clearTime (repeatPrefix x scratch st) (registerAt scratch st) (repeatSuffix scratch st) +
+    (loopCost x source (runProg transfer) (cost x transfer) n initial +
+     loopCost x scratch (runProg restore) (cost x restore) m middle) <= 4000*(size+1)^3).
+  clear - hfirstBound hsecondBound hclear. cbn [Nat.pow] in *. nia.
 Qed.
 
 End RegisterMachine.

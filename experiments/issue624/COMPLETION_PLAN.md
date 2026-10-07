@@ -274,3 +274,36 @@ reduction, hardness, and unconditional bridge obligations are incomplete.
 - [x] Commit useful checked work, push only the prepared branch, update PR
   #630, and inspect the new CI run's SHA, timestamp, and non-passing logs.
 - [ ] Pass the full completion checks and mark the PR ready.
+
+## Nested compilation and dynamic copy continuation
+
+- [x] Read the issue and every PR comment type, fetch the latest `main`, and
+  confirm it is already included. Verify run `37572138429` follows and checks
+  `03f7dbd`; preserve all five recent logs in `ci-logs/`. Its lines 233–274
+  reproduce the 42 reduction/hardness/bridge diagnostics; line 9927 reports
+  the downstream verification-summary failure.
+- [x] Add paired nested-loop regressions before implementation and preserve
+  the missing-declaration failures in `ci-logs/nested-before-*.log`.
+- [x] Generalize the charged loop proof to arbitrary checked home-preserving
+  bodies. Consume it in one recursive `Program` compiler for straight-line
+  code, clearing, literals, sequences, and nested loops; retain the original
+  straight-line loop theorem as a consuming specialization.
+- [x] Consume nested compilation in dynamic register addition/copying.
+  Prove source restoration, destination addition, scratch clearing, retention
+  of other registers/output, exact execution cost, and a cubic cost bound.
+  Bound straight-line loops with explicit intermediate-tape invariants.
+  Cover nested execution, invalid counter writes, slot permutations,
+  copy/literal/clause compositions, and exact fuel boundaries.
+- [x] Register all 24 paired conclusions using kernel-reported assumptions,
+  run the full local suite, inspect logs/diff, and commit useful checked work.
+  `bash experiments/issue624/check.sh all` passed the full Python suite,
+  259-job Lean build, full Rocq build, both 397-result assumption audits,
+  tableau/bridge contracts, negative/type probes and pinned Agda checks.
+  Preserve `ci-logs/nested-full.log`; the separate completion command with
+  both kernel flags still exits 1 with the same 42 diagnostics in
+  `ci-logs/nested-completion-final.log`.
+- [ ] Push only the prepared branch, update PR #630, and inspect the fresh
+  run's SHA/timestamp and downloaded non-passing logs.
+- [ ] Finish dynamic arithmetic, input reads, parameter setup, schema
+  compilation, final tape restoration, `red_computes`, hardness/completeness,
+  and unconditional bridges; pass full completion and mark the PR ready.

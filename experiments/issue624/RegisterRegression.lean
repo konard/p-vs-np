@@ -1,6 +1,30 @@
 import proofs.experiments.issue624.lean.RegisterMachine
 open Complexity Issue532.Machines Issue624.RegisterMachine
 
+-- Nested loops must consume the same compiler contract as straight-line code.
+private def nestedProgram : Program :=
+  .loop 0 (.sequence (.straight (.increment 1 2))
+    (.loop 1 (.straight (.emit [true, false]))))
+example : ProgramWellFormed 2 nestedProgram := by decide
+example : programRun nestedProgram ⟨[2, 0], [false]⟩ =
+  ⟨[0, 0], [false, true, false, true, false, true, false, true, false]⟩ := rfl
+example (x : Word) (k : Nat) (p : Program) (st : State)
+    (hp : ProgramWellFormed k p) (hk : st.regs.length = k) :
+    ∃ c, Reaches (compileProgram k p) (encode 0 x st) (programCost x p st) c ∧
+      Similar (encode (compileProgram k p).program.length x (programRun p st)) c :=
+  compileProgram_reaches x k p st hp hk
+example : ¬ ProgramWellFormed 1 (.loop 0 (.straight (.increment 0 1))) := by decide
+example : ¬ ProgramWellFormed 1 (.loop 0 (.clearRegister 0)) := by decide
+example : ¬ ProgramWellFormed 1 (.loop 0 (.literal 0 true)) := by decide
+example : ¬ ProgramWellFormed 1 (.loop 0 (.loop 0 (.straight .empty))) := by decide
+example : ProgramWellFormed 3 (addToProgram 0 1 2) := by decide
+example : programRun (addToProgram 0 1 2) ⟨[2, 3, 4], [false, true]⟩ =
+  ⟨[2, 5, 0], [false, true]⟩ := rfl
+example : programRun (addToProgram 2 0 1) ⟨[1, 0, 3], [true, false]⟩ =
+  ⟨[4, 0, 3], [true, false]⟩ := rfl
+example : ¬ ProgramWellFormed 3 (addToProgram 0 0 2) := by decide
+example : ¬ ProgramWellFormed 3 (addToProgram 0 1 0) := by decide
+
 example (pre post : List Word) (w : Word) (b : Bool) :
     Reaches (push pre.length b) (home 0 (pre ++ w :: post))
       (pushTime (pre ++ w :: post))
@@ -17,6 +41,31 @@ private def probe (m : Machine) : Nat → Config → Option Config
 private def result (slot : Nat) (b : Bool) (blocks : List Word) :=
   (probe (push slot b) (pushTime blocks + 1) (home 0 blocks)).map
     (fun c => (c.state, c.left, c.head, c.right))
+
+private def programResult (k : Nat) (p : Program) (x : Word) (st : State) :=
+  (probe (compileProgram k p) (programCost x p st + 1) (encode 0 x st)).map
+    (fun c => (c.state, c.left, c.head,
+      c.right.take (tape (blocks x (programRun p st))).length))
+set_option maxRecDepth 1024 in
+example : programResult 2 nestedProgram [] ⟨[1, 0], []⟩ =
+    some ((compileProgram 2 nestedProgram).program.length, [], .blank,
+      tape (blocks [] ⟨[0, 0], [true, false, true, false]⟩)) := by decide
+example : programResult 3 (addToProgram 0 1 2) [false] ⟨[1, 0, 1], [true]⟩ =
+    some ((compileProgram 3 (addToProgram 0 1 2)).program.length, [], .blank,
+      tape (blocks [false] ⟨[1, 1, 0], [true]⟩)) := by decide
+example : probe (compileProgram 3 (addToProgram 0 1 2))
+    (programCost [false] (addToProgram 0 1 2) ⟨[1, 0, 1], [true]⟩)
+    (encode 0 [false] ⟨[1, 0, 1], [true]⟩) = none := by decide
+example (x : Word) (k source dest scratch : Nat) (st : State)
+    (hk : st.regs.length = k) (hs : source < k) (hd : dest < k) (hc : scratch < k)
+    (hsd : source ≠ dest) (hsc : source ≠ scratch) :
+    programCost x (addToProgram source dest scratch) st ≤
+      copyPolynomial.eval (tape (blocks x st)).length :=
+  addToProgram_cost_polynomial x k source dest scratch st hk hs hd hc hsd hsc
+#print axioms compileProgram_reaches
+#print axioms addToProgram_registers
+#print axioms addToProgram_reaches
+#print axioms addToProgram_cost_polynomial
 
 example : result 0 true [[], [], []] =
   some (6, [], .blank, [.one, .separator, .separator, .separator]) := by decide
