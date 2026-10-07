@@ -264,6 +264,72 @@ theorem run_of_similar {m : Machine} {c d : Config} {t : Nat} {b : Bool}
     obtain ⟨d', hd', hsim⟩ := (similar_step h).2 _ hs
     exact Run.next hd' (ih hsim)
 
+/-- Charged non-halting computations also ignore trailing blanks. -/
+theorem reaches_of_similar {m : Machine} {c e : Config} {t : Nat}
+    (hr : Reaches m c t e) {d : Config} (h : Similar c d) :
+    ∃ f, Reaches m d t f ∧ Similar e f := by
+  induction hr generalizing d with
+  | refl => exact ⟨d, Reaches.refl d, h⟩
+  | next hs _ ih =>
+    obtain ⟨d', hd', hsim⟩ := (similar_step h).2 _ hs
+    obtain ⟨f, hf, he⟩ := ih hsim
+    exact ⟨f, Reaches.next hd' hf, he⟩
+
+theorem BlankPad.trans {r s u : List Symbol} (h : BlankPad r s)
+    (hs : BlankPad s u) : BlankPad r u := by
+  induction r generalizing s u with
+  | nil =>
+    obtain ⟨v, k, l, hnil, he⟩ := h
+    have hv : v = [] := (List.eq_nil_of_append_eq_nil hnil.symm).1
+    subst v
+    simp only [List.nil_append] at he
+    subst s
+    obtain ⟨v, k', l', hv, hu⟩ := hs
+    have hall : ∀ a ∈ v, a = .blank := by
+      intro a ha
+      have hm : a ∈ blanks l := by rw [hv]; exact List.mem_append_left _ ha
+      exact (List.mem_replicate.mp hm).2
+    have hv' : v = blanks v.length := by
+      apply List.ext_getElem
+      · simp [blanks]
+      · intro i hi hj
+        exact (hall _ (List.getElem_mem hi)).trans (by simp [blanks])
+    refine ⟨[], 0, v.length + l', by simp [blanks], ?_⟩
+    rw [hv'] at hu
+    simpa only [List.nil_append, blanks, List.replicate_append_replicate] using hu
+  | cons a r ih =>
+    cases s with
+    | nil =>
+      obtain ⟨ha, hr⟩ := h.symm.nil_cons
+      subst a
+      cases u with
+      | nil => exact h
+      | cons b u =>
+        obtain ⟨hb, hu⟩ := hs.nil_cons
+        subst b
+        exact (ih hr.symm hu).cons .blank
+    | cons b s =>
+      obtain ⟨hab, hrs⟩ := h.cons_cons
+      subst b
+      cases u with
+      | nil =>
+        obtain ⟨ha, hsu⟩ := hs.symm.nil_cons
+        subst a
+        have hrnil := ih hrs hsu.symm
+        obtain ⟨v, k, l, hr, hn⟩ := hrnil
+        have hv : v = [] := (List.eq_nil_of_append_eq_nil hn.symm).1
+        subst v
+        exact ⟨[], k+1, 0, by rw [hr]; simp only [List.nil_append, blanks, List.replicate_succ], by simp [blanks]⟩
+      | cons c u =>
+        obtain ⟨hbc, hsu⟩ := hs.cons_cons
+        subst c
+        exact (ih hrs hsu).cons a
+
+theorem Similar.trans {c d e : Config} (h : Similar c d) (hs : Similar d e) :
+    Similar c e :=
+  ⟨h.1.trans hs.1, h.2.1.trans hs.2.1, h.2.2.1.trans hs.2.2.1,
+    h.2.2.2.trans hs.2.2.2⟩
+
 /-! ## Instruction tables: missing rows, shifted tables and concatenation -/
 
 theorem instruction_of_length_le {m : Machine} {q : Nat} (a : Symbol)
@@ -375,6 +441,54 @@ theorem reaches_append_right {second : Machine} (first : Machine) {c d : Config}
       exact congrArg Sum.inr (moveHead_shift c _ q w dir)
 
 /-! ## Function-computing machines and reductions -/
+
+/-- Redirect exits while keeping all instruction rows at their original indices. -/
+def retargetInstruction (target : Nat → Nat) : Instruction → Instruction
+  | .halt b => .halt b
+  | .move q a dir => .move (target q) a dir
+
+def retargetMachine (m : Machine) (target : Nat → Nat) : Machine :=
+  ⟨m.program.map (List.map (retargetInstruction target))⟩
+
+def retargetConfig (target : Nat → Nat) (c : Config) : Config :=
+  ⟨target c.state, c.left, c.head, c.right⟩
+
+theorem retarget_instruction (m : Machine) (target : Nat → Nat) (q : Nat) (a : Symbol) :
+    (retargetMachine m target).instruction q a = retargetInstruction target (m.instruction q a) := by
+  simp only [retargetMachine, Machine.instruction, List.getElem?_map]
+  cases m.program[q]? with
+  | none => rfl
+  | some row =>
+    simp only [Option.map_some, Option.bind_some, List.getElem?_map]
+    cases row[a.index]? <;> rfl
+
+theorem retarget_moveHead (target : Nat → Nat) (c : Config) (q : Nat) (a : Symbol)
+    (dir : Direction) :
+    moveHead (retargetConfig target c) (target q) a dir =
+      retargetConfig target (moveHead c q a dir) := by
+  cases c with | mk s l h r => cases dir <;> cases l <;> cases r <;> rfl
+
+/-- A body can jump back to its controller at its exit without changing any
+charged internal step. This also handles blocks with two distinct exits. -/
+theorem retarget_reaches {m : Machine} {c d : Config} {t : Nat}
+    (hr : Reaches m c t d) (target : Nat → Nat)
+    (hi : ∀ q, q < m.program.length → target q = q) :
+    Reaches (retargetMachine m target) (retargetConfig target c) t
+      (retargetConfig target d) := by
+  induction hr with
+  | refl => exact Reaches.refl _
+  | @next c c' d t hs _ ih =>
+    apply Reaches.next _ ih
+    have hc := hi c.state (state_lt_of_step hs)
+    unfold step
+    simp only [retargetConfig, hc, retarget_instruction]
+    unfold step at hs
+    cases hin : m.instruction c.state c.head with
+    | halt b => rw [hin] at hs; cases hs
+    | move q a dir =>
+      rw [hin] at hs
+      cases hs
+      exact congrArg Sum.inr (retarget_moveHead target c q a dir)
 
 /-- `m` computes `f` within the polynomial `p`: from `initial x` it reaches,
 after at most `p(|x|)` steps, the state `m.program.length` just past its table,

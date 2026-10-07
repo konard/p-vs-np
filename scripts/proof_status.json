@@ -320,7 +320,13 @@
     {"source": "proofs/experiments/issue624/lean/Schema.lean", "theorem": "Issue624.Schema.transitionSchema_eq", "allowed_axioms": ["Quot.sound", "propext"]},
     {"source": "proofs/experiments/issue624/lean/Schema.lean", "theorem": "Issue624.Schema.tableauSchema", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue624/lean/CookLevin.lean", "theorem": "Issue624.CookLevin.tableauSchema_eq", "allowed_axioms": ["propext"]},
-    {"source": "proofs/experiments/issue624/lean/CookLevin.lean", "theorem": "Issue624.CookLevin.tableauCNF_fragments", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]}
+    {"source": "proofs/experiments/issue624/lean/CookLevin.lean", "theorem": "Issue624.CookLevin.tableauCNF_fragments", "allowed_axioms": ["Classical.choice", "Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue532/lean/Machines.lean", "theorem": "Issue532.Machines.reaches_of_similar", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue532/lean/Machines.lean", "theorem": "Issue532.Machines.BlankPad.trans", "allowed_axioms": ["Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue532/lean/Machines.lean", "theorem": "Issue532.Machines.Similar.trans", "allowed_axioms": ["Quot.sound", "propext"]},
+    {"source": "proofs/experiments/issue532/lean/Machines.lean", "theorem": "Issue532.Machines.retarget_instruction", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue532/lean/Machines.lean", "theorem": "Issue532.Machines.retarget_moveHead", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/lean/Machines.lean", "theorem": "Issue532.Machines.retarget_reaches", "allowed_axioms": ["Quot.sound", "propext"]}
   ],
   "rocq": [
     {"source": "proofs/complexity/rocq/Complexity.v", "theorem": "Complexity.pSubsetNP", "allowed_axioms": []},
@@ -643,6 +649,12 @@
     {"source": "proofs/experiments/issue624/rocq/Schema.v", "theorem": "Schema.transitionSchema_eq", "allowed_axioms": []},
     {"source": "proofs/experiments/issue624/rocq/Schema.v", "theorem": "Schema.tableauSchema", "allowed_axioms": []},
     {"source": "proofs/experiments/issue624/rocq/CookLevin.v", "theorem": "CookLevin.tableauSchema_eq", "allowed_axioms": []},
-    {"source": "proofs/experiments/issue624/rocq/CookLevin.v", "theorem": "CookLevin.tableauCNF_fragments", "allowed_axioms": []}
+    {"source": "proofs/experiments/issue624/rocq/CookLevin.v", "theorem": "CookLevin.tableauCNF_fragments", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Machines.v", "theorem": "Machines.reaches_of_similar", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Machines.v", "theorem": "Machines.blankPad_trans", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Machines.v", "theorem": "Machines.similar_trans", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Machines.v", "theorem": "Machines.retarget_instruction", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Machines.v", "theorem": "Machines.retarget_moveHead", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue532/rocq/Machines.v", "theorem": "Machines.retarget_reaches", "allowed_axioms": []}
   ]
 }

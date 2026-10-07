@@ -298,6 +298,54 @@ Proof.
     apply run_next with d'; auto.
 Qed.
 
+Theorem reaches_of_similar : forall m c e t, Reaches m c t e ->
+  forall d, Similar c d -> exists f, Reaches m d t f /\ Similar e f.
+Proof.
+  intros m c e t hr. induction hr as [c | c c' e t hs hr IH]; intros d h.
+  - exists d. split; [apply reaches_refl|exact h].
+  - destruct (proj2 (similar_step m c d h) c' hs) as [d' [hd' hsim]].
+    destruct (IH d' hsim) as [f [hf he]]. exists f. split; auto.
+    eapply reaches_next; eauto.
+Qed.
+
+Theorem blankPad_trans : forall r s u, BlankPad r s -> BlankPad s u -> BlankPad r u.
+Proof.
+  induction r as [|a r IH]; intros s u h hs.
+  - destruct h as [v [k [l [hn he]]]].
+    symmetry in hn. apply app_eq_nil in hn. destruct hn as [-> _]. cbn in he. subst s.
+    destruct hs as [v [k' [l' [hv hu]]]].
+    assert (hall : forall a, In a v -> a = blank).
+    { intros a ha. assert (In a (blanks l)) as hm.
+      { rewrite hv. apply in_or_app. left; exact ha. }
+      unfold blanks in hm. apply repeat_spec in hm. exact hm. }
+    assert (hv' : v = blanks (length v)).
+    { clear hv hu. induction v as [|a v IH']; [reflexivity|].
+      cbn [length]. unfold blanks. cbn [repeat]. f_equal.
+      - apply hall. left; reflexivity.
+      - apply IH'. intros b hb. apply hall. right; exact hb. }
+    exists [], 0, (length v+l'). cbn. split; [reflexivity|].
+    rewrite hv' in hu. rewrite hu. unfold blanks. symmetry. apply repeat_app.
+  - destruct s as [|b s].
+    + destruct (blankPad_nil_cons _ _ (blankPad_symm _ _ h)) as [-> hr].
+      destruct u as [|b u]; [exact h|].
+      destruct (blankPad_nil_cons _ _ hs) as [-> hu].
+      apply blankPad_cons. eapply IH; [apply blankPad_symm; exact hr|exact hu].
+    + destruct (blankPad_cons_cons _ _ _ _ h) as [-> hrs].
+      destruct u as [|c u].
+      * destruct (blankPad_nil_cons _ _ (blankPad_symm _ _ hs)) as [-> hsu].
+        destruct (IH s [] hrs (blankPad_symm _ _ hsu)) as [v [k [l [hr hn]]]].
+        symmetry in hn. apply app_eq_nil in hn. destruct hn as [-> _]. cbn in hr.
+        exists [], (S k), 0. cbn. split; [rewrite hr; reflexivity|reflexivity].
+      * destruct (blankPad_cons_cons _ _ _ _ hs) as [-> hsu].
+        apply blankPad_cons. eapply IH; eauto.
+Qed.
+
+Theorem similar_trans : forall c d e, Similar c d -> Similar d e -> Similar c e.
+Proof.
+  intros c d e [h1 [h2 [h3 h4]]] [s1 [s2 [s3 s4]]].
+  unfold Similar. repeat split; try congruence. eapply blankPad_trans; eauto.
+Qed.
+
 (** ** Instruction tables: missing rows, shifted tables and concatenation *)
 
 Theorem instruction_of_length_le : forall m q a,
@@ -415,6 +463,39 @@ Proof.
 Qed.
 
 (** ** Function-computing machines and reductions *)
+
+Definition retargetInstruction (target : nat -> nat) (i : Instruction) : Instruction :=
+  match i with halt b => halt b | move q a dir => move (target q) a dir end.
+Definition retargetMachine (m : Machine) (target : nat -> nat) : Machine :=
+  {| program := map (map (retargetInstruction target)) (program m) |}.
+Definition retargetConfig (target : nat -> nat) (c : Config) : Config :=
+  {| state := target (state c); tapeLeft := tapeLeft c;
+     tapeHead := tapeHead c; tapeRight := tapeRight c |}.
+
+Theorem retarget_instruction : forall m target q a,
+  instruction (retargetMachine m target) q a = retargetInstruction target (instruction m q a).
+Proof.
+  intros. unfold retargetMachine, instruction. cbn [program]. rewrite nth_error_map.
+  destruct (nth_error (program m) q) as [row|]; [|reflexivity].
+  cbn. rewrite nth_error_map. destruct (nth_error row (symbolIndex a)); reflexivity.
+Qed.
+Theorem retarget_moveHead : forall target c q a dir,
+  moveHead (retargetConfig target c) (target q) a dir =
+    retargetConfig target (moveHead c q a dir).
+Proof. intros target [s l h r] q a dir. destruct dir, l, r; reflexivity. Qed.
+Theorem retarget_reaches : forall m c d t, Reaches m c t d -> forall target,
+  (forall q, q < length (program m) -> target q = q) ->
+  Reaches (retargetMachine m target) (retargetConfig target c) t (retargetConfig target d).
+Proof.
+  intros m c d t hr. induction hr as [c|c c' d t hs hr IH]; intros target hi.
+  - apply reaches_refl.
+  - eapply reaches_next; [|apply IH; exact hi].
+    unfold step. cbn [retargetConfig state tapeHead].
+    rewrite hi by (eapply state_lt_of_step; exact hs). rewrite retarget_instruction.
+    unfold step in hs. destruct (instruction m (state c) (tapeHead c)) as [b|q a dir] eqn:hin;
+      [discriminate|]. injection hs as <-. cbn [retargetInstruction].
+    f_equal. apply retarget_moveHead.
+Qed.
 
 (** [m] computes [f] within the polynomial [p]: from [initial x] it reaches,
     after at most [p(|x|)] steps, the state [length (program m)] just past its
