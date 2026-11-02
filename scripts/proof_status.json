@@ -77,7 +77,20 @@
     {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_rejectAll_empty_clause", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_rejectAll_empty_cnf", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.rejectAll_defeated", "allowed_axioms": ["propext"]},
-    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_zero_clock", "allowed_axioms": ["propext"]}
+    {"source": "proofs/experiments/issue7/lean/ClockedSAT.lean", "theorem": "Issue7.ClockedSAT.clockCheck_zero_clock", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.pNotEqualsNP_of_eth", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.pNotEqualsNP_of_seth", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.not_eth_of_pEqualsNP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.not_seth_of_pEqualsNP", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.eth_iff_not_subexp3", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.not_seth_of_subexpAllK", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.ksatExpTime_exp_mono", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.subexpKSAT_of_logBudget", "allowed_axioms": ["propext", "Quot.sound"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.logBudget_not_polynomial", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.logBudget_gap", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.swap_eq_id_sub_singlet", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.singlet_sq", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.swap_sq", "allowed_axioms": ["propext"]}
   ],
   "rocq": [
     {"source": "proofs/complexity/rocq/Complexity.v", "theorem": "Complexity.pSubsetNP", "allowed_axioms": []},
@@ -157,6 +170,19 @@
     {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_rejectAll_empty_clause", "allowed_axioms": []},
     {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_rejectAll_empty_cnf", "allowed_axioms": []},
     {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.rejectAll_defeated", "allowed_axioms": []},
-    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_zero_clock", "allowed_axioms": []}
+    {"source": "proofs/experiments/issue7/rocq/ClockedSAT.v", "theorem": "ClockedSAT.clockCheck_zero_clock", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.pNotEqualsNP_of_eth", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.pNotEqualsNP_of_seth", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.not_eth_of_pEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.not_seth_of_pEqualsNP", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.eth_iff_not_subexp3", "allowed_axioms": ["Classical_Prop.classic"]},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.not_seth_of_subexpAllK", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.ksatExpTime_exp_mono", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.subexpKSAT_of_logBudget", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.logBudget_not_polynomial", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.logBudget_gap", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.swap_eq_id_sub_singlet", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.singlet_sq", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.swap_sq", "allowed_axioms": []}
   ]
 }

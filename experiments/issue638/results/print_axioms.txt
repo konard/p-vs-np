@@ -1,0 +1,11 @@
+'Issue638.ETH.pNotEqualsNP_of_eth' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue638.ETH.pNotEqualsNP_of_seth' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue638.ETH.eth_iff_not_subexp3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue638.ETH.not_seth_of_subexpAllK' depends on axioms: [propext]
+'Issue638.ETH.subexpKSAT_of_logBudget' depends on axioms: [propext, Quot.sound]
+'Issue638.ETH.logBudget_not_polynomial' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue638.ETH.logBudget_gap' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Issue638.ETH.swap_eq_id_sub_singlet' does not depend on any axioms
+'Issue638.ETH.swap_sq' depends on axioms: [propext]
+'Issue638.ETH.singlet_sq' depends on axioms: [propext]
+'Issue638.ETH.ksatExpTime_exp_mono' depends on axioms: [propext]

@@ -266,7 +266,8 @@ jobs:
           proofs.experiments.issue567.lean.ResidualKey \
           proofs.experiments.issue10.lean.NPNotSubsetP \
           proofs.experiments.issue8.lean.NPSubsetP \
-          proofs.experiments.issue7.lean.ClockedSAT
+          proofs.experiments.issue7.lean.ClockedSAT \
+          proofs.experiments.issue638.lean.ETH
         python3 scripts/check_proof_status.py --lean
 
   certified-rocq:
@@ -301,6 +302,7 @@ jobs:
           rocq compile -Q . '' proofs/experiments/issue10/rocq/NPNotSubsetP.v
           rocq compile -Q . '' proofs/experiments/issue8/rocq/NPSubsetP.v
           rocq compile -Q . '' proofs/experiments/issue7/rocq/ClockedSAT.v
+          rocq compile -Q . '' proofs/experiments/issue638/rocq/ETH.v
           python3 scripts/check_proof_status.py --rocq
     - name: Revert permissions
       if: always()
