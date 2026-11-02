@@ -1,0 +1,300 @@
+# Issue #638: independent re-verification of the AI-lab Lean developments on
+# the Exponential Time Hypothesis, run on GitHub runners rather than locally.
+#
+# Every upstream repository is pinned to the commit archived under
+# docs/case-studies/issue-638/sources/.  Each job first checks that the trusted
+# statement files at that commit are byte-identical to the archived copies, so
+# the case study and the checked statements cannot drift apart.
+#
+# * anthropic-eth        anthropics/formal-math eth/: full build, #print axioms,
+#                        and Comparator (with lean4export, nanoda and landrun)
+#                        through the upstream script .github/scripts/comparator-check.sh
+# * anthropic-3sum-apsp  the same for 3sum-apsp/ (same repository and commit)
+# * openai-statement     openai/math: elaborate only the trusted challenge
+#                        statement ComparatorChallenges/SubexponentialSAT.lean
+#                        against the pinned Mathlib (cheap; must pass)
+# * openai-full          openai/math: build OAI.Algorithms.SubexponentialSAT.Main
+#                        (about 4000 Lean files), print axioms, run Comparator.
+#                        Best effort: it may exceed the 6-hour limit of a
+#                        hosted runner, so it is continue-on-error and its
+#                        outcome is reported in the job summary.
+name: External Lean re-verification (issue 638)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/external-lean-reverification.yml'
+      - 'docs/case-studies/issue-638/sources/**'
+  schedule:
+    # Weekly, so that a pinned upstream build that stops working is noticed.
+    - cron: '17 4 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-lean-reverification-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ANTHROPIC_REPO: https://github.com/anthropics/formal-math.git
+  ANTHROPIC_COMMIT: 16a5ce41304fcdaea4e0be7c132e1c361dc26da5
+  OPENAI_REPO: https://github.com/openai/math.git
+  OPENAI_COMMIT: 4eaee87548250b2682affda7d05d947c05554bae
+  OPENAI_MATHLIB: d13f23b723b8a846827a245b89c10fc7d3f11612
+  ELAN_INIT: https://raw.githubusercontent.com/leanprover/elan/v4.2.3/elan-init.sh
+  ARCHIVE: docs/case-studies/issue-638/sources
+
+jobs:
+  anthropic:
+    name: anthropic-${{ matrix.project }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: eth
+            archive: anthropic-formal-math-eth
+            trusted: MainResults.lean Challenge.lean comparator.json lakefile.toml lean-toolchain
+          - project: 3sum-apsp
+            archive: anthropic-formal-math-3sum-apsp
+            trusted: EndStatement.lean comparator-endstatement.json comparator-paperstatements.json lakefile.toml lean-toolchain
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch anthropics/formal-math at the pinned commit
+        run: |
+          git init -q upstream
+          git -C upstream remote add origin "$ANTHROPIC_REPO"
+          git -C upstream fetch -q --depth 1 origin "$ANTHROPIC_COMMIT"
+          git -C upstream checkout -q --detach FETCH_HEAD
+          test "$(git -C upstream rev-parse HEAD)" = "$ANTHROPIC_COMMIT"
+
+      - name: Trusted files match the archived copies
+        run: |
+          for f in ${{ matrix.trusted }}; do
+            diff -u "$ARCHIVE/${{ matrix.archive }}/$f" "upstream/${{ matrix.project }}/$f"
+            echo "identical: ${{ matrix.project }}/$f"
+          done
+
+      - name: Install elan
+        run: |
+          curl -sSfL "$ELAN_INIT" | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch the Mathlib cache
+        working-directory: upstream/${{ matrix.project }}
+        run: |
+          lean --version
+          lake exe cache get
+
+      - name: Build the project
+        working-directory: upstream/${{ matrix.project }}
+        run: lake build 2>&1 | tee "$RUNNER_TEMP/build.log" | tail -n 40
+
+      - name: Print axioms
+        working-directory: upstream/${{ matrix.project }}
+        run: |
+          lake env lean scripts/PrintAxioms.lean | tee "$RUNNER_TEMP/axioms.log"
+          # Only the three standard axioms may appear, never sorryAx.
+          if grep -E "sorryAx" "$RUNNER_TEMP/axioms.log"; then
+            echo "::error::sorryAx in ${{ matrix.project }}"; exit 1
+          fi
+          leftover="$(grep -oE "\[[^]]*\]" "$RUNNER_TEMP/axioms.log" | tr -d '[] ' | tr ',' '\n' \
+            | grep -vxE 'propext|Quot.sound|Classical.choice|' || true)"
+          if [ -n "$leftover" ]; then
+            echo "::error::non-standard axioms: $leftover"; exit 1
+          fi
+
+      - name: Comparator (lean4export + nanoda + landrun)
+        working-directory: upstream/${{ matrix.project }}
+        env:
+          LOG_DIR: ${{ runner.temp }}/comparator-logs
+        run: bash ../.github/scripts/comparator-check.sh
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### anthropics/formal-math ${{ matrix.project }} @ $ANTHROPIC_COMMIT"
+            echo '```'
+            cat "$RUNNER_TEMP/axioms.log" 2>/dev/null || echo "(no axioms log)"
+            grep -h -E "Your solution is okay!|error" "$RUNNER_TEMP"/comparator-logs/*.log 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anthropic-${{ matrix.project }}-logs
+          path: |
+            ${{ runner.temp }}/*.log
+            ${{ runner.temp }}/comparator-logs/
+          if-no-files-found: ignore
+
+  openai-statement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch openai/math at the pinned commit
+        run: |
+          git init -q upstream
+          git -C upstream remote add origin "$OPENAI_REPO"
+          git -C upstream fetch -q --depth 1 origin "$OPENAI_COMMIT"
+          git -C upstream checkout -q --detach FETCH_HEAD
+          test "$(git -C upstream rev-parse HEAD)" = "$OPENAI_COMMIT"
+
+      - name: Trusted files match the archived copies
+        run: |
+          for f in ComparatorChallenges/SubexponentialSAT.lean ComparatorChallenges/SubexponentialSAT.json; do
+            diff -u "$ARCHIVE/openai-math/lean/$f" "upstream/lean/$f"
+            echo "identical: lean/$f"
+          done
+          grep -qx 'leanprover/lean4:v4.34.1' upstream/lean/lean-toolchain
+          grep -q "\"rev\": \"$OPENAI_MATHLIB\"" upstream/lean/lake-manifest.json
+
+      - name: Install elan
+        run: |
+          curl -sSfL "$ELAN_INIT" | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Elaborate the challenge statement against the pinned Mathlib
+        run: |
+          mkdir -p stmt/ComparatorChallenges
+          cp upstream/lean/lean-toolchain stmt/
+          cp upstream/lean/ComparatorChallenges/SubexponentialSAT.lean stmt/ComparatorChallenges/
+          cat > stmt/lakefile.toml <<EOF
+          name = "stmt"
+
+          [[require]]
+          name = "mathlib"
+          git = "https://github.com/leanprover-community/mathlib4"
+          rev = "$OPENAI_MATHLIB"
+
+          [[lean_lib]]
+          name = "ComparatorChallenges"
+          globs = ["ComparatorChallenges.SubexponentialSAT"]
+          EOF
+          cat > stmt/Check.lean <<'EOF'
+          import ComparatorChallenges.SubexponentialSAT
+          #check @OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat
+          #print axioms OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat
+          EOF
+          cd stmt
+          lake update
+          lake exe cache get
+          lake build ComparatorChallenges.SubexponentialSAT 2>&1 | tee "$RUNNER_TEMP/statement.log"
+          lake env lean Check.lean 2>&1 | tee -a "$RUNNER_TEMP/statement.log"
+          # The challenge is a statement with `sorry` and nothing else.
+          grep -q "sorryAx" "$RUNNER_TEMP/statement.log"
+          test "$(grep -c "declaration uses 'sorry'" "$RUNNER_TEMP/statement.log")" -ge 1
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### openai/math challenge statement @ $OPENAI_COMMIT"
+            echo '```'
+            cat "$RUNNER_TEMP/statement.log" 2>/dev/null | tail -n 60
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  openai-full:
+    runs-on: ubuntu-latest
+    # Best effort: the solution has about 4000 Lean files and may not finish
+    # within the 6-hour limit of a hosted runner.  A failure or time-out here is
+    # reported as "blocked" in the case study, not as a refutation.
+    continue-on-error: true
+    timeout-minutes: 350
+    needs: openai-statement
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+          df -h /
+
+      - name: Raise vm.max_map_count (see openai/math lean/README.md)
+        run: sudo sysctl -w vm.max_map_count=1048576
+
+      - name: Fetch openai/math at the pinned commit
+        run: |
+          git init -q upstream
+          git -C upstream remote add origin "$OPENAI_REPO"
+          git -C upstream fetch -q --depth 1 origin "$OPENAI_COMMIT"
+          git -C upstream checkout -q --detach FETCH_HEAD
+          test "$(git -C upstream rev-parse HEAD)" = "$OPENAI_COMMIT"
+          find upstream/lean/OAI/Algorithms/SubexponentialSAT -name '*.lean' | wc -l
+
+      - name: Install elan
+        run: |
+          curl -sSfL "$ELAN_INIT" | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch dependencies and the Mathlib cache
+        working-directory: upstream/lean
+        run: |
+          lean --version
+          lake exe cache get
+          df -h /
+
+      - name: Build the SubexponentialSAT solution
+        working-directory: upstream/lean
+        timeout-minutes: 300
+        env:
+          GLIBC_TUNABLES: glibc.malloc.mmap_max=0:glibc.malloc.arena_max=1
+        run: |
+          lake build OAI.Algorithms.SubexponentialSAT.Main 2>&1 \
+            | tee "$RUNNER_TEMP/openai-build.log" | grep -vE '^(✔|ℹ)' | tail -n 80
+
+      - name: Print axioms
+        working-directory: upstream/lean
+        run: |
+          cat > "$RUNNER_TEMP/PrintAxioms.lean" <<'EOF'
+          import OAI.Algorithms.SubexponentialSAT.Main
+          #print axioms OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat
+          EOF
+          lake env lean "$RUNNER_TEMP/PrintAxioms.lean" | tee "$RUNNER_TEMP/openai-axioms.log"
+          ! grep -q sorryAx "$RUNNER_TEMP/openai-axioms.log"
+
+      - name: Comparator (lean4export + nanoda + landrun)
+        working-directory: upstream/lean
+        env:
+          LOG_DIR: ${{ runner.temp }}/comparator-logs
+        run: |
+          git init -q "$RUNNER_TEMP/anthropic"
+          git -C "$RUNNER_TEMP/anthropic" remote add origin "$ANTHROPIC_REPO"
+          git -C "$RUNNER_TEMP/anthropic" fetch -q --depth 1 origin "$ANTHROPIC_COMMIT"
+          git -C "$RUNNER_TEMP/anthropic" checkout -q --detach FETCH_HEAD
+          # The upstream script looks for comparator*.json next to the lakefile;
+          # it forces enable_nanoda=true, which OpenAI's own config leaves off.
+          cp ComparatorChallenges/SubexponentialSAT.json comparator-subexponentialsat.json
+          bash "$RUNNER_TEMP/anthropic/.github/scripts/comparator-check.sh"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### openai/math SubexponentialSAT full build @ $OPENAI_COMMIT"
+            echo '```'
+            grep -E "^(error|✖)|Build completed|build failed" "$RUNNER_TEMP/openai-build.log" 2>/dev/null | tail -n 20 || echo "(no build log)"
+            cat "$RUNNER_TEMP/openai-axioms.log" 2>/dev/null || echo "(no axioms log)"
+            grep -h -E "Your solution is okay!" "$RUNNER_TEMP"/comparator-logs/*.log 2>/dev/null || echo "(comparator did not accept or did not run)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openai-full-logs
+          path: |
+            ${{ runner.temp }}/*.log
+            ${{ runner.temp }}/comparator-logs/
+          if-no-files-found: ignore
