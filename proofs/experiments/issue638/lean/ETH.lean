@@ -27,17 +27,35 @@ how they relate to `P = NP`:
 * `ksatExpTime_width_mono`, `ksatExpTime_exp_mono`: k-SAT time is monotone in k
   and in δ.
 * `SubexpKSAT`, `SubexpAllK`, `not_eth_of_subexp3`, `eth_iff_not_subexp3`,
-  `not_seth_of_subexpAllK`: the shape of the October 2026 claims (k-SAT in
-  `O*(2^{δn})` for every `δ > 0`) refutes ETH, and for every k also SETH.
+  `not_seth_of_subexpAllK`: unfoldings of the definitions. The named
+  hypothesis "k-SAT in `O*(2^{δn})` for every `δ > 0`" contradicts ETH, and
+  for every k also SETH. These results do not prove the hypothesis. The labs'
+  theorems are about other machine models and are not transported here (P8).
 * `logBudget`, `logBudget_le`, `subexpKSAT_of_logBudget`, `logBudget_not_polynomial`:
   the budget `2^{⌊n/(⌊log₂ n⌋+1)⌋}` is at most `2^{2^d}·2^{n/d}` for every
   `d > 0`, so a k-SAT algorithm in this budget gives `SubexpKSAT k`. The budget
-  is not polynomially bounded. The labs' bounds `2^{c·n·loglog n/√log n}` are at
-  least this budget for every `c ≥ 1` and every large n. A refutation of ETH
-  therefore does not by its bound give `SAT ∈ P`, and nothing here derives
-  `P = NP` from `¬ ETH`.
-* `swap_eq_id_sub_singlet`, `singlet_sq`, `swap_sq`: the one-bit algebra of
-  Anthropic's key idea, SWAP = I − 2·singlet, over the integers.
+  is not polynomially bounded. (Informal remark, not proved here: the labs'
+  bounds `2^{c·n·loglog n/√log n}` are at least this budget for every `c ≥ 1`
+  and every large n.) So a subexponential *upper bound* does not by itself give
+  `SAT ∈ P`. Nothing here derives `P = NP` from `¬ ETH`, and nothing here
+  refutes that implication either: whether `¬ ETH` implies `P = NP` is open.
+* `eightSquare`, `eightSquare_cancel`: the eight-square identity (Degen 1818,
+  Graves 1843) in the 12-bit form that Anthropic's paper uses (`eth/paper.pdf`
+  at `16a5ce4`, §2.4 eq. (12), and its consequence eq. (28) in §4), checked by
+  `decide` at all 4096 settings.
+* `swap_eq_id_sub_singlet`, `singlet_sq`, `swap_sq`: the textbook 4×4 fact
+  SWAP = I − 2·P₋ over the integers. It is the identity of the condensed hint
+  in the upstream `eth/README.md`, not the identity of the paper. It is not
+  evidence about the published algorithm.
+
+Model notes.
+* `n = numVars φ` is the largest variable index plus one, not the number of
+  variables that occur. Renaming variables costs time polynomial in `|x|`, so
+  this does not change ETH or SETH.
+* `Complexity.Machine` is a single-tape machine. `ETH` is robust to this choice
+  because `δ` is quantified. `SETH` here may be *weaker* than the usual RAM
+  form: a `2^{(1−ε)n}` RAM algorithm can cost about `2^{2(1−ε)n}` steps on one
+  tape, so it need not refute this `SETH`. The theorems below are unaffected.
 
 What is not proved: the sparsification lemma, and hence "SETH implies ETH", and
 any simulation between `Complexity.Machine` and the labs' machine models. The
@@ -158,12 +176,16 @@ theorem pNotEqualsNP_of_seth (h : SETH) : PNotEqualsNP :=
 /-- k-SAT in time `O*(2^{δn})` for every `δ = 1/d > 0`. -/
 def SubexpKSAT (k : Nat) : Prop := ∀ d, 0 < d → KSATExpTime k 1 d
 
-/-- The claims of both labs, transported to this model: `SubexpKSAT k` for every k. -/
+/-- A named hypothesis: `SubexpKSAT k` for every k. It has the shape of both labs'
+claims, but their theorems are about other machine models and are not
+transported to `Complexity.Machine` here (P8 in the case study). -/
 def SubexpAllK : Prop := ∀ k, SubexpKSAT k
 
+/-- Unfolds the definitions: `SubexpKSAT 3` contradicts ETH. -/
 theorem not_eth_of_subexp3 (h : SubexpKSAT 3) : ¬ ETH :=
   fun ⟨d, hd, hn⟩ => hn (h d hd)
 
+/-- Unfolds the definitions: ETH is the negation of `SubexpKSAT 3`. -/
 theorem eth_iff_not_subexp3 : ETH ↔ ¬ SubexpKSAT 3 := by
   constructor
   · exact fun he hs => not_eth_of_subexp3 hs he
@@ -176,7 +198,7 @@ theorem eth_iff_not_subexp3 : ETH ↔ ¬ SubexpKSAT 3 := by
     intro hk
     exact hne ⟨d, hd, hk⟩
 
-/-- For every k at once, the claims also refute SETH (take `ε = 1/2`). -/
+/-- Unfolds the definitions: `SubexpAllK` contradicts SETH (take `ε = 1/2`). -/
 theorem not_seth_of_subexpAllK (h : SubexpAllK) : ¬ SETH := by
   intro hs
   obtain ⟨k, hk⟩ := hs 2 (by decide)
@@ -188,7 +210,8 @@ theorem subexpKSAT_width_mono {k k' : Nat} (hk : k ≤ k') (h : SubexpKSAT k') :
 
 /-! ## A subexponential budget that is not polynomial -/
 
-/-- `2^{⌊n/(⌊log₂ n⌋+1)⌋}`, below the labs' bounds `2^{c·n·loglog n/√log n}` (`c ≥ 1`, large n). -/
+/-- `2^{⌊n/(⌊log₂ n⌋+1)⌋}`. Informally (not proved here), it is below the labs'
+bounds `2^{c·n·loglog n/√log n}` for `c ≥ 1` and large n. -/
 def logBudget (n : Nat) : Nat := 2 ^ (n / (Nat.log2 n + 1))
 
 /-- For every `d > 0`: `logBudget n ≤ 2^{2^d} · 2^{n/d}` for all n. -/
@@ -240,7 +263,8 @@ theorem not_seth_of_logBudget
 theorem logBudget_two_pow (m : Nat) : logBudget (2 ^ m) = 2 ^ (2 ^ m / (m + 1)) := by
   simp [logBudget, Nat.log2_two_pow]
 
-/-- The budget is not polynomially bounded: a subexponential bound does not give `SAT ∈ P`. -/
+/-- The budget is not polynomially bounded: a subexponential upper bound does not by
+itself give `SAT ∈ P`. This is a fact about one function, not about machines or ETH. -/
 theorem logBudget_not_polynomial : ¬ PolynomiallyBounded logBudget := by
   rintro ⟨a, k, h⟩
   obtain ⟨N, hN⟩ := Issue532.Idea41.poly_le_two_pow (k + a) 2
@@ -278,7 +302,54 @@ theorem logBudget_gap :
       ¬ PolynomiallyBounded logBudget :=
   ⟨fun d hd => ⟨2 ^ (2 ^ d), fun n => logBudget_le d n hd⟩, logBudget_not_polynomial⟩
 
-/-! ## The one-bit algebra of Anthropic's key idea -/
+/-! ## The eight-square identity of Anthropic's paper
+
+`eth/paper.pdf` at `16a5ce4`, §2.4: for blocks `p, q ∈ {0,1}³` let
+`σ(p,q) = (−1)^{ϕ(p,q)}` with
+`ϕ(p,q) = ∑_{i ≤ j} p_i q_j + q₁p₂p₃ + p₁q₂p₃ + p₁p₂q₃`. A block is a number
+below 8, and bit `i − 1` of it is `p_i`. Lemma 2 of the paper starts from this
+identity. These theorems check the identity only. They do not check Lemma 2,
+the `11/12` gain, or the algorithm.
+-/
+
+/-- Bit `k` of `p`. -/
+def bit (p k : Nat) : Nat := p / 2 ^ k % 2
+
+/-- `ϕ(p,q)` of the paper, before reduction modulo 2. -/
+def phi (p q : Nat) : Nat :=
+  bit p 0 * bit q 0 + bit p 0 * bit q 1 + bit p 0 * bit q 2 +
+  bit p 1 * bit q 1 + bit p 1 * bit q 2 + bit p 2 * bit q 2 +
+  bit q 0 * bit p 1 * bit p 2 + bit p 0 * bit q 1 * bit p 2 + bit p 0 * bit p 1 * bit q 2
+
+/-- `σ(p,q) = (−1)^{ϕ(p,q)}`. -/
+def sigma (p q : Nat) : Int := if phi p q % 2 = 0 then 1 else -1
+
+/-- The indicator `[b]` as an integer. -/
+def ind (b : Prop) [Decidable b] : Int := if b then 1 else 0
+
+/-- Eq. (12) of the paper: for all `x, y, u, v ∈ {0,1}³`,
+`2·[x = v]·[y = u] = [x ⊕ y ⊕ u ⊕ v = 0]·(σ(x,y)σ(v,u) + σ(x,u)σ(v,y))`.
+Checked at all 4096 settings. -/
+theorem eightSquare : ∀ x y u v : Fin 8,
+    2 * ind (x = v) * ind (y = u) =
+      ind (x.val ^^^ y.val ^^^ u.val ^^^ v.val = 0) *
+        (sigma x y * sigma v u + sigma x u * sigma v y) := by
+  decide
+
+/-- Eq. (28) of the paper: if `p ⊕ q = p' ⊕ q'` and `q ≠ q'`, then
+`σ(p,q)σ(p',q') + σ(p,q')σ(p',q) = 0`. -/
+theorem eightSquare_cancel : ∀ p q p' q' : Fin 8,
+    p.val ^^^ q.val = p'.val ^^^ q'.val → q ≠ q' →
+      sigma p q * sigma p' q' + sigma p q' * sigma p' q = 0 := by
+  decide
+
+/-! ## The textbook SWAP identity of the upstream README's condensed hint
+
+`eth/README.md` gives a "condensed form" of the idea in terms of
+SWAP = I − 2·singlet and a `12^λ` rank bound. The paper is built on the
+eight-square identity above instead. The 4×4 identity below is a standard
+fact and is kept as a check of that hint only.
+-/
 
 /-- Basis index `2a + b` for the two bits `(a, b)`. -/
 def swapM (i j : Fin 4) : Int :=

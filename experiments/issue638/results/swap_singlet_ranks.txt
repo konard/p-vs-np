@@ -1,20 +1,20 @@
 one-bit identity SWAP = I - 2*singlet: holds
-lambda=1 j=0: row rank 4, column rank 1, product 4 (12^lambda = 12)
-lambda=1 j=1: row rank 1, column rank 4, product 4 (12^lambda = 12)
+lambda=1 j=0: row rank over Q 4, column rank over Q 1, product 4 (12^lambda = 12)
+lambda=1 j=1: row rank over Q 1, column rank over Q 4, product 4 (12^lambda = 12)
 lambda=1: sum_j (-1)^j O_j = SWAP: holds; max product 4 <= 12^lambda: holds
-lambda=2 j=0: row rank 16, column rank 1, product 16 (12^lambda = 144)
-lambda=2 j=1: row rank 7, column rank 7, product 49 (12^lambda = 144)
-lambda=2 j=2: row rank 1, column rank 16, product 16 (12^lambda = 144)
+lambda=2 j=0: row rank over Q 16, column rank over Q 1, product 16 (12^lambda = 144)
+lambda=2 j=1: row rank over Q 7, column rank over Q 7, product 49 (12^lambda = 144)
+lambda=2 j=2: row rank over Q 1, column rank over Q 16, product 16 (12^lambda = 144)
 lambda=2: sum_j (-1)^j O_j = SWAP: holds; max product 49 <= 12^lambda: holds
-lambda=3 j=0: row rank 64, column rank 1, product 64 (12^lambda = 1728)
-lambda=3 j=1: row rank 37, column rank 10, product 370 (12^lambda = 1728)
-lambda=3 j=2: row rank 10, column rank 37, product 370 (12^lambda = 1728)
-lambda=3 j=3: row rank 1, column rank 64, product 64 (12^lambda = 1728)
+lambda=3 j=0: row rank over Q 64, column rank over Q 1, product 64 (12^lambda = 1728)
+lambda=3 j=1: row rank over Q 37, column rank over Q 10, product 370 (12^lambda = 1728)
+lambda=3 j=2: row rank over Q 10, column rank over Q 37, product 370 (12^lambda = 1728)
+lambda=3 j=3: row rank over Q 1, column rank over Q 64, product 64 (12^lambda = 1728)
 lambda=3: sum_j (-1)^j O_j = SWAP: holds; max product 370 <= 12^lambda: holds
-lambda=4 j=0: row rank 256, column rank 1, product 256 (12^lambda = 20736)
-lambda=4 j=1: row rank 175, column rank 13, product 2275 (12^lambda = 20736)
-lambda=4 j=2: row rank 67, column rank 67, product 4489 (12^lambda = 20736)
-lambda=4 j=3: row rank 13, column rank 175, product 2275 (12^lambda = 20736)
-lambda=4 j=4: row rank 1, column rank 256, product 256 (12^lambda = 20736)
+lambda=4 j=0: row rank over Q 256, column rank over Q 1, product 256 (12^lambda = 20736)
+lambda=4 j=1: row rank over Q 175, column rank over Q 13, product 2275 (12^lambda = 20736)
+lambda=4 j=2: row rank over Q 67, column rank over Q 67, product 4489 (12^lambda = 20736)
+lambda=4 j=3: row rank over Q 13, column rank over Q 175, product 2275 (12^lambda = 20736)
+lambda=4 j=4: row rank over Q 1, column rank over Q 256, product 256 (12^lambda = 20736)
 lambda=4: sum_j (-1)^j O_j = SWAP: holds; max product 4489 <= 12^lambda: holds
 RESULT: all checks hold

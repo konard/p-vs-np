@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-"""Issue #638: numeric check of the rank step in Anthropic's ETH key idea.
+"""Issue #638: numeric check of the rank step in the upstream README's condensed hint.
 
-The condensed key idea in anthropics/formal-math eth/README.md says:
+This is NOT the identity of Anthropic's paper.  The paper (eth/paper.pdf at
+16a5ce4, section 2.4, Lemma 2, Appendix F) is built on the eight-square
+identity, eq. (12), which proofs/experiments/issue638/{lean/ETH.lean,
+rocq/ETH.v} check at all 4096 settings (`eightSquare`).  The condensed hint
+in anthropics/formal-math eth/README.md says:
 
     Put the nodes on a grid: the two diagonals of each rectangle form a swap.
     Per bit, SWAP = I - 2*singlet; grouping by the number of singlets gives
@@ -24,9 +28,10 @@ so SWAP = I - 2*singlet.  For lambda bits, SWAP^{(x)lambda} = sum_j (-1)^j O_j
 where O_j is the sum over all j-subsets T of the product with 2*singlet on T
 and I elsewhere.
 
-Ranks are computed exactly modulo two large primes (pure Python, no numpy).
-The rank over Q is at least the rank modulo p; for these 0/+-1 tensors the
-two primes agree, which is the expected case.
+Ranks are computed exactly over Q, by fraction-free (Bareiss) elimination on
+integer matrices, in pure Python.  Every Bareiss division is checked to be
+exact.  As a cross-check, the ranks modulo two large primes are also computed;
+they are lower bounds for the rank over Q and must not exceed it.
 
 Usage: python3 -I experiments/issue638/swap_singlet_ranks.py [max_lambda]
 """
@@ -90,6 +95,33 @@ def rank_mod_p(rows, p):
     return rank
 
 
+def rank_exact(rows):
+    """Rank over Q by fraction-free Gaussian elimination (Bareiss)."""
+    m = [list(r) for r in rows]
+    nrows, ncols = len(m), len(m[0]) if m else 0
+    rank, prev = 0, 1
+    for col in range(ncols):
+        piv = next((r for r in range(rank, nrows) if m[r][col]), None)
+        if piv is None:
+            continue
+        m[rank], m[piv] = m[piv], m[rank]
+        p = m[rank][col]
+        for r in range(rank + 1, nrows):
+            f = m[r][col]
+            row = m[r]
+            new = []
+            for x, y in zip(row, m[rank]):
+                num = p * x - f * y
+                q, rem = divmod(num, prev)
+                if rem:
+                    raise ArithmeticError("Bareiss division not exact")
+                new.append(q)
+            m[r] = new
+        prev = p
+        rank += 1
+    return rank
+
+
 def ranks(lam, j):
     idx = list(itertools.product((0, 1), repeat=lam))
     cache = {}
@@ -99,12 +131,12 @@ def ranks(lam, j):
     row_mat = [[cache[(a, b, c, d)] for c in idx for d in idx] for a in idx for b in idx]
     # column cut {A,C} | {B,D}
     col_mat = [[cache[(a, b, c, d)] for b in idx for d in idx] for a in idx for c in idx]
-    out = []
+    exact = (rank_exact(row_mat), rank_exact(col_mat))
     for p in PRIMES:
-        out.append((rank_mod_p(row_mat, p), rank_mod_p(col_mat, p)))
-    if out[0] != out[1]:
-        raise RuntimeError(f"ranks differ between primes: {out}")
-    return out[0], cache
+        mod = (rank_mod_p(row_mat, p), rank_mod_p(col_mat, p))
+        if mod[0] > exact[0] or mod[1] > exact[1]:
+            raise RuntimeError(f"rank mod {p} exceeds the rank over Q: {mod} > {exact}")
+    return exact, cache
 
 
 def main():
@@ -121,7 +153,8 @@ def main():
             worst = max(worst, r * c)
             for key, val in cache.items():
                 swap_sum[key] = swap_sum.get(key, 0) + (-1) ** j * val
-            print(f"lambda={lam} j={j}: row rank {r}, column rank {c}, product {r * c}"
+            print(f"lambda={lam} j={j}: row rank over Q {r}, column rank over Q {c},"
+                  f" product {r * c}"
                   f" (12^lambda = {12 ** lam})")
         expansion = all(
             swap_sum[(a, b, c, d)] == int(a == d and b == c)

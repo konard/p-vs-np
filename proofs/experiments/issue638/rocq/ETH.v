@@ -13,13 +13,25 @@
 
     - [pNotEqualsNP_of_eth] and [pNotEqualsNP_of_seth]: P = NP refutes ETH
       and SETH, using the proved [SATVerifier.satInNP];
-    - [eth_iff_not_subexp3] and [not_seth_of_subexpAllK]: the shape of the
-      October 2026 claims refutes ETH and SETH;
+    - [eth_iff_not_subexp3] and [not_seth_of_subexpAllK]: unfoldings of the
+      definitions. The named hypothesis [SubexpKSAT 3] contradicts ETH, and
+      [SubexpAllK] contradicts SETH. The labs' theorems are about other
+      machine models and are not transported here (P8);
     - [subexpKSAT_of_logBudget] and [logBudget_not_polynomial]: the budget
       [2^{n / (log2 n + 1)}] is subexponential but not polynomially bounded,
-      so refuting ETH does not by itself give [InP SAT];
-    - [swap_eq_id_sub_singlet], [singlet_sq], [swap_sq]: the one-bit algebra
-      SWAP = I - 2 * singlet behind Anthropic's key idea.
+      so a subexponential upper bound does not by itself give [InP SAT].
+      Whether not-ETH implies P = NP is open; nothing here decides it;
+    - [eightSquare] and [eightSquare_cancel]: the eight-square identity
+      (Degen 1818, Graves 1843) in the 12-bit form of Anthropic's paper
+      ([eth/paper.pdf] at [16a5ce4], eq. (12) and eq. (28)), checked at all
+      4096 settings;
+    - [swap_eq_id_sub_singlet], [singlet_sq], [swap_sq]: the textbook fact
+      SWAP = I - 2 * singlet. It is the identity of the condensed hint in the
+      upstream [eth/README.md], not the identity of the paper.
+
+    Model notes: [numVars] is the largest variable index plus one. [Machine]
+    has one tape, so [SETH] here may be weaker than the usual RAM form; ETH
+    is robust because delta is quantified.
 
     Not proved here: the sparsification lemma (SETH -> ETH) and any
     simulation between [Machine] and the labs' machine models. *)
@@ -251,9 +263,87 @@ Proof.
   intros d hd. exists (2 ^ (2 ^ d)). intro n. exact (logBudget_le d n hd).
 Qed.
 
-(** ** The one-bit algebra of Anthropic's key idea *)
+(** ** The eight-square identity of Anthropic's paper
+
+    [eth/paper.pdf] at [16a5ce4], section 2.4: for blocks [p, q] in
+    [{0,1}^3], [sigma(p,q) = (-1)^{phi(p,q)}] with
+    [phi(p,q) = sum_{i <= j} p_i q_j + q1 p2 p3 + p1 q2 p3 + p1 p2 q3].
+    A block is a number below 8, and bit [i - 1] of it is [p_i]. These
+    theorems check the identity only, not Lemma 2 or the algorithm. *)
 
 Open Scope Z_scope.
+
+Definition bit (p k : nat) : nat := (p / 2 ^ k) mod 2.
+
+Definition phi (p q : nat) : nat :=
+  (bit p 0 * bit q 0 + bit p 0 * bit q 1 + bit p 0 * bit q 2 +
+   bit p 1 * bit q 1 + bit p 1 * bit q 2 + bit p 2 * bit q 2 +
+   bit q 0 * bit p 1 * bit p 2 + bit p 0 * bit q 1 * bit p 2 +
+   bit p 0 * bit p 1 * bit q 2)%nat.
+
+Definition sigma (p q : nat) : Z := if Nat.even (phi p q) then 1 else -1.
+
+Definition ind (b : bool) : Z := if b then 1 else 0.
+
+Definition xor4 (x y u v : nat) : nat := Nat.lxor (Nat.lxor (Nat.lxor x y) u) v.
+
+Definition below8 (f : nat -> bool) : bool := forallb f (seq 0 8).
+
+Lemma below8_spec : forall f, below8 f = true -> forall i, (i < 8)%nat -> f i = true.
+Proof.
+  intros f h i hi. unfold below8 in h. rewrite forallb_forall in h.
+  apply h. apply in_seq. lia.
+Qed.
+
+Definition eightSquare_at (x y u v : nat) : bool :=
+  Z.eqb (2 * ind (Nat.eqb x v) * ind (Nat.eqb y u))
+        (ind (Nat.eqb (xor4 x y u v) 0) * (sigma x y * sigma v u + sigma x u * sigma v y)).
+
+Definition eightSquare_cancel_at (p q p' q' : nat) : bool :=
+  implb (Nat.eqb (Nat.lxor p q) (Nat.lxor p' q') && negb (Nat.eqb q q'))
+        (Z.eqb (sigma p q * sigma p' q' + sigma p q' * sigma p' q) 0).
+
+Lemma eightSquare_all : below8 (fun x => below8 (fun y => below8 (fun u =>
+  below8 (fun v => eightSquare_at x y u v)))) = true.
+Proof. vm_compute. reflexivity. Qed.
+
+Lemma eightSquare_cancel_all : below8 (fun p => below8 (fun q => below8 (fun p' =>
+  below8 (fun q' => eightSquare_cancel_at p q p' q')))) = true.
+Proof. vm_compute. reflexivity. Qed.
+
+(** Eq. (12) of the paper:
+    [2 [x = v] [y = u] = [x xor y xor u xor v = 0] (sigma(x,y) sigma(v,u) + sigma(x,u) sigma(v,y))]. *)
+Theorem eightSquare : forall x y u v : nat,
+  (x < 8)%nat -> (y < 8)%nat -> (u < 8)%nat -> (v < 8)%nat ->
+  2 * ind (Nat.eqb x v) * ind (Nat.eqb y u) =
+    ind (Nat.eqb (xor4 x y u v) 0) * (sigma x y * sigma v u + sigma x u * sigma v y).
+Proof.
+  intros x y u v hx hy hu hv. apply Z.eqb_eq.
+  exact (below8_spec _ (below8_spec _ (below8_spec _
+    (below8_spec _ eightSquare_all x hx) y hy) u hu) v hv).
+Qed.
+
+(** Eq. (28) of the paper: if [p xor q = p' xor q'] and [q <> q'], then
+    [sigma(p,q) sigma(p',q') + sigma(p,q') sigma(p',q) = 0]. *)
+Theorem eightSquare_cancel : forall p q p' q' : nat,
+  (p < 8)%nat -> (q < 8)%nat -> (p' < 8)%nat -> (q' < 8)%nat ->
+  Nat.lxor p q = Nat.lxor p' q' -> q <> q' ->
+  sigma p q * sigma p' q' + sigma p q' * sigma p' q = 0.
+Proof.
+  intros p q p' q' hp hq hp' hq' hx hne.
+  pose proof (below8_spec _ (below8_spec _ (below8_spec _
+    (below8_spec _ eightSquare_cancel_all p hp) q hq) p' hp') q' hq') as h.
+  unfold eightSquare_cancel_at in h.
+  apply Nat.eqb_eq in hx. rewrite hx in h.
+  apply Nat.eqb_neq in hne. rewrite hne in h. simpl in h.
+  apply Z.eqb_eq. exact h.
+Qed.
+
+(** ** The textbook SWAP identity of the upstream README's condensed hint
+
+    [eth/README.md] gives a condensed form of the idea in terms of
+    SWAP = I - 2 * singlet and a [12^lambda] rank bound. The paper is built
+    on the eight-square identity above instead. *)
 
 (** Basis index [2a + b] for the two bits [(a, b)]. *)
 Definition swapM (i j : nat) : Z :=

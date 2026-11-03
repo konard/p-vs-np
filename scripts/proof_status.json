@@ -88,6 +88,8 @@
     {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.subexpKSAT_of_logBudget", "allowed_axioms": ["propext", "Quot.sound"]},
     {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.logBudget_not_polynomial", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
     {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.logBudget_gap", "allowed_axioms": ["propext", "Classical.choice", "Quot.sound"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.eightSquare", "allowed_axioms": ["propext"]},
+    {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.eightSquare_cancel", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.swap_eq_id_sub_singlet", "allowed_axioms": []},
     {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.singlet_sq", "allowed_axioms": ["propext"]},
     {"source": "proofs/experiments/issue638/lean/ETH.lean", "theorem": "Issue638.ETH.swap_sq", "allowed_axioms": ["propext"]}
@@ -181,6 +183,8 @@
     {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.subexpKSAT_of_logBudget", "allowed_axioms": []},
     {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.logBudget_not_polynomial", "allowed_axioms": []},
     {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.logBudget_gap", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.eightSquare", "allowed_axioms": []},
+    {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.eightSquare_cancel", "allowed_axioms": []},
     {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.swap_eq_id_sub_singlet", "allowed_axioms": []},
     {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.singlet_sq", "allowed_axioms": []},
     {"source": "proofs/experiments/issue638/rocq/ETH.v", "theorem": "ETH.swap_sq", "allowed_axioms": []}
