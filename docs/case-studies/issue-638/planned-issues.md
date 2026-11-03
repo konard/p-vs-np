@@ -103,6 +103,7 @@ and checked by `scripts/check_proof_status.py` in CI.
 * **Verdict.** **Both criteria passed** (runs
   [41591216557](https://github.com/konard/p-vs-np/actions/runs/41591216557)
   and [41619710887](https://github.com/konard/p-vs-np/actions/runs/41619710887),
+  and the dispatched run [41695515133](https://github.com/konard/p-vs-np/actions/runs/41695515133) on the final head,
   see [Re-verification status](README.md#re-verification-status) and
   [`ci-evidence.md`](ci-evidence.md)). The best-effort part needed three
   attempts. The first lost its runner (memory). The second built the

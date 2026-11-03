@@ -289,7 +289,8 @@ therefore **success even when `openai-full` fails**. This happened in two runs:
   accept (nanoda stack overflow).
 
 This file and the case study report each job's own result and log lines. The
-passing `openai-full` results are those of runs 41591216557 and 41619710887.
+passing `openai-full` results are those of runs 41591216557, 41619710887
+and 41695515133.
 
 ## Workflow changes after run 41619710887 (commit `e1cfc05`)
 
@@ -338,7 +339,38 @@ The three per-run `openai-build-<commit>-<run_id>-1` caches on
 `refs/pull/639/merge` (1.9 GB each) were deleted afterwards. No job reads them:
 pull-request runs skip `openai-full`, and the key is now fixed.
 
-The next dispatch on the same ref,
-[run 41695515133](https://github.com/konard/p-vs-np/actions/runs/41695515133)
-on head `934d5b8`, restores this cache. Its result is recorded in the PR
-description.
+## Dispatch run 41695515133 (commit `934d5b8`): cache hit, **passed**
+
+The next dispatch on the same ref
+([run 41695515133](https://github.com/konard/p-vs-np/actions/runs/41695515133)),
+on the head after the review fixes, passed every job, `openai-full` included.
+
+| job | result |
+|---|---|
+| `openai-statement` ([job 126124878225](https://github.com/konard/p-vs-np/actions/runs/41695515133/job/126124878225)) | passed |
+| `anthropic-eth` ([job 126124877392](https://github.com/konard/p-vs-np/actions/runs/41695515133/job/126124877392)) | passed; scripts identical to the archive; 2 axiom reports, standard axioms only; Comparator okay |
+| `anthropic-3sum-apsp` ([job 126124877939](https://github.com/konard/p-vs-np/actions/runs/41695515133/job/126124877939)) | passed; scripts identical; 137 axiom reports, standard axioms only; both Comparator configurations okay |
+| `openai-full` ([job 126132744892](https://github.com/konard/p-vs-np/actions/runs/41695515133/job/126132744892)) | **passed**: cache hit, build, axioms, Comparator with nanoda |
+
+Key `openai-full` lines:
+
+```text
+Restore partial build  19:12:57  Cache restored from key: openai-build-4eaee87548250b2682affda7d05d947c05554bae
+Build ...              19:13:20  Build completed successfully (12014 jobs).        # 28 s, nothing rebuilt
+Save partial build               skipped (cache hit)
+Print axioms           19:13:59  axioms log .../openai-axioms.log: 1 reports, all named theorems present, standard axioms only
+Comparator             19:14:04  identical: .github/scripts/comparator-check.sh
+                       19:14:04  stack limit (KB): unlimited
+                       19:21:34  Running nanoda kernel on solution
+                       21:21:44  nanoda kernel accepts the solution               # 2 h 00 min
+                       21:21:44  Lean default kernel accepts the solution
+                       21:21:44  Your solution is okay!
+```
+
+The job took 2 h 30 min in total, well inside the 355-minute limit. nanoda
+took 2 h 00 min here against 3 h 30 min and 3 h 55 min before; runner speed
+varies, so the limit still needs the cache.
+
+So the dispatch-only design works as intended: one cold dispatch per ref
+saves `openai-build-<commit>`, and later dispatches on that ref finish. The
+repository now holds one 1.9 GB `openai-build` cache instead of three.
