@@ -726,6 +726,19 @@ This repository includes working examples of four major proof assistants, with b
 - **3SUM hypothesis**
 - **APSP hypothesis**
 
+> **Status note (2026-11-03, issue #638).** Three of these hypotheses are now
+> claimed refuted by AI-lab results with Lean proofs, none yet peer reviewed.
+> **SETH** (and ETH) is claimed false by OpenAI and Anthropic (October 2026:
+> deterministic k-SAT in `2^{O_k(n·polyloglog n/√log n)}`). **3SUM** and
+> **APSP** are claimed false by Alman–Vassilevska Williams, with a Lean proof
+> by Anthropic (`n^{1.9992}` and `n^{2.99942}`). Re-verification status,
+> statement audit and consequences are in [the issue #638 case study](docs/case-studies/issue-638/README.md).
+> Formally proved here: ETH ⇒ P ≠ NP and SETH ⇒ P ≠ NP, so these hypotheses are
+> at least as strong as P ≠ NP (whether strictly stronger is unknown). P = NP is
+> not derivable from the claimed subexponential bounds alone: a subexponential
+> upper bound does not give a polynomial one (`logBudget_gap`). Whether ¬ETH
+> implies P = NP is open.
+
 **Method:**
 - Conditional lower bounds based on conjectures
 - Fine-grained reductions

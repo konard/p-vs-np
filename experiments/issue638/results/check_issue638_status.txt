@@ -1,0 +1,27 @@
+lean Issue638.ETH.pNotEqualsNP_of_eth: Classical.choice, Quot.sound, propext
+lean Issue638.ETH.pNotEqualsNP_of_seth: Classical.choice, Quot.sound, propext
+lean Issue638.ETH.not_eth_of_pEqualsNP: Classical.choice, Quot.sound, propext
+lean Issue638.ETH.not_seth_of_pEqualsNP: Classical.choice, Quot.sound, propext
+lean Issue638.ETH.eth_iff_not_subexp3: Classical.choice, Quot.sound, propext
+lean Issue638.ETH.not_seth_of_subexpAllK: propext
+lean Issue638.ETH.ksatExpTime_exp_mono: propext
+lean Issue638.ETH.subexpKSAT_of_logBudget: Quot.sound, propext
+lean Issue638.ETH.logBudget_not_polynomial: Classical.choice, Quot.sound, propext
+lean Issue638.ETH.logBudget_gap: Classical.choice, Quot.sound, propext
+lean Issue638.ETH.swap_eq_id_sub_singlet: (none)
+lean Issue638.ETH.singlet_sq: propext
+lean Issue638.ETH.swap_sq: propext
+rocq ETH.pNotEqualsNP_of_eth: (none)
+rocq ETH.pNotEqualsNP_of_seth: (none)
+rocq ETH.not_eth_of_pEqualsNP: (none)
+rocq ETH.not_seth_of_pEqualsNP: (none)
+rocq ETH.eth_iff_not_subexp3: Classical_Prop.classic
+rocq ETH.not_seth_of_subexpAllK: (none)
+rocq ETH.ksatExpTime_exp_mono: (none)
+rocq ETH.subexpKSAT_of_logBudget: (none)
+rocq ETH.logBudget_not_polynomial: (none)
+rocq ETH.logBudget_gap: (none)
+rocq ETH.swap_eq_id_sub_singlet: (none)
+rocq ETH.singlet_sq: (none)
+rocq ETH.swap_sq: (none)
+issue #638 audit passed: 13 Lean and 13 Rocq theorems

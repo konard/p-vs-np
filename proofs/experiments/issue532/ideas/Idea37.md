@@ -193,6 +193,13 @@ all instances. A padding trick, which pads an instance with `k` variables to
 length `2^k`, makes any parameter logarithmic but needs an exponential-size
 reduction. That is not a polynomial reduction.
 
+> **Status note (2026-11-03, issue #638).** ETH is claimed false (October 2026, Lean proofs by OpenAI
+> and Anthropic, not yet peer reviewed). If the claims stand, "at least as hard as
+> refuting ETH" is no longer a strong hardness argument. The obligation still
+> gives a polynomial-time 3-SAT algorithm, so with `SATHard` it remains at least
+> as hard as proving P = NP. See
+> [the issue #638 case study](../../../../docs/case-studies/issue-638/README.md).
+
 **What is gained.** A correct and fully general accounting of when
 parameterized algorithms yield polynomial time. It is useful for auditing
 claims of the form "SAT is FPT in parameter X, and X is small".

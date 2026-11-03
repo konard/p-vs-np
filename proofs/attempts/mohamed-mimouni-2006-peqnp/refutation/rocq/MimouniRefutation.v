@@ -199,7 +199,18 @@ Qed.
 (* Part 3: Why P = NP via Clique is Believed False                           *)
 (* ========================================================================= *)
 
-(* Exponential Time Hypothesis (informal): Clique requires exponential time *)
+(* Exponential Time Hypothesis (informal): Clique requires exponential time
+
+   Status note (2026-11-03, issue #638): despite its name, the assumption
+   below is not ETH. It states that no correct Clique machine runs in
+   polynomial time, i.e. Clique is not in P, which (Clique being
+   NP-complete) is equivalent to P <> NP and is implied by ETH, not
+   equivalent to it. ETH itself is claimed refuted in October 2026 (Lean
+   proofs by OpenAI and Anthropic, not yet peer reviewed); Anthropic's
+   paper also claims O(2^{delta n}) algorithms for Clique, Independent Set
+   and Vertex Cover for every delta > 0. Neither claim affects this
+   assumption, which stays an unproved hypothesis. See
+   docs/case-studies/issue-638/README.md. *)
 Axiom exponential_time_hypothesis :
   forall (tm : TuringMachine),
     (forall x : string, CliqueProblem x <-> compute tm x = true) ->

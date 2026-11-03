@@ -153,6 +153,10 @@ Barriers and evidence:
 * **Proof complexity:** on an unsatisfiable formula, separator DP roughly corresponds to resolution-type refutations whose width is about the separator size. Urquhart's and Ben-Sasson–Wigderson's width–size bounds give `2^{Ω(n)}` for expander Tseitin formulas.
 * **Communication complexity:** the equality gadget shows that the interface information cannot be compressed below `|S|` bits. That is a lower bound on the summary length, not on the number of table rows; the `2^|S|` rows are a feature of the exact method.
 * **ETH evidence:** Planar 3-SAT reaches `2^{O(√n)}`, and under ETH it has no `2^{o(√n)}` algorithm. This is a known consequence of ETH plus the quadratic-size reduction to planar SAT; it is cited as background and not formalized.
+  > **Status note (2026-11-03, issue #638).** ETH is claimed false (October 2026, Lean proofs by OpenAI
+  > and Anthropic, not yet peer reviewed). If the claims stand, this conditional
+  > lower bound for Planar 3-SAT loses its premise. See
+  > [the issue #638 case study](../../../../docs/case-studies/issue-638/README.md).
 
 This idea does not bear on P ≠ NP. It is an algorithmic method, and its failure on some families says nothing about all algorithms.
 

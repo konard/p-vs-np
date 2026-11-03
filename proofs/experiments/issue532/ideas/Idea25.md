@@ -134,6 +134,11 @@ Barriers:
 
 * **Proof complexity:** a DPLL/resolution-style splitting algorithm yields resolution refutations of unsatisfiable inputs. Chvátal–Szemerédi and Urquhart give exponential lower bounds for random CNFs and expander Tseitin formulas, so any splitting algorithm that stays inside resolution takes exponential time on them.
 * **ETH evidence:** if ETH holds, 3-SAT has no `2^{o(n)}` algorithm, so no polynomial-time preprocessing can shrink the width to `o(n)` in general.
+  > **Status note (2026-11-03, issue #638).** ETH is claimed false (October 2026, Lean proofs by OpenAI
+  > and Anthropic, not yet peer reviewed). If the claims stand, this bullet no
+  > longer holds as evidence. The width barrier then rests only on the proof
+  > complexity bullet above. See
+  > [the issue #638 case study](../../../../docs/case-studies/issue-638/README.md).
 
 Nothing here separates P from NP. The idea is a correct tool that is insufficient alone.
 

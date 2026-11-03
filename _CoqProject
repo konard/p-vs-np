@@ -244,6 +244,7 @@ proofs/experiments/issue532/rocq/SATVerifier.v
 proofs/experiments/issue568/rocq/Tableau.v
 proofs/experiments/issue609/rocq/KnownBarriers.v
 proofs/experiments/issue609/rocq/PEqualsNPAttempt.v
+proofs/experiments/issue638/rocq/ETH.v
 proofs/experiments/issue7/rocq/ClockedSAT.v
 proofs/experiments/issue8/rocq/NPSubsetP.v
 proofs/experiments/rocq/PvsNPProofAttempt.v

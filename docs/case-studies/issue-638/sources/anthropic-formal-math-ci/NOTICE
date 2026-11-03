@@ -1,0 +1,13 @@
+Verifier scripts of anthropics/formal-math, archived for issue #638.
+Copyright 2026 Anthropic, PBC
+
+The three files below are copied unchanged from https://github.com/anthropics/formal-math at the commit named in
+COMMIT.txt, with their paths kept:
+    .github/scripts/comparator-check.sh
+    eth/scripts/PrintAxioms.lean
+    3sum-apsp/scripts/PrintAxioms.lean
+They are released under the Apache License, Version 2.0 (the Lean files carry an SPDX-License-Identifier header).
+
+The workflow .github/workflows/external-lean-reverification.yml of this repository runs these scripts from the
+fetched upstream checkout and first checks with `diff` that they are byte-identical to the copies here, so a
+reviewer can read exactly what was executed.

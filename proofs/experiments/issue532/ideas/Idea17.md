@@ -257,6 +257,12 @@ counting and growth facts of Section 3 are machine-checked.
     complexity even for k-SAT.
   * ETH-style statements (`2^(δn)` for 3-SAT) are conjectures. Assuming
     them is COMMON_ERRORS family 12 (smuggling the conclusion).
+    > **Status note (2026-11-03, issue #638).** ETH itself is now claimed
+    > false (October 2026, Lean proofs by OpenAI and Anthropic, not yet peer
+    > reviewed). The claimed *time bounds* are still superpolynomial (the
+    > true running time of the algorithms is not known), so the remaining
+    > obligation `SATMachinesSuperpolynomial` is unaffected. See
+    > [the issue #638 case study](../../../../docs/case-studies/issue-638/README.md).
 
 ## 7. Failure modes this idea catches
 

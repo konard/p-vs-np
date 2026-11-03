@@ -1,0 +1,14 @@
+{
+  "challenge_module": "ComparatorChallenges.SubexponentialSAT",
+  "solution_module": "OAI.Algorithms.SubexponentialSAT.Main",
+  "theorem_names": [
+    "OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat"
+  ],
+  "definition_names": [],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": false
+}
