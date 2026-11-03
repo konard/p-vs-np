@@ -356,7 +356,7 @@ Key `openai-full` lines:
 
 ```text
 Restore partial build  19:12:57  Cache restored from key: openai-build-4eaee87548250b2682affda7d05d947c05554bae
-Build ...              19:13:20  Build completed successfully (12014 jobs).        # 28 s, nothing rebuilt
+Build ...              19:13:20  Build completed successfully (12014 jobs).        # 28 s, from the cache
 Save partial build               skipped (cache hit)
 Print axioms           19:13:59  axioms log .../openai-axioms.log: 1 reports, all named theorems present, standard axioms only
 Comparator             19:14:04  identical: .github/scripts/comparator-check.sh
