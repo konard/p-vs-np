@@ -1,5 +1,9 @@
 # Implementation Plan for Issue #28 Feedback
 
+Status at 2026-11-03: historical plan from 2025-10-14 for issue #28, which is
+closed. The README line numbers refer to the README of that date. The bounds
+below were rechecked on 2026-11-03 and corrected where they were out of date.
+
 ## Overview
 Based on the verification report, we will address the valid claims from GPT-5's critique while documenting why certain claims are not applicable.
 
@@ -29,8 +33,8 @@ Based on the verification report, we will address the valid claims from GPT-5's 
 **Proposed:**
 ```markdown
 - **Best Known Algorithms:**
-  - **2-SAT:** O(n²) polynomial time
-  - **3-SAT:** ~O(1.308^n) (Hertli 2011; PPSZ-based algorithms ~O(1.307^n))
+  - **2-SAT:** linear time in the formula size (Aspvall, Plass and Tarjan 1979, DOI [10.1016/0020-0190(79)90002-4](https://doi.org/10.1016/0020-0190(79)90002-4))
+  - **3-SAT:** randomized O(1.308^n) (Hertli 2011, [arXiv:1103.2165](https://arxiv.org/abs/1103.2165); SIAM J. Comput. 2014, DOI [10.1137/120868177](https://doi.org/10.1137/120868177)); biased-PPSZ improves this slightly, to about 1.307^n for Unique 3-SAT (Hansen, Kaplan, Zamir and Zwick, STOC 2019, DOI [10.1145/3313276.3316359](https://doi.org/10.1145/3313276.3316359))
   - **k-SAT (k≥4):** Base depends on k (PPSZ variants)
   - **General CNF-SAT:** Bounds depend on clause structure
 ```
@@ -50,7 +54,7 @@ Based on the verification report, we will address the valid claims from GPT-5's 
 **Proposed:**
 ```markdown
 - **Best Lower Bounds:**
-  - **General circuits (full binary basis):** (3 + 1/86)·n − o(n) gates for explicit functions (Golovnev et al.)
+  - **General circuits (full binary basis):** 3.1n − o(n) gates for explicit functions (Li and Yang, STOC 2022, DOI [10.1145/3519935.3519976](https://doi.org/10.1145/3519935.3519976)), improving (3 + 1/86)n − o(n) (Find, Golovnev, Hirsch and Kulikov, FOCS 2016, DOI [10.1109/FOCS.2016.19](https://doi.org/10.1109/FOCS.2016.19))
   - **Restricted models:** Exponential bounds for monotone circuits, AC⁰, etc.
   - Still far from the super-polynomial bounds needed for P ≠ NP
 ```
@@ -69,7 +73,7 @@ Based on the verification report, we will address the valid claims from GPT-5's 
 ```markdown
 - **Major Barriers:**
   - **Relativization** (Baker-Gill-Solovay 1975): Techniques that work in all oracle worlds cannot resolve P vs NP
-  - **Natural Proofs** (Razborov-Rudich 1997): Under cryptographic assumptions, "natural" techniques cannot prove super-polynomial circuit lower bounds
+  - **Natural Proofs** (Razborov-Rudich 1997): If strong pseudorandom functions exist, "natural" techniques cannot prove super-polynomial circuit lower bounds such as NP ⊄ P/poly
   - **Algebrization** (Aaronson-Wigderson 2008): Extends relativization and arithmetization barriers, showing further limitations
 ```
 
@@ -87,7 +91,7 @@ Based on the verification report, we will address the valid claims from GPT-5's 
 
 **Proposed:**
 ```markdown
-- **2010:** Williams proves NEXP ⊄ ACC⁰ ([Williams 2011](https://www.cs.cmu.edu/~ryanw/acc-lbs.pdf)) - major non-relativizing result using algorithm-to-lower-bound connection
+- **2010:** Williams proves NEXP ⊄ ACC⁰ ([Williams 2011](https://www.cs.cmu.edu/~ryanw/acc-lbs.pdf); J. ACM 2014, DOI [10.1145/2559903](https://doi.org/10.1145/2559903)) - major non-relativizing result using algorithm-to-lower-bound connection
 ```
 
 **Rationale:** Adds scholarly citation and explains significance.

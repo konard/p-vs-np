@@ -6,11 +6,18 @@
 
 ## Executive Summary
 
-This document provides a comprehensive catalog of solution strategies for formally testing whether the P vs NP problem is **independent** of standard axiom systems like ZFC (Zermelo-Fraenkel set theory with the Axiom of Choice). Independence, also called "undecidability" in some contexts, means that neither "P = NP" nor "P ≠ NP" can be proven within the formal system—analogous to the Continuum Hypothesis or the Axiom of Choice itself.
+This document provides a comprehensive catalog of solution strategies for formally testing whether the P vs NP problem is **independent** of standard axiom systems like ZFC (Zermelo-Fraenkel set theory with the Axiom of Choice). Independence, also called "undecidability" in some contexts, means that neither "P = NP" nor "P ≠ NP" can be proven within the formal system, analogous to the Continuum Hypothesis (independent of ZFC) or the Axiom of Choice (independent of ZF). Unlike those statements, P vs NP is arithmetic, so forcing and inner models cannot change its truth value.
 
 **Key Distinction**: "Undecidable" here refers to **meta-mathematical independence** (unprovability within a formal system), not algorithmic undecidability (non-computability). The P vs NP question is a well-formed mathematical statement about complexity classes, and this document explores strategies to test whether it might be independent of ZFC or other foundational systems.
 
 For a clocked SAT decider, P = NP has the arithmetic form `∃ machine, clock ∀ input, correct finite computation`, a Σ⁰₂ formula; P ≠ NP is Π⁰₂. Forcing preserves arithmetic truth between a transitive ground model and its set-forcing extensions. Whether either side is provable in ZFC remains open: invariance under forcing does not establish provability. See [Aaronson, *P ?= NP*, section 3.1 and footnote 24](https://www.scottaaronson.com/papers/pnp.pdf).
+
+**Last reviewed:** 2026-11-03. This catalog is background material. The current roadmap for this topic is [PROVING_P_VS_NP_UNDECIDABILITY.md](PROVING_P_VS_NP_UNDECIDABILITY.md), and the repository plan is [ROADMAP.md](ROADMAP.md). Two consequences of absoluteness apply throughout:
+
+- Any two models of ZFC with the same (standard) natural numbers agree on P vs NP. This includes every transitive model, every forcing extension of one, and inner models such as L. A strategy that looks for "models where P vs NP differs" among such models cannot succeed. A pair of models of ZFC that disagree exists only if P vs NP is independent, and then at least one model has non-standard natural numbers.
+- The useful target is therefore unprovability: show that a named theory (ZFC, PA, or a weak arithmetic) proves neither side, for example by building a model of that theory in which a given side fails. For the side that is true in the standard natural numbers, such a model must have non-standard natural numbers.
+
+In the repository, the Π⁰₂ bridge is machine-checked: `Issue7.ClockedSAT.pNotEqualsNP_of_pi2` proves that the Π⁰₂ sentence implies P ≠ NP with no premise. The converse needs the open premise `SATHard` ([proofs/experiments/issue7/](proofs/experiments/issue7/README.md)).
 
 ---
 
@@ -36,7 +43,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 
 2. **Axiom of Choice (AC)**: Independent of ZF
    - Consistent: Gödel's L
-   - Inconsistent scenarios: Models with determinacy axioms
+   - ¬AC is consistent with ZF: Cohen 1963 (symmetric models)
 
 3. **Whitehead Problem**: Independent of ZFC (Shelah, 1974)
 
@@ -50,10 +57,10 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 ### 1.3 Why P vs NP Might Be Independent
 
 **Arguments For Independence:**
-- **Barrier Results**: Relativization, natural proofs, and algebrization suggest standard techniques fail
+- **Barrier Results**: Relativization, natural proofs and algebrization show that specific classes of techniques fail. Barriers limit techniques; they are not evidence of independence from ZFC (Aaronson, *P ?= NP*, §3.1)
 - **Computational Content**: The statement has computational content that might not be fully captured by set theory
 - **Empirical Resilience**: 50+ years of failed attempts by brilliant researchers
-- **Finite Combinatorics**: P vs NP is fundamentally about finite computation, which can behave differently in different models
+- **Finite Combinatorics**: P vs NP is fundamentally about finite computation. Caveat: such statements have the same truth value in all models with standard natural numbers, so this argument applies only to non-standard models
 
 **Considerations and Limits of Familiar Methods:**
 - **Arithmetic Nature**: P = NP has a Σ⁰₂ clocked-SAT formulation, and P ≠ NP is Π⁰₂. Their truth is preserved between a transitive ground model and its set-forcing extensions; this does not settle independence from ZFC
@@ -69,7 +76,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 
 ### 2.1 Forcing Techniques
 
-**Goal**: Use Cohen forcing to construct models where P = NP or P ≠ NP holds differently.
+**Goal**: Record what forcing can and cannot say about P vs NP. Forcing over a transitive model cannot change the truth of P vs NP (see the absoluteness note at the top), so the strategies below cannot produce models where P vs NP differs. They are kept to document that limit.
 
 **Strategy A1: Generic Sets for SAT Solutions**
 - **Approach**: Add a forcing notion that creates "generic" solutions to SAT instances
@@ -96,19 +103,18 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - **Method**:
   1. Define forcing notion using complexity class oracles
   2. Attempt to change relationships between P and NP via generic class oracle
-- **Challenge**: Class forcing typically preserves arithmetic truth
-- **Verdict**: Low probability of success, but unexplored territory
+- **Challenge**: Class-forcing extensions of a transitive model have the same natural numbers, so they cannot change the truth value of P vs NP
+- **Verdict**: Ruled out by absoluteness (see the note at the top of this section)
 
 ### 2.2 Inner Model Theory
 
 **Goal**: Study the interpretation of P vs NP in inner models of ZFC.
 
 **Strategy A4: Constructible Universe L**
-- **Approach**: Examine whether P vs NP has definite answer in Gödel's L
+- **Approach**: Examine whether P vs NP has definite answer in Gödel's L (it does, and it is the same answer as in V, by absoluteness)
 - **Method**:
   1. Formalize complexity theory within L
-  2. Check if properties of L (e.g., GCH, ◊) determine P vs NP
-  3. Compare to behavior in outer models
+  2. Compare to behavior in outer models (by absoluteness, GCH and ◊, which hold in L, cannot determine P vs NP)
 - **Analysis**:
   - In L, all sets are constructible, but this doesn't obviously affect finite computation
   - P vs NP should have same answer in L as in V (by absoluteness)
@@ -124,6 +130,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   - Large cardinals provide canonical inner models
   - Connection to determinacy and descriptive set theory
   - Potential interaction with bounded arithmetic
+- **Note**: Inner models such as mice contain all the natural numbers, so P vs NP has the same truth value in them as in V. Large cardinal axioms are different: as new axioms they can prove new arithmetic sentences (for example Con(ZFC)), so absoluteness does not rule out that they decide P vs NP. No such connection is known.
 
 **Strategy A6: Ultraproducts and Elementary Equivalence**
 - **Approach**: Use ultraproducts to create non-standard models
@@ -167,15 +174,16 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 **Strategy B1: Theory Separations (S₂¹ vs T₂¹)**
 - **Approach**: Examine P vs NP in bounded arithmetic theories
 - **Method**:
-  1. Formalize P vs NP in S₂¹ (corresponds to polynomial hierarchy)
+  1. Formalize P vs NP in S₂¹ (S₂¹ corresponds to polynomial time: its Σᵇ₁-definable functions are exactly FP, Buss 1986)
   2. Investigate if S₂¹ can prove P = NP or P ≠ NP
-  3. Compare to T₂¹ (extended theory with induction for sharply bounded formulas)
-- **Known Results**:
-  - S₂¹ formalizes NP reasoning
-  - T₂¹ formalizes P reasoning
-  - S₂¹ = T₂¹ iff P = NP (informal correspondence)
+  3. Compare to T₂¹ (Σᵇ₁-IND, ordinary successor induction for Σᵇ₁ formulas)
+- **Known Results** (corrected 2026-11-03):
+  - S₂¹ corresponds to FP (Buss 1986)
+  - T₂¹ corresponds to PLS: its Σᵇ₁-definable search problems are the PLS problems ([Buss, Krajíček 1994](https://doi.org/10.1112/plms/s3-69.1.1))
+  - S₂¹ ⊆ T₂¹ ⊆ S₂². Whether S₂¹ = T₂¹ is open; it is not known to be equivalent to P = NP
+  - Collapses of the bounded-arithmetic hierarchy imply collapses of the polynomial hierarchy ([Krajíček, Pudlák, Takeuti 1991](https://doi.org/10.1016/0168-0072(91)90043-L), for T₂ⁱ = S₂ⁱ⁺¹; Buss 1995; Zambella 1996)
 - **Research Direction**:
-  - If S₂¹ cannot prove its own consistency, might not resolve P vs NP
+  - Known unprovability results for weak theories, for example [Razborov 1995](https://doi.org/10.1070/IM1995v059n01ABEH000009): if strong pseudorandom generators exist, S₂² cannot prove superpolynomial circuit lower bounds for SAT in a restricted formalization
   - Study independence results relative to weak theories
 
 **Strategy B2: Provability in Peano Arithmetic**
@@ -207,7 +215,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - **Approach**: Show that P ≠ NP requires super-polynomially long proofs
 - **Method**:
   1. Choose proof system (Resolution, Frege, Extended Frege)
-  2. Show that proving P ≠ NP in that system requires exponential-size proofs
+  2. Show that propositional translations of circuit lower bounds for SAT (for fixed input lengths) need long proofs in that system; a propositional system cannot state the uniform sentence P ≠ NP itself
   3. Argue that no "feasible" proof exists
 - **Known Results**:
   - NP vs coNP relates to proof complexity (Cook-Reckhow)
@@ -237,24 +245,21 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - **Method**:
   1. Construct diverse oracle worlds (Baker-Gill-Solovay technique)
   2. Examine if "natural" oracles always resolve P vs NP
-  3. Use oracle separations as evidence for independence
+  3. Record which techniques the oracle worlds rule out (this is not evidence of independence)
 - **Known Results**:
-  - ∃A: P^A = NP^A (sparse oracle)
-  - ∃B: P^B ≠ NP^B (PSPACE-complete oracle)
+  - ∃A: P^A = NP^A (any PSPACE-complete oracle, for example TQBF)
+  - ∃B: P^B ≠ NP^B (an oracle built by diagonalization)
 - **Analysis**:
   - Oracle results show technique-limitations, not independence
   - P vs NP itself has definite answer regardless of oracles
 - **Verdict**: Useful for understanding barriers, not direct independence proof
 
 **Strategy C2: Random Oracle Method**
-- **Approach**: Examine P vs NP relative to random oracle
-- **Method**:
-  1. Show that with probability 1, random oracle separates P and NP
-  2. Argue this suggests "typical" answer is P ≠ NP
-  3. Use probabilistic arguments for independence plausibility
+- **Approach**: Examine P vs NP relative to a random oracle
 - **Known Results**:
-  - Bennett-Gill: P^A ≠ NP^A for random A with probability 1
-- **Verdict**: Suggests P ≠ NP is "correct" answer, doesn't show independence
+  - Bennett and Gill (1981): P^A ≠ NP^A for a random oracle A, with probability 1
+- **Caveat**: The Random Oracle Hypothesis says that a statement true relative to a random oracle with probability 1 is true without an oracle. It is false. Chang, Chor, Goldreich, Hartmanis, Håstad, Ranjan and Rohatgi ("The Random Oracle Hypothesis Is False", JCSS 49, 1994) showed that IP^A ≠ PSPACE^A for a random oracle A with probability 1, while IP = PSPACE holds (Shamir 1992).
+- **Verdict**: Random-oracle results describe relativized worlds only. They give no evidence about the unrelativized answer and no evidence about independence. No conclusion in this document rests on them.
 
 ### 4.2 Algorithmic Randomness and Complexity
 
@@ -292,12 +297,12 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   1. Formalize relativization, natural proofs, algebrization in set theory
   2. Prove formally that techniques satisfying barrier properties cannot resolve P vs NP
   3. Show that all standard techniques hit barriers
-  4. Argue that if no technique works, statement might be independent
+  4. Record which technique classes fail. Barriers limit techniques; they are not evidence of independence from ZFC (Aaronson, *P ?= NP*, §3.1)
 - **Research Direction**:
   - Formalization of proof techniques as mathematical objects
   - Meta-complexity theory
 - **Challenge**: Exhausting all possible techniques is impossible
-- **Verdict**: Can support independence conjecture, cannot prove it
+- **Verdict**: Clarifies which techniques cannot work; it is not evidence for independence
 
 **Strategy D2: Identify New Barriers**
 - **Approach**: Discover additional barriers beyond known ones
@@ -305,28 +310,22 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   1. Study failed proof attempts systematically
   2. Identify common structural obstacles
   3. Formalize new barrier theorems
-  4. Use accumulation of barriers as evidence for independence
+  4. Do not treat an accumulation of barriers as evidence for independence: barriers limit techniques only
 - **Research Direction**:
   - Avi Wigderson and others on barrier results
   - Pattern analysis in failed proofs
-- **Verdict**: Advances understanding, indirect evidence for independence
+- **Verdict**: Advances understanding of techniques; not evidence for independence
 
 ### 5.2 Computational Experiments
 
-**Strategy D3: Finite Model Theory Testing**
-- **Approach**: Test P vs NP in finite models of increasing size
-- **Method**:
-  1. Create finite models M_n with n elements
-  2. Computationally verify P vs NP in each finite model
-  3. Look for pattern changes or undecidability
-  4. Extrapolate to infinite case
+**Strategy D3: Finite Model Theory Testing** (corrected 2026-11-03)
+- **Approach**: An earlier version proposed to test P vs NP in finite models M_n of increasing size and extrapolate to the infinite case
+- **Why it fails**: P vs NP has no meaning in a finite structure. Complexity classes are asymptotic, and every finite language is in P, so all finite truncations look alike. No pattern in finite models can bear on P vs NP or on its independence
+- **What remains useful**: finite experiments, such as small circuit minimization or solver benchmarks, can test conjectures about small cases and find bugs in formal definitions
 - **Tools**:
   - SAT solvers for finite verification
   - Finite model builders (Mace4, Paradox)
-- **Challenge**:
-  - P vs NP is about infinite families of problems
-  - Finite evidence doesn't prove infinite independence
-- **Verdict**: Heuristic evidence, not rigorous proof
+- **Verdict**: No evidence on P vs NP or on its independence
 
 **Strategy D4: Automated Theorem Proving Limits**
 - **Approach**: Use ATP systems to search for proofs, analyze failures
@@ -334,9 +333,9 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   1. Encode P vs NP in first-order logic
   2. Run automated provers (Vampire, E, Z3) with increasing resources
   3. Analyze proof search space and systematic failures
-  4. Use failures as evidence for independence
+  4. Record where the search fails; failure to find a proof is not evidence of independence
 - **Tools**:
-  - Rocq, Lean, Isabelle for formalization
+  - Rocq and Lean for formalization (the repository's Isabelle files are archived)
   - E, Vampire, Z3 for automated proving
 - **Challenge**: Failure to find proof ≠ independence
 - **Verdict**: Educational exercise, weak evidence
@@ -365,7 +364,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - **Method**:
   1. Define complexity classes for oracle machines, infinite-time TMs, etc.
   2. Check if P vs NP answer varies across computational models
-  3. Use variation as evidence for independence
+  3. Record the variation; it concerns other machine models, not the independence of the standard question
 - **Challenge**: Standard P vs NP is about Turing machines specifically
 - **Verdict**: Interesting generalization, not direct independence result
 
@@ -454,24 +453,24 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 **Strategy F3: Extend Existing Formalizations**
 - **Approach**: Build on proofs/p_vs_np_undecidable/ framework
 - **Method**:
-  1. Add full Turing machine formalization
+  1. Reuse the shared machine model (done; see below)
   2. Encode provability predicates (⊢_ZFC)
-  3. Formalize forcing or inner models
-  4. Attempt to construct models where P vs NP differs
-- **Tools**:
-  - Lean 4: Strong automation, growing mathlib
-  - Rocq: Mature, extensive libraries
-  - Isabelle/HOL: Powerful automation (sledgehammer)
-  - Agda: Dependent types, constructive
-- **Current Status**: Basic framework exists, needs:
-  - Complete TM formalization
+  3. Formalize non-standard models of arithmetic, or weak arithmetic theories
+  4. Attempt to show that a named theory proves neither side (not to build models with standard natural numbers where P vs NP differs, which absoluteness rules out)
+- **Tools** (as of 2026-11-03):
+  - Lean 4: core library only in this repository (no Mathlib)
+  - Rocq: standard library
+  - Agda: Dependent types, constructive (CI checks an explicit file list)
+  - Isabelle/HOL: archived in `archive/isabelle/`, not checked by CI
+- **Current Status** (as of 2026-11-03): The machine model is done. [proofs/complexity/](proofs/complexity/README.md) defines finite machines, `Run`, P and NP, and [proofs/experiments/issue7/](proofs/experiments/issue7/README.md) proves the clock lemmas `runFor_iff` and `clockCheck_iff`. Still needed:
+  - A ZFC (or PA) proof predicate with a concrete coding
   - Model theory infrastructure
-  - Forcing or inner model machinery
+  - `SATHard` for the shared model
 
 **Strategy F4: Proof Assistant Comparison**
 - **Approach**: Formalize independence question in multiple systems, compare
 - **Method**:
-  1. Implement same strategies in Lean, Rocq, Isabelle, Agda
+  1. Implement same strategies in Lean, Rocq and Agda (Isabelle is archived)
   2. Compare expressiveness and automation
   3. Identify which system best handles meta-mathematics
   4. Use insights to guide formalization approach
@@ -485,7 +484,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   1. Formalize □ (provability operator) in proof assistant
   2. Encode ZFC provability as modal logic
   3. Express P vs NP independence using □
-  4. Attempt to prove □(P=NP) → ⊥ or □(P≠NP) → ⊥
+  4. Attempt to prove both ¬□(P=NP) and ¬□(P≠NP); independence needs both. Any such proof implies Con(ZFC), so by Gödel's second incompleteness theorem it must be carried out in a metatheory stronger than ZFC
 - **Challenge**: Requires sophisticated meta-mathematical infrastructure
 - **Research Direction**: Modal logic formalization in proof assistants
 
@@ -496,7 +495,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   2. Implement interpretation function for ZFC formulas
   3. Define provability in ZFC
   4. Express independence as statement about models of ZFC
-  5. Construct different models and verify P vs NP in each
+  5. Construct models of the object theory, necessarily some with non-standard natural numbers, and check which side of P vs NP each satisfies
 - **Challenge**: Extremely large formalization effort
 - **Verdict**: Most rigorous approach, but resource-intensive
 
@@ -504,7 +503,9 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 
 ## 9. Practical Research Plan
 
-### 9.1 Short-Term Investigations (6-12 months)
+The phases are ordered by dependency, not by date. Earlier versions gave durations and size estimates; they were removed on 2026-11-03, in line with §13.3.
+
+### 9.1 Short-Term Investigations
 
 **Phase 1: Literature Review**
 - [ ] Study existing independence results (CH, AC, Whitehead)
@@ -514,7 +515,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - [ ] Read Shoenfield absoluteness theorem carefully
 
 **Phase 2: Formalization Experiments**
-- [ ] Extend proofs/p_vs_np_undecidable/ with Turing machines
+- [x] Machine model and clocked-SAT sentence (done: [proofs/complexity/](proofs/complexity/README.md), [proofs/experiments/issue7/](proofs/experiments/issue7/README.md))
 - [ ] Formalize bounded arithmetic theories (S₂¹, T₂¹)
 - [ ] Encode basic forcing in Lean or Rocq
 - [ ] Implement constructible universe L basics
@@ -526,7 +527,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - [ ] Investigate proof-theoretic strength of complexity assumptions
 - [ ] Examine connections to reverse mathematics
 
-### 9.2 Medium-Term Research (1-2 years)
+### 9.2 Medium-Term Research
 
 **Strategic Directions:**
 1. **Given arithmetic invariance under ordinary forcing:**
@@ -544,7 +545,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
    - Show S₂¹ cannot resolve P vs NP
    - Connect to proof complexity lower bounds
 
-### 9.3 Long-Term Vision (3+ years)
+### 9.3 Long-Term Vision
 
 **Scenario 1: Independence Remains Open**
 - Record which model-construction methods preserve arithmetic truth
@@ -555,8 +556,8 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - Find evidence for independence via:
   - Behavior in non-standard models
   - Unprovability in bounded arithmetic
-  - Novel barrier results
-- **Outcome**: Shift complexity theory to accept possible independence
+  - Unprovability results for named theories
+- **Outcome**: Sharpen what is known about unprovability in weak theories
 
 **Scenario 3: Conditional Independence**
 - Show independence relative to some axioms:
@@ -582,7 +583,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 
 **Challenge 3: Finite vs Infinite**
 - **Problem**: Independence typically involves infinite sets; P vs NP is about finite strings
-- **Implication**: Standard forcing may not affect finite combinatorics
+- **Implication**: Forcing over a transitive model does not change arithmetic statements about finite strings
 - **Research Direction**: Investigate bounded set theory
 
 ### 10.2 Technical Obstacles
@@ -593,7 +594,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   - Polynomial-time verification
   - Model theory of ZFC
   - Forcing or inner models
-- **Estimate**: 10,000+ lines of proof assistant code
+- **Scale**: large; no reliable size estimate exists
 
 **Obstacle 2: Meta-Theoretical Sophistication**
 - Need to work at multiple levels:
@@ -609,7 +610,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
   - Model theory
   - Proof theory
   - Logic and computability
-- **Estimate**: 5-10 years of specialized study
+- **Scale**: substantial specialized study; no reliable time estimate exists
 
 ---
 
@@ -618,9 +619,9 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 ### 11.1 Positive Results (Independence)
 
 **Success Level 1: Weak Evidence**
-- Identify models where complexity class behavior differs
+- Identify non-standard models of weak arithmetic where complexity class behavior differs
 - Show practical unprovability (proof length lower bounds)
-- Accumulate indirect evidence via barriers
+- Map which proof techniques provably fail (barriers limit techniques; they are not evidence of independence)
 - **Impact**: Opens research direction, philosophical significance
 
 **Success Level 2: Conditional Independence**
@@ -629,8 +630,8 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - **Impact**: Clarifies proof-theoretic strength of P vs NP
 
 **Success Level 3: Strong Independence**
-- Construct models M₁, M₂ of ZFC with different P vs NP answers
-- Formally prove independence using forcing or inner models
+- Prove that ZFC proves neither P = NP nor P ≠ NP
+- This needs models of ZFC with non-standard natural numbers. Forcing over transitive models and inner models cannot supply them
 - **Impact**: Revolutionary, reshapes complexity theory and foundations
 
 ### 11.2 Limits of Methods and Possible Resolution
@@ -703,8 +704,9 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - Formalize bounded arithmetic
 
 **Current Work**:
-- Repository: proofs/p_vs_np_undecidable/ (Lean, Rocq, Isabelle, Agda)
-- Needs: TM formalization, provability predicates, model theory
+- Repository: proofs/p_vs_np_undecidable/ (Lean, Rocq, Agda; Isabelle archived)
+- Done: machine model ([proofs/complexity/](proofs/complexity/README.md)) and clocked-SAT sentence ([proofs/experiments/issue7/](proofs/experiments/issue7/README.md))
+- Needs: provability predicates, model theory, `SATHard`
 
 ### 12.4 For Students and Learners
 
@@ -714,7 +716,7 @@ A statement φ is **independent** of a formal system S (e.g., ZFC) if:
 - Study independence results (Cohen, Jech)
 - Start with simple formalizations
 
-**Timeline**: 2-3 years of foundational study before original research
+**Timeline**: substantial foundational study comes before original research; no duration is estimated here
 
 ---
 
@@ -745,17 +747,13 @@ This document has cataloged **30+ distinct strategies** across six major categor
    - Could reveal model-dependence in non-standard interpretation
 
 3. **Systematic Barrier Analysis**
-   - Accumulation of barriers as indirect evidence
+   - Barriers limit techniques; they are not evidence of independence
    - Formalization of proof techniques
    - Meta-complexity insights
 
 ### 13.3 Realistic Assessment
 
-**Likelihood Estimates (Subjective):**
-- P vs NP is independent of ZFC: **5-10%**
-- Independence from bounded arithmetic: **20-30%**
-- Valuable insights from investigation: **80-90%**
-- Complete resolution of question: **<1%** in next decade
+**Likelihood:** Earlier versions of this document gave subjective percentages. They were removed on 2026-11-03. As [PROVING_P_VS_NP_UNDECIDABILITY.md](PROVING_P_VS_NP_UNDECIDABILITY.md#possible-outcomes-and-reporting) states, no probability percentages, publication outcomes or completion dates are justified by the present evidence. Most complexity theorists expect P vs NP not to be independent of ZFC, but this is an opinion, not a result.
 
 **Key Insight**: Even if P vs NP is not independent, investigating the possibility will:
 - Deepen understanding of computational complexity
@@ -780,7 +778,7 @@ This document has cataloged **30+ distinct strategies** across six major categor
 
 **For This Repository:**
 1. Continue developing proofs/p_vs_np_undecidable/ framework
-2. Add complete Turing machine formalizations
+2. Build on the existing machine model ([proofs/complexity/](proofs/complexity/README.md)) and the issue 7 clocked-SAT sentence
 3. Implement bounded arithmetic theories
 4. Create tutorial materials bridging complexity and logic
 5. Document failed approaches as learning resources
@@ -820,12 +818,12 @@ This document has cataloged **30+ distinct strategies** across six major categor
 - Razborov: Papers on bounded arithmetic and complexity
 
 ### Proof Assistants and Formalization
-- Avigad, de Moura: "The Lean Theorem Prover"
+- de Moura, Kong, Avigad, van Doorn, von Raumer: "[The Lean Theorem Prover (System Description)](https://doi.org/10.1007/978-3-319-21401-6_26)", CADE 2015
 - Bertot & Castéran: "Interactive Theorem Proving and Program Development"
 - Nipkow, Paulson, Wenzel: "Isabelle/HOL: A Proof Assistant for Higher-Order Logic"
 
 ### Online Resources
-- Stanford Encyclopedia of Philosophy: Independence Results
+- Stanford Encyclopedia of Philosophy: [Gödel's Incompleteness Theorems](https://plato.stanford.edu/entries/goedel-incompleteness/) and [Large Cardinals and Determinacy](https://plato.stanford.edu/entries/large-cardinals-determinacy/)
 - Complexity Zoo: https://complexityzoo.net/
 - ECCC: https://eccc.weizmann.ac.il/
 - Scott Aaronson's blog: Quantum complexity and P vs NP discussions
@@ -838,4 +836,4 @@ This document has cataloged **30+ distinct strategies** across six major categor
 
 **Note**: This document represents a comprehensive research roadmap and strategy catalog. The investigation of P vs NP independence is speculative but mathematically legitimate. Most researchers believe P vs NP is not independent, but exploring this possibility can yield valuable insights into the proof-theoretic and model-theoretic status of complexity theory.
 
-**Last Updated**: October 2025
+**Last Updated**: 2026-11-03

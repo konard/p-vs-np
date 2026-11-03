@@ -69,9 +69,16 @@ over certificates. This file isolates that quantifier exactly.
 | `total_verification_cost` | Verifying every certificate of length `n` costs exactly `2^n · size φ` literal evaluations. | [Idea03.lean](../lean/Idea03.lean) | [Idea03.v](../rocq/Idea03.v) |
 | `decode_encode`, `encode_injective` | The input encoding is lossless (reused from Idea 01). | [Idea03.lean](../lean/Idea03.lean) | [Idea03.v](../rocq/Idea03.v) |
 
-Not machine-checked: a Turing-machine implementation of the verifier and its
-step count, the definition of the class NP over languages, and NP-completeness
-of SAT (Cook–Levin).
+Not machine-checked in this file: a machine implementation of the verifier
+and its step count. The shared layer has one. `SATVerifier.satInNP` proves
+`InNP SAT` with a 45-state verifier machine in
+[SATVerifier.lean](../lean/SATVerifier.lean) and
+[SATVerifier.v](../rocq/SATVerifier.v), and it is a row of
+[`scripts/proof_status.json`](../../../../scripts/proof_status.json). The class
+NP over languages is `Complexity.InNP` in
+[Complexity.lean](../../../complexity/lean/Complexity.lean). NP-hardness of SAT
+(`SATHard`) is not machine-checked on main as of 2026-11-03; PR #630
+(unmerged) covers part of it.
 
 ## 4. Complete argument
 
@@ -144,7 +151,7 @@ At full potential the idea yields the complete, explicit NP side for SAT:
 **Remaining obligation.** There is no open obligation on the verifier side.
 The idea is finished. The obligation it exposes is to remove the certificate
 quantifier in polynomial time, i.e. Idea 01's `PolySATDecider`, equivalent to
-P = NP by Cook–Levin. For the co-side, a short certificate of
+P = NP under the named hypothesis `SATHard` (`polySATDecider_iff_of_hard`). For the co-side, a short certificate of
 unsatisfiability for every unsatisfiable formula (a polynomially bounded proof
 system) is equivalent to NP = coNP (Cook–Reckhow 1979, *J. Symbolic Logic* 44).
 `unsat_iff_all_rejected` shows that the naive coNP certificate is the full list

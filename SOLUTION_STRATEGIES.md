@@ -1,4 +1,4 @@
-# Solution Strategies for Formal Test of P = NP
+# Solution Strategies for Formal Tests of P vs NP
 
 **Language:** [English](SOLUTION_STRATEGIES.md) | [Русский (Russian)](SOLUTION_STRATEGIES.ru.md)
 
@@ -10,11 +10,23 @@
 
 This document presents a comprehensive list of possible solution strategies for creating formal tests of the P versus NP problem. Rather than attempting to prove P = NP or P ≠ NP (which remains unsolved after 50+ years), these strategies focus on creating **formal verification frameworks** that can test and validate any future proof attempt.
 
-The strategies are organized into four main categories:
-1. **Formal Verification Frameworks** (already implemented)
-2. **Barrier-Aware Approaches** (understanding limitations)
-3. **Incremental Progress Strategies** (tractable subproblems)
-4. **Novel and Interdisciplinary Approaches** (emerging techniques)
+The document lists **20 strategies** in four main categories:
+1. **Formal Verification Frameworks** (6 strategies; 1.1-1.3 implemented, 1.4-1.6 partly implemented)
+2. **Barrier-Aware Approaches** (3 strategies; understanding limitations)
+3. **Incremental Progress Strategies** (6 strategies; tractable subproblems)
+4. **Novel and Interdisciplinary Approaches** (5 strategies; emerging techniques)
+
+**Last reviewed:** 2026-11-03. Several strategies marked "not implemented" in earlier versions are now partly implemented by the idea dossiers in [proofs/experiments/issue532/ideas/](proofs/experiments/issue532/ideas/) and by the issue experiments in [proofs/experiments/](proofs/experiments/README.md). The status lines below name the files. "Partial" means that some theorems are machine-checked and that the main step remains an open premise. Open premises are listed in [proofs/HYPOTHESES.md](proofs/HYPOTHESES.md). The exact checked statements are in [FORMAL_STATEMENT.md](FORMAL_STATEMENT.md). The operative plan is [ROADMAP.md](ROADMAP.md). The effort estimates in months below are historical and illustrative.
+
+### Status note (2026-11-03): ETH and SETH
+
+As of 2026-11-03:
+
+- ETH (3-SAT has no 2^{o(n)} algorithm; formally, some δ > 0 rules out time 2^{δn}) and SETH (for every ε > 0 some k-SAT has no O(2^{(1-ε)n}) algorithm) are **conjectures**, not theorems.
+- ETH implies P ≠ NP. The converse is not known. A refutation of ETH is not known to imply P = NP: a 2^{o(n)} algorithm can still be superpolynomial.
+- On 26 and 27 October 2026, OpenAI (`openai/math`, family 378, "The Exponential Time Hypothesis is False") and Anthropic (`anthropics/formal-math`, `eth/`, "A 2^o(n) Time Algorithm for 3-SAT", Lean theorem `MainResults.ethIsFalse`) claimed that ETH is false, each with a Lean proof. The OpenAI manuscript claims deterministic #k-SAT counting in time 2^{O_k(n log log n/√log n)} and states that SETH, Gap-ETH and NSETH also fail; its Lean theorem proves only the weaker bound 2^{O_k(n (log log n)^2/√log n)} on its own machine model and does not define ETH. These claims are not yet peer reviewed. Impagliazzo, Paturi and Williams are reviewing the OpenAI claim; no outside review of the Anthropic claim is announced as of 2026-11-03.
+- In October 2026 the Anthropic repository also added (`3sum-apsp/`) a Lean proof of a claimed Alman–Vassilevska Williams result: truly subquadratic 3SUM and truly subcubic APSP. If it holds, the integer 3SUM and APSP hypotheses of Strategy 3.3 are false. The Lean statement uses a word RAM with integer inputs; the running times for real inputs are not formalized.
+- The P vs NP question is unchanged. No theorem in `scripts/proof_status.json` uses ETH or SETH as a premise. Claim tracking is in [literature/CLAIMED_PROOFS_2017_2026.md](literature/CLAIMED_PROOFS_2017_2026.md).
 
 ---
 
@@ -45,12 +57,12 @@ These strategies focus on creating machine-checkable frameworks for validating p
   2. NP-complete problem not in P
   3. SAT hardness
   4. Super-polynomial lower bound
-- Implement in Lean 4, Rocq, Isabelle/HOL, and Agda
+- Implement in Lean 4, Rocq and Agda (an Isabelle/HOL version is archived)
 
-**Implementation Status:** ✅ **COMPLETE**
-- Location: `proofs/p_not_equal_np/`
-- All four proof assistants implemented
-- CI/CD verification active
+**Implementation Status:** ✅ **COMPLETE** (as a set of conditional tests)
+- Location: [proofs/p_not_equal_np/](proofs/p_not_equal_np/README.md)
+- Lean, Rocq and Agda versions are checked by CI. The Isabelle version is archived in `archive/isabelle/` and is not checked.
+- Only test 1 (`test_existence_of_hard_problem`) is an equivalence with P ≠ NP. Tests 2-4 are sufficient conditions. `SAT ∈ NP` is now proved (`Issue532.SATVerifier.satInNP`), so "SAT ∉ P ⇒ P ≠ NP" needs no extra premise. The converse needs `SATHard`.
 
 **Advantages:**
 - Prevents logical errors in proof attempts
@@ -64,13 +76,13 @@ These strategies focus on creating machine-checkable frameworks for validating p
 - Subject to soundness of proof assistant
 
 **References:**
-- Implemented: `proofs/p_not_equal_np/lean/`, `rocq/`, `isabelle/`, `agda/`
+- Implemented: `proofs/p_not_equal_np/lean/`, `rocq/`, `agda/` (Isabelle archived in `archive/isabelle/proofs/p_not_equal_np/`)
 
 ---
 
 ### Strategy 1.2: P vs NP Decidability Framework
 
-**Objective:** Formally verify that the P vs NP question is decidable in classical logic (has a definite answer).
+**Objective:** Formally verify the classical disjunction `P = NP ∨ P ≠ NP` (excluded middle). "Decidable" here does not mean that an algorithm or a proof settles the question.
 
 **Approach:**
 - Use law of excluded middle to prove: `PEqualsNP ∨ PNotEqualsNP`
@@ -79,9 +91,8 @@ These strategies focus on creating machine-checkable frameworks for validating p
 - Prove P ⊆ NP
 
 **Implementation Status:** ✅ **COMPLETE**
-- Location: `proofs/p_vs_np_decidable/`
-- All four proof assistants implemented
-- Seven test theorems proven
+- Location: [proofs/p_vs_np_decidable/](proofs/p_vs_np_decidable/README.md)
+- Lean and Rocq versions are certified (`PvsNPDecidable.P_vs_NP_is_decidable`, `PSubsetNP.pSubsetNP`). The Agda version uses a disclosed `excludedMiddle` postulate. The Isabelle version is archived and not checked.
 
 **Advantages:**
 - Meta-mathematical clarity
@@ -95,7 +106,7 @@ These strategies focus on creating machine-checkable frameworks for validating p
 - No computational evidence either way
 
 **References:**
-- Implemented: `proofs/p_vs_np_decidable/lean/`, `rocq/`, `isabelle/`, `agda/`
+- Implemented: `proofs/p_vs_np_decidable/lean/`, `rocq/`, `agda/` (Isabelle archived in `archive/isabelle/proofs/p_vs_np_decidable/`)
 
 ---
 
@@ -109,10 +120,11 @@ These strategies focus on creating machine-checkable frameworks for validating p
 - Create structure for expressing meta-mathematical independence
 - Verify logical consistency
 
-**Implementation Status:** ✅ **COMPLETE**
-- Location: `proofs/p_vs_np_undecidable/`
-- All four proof assistants implemented
+**Implementation Status:** ✅ **COMPLETE** (simplified)
+- Location: [proofs/p_vs_np_undecidable/](proofs/p_vs_np_undecidable/README.md)
+- Lean, Rocq and Agda versions are checked by CI. The Isabelle version is archived and not checked.
 - Simplified formalization (full version needs provability encoding)
+- The arithmetic form of the question is in [proofs/experiments/issue7/](proofs/experiments/issue7/README.md): `Issue7.ClockedSAT.pNotEqualsNP_of_pi2` (a Π⁰₂ sentence implies P ≠ NP, no premise).
 
 **Advantages:**
 - Explores meta-mathematical possibilities
@@ -126,7 +138,8 @@ These strategies focus on creating machine-checkable frameworks for validating p
 - Would require model theory for full rigor
 
 **References:**
-- Implemented: `proofs/p_vs_np_undecidable/lean/`, `rocq/`, `isabelle/`, `agda/`
+- Implemented: `proofs/p_vs_np_undecidable/lean/`, `rocq/`, `agda/` (Isabelle archived in `archive/isabelle/proofs/p_vs_np_undecidable/`)
+- See [PROVING_P_VS_NP_UNDECIDABILITY.md](PROVING_P_VS_NP_UNDECIDABILITY.md)
 
 ---
 
@@ -144,10 +157,12 @@ These strategies focus on creating machine-checkable frameworks for validating p
   - Polynomial method
 - Create templates for new lower bound proofs
 
-**Implementation Status:** ❌ **NOT IMPLEMENTED**
+**Implementation Status:** 🟡 **PARTIAL** (as of 2026-11-03)
+- Boolean circuits and Shannon counting: `proofs/experiments/issue532/{lean,rocq}/Circuits.*` and [Idea 30](proofs/experiments/issue532/ideas/Idea30.md)
+- Monotone and formula bounds: [Idea 10](proofs/experiments/issue532/ideas/Idea10.md); depth versus size: [Idea 15](proofs/experiments/issue532/ideas/Idea15.md); advice: [Idea 19](proofs/experiments/issue532/ideas/Idea19.md); Williams' method: [Idea 41](proofs/experiments/issue532/ideas/Idea41.md)
+- Open premises: `SATCircuitLowerBound`, `ExplicitNPLowerBound` (Idea 30), `SATNotInPPoly` (Idea 19). `PSubsetPPoly` is a named premise on `main`; a proof is in open PR #632.
 - Priority: **MEDIUM**
 - Complexity: **HIGH**
-- Estimated effort: 2-4 months
 
 **Advantages:**
 - Directly relevant to P vs NP
@@ -180,10 +195,13 @@ These strategies focus on creating machine-checkable frameworks for validating p
 - Create reduction verification framework
 - Build library of verified reductions
 
-**Implementation Status:** ❌ **NOT IMPLEMENTED**
+**Implementation Status:** 🟡 **PARTIAL** (as of 2026-11-03)
+- SAT ∈ NP is proved: `Issue532.SATVerifier.satInNP`, with `cookLevin_iff_satHard`
+- Many-one reductions: [Idea 12](proofs/experiments/issue532/ideas/Idea12.md); reduction chains: [Idea 29](proofs/experiments/issue532/ideas/Idea29.md)
+- First slice of a constructive Cook–Levin: [proofs/experiments/issue568/](proofs/experiments/issue568/README.md) (`Issue568.Tableau.localTrace_iff_run`)
+- Open premise: `SATHard` (NP-hardness of SAT). The CNF encoding and the reduction machine are not yet built.
 - Priority: **HIGH**
 - Complexity: **MEDIUM**
-- Estimated effort: 1-3 months
 
 **Advantages:**
 - Foundation for NP theory
@@ -216,10 +234,12 @@ These strategies focus on creating machine-checkable frameworks for validating p
 - Verify known lower bounds
 - Connect to NP vs coNP
 
-**Implementation Status:** ❌ **NOT IMPLEMENTED**
+**Implementation Status:** 🟡 **PARTIAL** (as of 2026-11-03)
+- Resolution: [Idea 23](proofs/experiments/issue532/ideas/Idea23.md); extended resolution and Tseitin: [Idea 28](proofs/experiments/issue532/ideas/Idea28.md); proof-system scope: [Idea 39](proofs/experiments/issue532/ideas/Idea39.md)
+- Assumed known theorems (not mechanised): `CookReckhowNP`, `CookReckhow`, `CookReckhowER`, `ResNotPolyBounded` (Haken 1985)
+- Open premises: `NoPolyBoundedUNSATProofSystem`, `ERNotPolyBounded`, `AllTautSystemsSuperpolynomial`
 - Priority: **LOW-MEDIUM**
 - Complexity: **HIGH**
-- Estimated effort: 3-6 months
 
 **Advantages:**
 - Connection to NP vs coNP
@@ -255,10 +275,12 @@ These strategies explicitly account for known barriers to P vs NP resolution.
 - Create decision tree for technique selection
 - Verify non-relativization formally
 
-**Implementation Status:** ❌ **NOT IMPLEMENTED**
+**Implementation Status:** 🟡 **PARTIAL** (as of 2026-11-03)
+- Diagonalization and the abstract form of relativization: [Idea 16](proofs/experiments/issue532/ideas/Idea16.md); oracle query lower bound: [Idea 38](proofs/experiments/issue532/ideas/Idea38.md)
+- Certified barrier checks: `proofs/experiments/issue609/{lean,rocq}/KnownBarriers.*` (for example `Issue609.KnownBarriers.separation_refutes_uniform`)
+- The Baker–Gill–Solovay oracle constructions are assumed, not proved: `BGSCollapse`, `BGSSeparation`, `BGSTestSeparation`
 - Priority: **MEDIUM**
 - Complexity: **MEDIUM**
-- Estimated effort: 1-2 months
 
 **Advantages:**
 - Focuses effort on viable techniques
@@ -291,10 +313,10 @@ These strategies explicitly account for known barriers to P vs NP resolution.
 - Search for non-natural approaches
 - Document cryptographic assumptions required
 
-**Implementation Status:** ❌ **NOT IMPLEMENTED**
+**Implementation Status:** 🟡 **DISCUSSED, NOT FORMALIZED** (as of 2026-11-03)
+- [Idea 30](proofs/experiments/issue532/ideas/Idea30.md) explains why the counting argument is a large property and why it cannot name an explicit hard function. The Razborov–Rudich theorem itself is not formalized.
 - Priority: **LOW-MEDIUM**
 - Complexity: **HIGH**
-- Estimated effort: 2-4 months
 
 **Advantages:**
 - Fundamental understanding
@@ -359,7 +381,7 @@ These strategies focus on tractable subproblems that advance complexity theory.
 - Start with proven cases (AC⁰ lower bounds)
 - Target progression:
   1. AC⁰ with parity gates (proven: exponential)
-  2. ACC⁰ (proven: super-polynomial for some functions)
+  2. ACC⁰ (proven: NQP ⊄ ACC⁰, Murray and Williams 2018)
   3. TC⁰ (threshold circuits)
   4. NC¹ (log-depth circuits)
   5. NC (polylog-depth)
@@ -367,15 +389,17 @@ These strategies focus on tractable subproblems that advance complexity theory.
 - Formalize and verify each result
 - Identify techniques for next level
 
-**Implementation Status:** ❌ **NOT IMPLEMENTED**
+**Implementation Status:** 🟡 **PARTIAL** (as of 2026-11-03)
+- Monotone circuits and formulas: [Idea 10](proofs/experiments/issue532/ideas/Idea10.md); formula depth versus size: [Idea 15](proofs/experiments/issue532/ideas/Idea15.md)
+- Open premises: `SATFormulaLowerBound`, `NPNotInPolyFormulas` (Idea 10); `SATFormulaSizeLB`, `SATDepthLB`, `NPNotInLogDepth` (Idea 15)
+- No AC⁰, ACC⁰ or TC⁰ lower bound is formalized yet
 - Priority: **MEDIUM-HIGH**
 - Complexity: **HIGH**
-- Estimated effort: 6-12 months
 
 **Current Frontier:**
 - AC⁰: Proven exponential lower bounds (Håstad 1987)
-- ACC⁰: NEXP ⊄ ACC⁰ (Williams 2011)
-- TC⁰: No super-linear lower bounds for explicit functions
+- ACC⁰: NEXP ⊄ ACC⁰ (Williams 2011), strengthened to NQP ⊄ ACC⁰ ([Murray and Williams, STOC 2018](https://doi.org/10.1145/3188745.3188910)); NEXP ⊄ ACC⁰ ∘ THR ([Williams, STOC 2014](https://doi.org/10.1145/2591796.2591858))
+- TC⁰: only slightly superlinear wire and gate lower bounds for small depth ([Impagliazzo, Paturi, Saks 1997](https://doi.org/10.1137/S0097539792282965); [Kane, Williams, STOC 2016](https://doi.org/10.1145/2897518.2897636), for depth 2 and 3). NEXP ⊄ TC⁰ is open
 - **Gap: Need TC⁰ → NC¹ → NC → P/poly progression**
 
 **Advantages:**
@@ -398,21 +422,24 @@ These strategies focus on tractable subproblems that advance complexity theory.
 **Approach:**
 - Study satisfiability algorithms:
   - DPLL, CDCL solvers
-  - PPZ algorithm (1.5ⁿ for k-SAT)
+  - PPZ (about 1.59ⁿ for 3-SAT) and PPSZ (about 1.308ⁿ for general 3-SAT, [Hertli 2014](https://doi.org/10.1137/120868177); biased PPSZ gives about 1.307ⁿ, [Hansen, Kaplan, Zamir, Zwick, STOC 2019](https://doi.org/10.1145/3313276.3316359))
   - Local search methods
 - Implement improved algorithms for circuit-SAT
 - Apply Williams' framework: better algorithms → circuit lower bounds
 - Target progression: ACC⁰ → TC⁰ → NC → P/poly
 
-**Implementation Status:** ❌ **NOT IMPLEMENTED**
+**Implementation Status:** 🟡 **PARTIAL** (as of 2026-11-03)
+- Brute-force baseline: [Idea 01](proofs/experiments/issue532/ideas/Idea01.md) (`Issue532.Idea01.polySATDecider_iff_of_hard`); DPLL splitting: [Idea 21](proofs/experiments/issue532/ideas/Idea21.md)
+- Certified DPLL decider: [proofs/experiments/issue8/](proofs/experiments/issue8/README.md) (`Issue8.NPSubsetP.dpll_correct`; its call count is below 2^(|w|+1), which is not polynomial)
+- Williams' method: [Idea 41](proofs/experiments/issue532/ideas/Idea41.md) and [proofs/experiments/issue10/](proofs/experiments/issue10/README.md) (`nexp_lower_bound_of_pEqualsNP`)
+- Open premises: `PolySATDecider` (Idea 01), `FastCircuitSAT` (Idea 41). Known theorems still assumed for Idea 41: `NTimeHierarchy`, `EasyWitnessLemma`, `WilliamsSpeedup`, and `CircuitSATInNP` (a proof is in open PR #631).
 - Priority: **HIGH**
 - Complexity: **VERY HIGH**
-- Estimated effort: 12-24 months
 
 **Key Result (Williams 2011):**
 - Slightly faster circuit-SAT algorithm for ACC⁰
 - Implies NEXP ⊄ ACC⁰
-- First major non-relativizing separation in decades
+- A major lower bound whose proof uses non-relativizing ingredients. It is not the first non-relativizing result: IP = PSPACE (Shamir 1992) and MA_EXP ⊄ P/poly (Buhrman, Fortnow, Thierauf 1998) came earlier
 
 **Extension Strategy:**
 1. Study Williams' proof thoroughly
@@ -423,7 +450,7 @@ These strategies focus on tractable subproblems that advance complexity theory.
 **Advantages:**
 - Proven successful approach
 - Dual benefit (algorithms + lower bounds)
-- Non-relativizing
+- Uses non-relativizing ingredients. Its relation to natural proofs is subtle (Williams, "Natural proofs versus derandomization", [STOC 2013](https://doi.org/10.1145/2488608.2488612))
 - Active research area
 
 **Limitations:**
@@ -439,7 +466,7 @@ These strategies focus on tractable subproblems that advance complexity theory.
 
 **Approach:**
 - Study key hypotheses:
-  - Strong Exponential Time Hypothesis (SETH)
+  - Strong Exponential Time Hypothesis (SETH), a conjecture (see the status note at the top)
   - 3-SUM hypothesis
   - APSP (All-Pairs Shortest Paths) hypothesis
 - Develop fine-grained reductions
@@ -470,7 +497,7 @@ These strategies focus on tractable subproblems that advance complexity theory.
 
 ### Strategy 3.4: NP vs coNP Separation Attempts
 
-**Objective:** Prove NP ≠ coNP (believed easier than P ≠ NP).
+**Objective:** Prove NP ≠ coNP. This is at least as hard as P ≠ NP, because NP ≠ coNP implies P ≠ NP.
 
 **Approach:**
 - Study proof complexity
@@ -481,13 +508,13 @@ These strategies focus on tractable subproblems that advance complexity theory.
   - Extended Frege analysis
 - Use Cook-Reckhow connection
 
-**Implementation Status:** ❌ **NOT IMPLEMENTED**
+**Implementation Status:** 🟡 **PARTIAL** (as of 2026-11-03)
+- [Idea 23](proofs/experiments/issue532/ideas/Idea23.md) and [Idea 39](proofs/experiments/issue532/ideas/Idea39.md) state the Cook–Reckhow route on the shared model
+- Open premises: `NoPolyBoundedUNSATProofSystem` (Idea 23), `AllTautSystemsSuperpolynomial` (Idea 39)
 - Priority: **MEDIUM**
 - Complexity: **VERY HIGH**
-- Estimated effort: 12-24+ months
 
 **Advantages:**
-- Easier than P vs NP (believed)
 - Strong connection to proof complexity
 - Publishable partial results
 - Implies P ≠ NP
@@ -511,16 +538,18 @@ These strategies focus on tractable subproblems that advance complexity theory.
 - Study pseudorandom generator constructions
 - Implement Impagliazzo-Wigderson framework
 - Key result: if E requires exponential circuits, then BPP = P
-- Connect via Kabanets observation: either derandomization or P ≠ NP
+- Use the known one-way implications listed below
 
-**Implementation Status:** ❌ **NOT IMPLEMENTED**
+**Implementation Status:** 🟡 **PARTIAL** (as of 2026-11-03)
+- One-sided error and amplification: [Idea 14](proofs/experiments/issue532/ideas/Idea14.md)
+- Open premises: `NPinRP`, `SeedCompression` (Idea 14)
 - Priority: **MEDIUM**
 - Complexity: **HIGH**
-- Estimated effort: 6-12 months
 
-**Key Insight (Kabanets 2001):**
-- Either E has small circuits (polynomial) or P ≠ NP
-- Provides dichotomy: derandomization OR separation
+**Key Implications:**
+- If E has polynomial-size circuits, then P ≠ NP (Meyer's theorem in Karp and Lipton 1980: by padding, E ⊆ P/poly implies EXP ⊆ P/poly, and EXP ⊆ P/poly implies EXP = Σ₂ᵖ).
+- If E requires circuits of size 2^{Ω(n)}, then P = BPP (Impagliazzo and Wigderson 1997).
+- Neither branch is known to hold. The intermediate case gives neither of these two conclusions, though weaker ones are known: for example, if EXP does not have polynomial-size circuits, then BPP has subexponential-time simulations for infinitely many input lengths ([Babai, Fortnow, Nisan, Wigderson 1993](https://doi.org/10.1007/BF01275486)). Related results: Kabanets (2001), Impagliazzo, Kabanets and Wigderson (2002).
 
 **Advantages:**
 - Two-way benefit
@@ -543,7 +572,7 @@ These strategies focus on tractable subproblems that advance complexity theory.
 - Study Mulmuley-Sohoni program
 - Focus on representation-theoretic obstructions
 - Target algebraic analogue: VP vs VNP
-- Build toward P vs NP via arithmetic-to-Boolean conversion
+- Build toward P vs NP via arithmetic-to-Boolean conversion. No such conversion is known: VP ≠ VNP is not known to imply P ≠ NP (see [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md §2.3](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md#23-valiants-model-vp-vs-vnp))
 - Milestones:
   1. Understand orbit closures
   2. Prove partial obstructions
@@ -556,7 +585,7 @@ These strategies focus on tractable subproblems that advance complexity theory.
 - Estimated effort: Years to decades
 
 **Advantages:**
-- Overcomes known barriers
+- Designed to avoid the known barriers. This is Mulmuley's claim, not a theorem. Occurrence obstructions are ruled out ([Bürgisser, Ikenmeyer, Panova, J. AMS 2019](https://doi.org/10.1090/jams/908)); multiplicity obstructions remain open
 - Novel mathematical approach
 - Long-term research program
 - Supported by experts
@@ -593,10 +622,7 @@ These strategies explore emerging or unconventional directions.
 - Complexity: **HIGH**
 - Estimated effort: 6-12 months
 
-**Recent Developments (2024):**
-- Thermodynamic approaches to P vs NP
-- Entropy-driven annealing
-- Information-theoretic bounds
+**Recent Developments:** an earlier version listed uncited "2024 thermodynamic approaches to P vs NP". No such result could be identified, so the entry was removed on 2026-11-03. Related topics: entropy-driven annealing heuristics and information-theoretic bounds.
 
 **Advantages:**
 - Novel perspective
@@ -630,7 +656,7 @@ These strategies explore emerging or unconventional directions.
 
 **Key Results:**
 - Shor's algorithm (factoring in BQP)
-- Grover's algorithm (√n speedup for search)
+- Grover's algorithm (quadratic speedup for search: O(√N) queries instead of N)
 - BQP likely incomparable to NP
 
 **Advantages:**
@@ -640,7 +666,7 @@ These strategies explore emerging or unconventional directions.
 - Potential insights for classical world
 
 **Limitations:**
-- Quantum doesn't solve NP-complete problems
+- NP-complete problems are not known (or believed) to be in BQP. For unstructured search Grover's quadratic speedup is optimal, and relative to a random oracle NP ⊄ BQP ([Bennett, Bernstein, Brassard, Vazirani 1997](https://doi.org/10.1137/S0097539796300933))
 - Highly specialized knowledge required
 - Uncertain relevance to P vs NP
 
@@ -653,7 +679,7 @@ These strategies explore emerging or unconventional directions.
 **Approach:**
 - Train ML models on complexity theory
 - Generate lemma candidates
-- Use neural theorem proving (GPT-f, LEAN-GPT)
+- Use neural theorem proving (GPT-f, [Polu and Sutskever 2020](https://arxiv.org/abs/2009.03393); LeanDojo/ReProver, [Yang et al. 2023](https://arxiv.org/abs/2306.15626))
 - Automated conjecture generation
 - Pattern recognition in proofs
 
@@ -778,7 +804,7 @@ This matrix shows how strategies can be combined for maximum impact:
 3. **Strategy 3.2: SAT Algorithm Lower Bounds** (12-24 months)
    - Proven successful approach (Williams)
    - Dual algorithm + lower bound benefits
-   - Non-relativizing
+   - Uses non-relativizing ingredients (relation to natural proofs is subtle)
 
 ### Tier 2: Medium Priority (Strategic Value)
 
@@ -805,13 +831,13 @@ This matrix shows how strategies can be combined for maximum impact:
 ### Tier 3: Long-Term (Research Programs)
 
 8. **Strategy 3.6: Geometric Complexity Theory** (years)
-   - Overcomes barriers
+   - Designed to avoid known barriers (not proved); occurrence obstructions are ruled out (Bürgisser, Ikenmeyer, Panova 2019)
    - Requires advanced mathematics
    - Long-term program
 
 9. **Strategy 3.4: NP vs coNP** (12-24+ months)
    - Major open problem
-   - Easier than P vs NP (believed)
+   - At least as hard as P vs NP, since NP ≠ coNP implies P ≠ NP
    - High impact if successful
 
 10. **Strategy 4.5: Meta-Complexity** (12-24 months)
@@ -834,6 +860,8 @@ This matrix shows how strategies can be combined for maximum impact:
 ---
 
 ## Recommended Research Roadmap
+
+> **Note (2026-11-03).** The operative plan of this repository is [ROADMAP.md](ROADMAP.md), and its principles are in [RESEARCH_VISION.md](RESEARCH_VISION.md). The phases below are kept as illustrative background. Parts of Phases 1 and 2 are already done (see the status lines above).
 
 ### Phase 1: Foundation (Months 1-6)
 - Complete Strategy 1.5 (NP-Completeness Framework)
@@ -892,7 +920,7 @@ This matrix shows how strategies can be combined for maximum impact:
 
 ### Proof Assistant Communities
 - Lean Zulip, Rocq Discourse
-- Isabelle users mailing list
+- Isabelle users mailing list (the repository's Isabelle files are archived)
 - Agda community
 - Share verification frameworks
 
@@ -906,11 +934,11 @@ This matrix shows how strategies can be combined for maximum impact:
 
 ## Conclusion
 
-This document presents **17 distinct solution strategies** for creating formal tests and making progress on the P versus NP problem:
+This document presents **20 distinct solution strategies** for creating formal tests and making progress on the P versus NP problem. Status as of 2026-11-03:
 
-- **6 Formal Verification Frameworks** (3 implemented, 3 proposed)
-- **3 Barrier-Aware Approaches** (all proposed)
-- **6 Incremental Progress Strategies** (all proposed)
+- **6 Formal Verification Frameworks** (3 implemented, 3 partial)
+- **3 Barrier-Aware Approaches** (2.1 partial, 2.2 discussed only, 2.3 proposed)
+- **6 Incremental Progress Strategies** (3.1, 3.2, 3.4 and 3.5 partial; 3.3 and 3.6 proposed)
 - **5 Novel Approaches** (all proposed)
 
 ### Key Insights

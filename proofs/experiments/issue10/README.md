@@ -1,5 +1,11 @@
 # Issue #10: the Williams route to `NP ⊈ P`
 
+Status at 2026-11-03: 12 theorems here are certified rows of
+`scripts/proof_status.json` in each prover; the other names below only compile.
+On `main`, `CircuitSATInNP` and `PSubsetPPoly` are named premises. PRs
+[#631](https://github.com/konard/p-vs-np/pull/631) and
+[#632](https://github.com/konard/p-vs-np/pull/632) prove them; both are unmerged.
+
 Issue #10 asks for a proof attempt of `NP ⊈ P`. This is `P ≠ NP` stated as
 non-containment. The current shared statement `Complexity.PNotEqualsNP` is
 literally `¬ ∀ L, InNP L → InP L`. Because `P ⊆ NP` is proved
@@ -26,7 +32,7 @@ are no axioms, `sorry` or `Admitted`.
 | The running time was a free label, so any solver could claim zero cost | `legacy_zero_cost_is_fast`. Shared costs count `Run` steps of a finite-table machine. `run_pos` proves every run takes at least one step. `no_one_step_circuitSAT` proves that no machine decides circuit satisfiability in one step. |
 | The bound `2^n - n^δ` was meant as `2^(n - n^δ)`, with `δ : Nat` | `legacy_bound_misread` evaluates both. `legacy_exponent_collapses` shows that `2^(n - n^δ) = 1` for every natural `δ ≥ 1`. `legacy_bound_misses_budget` shows that `2^n - n^δ` breaks the Williams budget `t·(n+1) ≤ 2^n` at arbitrarily large `n`. |
 | Malformed circuits were not excluded | `malformed_forward_wire` and `malformed_no_inputs`. `malformed_rejected` gives a malformed circuit that outputs `true` and is rejected by `CircuitSAT`. |
-| `fast_PPoly_SAT_implies_P_neq_NP` took `NP ⊄ P/poly` as a hypothesis, closed it with the axiom `NP_not_subset_PPoly_implies_P_neq_NP`, and never used the algorithm | `npNotSubsetP_of_not_npSubsetPPoly` states the real bridge with `PSubsetPPoly` explicit. |
+| `fast_PPoly_SAT_implies_P_neq_NP` took `NP ⊄ P/poly` as a hypothesis, closed it with the axiom `NP_not_subset_PPoly_implies_P_neq_NP`, and never used the algorithm | `npNotSubsetP_of_not_npSubsetPPoly` states the real bridge with `PSubsetPPoly` explicit. PR #632 (unmerged) proves `PSubsetPPoly`. |
 | Williams' method yields `NEXP ⊄ P/poly`, not `NP ⊄ P/poly` | `williams_nexp_lower_bound` states the actual conclusion. `nexp_lower_bound_of_pEqualsNP` shows that `P = NP` yields the same conclusion under the same theorems, so on its own it does not separate P from NP. |
 | The axioms `williams_main_theorem`, `NP_not_subset_PPoly_implies_P_neq_NP`, `PPoly_SAT_is_hard`, `williams_2011_result` and the nonexistence axiom `we_dont_have_fast_TC0_SAT` | Removed. The known theorems are explicit hypotheses (`NTimeHierarchy`, `EasyWitnessLemma`, `WilliamsSpeedup`, `PSubsetPPoly`, `CircuitSATInNP`). The open obligation is the definition `FastCircuitSAT`, not an axiom. |
 | The enumeration diagonal (see below) | `constant_circuit_agrees` and `no_bit_differs_from_all_circuits`. |
@@ -83,10 +89,13 @@ as the original problem.
 
 PR #43's original files claimed a strict ladder `ACC⁰ ⊊ TC⁰ ⊊ … ⊊ P/poly`.
 The known facts are narrower. `AC⁰ ⊊ ACC⁰`, because parity is outside `AC⁰`
-(Furst–Saxe–Sipser 1984; Ajtai 1983). Also `ACC⁰ ⊆ TC⁰ ⊆ NC¹ ⊆ P/poly`.
+(Furst–Saxe–Sipser 1984, DOI [10.1007/BF01744431](https://doi.org/10.1007/BF01744431);
+Ajtai 1983, DOI [10.1016/0168-0072(83)90038-6](https://doi.org/10.1016/0168-0072(83)90038-6)). Also `ACC⁰ ⊆ TC⁰ ⊆ NC¹ ⊆ P/poly`.
 Whether `ACC⁰ ⊊ TC⁰` or `TC⁰ ⊊ NC¹` is open. Williams' method has given
-`NEXP ⊄ ACC⁰` (Williams, CCC 2011 / J. ACM 2014) and `NQP ⊄ ACC⁰`
-(Murray–Williams, STOC 2018). `NEXP ⊄ TC⁰` and `NEXP ⊄ P/poly` are open. None
+`NEXP ⊄ ACC⁰` (Williams, CCC 2011 / J. ACM 2014, DOI
+[10.1145/2559903](https://doi.org/10.1145/2559903)) and `NQP ⊄ ACC⁰`
+(Murray–Williams, STOC 2018, DOI
+[10.1145/3188745.3188910](https://doi.org/10.1145/3188745.3188910)). `NEXP ⊄ TC⁰` and `NEXP ⊄ P/poly` are open. None
 of these is formalized here.
 
 ## Verified scope
@@ -104,6 +113,18 @@ of these is formalized here.
 | The corrected bridges | `npNotSubsetP_of_not_npSubsetPPoly`, `williams_nexp_lower_bound`, `nexp_lower_bound_of_pEqualsNP`, `npNotSubsetP_of_not_fastCircuitSAT` |
 | Certificate-length half of `CircuitSATInNP` | `satisfying_input_within_certBound` |
 
+Only these 12 names are certified rows of `scripts/proof_status.json`:
+`npNotSubsetP_iff_pNotEqualsNP`, `npNotSubsetP_iff_classes_differ`,
+`legacy_zero_cost_is_fast`, `legacy_bound_misses_budget`,
+`no_one_step_circuitSAT`, `malformed_rejected`,
+`williams_budget_not_polynomial`, `no_bit_differs_from_all_circuits`,
+`npNotSubsetP_of_not_npSubsetPPoly`, `nexp_lower_bound_of_pEqualsNP`,
+`npNotSubsetP_of_not_fastCircuitSAT` and `satisfying_input_within_certBound`.
+The other names in the table compile in the same files but are not audited
+rows. Recount with
+`python3 -I -c "import json; print(sum('/issue10/' in e['source'] for e in json.load(open('scripts/proof_status.json'))['lean']))"`
+(prints 12; use `'rocq'` for Rocq, also 12).
+
 The Rocq `Legacy.Circuit` stores `compute` on `nat -> bool` instead of
 `Fin n → Bool`; the defect it reproduces is the same.
 
@@ -111,7 +132,7 @@ The Rocq `Legacy.Circuit` stores `compute` on `nat -> bool` instead of
 
 As in the write-up, the premise of the route to `NP ⊈ P` is **`CircuitSATInNP`**, the
 circuit-evaluating verifier. `satisfying_input_within_certBound` proves that
-the certificate fits the linear bound `1·(|w|+1)`. What remains is a paired
+the certificate fits the linear bound `1·(|w|+1)`. What remains on `main` is a paired
 `Complexity.Machine` with the following properties:
 
 1. It decodes `encNat n` and the gate list `encList encGate C`.
@@ -119,7 +140,10 @@ the certificate fits the linear bound `1·(|w|+1)`. What remains is a paired
 3. It evaluates `C` gate by gate.
 4. It halts within a polynomial number of `Run` steps.
 
-`Issue532.SATVerifier` is the model for such a proof. After that, the next
+`Issue532.SATVerifier` is the model for such a proof. PR
+[#631](https://github.com/konard/p-vs-np/pull/631) supplies such a machine; as
+of 2026-11-03 it is unmerged, so the premise stays explicit on `main`
+(issue [#625](https://github.com/konard/p-vs-np/issues/625)). After that, the next
 known theorem in Williams' chain is `LazyDiagonalSimulation` (the universal
 nondeterministic simulation behind `NTimeHierarchy`). Neither ingredient
 touches the open part, `FastCircuitSAT` or its refutation.

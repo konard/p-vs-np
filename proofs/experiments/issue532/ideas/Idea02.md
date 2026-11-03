@@ -175,8 +175,10 @@ At full potential the idea gives:
 "exploit formula structure": a polynomial algorithm must use the syntax of `φ`
 and not just its values. No Lean `def` is introduced for it in this file,
 because the corresponding formal obligation is Idea 01's `PolySATDecider`,
-which is equivalent to P = NP by the Cook–Levin theorem (cited, not
-formalized).
+which is equivalent to P = NP under the Cook–Levin theorem. Its membership
+half is proved (`SATVerifier.satInNP`). Its hardness half `SATHard` is a named
+hypothesis, open on main as of 2026-11-03; PR #630 (unmerged) covers part of
+it. See [HYPOTHESES.md](../../../HYPOTHESES.md).
 
 **Barriers.** The theorem is a *relativizing* statement: it holds relative to
 every oracle, since the predicate is an oracle. Baker–Gill–Solovay show that any

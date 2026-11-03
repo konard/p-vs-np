@@ -1,9 +1,15 @@
 # Issue #609: correcting the incoming P = NP proof sketches
 
-Incoming PR #41's `PEqualsNPAttempt.lean` and `KnownBarriers.lean` are not in
-`main`. This directory supplies paired Lean/Rocq replacements against the
-current shared model. They do not import the old files or assert their global
-axioms. The old PR must not be merged alongside its original proof files.
+Status at 2026-11-03: 10 theorems per prover are certified rows of
+`scripts/proof_status.json`. `pEqualsNP_of_candidate` and
+`candidate_iff_pEqualsNP` take `SATHard`, which is open
+([#624](https://github.com/konard/p-vs-np/issues/624)). No candidate machine is constructed here.
+
+PR #41's original `PEqualsNPAttempt.lean` and `KnownBarriers.lean` never
+reached `main`. PR #41 was merged on 2026-09-29 only after those files were
+dropped; what it merged is [`../issue8/`](../issue8/README.md). This directory
+supplies paired Lean/Rocq replacements against the current shared model. They
+do not import the old files or assert their global axioms.
 
 ## Reproducing the defects in PR #41
 
@@ -33,6 +39,14 @@ axioms. The old PR must not be merged alongside its original proof files.
 | The class P obligation is nontrivial | `not_every_language_inP` | same name |
 | A separating world refutes a uniform equality proof, and an equality world refutes a uniform separation proof, when the technique applies there | `separation_refutes_uniform`, `equality_refutes_uniform` | same names |
 | The constant-true and false-technique barrier claims fail in countermodels | `constant_true_not_uniform`, `constant_true_not_uniform_separation`, `false_technique_counterexample` | same names |
+
+The 10 certified rows are `pEqualsNP_of_candidate`, `candidate_iff_pEqualsNP`,
+`candidate_on_encodings`, `sat_has_no_instance`, `not_every_language_inP` and
+the five `KnownBarriers` theorems in the table. `candidate_decides`,
+`candidate_of_inP` and `sat_has_yes_instance` compile but are not manifest
+rows. Recount with
+`python3 -I -c "import json; print(sum('/issue609/' in e['source'] for e in json.load(open('scripts/proof_status.json'))['lean']))"`
+(prints 10; use `'rocq'` for Rocq, also 10).
 
 `Candidate` uses `Complexity.Machine`, `Complexity.Run`, and
 `Issue532.Machines.SAT`. The latter decodes actual CNF formulas. The reverse

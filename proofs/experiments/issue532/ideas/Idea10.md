@@ -195,8 +195,8 @@ of the specific function that these counterexamples lack.
   perfect matching, a problem in P: the first superpolynomial monotone
   versus general gap.
 * N. Alon and R. B. Boppana, "The monotone circuit complexity of Boolean
-  functions", Combinatorica 7(1), 1987. Exponential monotone lower bounds
-  for CLIQUE.
+  functions", Combinatorica 7(1), 1987, doi:10.1007/BF02579196. Exponential
+  monotone lower bounds for CLIQUE.
 * É. Tardos, "The gap between monotone and non-monotone circuit complexity
   is exponential", Combinatorica 8(1), 1988. A monotone function computable
   in polynomial time with exponential monotone circuit complexity.
@@ -213,9 +213,10 @@ of the specific function that these counterexamples lack.
   prove superpolynomial general circuit lower bounds.
 * M. G. Find, A. Golovnev, E. A. Hirsch and A. S. Kulikov, "A better-than-3n
   lower bound for the circuit complexity of an explicit function", FOCS
-  2016: `(3 + 1/86)n − o(n)`. J. Li and T. Yang, STOC 2022: `3.1n − o(n)`.
-  These are the best known general lower bounds for explicit functions,
-  and they are only linear.
+  2016: `(3 + 1/86)n − o(n)`. J. Li and T. Yang, "3.1n − o(n) circuit lower
+  bounds for explicit functions", STOC 2022, doi:10.1145/3519935.3519976.
+  As far as we know on 2026-11-03, these are the best general circuit lower
+  bounds for explicit functions, and they are only linear.
 * A. A. Markov (1958) showed that `⌈log₂(n+1)⌉` negations suffice for any
   function of `n` variables, so "few negations" does not restrict the
   function class either.
@@ -243,7 +244,9 @@ of the specific function that these counterexamples lack.
 * **Open:** `SATFormulaLowerBound` and `NPNotInPolyFormulas`. The honest
   conclusion is NP ⊄ polynomial-size formulas (non-uniform NC¹-type), not
   P ≠ NP. The circuit analogue (Idea 30's `SATCircuitLowerBound`, Idea 19's
-  `SATNotInPPoly`) would give P ≠ NP through P ⊆ P/poly. The known general
+  `SATNotInPPoly`) would give P ≠ NP through the named hypothesis
+  `PSubsetPPoly` (P ⊆ P/poly). As of 2026-11-03 it is open on main and
+  discharged in PR #632 (unmerged). The known general
   circuit bounds for explicit functions are linear (§5).
 * **Caveats.** Non-vacuity is proved only on the false side
   (`const_no_general_lower_bound`); the true side for formulas (a counting

@@ -4,6 +4,8 @@
 
 **Navigation:** [↑ Back to Repository Root](README.md) | [Tools & Methodologies](TOOLS_AND_METHODOLOGIES.md) | [Solution Plan](DETAILED_SOLUTION_PLAN.md) | [Formal Proofs](README.md#-formal-verification)
 
+*Last Updated: November 2026*
+
 ---
 
 ## Executive Summary
@@ -12,18 +14,18 @@ The P versus NP problem is one of the seven Millennium Prize Problems establishe
 
 ### The Key Framing
 
-**✅ PROVEN: P ⊆ NP** — Every problem solvable in polynomial time is also verifiable in polynomial time.
-[See formal proofs](proofs/p_vs_np_decidable/README.md) in Lean, Rocq, Isabelle/HOL, and Agda.
+**✅ PROVEN: P ⊆ NP.** Every problem solvable in polynomial time is also verifiable in polynomial time. This is a textbook fact; in this repository it is machine-checked for the shared finite-machine model (`Complexity.pSubsetNP`).
+[See formal proofs](proofs/p_vs_np_decidable/README.md): Lean and Rocq (certified), Agda (CI-checked). The Isabelle/HOL files are archived and not checked.
 
 **❓ THE QUESTION: Is NP ⊆ P true?**
 
 For P = NP to be true, we need **both**:
-1. P ⊆ NP (✅ **proven** — [see proof](proofs/p_vs_np_decidable/README.md))
+1. P ⊆ NP (✅ **proven**; [see proof](proofs/p_vs_np_decidable/README.md))
 2. NP ⊆ P (❓ **unknown**)
 
 **Central Question:** Does NP ⊆ P?
 
-**Implication:** P vs NP is provable/unprovable if and only if NP ⊆ P is provable/unprovable.
+**Implication:** Since P ⊆ NP is proved, P = NP holds if and only if NP ⊆ P holds, and a proof of either P = NP or P ≠ NP is exactly a proof of NP ⊆ P or of NP ⊄ P. (Whether such a proof exists in a given theory is a separate question; see [P_VS_NP_INDEPENDENCE_STRATEGIES.md](P_VS_NP_INDEPENDENCE_STRATEGIES.md).)
 
 **Practical Meaning:** If NP ⊆ P (equivalently, P = NP), then every problem whose solution can be quickly verified can also be quickly solved. If NP ⊄ P (equivalently, P ≠ NP), then there exist problems for which solutions can be verified quickly but cannot be found quickly.
 
@@ -36,7 +38,7 @@ For P = NP to be true, we need **both**:
 **Class P (Polynomial Time):**
 - The class of decision problems solvable by a deterministic Turing machine in polynomial time
 - Formally: P = {L | L = L(M) for some Turing machine M that runs in time O(n^k) for some constant k}
-- Examples: Sorting, shortest path, linear programming, primality testing
+- Examples (as decision problems): shortest path (is there a path of length ≤ k?), linear programming feasibility, primality testing, 2-SAT
 
 **Class NP (Nondeterministic Polynomial Time):**
 - The class of decision problems for which a "yes" answer can be verified in polynomial time
@@ -49,6 +51,8 @@ For P = NP to be true, we need **both**:
 - P ⊆ NP is **proven** ([see formal proofs](proofs/p_vs_np_decidable/README.md))
 - Since P ⊆ NP is proven, P = NP if and only if NP ⊆ P
 - The question is whether NP ⊆ P (equivalently, whether P = NP or P ⊊ NP)
+
+**Formal definitions in this repository:** The definitions above are the textbook ones. The repository's formal definitions live in [FORMAL_STATEMENT.md](FORMAL_STATEMENT.md), which relates the Clay statement to the formal target `Complexity.PEqualsNP`, and in [proofs/complexity/README.md](proofs/complexity/README.md), which describes the shared finite-machine model. In that model, P ⊆ NP and SAT ∈ NP are proved. NP-hardness of SAT (`SATHard`) is an open named premise, listed with the others in [proofs/HYPOTHESES.md](proofs/HYPOTHESES.md).
 
 ### 1.2 The Problem Statement
 
@@ -63,16 +67,16 @@ For P = NP to be true, we need **both**:
 ### 2.1 Origins
 
 - **1936:** Alan Turing introduces the Turing machine model ([Turing 1936](https://doi.org/10.1112/plms/s2-42.1.230))
-- **1960s:** Cobham and Edmonds introduce polynomial-time computation ([Cobham 1965](https://doi.org/10.1145/321250.321259), [Edmonds 1965](https://doi.org/10.4153/CJM-1965-045-4))
+- **1960s:** Cobham and Edmonds introduce polynomial-time computation (Cobham 1965: "The intrinsic computational difficulty of functions", Proc. 1964 International Congress for Logic, Methodology and Philosophy of Science, North-Holland, 24–30, no DOI; [Edmonds 1965](https://doi.org/10.4153/CJM-1965-045-4))
 - **1971:** Stephen Cook proves SAT is NP-complete (Cook-Levin theorem) ([Cook 1971](https://doi.org/10.1145/800157.805047))
-- **1972:** Richard Karp identifies 21 NP-complete problems ([Karp 1972](https://doi.org/10.1007/978-3-540-68279-0_8))
-- **1970s:** Levin independently develops similar theory in Russia ([Levin 1973](https://www.mathnet.ru/eng/ppi903))
+- **1972:** Richard Karp identifies 21 NP-complete problems (Karp 1972, in *Complexity of Computer Computations*, Plenum, 85–103; [reprinted in *50 Years of Integer Programming*](https://doi.org/10.1007/978-3-540-68279-0_8))
+- **1970s:** Levin independently develops similar theory in Russia ([Levin 1973](https://www.mathnet.ru/eng/ppi914))
 - **2000:** Clay Mathematics Institute designates P vs NP as Millennium Prize Problem ([CMI 2000](https://www.claymath.org/millennium/p-vs-np/))
 
 ### 2.2 Why This Problem Matters
 
 **Cryptography:**
-- Modern internet security depends on P ≠ NP
+- Modern public-key cryptography needs one-way functions, which would imply P ≠ NP; P ≠ NP alone does not give them
 - RSA encryption, DES, and other cryptographic systems rely on computational hardness
 - If P = NP, these systems would be vulnerable
 
@@ -116,12 +120,12 @@ For P = NP to be true, we need **both**:
 
 **1. SAT (Boolean Satisfiability)**
 - **Problem:** Given a Boolean formula F, determine if there exists a truth assignment making F true
-- **Status:** First proven NP-complete (Cook-Levin theorem, [Cook 1971](https://doi.org/10.1145/800157.805047), [Levin 1973](https://www.mathnet.ru/eng/ppi903))
+- **Status:** First proven NP-complete (Cook-Levin theorem, [Cook 1971](https://doi.org/10.1145/800157.805047), [Levin 1973](https://www.mathnet.ru/eng/ppi914))
 - **Example:** (P ∨ Q) ∧ (¬P ∨ R) ∧ (¬Q ∨ ¬R)
 
 **2. 3-SAT**
 - **Problem:** SAT restricted to formulas in conjunctive normal form with exactly 3 literals per clause
-- **Status:** NP-complete ([Karp 1972](https://doi.org/10.1007/978-3-540-68279-0_8))
+- **Status:** NP-complete (Karp 1972, in *Complexity of Computer Computations*, Plenum, 85–103; [reprinted in *50 Years of Integer Programming*](https://doi.org/10.1007/978-3-540-68279-0_8))
 - **Example:** (P ∨ Q ∨ R) ∧ (¬P ∨ Q ∨ ¬R) ∧ (P ∨ ¬Q ∨ S) ∧ (¬P ∨ ¬R ∨ ¬S)
 
 **3. Graph Problems**
@@ -132,8 +136,8 @@ For P = NP to be true, we need **both**:
 
 **4. Optimization Problems**
 - **Subset Sum:** Given integers, is there a subset summing to target T?
-- **Knapsack:** Maximize value while staying under weight constraint
-- **Traveling Salesman:** Find shortest tour visiting all cities
+- **Knapsack (decision version):** Is there a subset of items with weight at most W and value at least V?
+- **Traveling Salesman:** Is there a tour visiting all cities of length ≤ k? (the decision version is NP-complete; finding a shortest tour is NP-hard)
 
 **5. Scheduling and Packing**
 - **Bin Packing:** Pack items into minimum number of bins
@@ -159,14 +163,14 @@ For P = NP to be true, we need **both**:
 ### 4.1 What We Know
 
 **Upper Bounds:**
-- Best known SAT algorithms run in time ~O(1.5^n) for n variables ([Moser & Scheder 2011](https://doi.org/10.1145/1993636.1993702))
+- Best known 3-SAT algorithms run in time ~O(1.307^n) for n variables, randomized (PPSZ; [Hertli 2014](https://doi.org/10.1137/120868177); [Hansen, Kaplan, Zamir, Zwick 2019](https://doi.org/10.1145/3313276.3316359)). The best proven deterministic 3-SAT bound is 1.32793^n ([Liu, ICALP 2018](https://doi.org/10.4230/LIPIcs.ICALP.2018.88)); the derandomized Schöning bound is (4/3 + ε)^n ([Moser & Scheder 2011](https://doi.org/10.1145/1993636.1993670)). These are the best peer-reviewed bounds; unreviewed October 2026 claims of 2^{o(n)}-time algorithms (claims that ETH is false) are listed in [Section 10](#10-recent-developments-20152026). For general CNF-SAT, no algorithm with time O(c^n) for a constant c < 2 is known
 - No polynomial-time algorithm known for any NP-complete problem
 - Many exponential and sub-exponential algorithms exist
 
 **Lower Bounds:**
 - No super-linear lower bound proven for general Boolean circuits
-- Best proven lower bound for explicit functions: ~3.1n gates ([Li & Yang 2021/2022](https://eccc.weizmann.ac.il/report/2021/083/))
-- Exponential lower bounds for restricted models (monotone circuits [Razborov 1985](https://doi.org/10.1007/BF01305233), bounded-depth circuits [Håstad 1987](https://doi.org/10.1145/28395.28400))
+- Best proven lower bound for explicit functions: ~3.1n gates ([Li & Yang 2021/2022](https://eccc.weizmann.ac.il/report/2021/023/))
+- Superpolynomial and exponential lower bounds for restricted models: superpolynomial monotone bounds for CLIQUE (Razborov 1985, Soviet Math. Dokl. 31, 354–357), made exponential by Andreev (1985) and [Alon, Boppana 1987](https://doi.org/10.1007/BF02579196); exponential bounds for constant-depth circuits ([Håstad 1986](https://doi.org/10.1145/12130.12132))
 
 **Complexity Class Relationships:**
 ```
@@ -190,7 +194,7 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 - If strong pseudo-random generators exist, natural proofs cannot prove circuit lower bounds
 - Implication: Most known circuit lower bound techniques are blocked
 
-**3. Algebrization Barrier ([Aaronson, Wigderson 2008](https://doi.org/10.1145/1536414.1536451))**
+**3. Algebrization Barrier ([Aaronson, Wigderson 2008](https://doi.org/10.1145/1374376.1374481))**
 - Extends relativization and arithmetization barriers
 - Shows further limitations on proof techniques
 - Many algebraic techniques fail due to fundamental limitations
@@ -207,7 +211,7 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 
 **If P ≠ NP:**
 - Computational intractability is inherent to certain problems
-- Cryptography has a solid foundation
+- Worst-case hardness of some problems is established; secure cryptography needs more (average-case hardness, one-way functions), which P ≠ NP alone does not give
 - Optimization requires heuristics and approximations
 - Supports current computational practice
 
@@ -245,12 +249,11 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 
 **2. Boolean Circuit Lower Bounds**
 - **Goal:** Prove super-polynomial circuit size lower bound for NP-complete problem
-- **Background:** Shannon (1949) proved almost all n-bit functions require 2^n/n gates ([Shannon 1949](https://doi.org/10.1002/j.1538-7305.1949.tb00928.x))
-- **Progress:** Exponential lower bounds for restricted models:
-  - Monotone circuits ([Razborov 1985](https://doi.org/10.1007/BF01305233))
-  - Constant-depth circuits ([Ajtai 1983](https://doi.org/10.1145/800061.808726); [Furst, Saxe, Sipser 1984](https://doi.org/10.1016/0022-0000(84)90091-7))
-  - AC^0 circuits ([Håstad 1987](https://doi.org/10.1145/28395.28400))
-- **Best General Result:** ~3.1n gates ([Li & Yang 2021/2022](https://eccc.weizmann.ac.il/report/2021/083/)) (far from super-polynomial)
+- **Background:** Shannon (1949) proved almost all n-bit functions require 2^n/n gates ([Shannon 1949](https://doi.org/10.1002/j.1538-7305.1949.tb03624.x))
+- **Progress:** Lower bounds for restricted models:
+  - Monotone circuits: superpolynomial for CLIQUE (Razborov 1985, Soviet Math. Dokl. 31, 354–357); exponential (Andreev 1985; [Alon, Boppana 1987](https://doi.org/10.1007/BF02579196))
+  - Constant-depth (AC^0) circuits: superpolynomial ([Ajtai 1983](https://doi.org/10.1016/0168-0072(83)90038-6); [Furst, Saxe, Sipser 1984](https://doi.org/10.1007/BF01744431)); exponential for parity (Yao 1985; sharpened by [Håstad 1986](https://doi.org/10.1145/12130.12132))
+- **Best General Result:** ~3.1n gates ([Li & Yang 2021/2022](https://eccc.weizmann.ac.il/report/2021/023/)) (far from super-polynomial)
 - **Limitation:** Natural proofs barrier ([Razborov, Rudich 1997](https://doi.org/10.1006/jcss.1997.1494))
 
 **3. Algebraic Techniques**
@@ -259,15 +262,15 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 - **Example:** IP = PSPACE ([Shamir 1992](https://doi.org/10.1145/146585.146609)) uses algebraic techniques
 - **Advantage:** Can be non-relativizing
 
-**4. Geometric Complexity Theory ([Mulmuley, Sohoni 2001](https://doi.org/10.1137/S0097539700366802))**
+**4. Geometric Complexity Theory ([Mulmuley, Sohoni 2001](https://doi.org/10.1137/S009753970038715X))**
 - **Method:** Use algebraic geometry and representation theory
 - **Goal:** Prove VP ≠ VNP (algebraic analogue of P vs NP)
 - **Status:** Long-term research program, no resolution yet
 
 **5. Circuit Satisfiability Lower Bounds**
-- **Williams' Approach ([Williams 2011](https://arxiv.org/abs/1111.1261)):** Convert algorithms into circuit lower bounds
+- **Williams' Approach ([Williams, CCC 2011; J. ACM 2014](https://doi.org/10.1145/2559903)):** Convert algorithms into circuit lower bounds
 - **Result:** NEXP ⊄ ACC^0
-- **Significance:** First major non-relativizing separation in decades
+- **Significance:** A circuit lower bound proved by a method that avoids the relativization and natural-proofs barriers
 - **Technique:** Combines algorithms, diagonalization, and circuit analysis
 
 ### 5.3 Indirect Approaches
@@ -275,11 +278,11 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 **Proposition ([Impagliazzo, Wigderson 1997](https://doi.org/10.1145/258533.258590)):**
 - If some language in E (exponential time) requires exponential circuit size, then BPP = P
 
-**Proposition ([Kabanets 2001](https://doi.org/10.1007/3-540-44676-1_14)):**
-- If every language in E has small circuits, then P ≠ NP
+**Proposition (Meyer's theorem, in [Karp, Lipton 1980](https://doi.org/10.1145/800141.804678)):**
+- If every language in E has polynomial-size circuits, then EXP = Σ₂ᵖ, and so P ≠ NP (otherwise EXP = P, against the time hierarchy theorem)
 
 **Implication:**
-- Either we get derandomization (BPP = P) or we prove P ≠ NP
+- Either E lacks polynomial-size circuits (a circuit lower bound) or P ≠ NP. This is not a dichotomy "BPP = P or P ≠ NP": Impagliazzo–Wigderson needs exponential-size lower bounds, Meyer needs all of E to have polynomial-size circuits, and the cases in between give neither conclusion. A related trade-off is in [Kabanets, Impagliazzo 2004](https://doi.org/10.1007/s00037-004-0182-6): derandomizing polynomial identity testing implies NEXP ⊄ P/poly or the permanent has no polynomial-size arithmetic circuits
 
 ---
 
@@ -376,7 +379,7 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 
 ### 9.1 Proof Complexity
 
-**Key Result ([Cook, Reckhow 1979](https://doi.org/10.1016/0022-0000(79)90044-4)):**
+**Key Result ([Cook, Reckhow 1979](https://doi.org/10.2307/2273702)):**
 - NP ≠ coNP implies no propositional proof system has polynomial-size proofs for all tautologies
 
 **Implications:**
@@ -398,7 +401,7 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 
 ---
 
-## 10. Recent Developments (2015-2024)
+## 10. Recent Developments (2015–2026)
 
 ### Key Results
 
@@ -407,14 +410,24 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 - Not polynomial, but major improvement
 - Revised and corrected by 2017
 
-**Avi Wigderson (Turing Award, 2024):**
+**Avi Wigderson (2023 ACM A.M. Turing Award, announced 2024):**
 - Recognition of complexity theory contributions
 - Continued importance of the field
 
-**Thermodynamic Approaches (2024):**
-- Novel perspectives using entropy and information theory
-- Entropy-Driven Annealing methods
-- Still exploratory
+**Time–Space Simulation ([Williams, STOC 2025](https://doi.org/10.1145/3717823.3718225)):**
+- TIME[t] ⊆ SPACE[√(t log t)] for multitape Turing machines
+- Builds on the tree-evaluation algorithm of [Cook and Mertz (STOC 2024)](https://doi.org/10.1145/3618260.3649664), which runs in space O(log n · log log n)
+- Does not separate P from NP or P from PSPACE
+
+**Near-Maximum Circuit Lower Bounds for Symmetric Exponential Time (2024):**
+- [Chen, Hirahara, and Ren (STOC 2024)](https://doi.org/10.1145/3618260.3649624) and [Li (STOC 2024)](https://doi.org/10.1145/3618260.3649615) proved that the symmetric exponential-time class S₂E requires near-maximum circuit size, about 2^n/n: Chen, Hirahara, and Ren for S₂E with one bit of advice, and Li without advice
+- The class S₂E is far above NP, so this does not bear directly on NP ⊄ P/poly
+
+**AI-Lab Claims about ETH (October 2026, unreviewed):**
+- On 26–27 October 2026, OpenAI and Anthropic published claims that the Exponential Time Hypothesis (ETH) is false, each backed by a Lean-checked k-SAT running-time theorem in its own machine model (Anthropic's development also defines ETH and proves `ethIsFalse`; OpenAI's does not define ETH). As of 2026-11-03 they are not peer-reviewed; Impagliazzo, Paturi and Williams are reviewing the OpenAI claim; no outside review of the Anthropic claim is announced as of 2026-11-03
+- ETH is at least as strong as P ≠ NP: ETH implies P ≠ NP, and the converse is unknown. If the claims hold, they do not settle P vs NP; refuting ETH is not known to imply P = NP
+- Earlier, on 6 October 2026, the [openai/math](https://github.com/openai/math) release had 722 manuscripts in 372 families (at commit `4eaee87`, 2026-10-30, the catalogue lists 721 in 373 families), Lean-checked restricted lower bounds in its own machine model, and a claimed proof of the Unique Games Conjecture; 3 manuscripts were reportedly withdrawn. These claims are also unreviewed
+- The repository's [literature registry](literature/REGISTRY.md) records these sources and their review status
 
 **Continued Barriers:**
 - No major breakthrough on P vs NP itself
@@ -428,22 +441,22 @@ LOGSPACE ⊆ P ⊆ NP ⊆ PSPACE ⊆ EXP
 ### Consensus Beliefs (Not Proven)
 
 1. **P ≠ NP:** Strongly believed by most complexity theorists
-2. **NP ≠ coNP:** Even stronger belief
+2. **NP ≠ coNP:** A stronger statement than P ≠ NP, also widely believed
 3. **NP ⊊ PSPACE:** Believed proper subset
 4. **BPP = P:** Derandomization should be possible
-5. **P/poly not contained in NP:** Non-uniform circuits genuinely more powerful
 
 ### Known Separations
 
 1. **P ⊊ EXP:** By diagonalization
 2. **NP ⊊ NEXP:** By nondeterministic time hierarchy
 3. **LOGSPACE ⊊ PSPACE:** By space hierarchy
-4. **NEXP ⊄ ACC^0:** Williams (2010)
+4. **NEXP ⊄ ACC^0:** Williams (CCC 2011; J. ACM 2014)
+5. **P/poly ⊄ NP:** This is a theorem, not a belief. P/poly contains undecidable unary languages, and every NP language is decidable
 
 ### Open Questions
 
 1. **P vs NP:** The main question
-2. **NP vs coNP:** Likely easier than P vs NP
+2. **NP vs coNP:** Proving NP ≠ coNP is at least as hard as proving P ≠ NP, since NP ≠ coNP implies P ≠ NP
 3. **NP vs PSPACE:** Major open problem
 4. **L vs NL:** Deterministic vs nondeterministic log-space
 5. **P vs BPP:** Derandomization question

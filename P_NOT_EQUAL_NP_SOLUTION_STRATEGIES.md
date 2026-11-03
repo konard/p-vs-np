@@ -6,24 +6,36 @@
 
 ## Overview
 
-This document catalogs potential solution strategies for proving P ≠ NP, organized by approach type. Each strategy represents a research direction that could, in principle, lead to a formal proof satisfying one of the [four test methods](proofs/p_not_equal_np/README.md#the-four-test-methods) established in our formal verification framework.
+This document catalogs potential solution strategies for proving P ≠ NP, organized by approach type. Each strategy represents a research direction that could, in principle, lead to a formal proof satisfying one of the [four test methods](#formal-framework-reference) of the [formal verification framework](proofs/p_not_equal_np/README.md).
+
+**Last reviewed:** 2026-11-03. The exact checked statements are in [FORMAL_STATEMENT.md](FORMAL_STATEMENT.md). Named open premises are in [proofs/HYPOTHESES.md](proofs/HYPOTHESES.md). The operative plan is [ROADMAP.md](ROADMAP.md).
 
 **Important Context:**
-- All strategies must overcome known barriers: relativization ([Baker, Gill, Solovay 1975](https://doi.org/10.1137/0204037)), natural proofs ([Razborov, Rudich 1997](https://doi.org/10.1006/jcss.1997.1494)), and algebrization ([Aaronson, Wigderson 2008](https://doi.org/10.1145/1536414.1536451))
+- All strategies must overcome known barriers: relativization ([Baker, Gill, Solovay 1975](https://doi.org/10.1137/0204037)), natural proofs ([Razborov, Rudich 1997](https://doi.org/10.1006/jcss.1997.1494)), and algebrization ([Aaronson, Wigderson, STOC 2008](https://doi.org/10.1145/1374376.1374481); [TOCT 2009](https://doi.org/10.1145/1490270.1490272))
 - These are research directions, not guaranteed paths to success
 - Many have been attempted for 50+ years without resolution
 - Success likely requires fundamentally new mathematical insights
 
-**Formal Framework Reference:**
+### Formal Framework Reference
 
-This repository contains a formal verification framework for P ≠ NP proofs (see [proofs/p_not_equal_np/](proofs/p_not_equal_np/README.md)) with four mathematically equivalent test methods:
+This repository contains a formal verification framework for P ≠ NP proofs (see [proofs/p_not_equal_np/](proofs/p_not_equal_np/README.md)) with four test methods. They are not all equivalent to P ≠ NP:
 
-1. **Test 1:** Existence of problem in NP \ P
-2. **Test 2:** Some NP-complete problem not in P
-3. **Test 3:** SAT not in P
-4. **Test 4:** Super-polynomial lower bound for problem in NP
+1. **Test 1:** Existence of problem in NP \ P. This is equivalent to P ≠ NP (`PNotEqualNP.test_existence_of_hard_problem`, certified).
+2. **Test 2:** Some NP-complete problem not in P. This is a sufficient condition. The test takes the completeness predicate and its NP membership as premises.
+3. **Test 3:** SAT not in P. This is a sufficient condition. The test takes SAT ∈ NP as a premise, and that premise is now proved (`Issue532.SATVerifier.satInNP`). The converse, P ≠ NP ⇒ SAT ∉ P, needs the open premise `SATHard`. See `Issue532.SATVerifier.inP_sat_iff_of_hard` and `Issue7.ClockedSAT.pi2_of_pNotEqualsNP`.
+4. **Test 4:** Super-polynomial lower bound, over every finite machine and every polynomial bound, for a problem in NP. This is a sufficient condition.
 
 Any strategy below must ultimately produce evidence satisfying one of these tests.
+
+### Status note (2026-11-03): ETH and SETH
+
+As of 2026-11-03:
+
+- ETH (for some δ > 0, 3-SAT has no 2^{δn} algorithm) and SETH (for every ε > 0 there is a k such that k-SAT has no O(2^{(1-ε)n}) algorithm) are **conjectures**.
+- ETH implies P ≠ NP. The converse is not known. Refuting ETH would therefore not prove P = NP: a 2^{o(n)} algorithm can still be superpolynomial.
+- On 26 and 27 October 2026, OpenAI (`openai/math`, family 378, "The Exponential Time Hypothesis is False") and Anthropic (`anthropics/formal-math`, `eth/`, "A 2^o(n) Time Algorithm for 3-SAT", Lean theorem `MainResults.ethIsFalse`) claimed that ETH is false, each with a Lean proof. The OpenAI manuscript claims deterministic #k-SAT counting in time 2^{O_k(n log log n/√log n)}, and states that SETH, Gap-ETH and NSETH also fail; its Lean theorem proves only the weaker bound 2^{O_k(n (log log n)^2/√log n)} on its own machine model and does not define ETH. Neither claim is peer reviewed yet. Impagliazzo, Paturi and Williams are reviewing the OpenAI claim; no outside review of the Anthropic claim is announced as of 2026-11-03.
+- In October 2026 the Anthropic repository also added (`3sum-apsp/`) a Lean proof of a claimed Alman–Vassilevska Williams result that refutes the integer 3SUM and APSP hypotheses of §7.3 (the Lean statement uses a word RAM with integer inputs; the running times for real inputs are not formalized). These hypotheses concern problems inside P.
+- For this document: strategies that lean on SETH-based reductions (§7.3) rest on a disputed conjecture until the review ends. The P vs NP question is unchanged. No theorem in `scripts/proof_status.json` uses ETH or SETH. Claim tracking is in [literature/CLAIMED_PROOFS_2017_2026.md](literature/CLAIMED_PROOFS_2017_2026.md).
 
 ---
 
@@ -50,7 +62,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 **Strategy:**
 - Exhibit explicit Boolean function in NP requiring ω(n^k) gates for all k
-- Current best: ~3.1n gates for explicit functions ([Li & Yang 2022](https://eccc.weizmann.ac.il/report/2021/083/))
+- Current best: 3.1n − o(n) gates for explicit functions ([Li & Yang, STOC 2022](https://doi.org/10.1145/3519935.3519976))
 - Need: ω(poly(n)) gates
 
 **Test Method:** Test 4 (super-polynomial lower bound)
@@ -76,7 +88,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Goal:** Strengthen monotone lower bounds or reduce general circuits to monotone
 
 **Strategy:**
-- Razborov (1985) proved exponential monotone lower bound for CLIQUE
+- Razborov (1985) proved a superpolynomial (n^{Ω(log n)}) monotone lower bound for CLIQUE; Andreev (1985) and Alon and Boppana (1987) proved exponential monotone bounds
 - Extend techniques to relate monotone and general circuits
 - Find NP problems where monotone restriction preserves hardness
 
@@ -94,17 +106,19 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Status:** Well-understood technique; extensions challenging
 
 **References:**
-- [Razborov 1985](https://doi.org/10.1007/BF01305233): Monotone CLIQUE lower bound
-- Alon & Boppana (1987): Monotone vs general circuit gap
+- Razborov 1985 (Soviet Math. Doklady 31; no DOI): monotone CLIQUE lower bound n^{Ω(log n)}
+- [Alon & Boppana 1987](https://doi.org/10.1007/BF02579196): exponential monotone bounds for CLIQUE
+- [Tardos 1988](https://doi.org/10.1007/BF02122563): the gap between monotone and general circuit complexity is exponential
 
 ### 1.3 Bounded-Depth Circuit Lower Bounds
 
 **Goal:** Strengthen AC^0, ACC^0, TC^0 lower bounds and extend to more general classes
 
 **Strategy:**
-- AC^0: PARITY, MAJORITY provably hard ([Håstad 1987](https://doi.org/10.1145/28395.28400))
-- ACC^0: Functions with certain modular properties hard ([Razborov-Smolensky 1987](https://doi.org/10.1016/0022-0000(93)90044-5))
-- Extend to AC^0[p^k], TC^0 circuits, or small-depth circuits with more general gates
+- AC^0: PARITY, MAJORITY provably hard ([Håstad 1986](https://doi.org/10.1145/12130.12132))
+- AC^0[p], p prime: MOD_q (q not a power of p) and MAJORITY need exponential size ([Razborov 1987](https://doi.org/10.1007/BF01137685), [Smolensky 1987](https://doi.org/10.1145/28395.28404)). AC^0[p^k] adds nothing new, since MOD_{p^k} reduces to MOD_p in constant depth
+- ACC^0: NEXP ⊄ ACC^0 (Williams 2011), improved to NQP ⊄ ACC^0 (Murray and Williams 2018), see §3.1
+- Extend to AC^0[m] for composite m (for example AC^0[6]) beyond the Williams and Murray–Williams results, to TC^0, or to small-depth circuits with more general gates
 
 **Test Method:** Test 4 (if extended to all of P/poly)
 
@@ -121,9 +135,9 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Status:** Active area; major results in restricted settings
 
 **References:**
-- [Håstad 1987](https://doi.org/10.1145/28395.28400): AC^0 lower bounds
-- [Razborov-Smolensky 1987](https://doi.org/10.1016/0022-0000(93)90044-5): ACC^0 with modular gates
-- Williams (2014): TC^0 vs ACC^0 separation
+- [Håstad 1986](https://doi.org/10.1145/12130.12132) (STOC 1986; thesis 1987): AC^0 lower bounds
+- [Razborov 1987](https://doi.org/10.1007/BF01137685), [Smolensky 1987](https://doi.org/10.1145/28395.28404): AC^0[p] lower bounds, p prime
+- Williams (2014): lower bounds for ACC^0 circuits with a bottom layer of threshold gates (ACC^0 ∘ THR). No separation of TC^0 from ACC^0 is known.
 
 ### 1.4 Arithmetic Circuit Lower Bounds
 
@@ -134,7 +148,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 - Extend to variants and related functions
 - Use algebraic techniques unavailable in Boolean setting
 
-**Test Method:** Test 4 (via reductions from Boolean to arithmetic)
+**Test Method:** None known. Arithmetic lower bounds are not known to imply Boolean ones (see §2.3).
 
 **Barriers:**
 - ⚠ Some techniques relativize, others don't
@@ -150,7 +164,8 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 **References:**
 - Baur-Strassen (1983): Arithmetic circuit lower bounds
-- Agrawal-Vinay (2008): Arithmetic version of P vs NP
+- [Valiant 1979](https://doi.org/10.1145/800135.804419): VP vs VNP
+- [Agrawal-Vinay 2008](https://doi.org/10.1109/FOCS.2008.32): "Arithmetic circuits: a chasm at depth four". Strong enough depth-4 lower bounds would give superpolynomial lower bounds for general arithmetic circuits
 
 ---
 
@@ -158,7 +173,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 ### 2.1 Geometric Complexity Theory (GCT)
 
-**Goal:** Use algebraic geometry and representation theory to prove VP ≠ VNP, implying P ≠ NP
+**Goal:** Use algebraic geometry and representation theory to prove VP ≠ VNP. This would not by itself imply P ≠ NP (see §2.3).
 
 **Strategy:**
 - Represent complexity classes as orbit closures in algebraic varieties
@@ -166,25 +181,25 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 - Permanent vs determinant as key test case
 - Multi-decade research program
 
-**Test Method:** Test 4 (via VP ≠ VNP implying P ≠ NP)
+**Test Method:** None directly. VP ≠ VNP is not known to imply P ≠ NP (see §2.3). A Boolean lower bound would still be needed for Test 4.
 
 **Barriers:**
-- ✓ Non-relativizing (uses algebraic structure)
+- ⚠ Designed to avoid the known barriers (Mulmuley). This is a programme claim, not a theorem. Relativization is not defined for algebraic circuit models in the usual sense
 - ✓ Potentially avoids natural proofs
 - ⚠ Algebrization may apply in some forms
 
 **Potential Approaches:**
-- Developing explicit obstructions from representation theory
-- Strengthening Kronecker coefficients results
+- Developing explicit multiplicity obstructions from representation theory
 - Finding new geometric/algebraic invariants
-- Proving occurrence obstructions
+- Closed route: occurrence obstructions cannot separate permanent from determinant in the Mulmuley–Sohoni setting (Bürgisser, Ikenmeyer, Panova 2019), and positivity of rectangular Kronecker or plethysm coefficients alone does not suffice (Ikenmeyer, Panova 2017)
 
-**Status:** Long-term program; partial progress on barriers
+**Status:** Long-term program. The occurrence-obstruction route is closed; multiplicity obstructions remain open
 
 **References:**
-- [Mulmuley & Sohoni 2001](https://doi.org/10.1137/S0097539700366802): GCT framework
+- [Mulmuley & Sohoni 2001](https://doi.org/10.1137/S009753970038715X): GCT framework
 - Mulmuley (2007+): Sequence of GCT papers
-- Bürgisser, Ikenmeyer, Panova (2016+): Recent progress
+- [Bürgisser, Ikenmeyer, Panova, J. AMS 32 (2019)](https://doi.org/10.1090/jams/908) (FOCS 2016): no occurrence obstructions in geometric complexity theory
+- [Ikenmeyer, Panova, Adv. Math. 319 (2017)](https://doi.org/10.1016/j.aim.2017.08.024): rectangular Kronecker coefficients and plethysms in geometric complexity theory
 
 ### 2.2 Algebraic Independence and Degree Bounds
 
@@ -198,7 +213,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Test Method:** Test 4
 
 **Barriers:**
-- ✓ Non-relativizing
+- ⚠ Relativization is not defined for algebraic models in the usual sense
 - ⚠ Natural proofs concerns in algebraic setting
 
 **Potential Approaches:**
@@ -210,7 +225,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 **References:**
 - Raz (2004, 2009): Multilinear formula lower bounds
-- Agrawal-Vinay (2008): Algebraic P vs NP
+- Agrawal-Vinay (2008): depth-4 chasm (see §1.4)
 
 ### 2.3 Valiant's Model (VP vs VNP)
 
@@ -221,10 +236,13 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 - Prove VNP-complete problems not in VP
 - Use algebraic techniques
 
-**Test Method:** Relates to Test 4; VP ≠ VNP is believed to imply P ≠ NP
+**Test Method:** None directly. The known implication runs the other way:
+- Valiant (1992): VP = VNP over the two-element field implies P/poly = NP/poly.
+- Bürgisser (2000), "Cook's versus Valiant's hypothesis", *Theoretical Computer Science* 235: if VP = VNP over a field k that is finite, or of characteristic zero under the generalized Riemann hypothesis, then the nonuniform versions of NC, P, NP and PH coincide, and the polynomial hierarchy collapses to its second level.
+- So NP ⊄ P/poly (which is stronger than P ≠ NP) would imply VP ≠ VNP over such fields. VP ≠ VNP is not known to imply P ≠ NP. P ≠ NP alone is not known to imply VP ≠ VNP either.
 
 **Barriers:**
-- ✓ Non-relativizing
+- ⚠ Relativization is not defined for algebraic models in the usual sense
 - ✓ May avoid natural proofs via algebraic structure
 
 **Potential Approaches:**
@@ -236,7 +254,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 **References:**
 - Valiant (1979): VP and VNP classes
-- Bürgisser (2000): Completeness and reduction in Valiant's model
+- Bürgisser (2000): *Completeness and Reduction in Algebraic Complexity Theory* (Springer) and "Cook's versus Valiant's hypothesis" (TCS 235, doi:10.1016/S0304-3975(99)00183-8)
 
 ---
 
@@ -255,9 +273,9 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Test Method:** Test 4 (build toward P/poly lower bounds)
 
 **Barriers:**
-- ✓ Non-relativizing (uses specific algorithm structure)
-- ✓ Avoids natural proofs (uses algorithms, not properties)
-- ✓ Avoids algebrization
+- ✓ Uses non-relativizing ingredients (the easy-witness lemma, PCP-style compression)
+- ⚠ Its relation to natural proofs is subtle: NEXP ⊄ C is equivalent to the existence of certain constructive "useful" properties against C (Williams, "Natural proofs versus derandomization", [STOC 2013](https://doi.org/10.1145/2488608.2488612); [SICOMP 2016](https://doi.org/10.1137/130938219))
+- ⚠ It is not established that the method avoids algebrization in general
 
 **Potential Approaches:**
 - Better SAT algorithms for AC^0[p], TC^0, ACC^0
@@ -267,9 +285,13 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Status:** Breakthrough technique; active development
 
 **References:**
-- [Williams 2011](https://arxiv.org/abs/1111.1261): NEXP ⊄ ACC^0
-- Williams (2014): Subsequent extensions
-- Murray & Williams (2018): Further refinements
+- Williams, "Non-uniform ACC Circuit Lower Bounds", [CCC 2011](https://doi.org/10.1109/CCC.2011.36); [J. ACM 61(1), 2014](https://doi.org/10.1145/2559903): NEXP ⊄ ACC^0. Survey: [arXiv:1111.1261](https://arxiv.org/abs/1111.1261)
+- [Williams, STOC 2014](https://doi.org/10.1145/2591796.2591858): NEXP ⊄ ACC^0 ∘ THR
+- [Murray & Williams, STOC 2018](https://doi.org/10.1145/3188745.3188910): NQP ⊄ ACC^0
+
+**Dated note (2026-11-03): the claimed ETH refutations.** If the October 2026 ETH-refuting algorithms survive review (see the status note at the top), they are faster satisfiability algorithms of the kind this framework uses. The OpenAI manuscript states (§1 and Appendix C) that they yield circuit lower bounds of c·n log n for a language in E^NP, for infinitely many input lengths. Such bounds would not give P ≠ NP: the class is E^NP rather than NP, and the bounds are superlinear rather than superpolynomial. This consequence has not been checked here.
+
+**In this repository:** [Idea 41](proofs/experiments/issue532/ideas/Idea41.md) and [proofs/experiments/issue10/](proofs/experiments/issue10/README.md) state Williams' method on the shared model. `Issue10.NPNotSubsetP.nexp_lower_bound_of_pEqualsNP` is certified, with premises `CircuitSATInNP`, `NTimeHierarchy`, `EasyWitnessLemma` and `WilliamsSpeedup`. A proof of `CircuitSATInNP` is in open PR #631.
 
 ### 3.2 Satisfiability Algorithm Improvements
 
@@ -283,8 +305,8 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Test Method:** Test 4 (via Williams' technique)
 
 **Barriers:**
-- ✓ Non-relativizing
-- ✓ Avoids standard barriers
+- ✓ Uses non-relativizing ingredients (through Williams' framework)
+- ⚠ Relation to natural proofs and algebrization as in §3.1; not shown to avoid them
 
 **Potential Approaches:**
 - Random restrictions and simplification
@@ -295,8 +317,8 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Status:** Active research area
 
 **References:**
-- Impagliazzo, Paturi, Zane (2001): k-SAT algorithms
-- Calabro, Impagliazzo, Paturi (2009): PPSZ algorithm analysis
+- Impagliazzo & Paturi (2001) and Impagliazzo, Paturi, Zane (2001): ETH, SETH and the sparsification lemma
+- Paturi, Pudlák, Saks, Zane (2005): the PPSZ k-SAT algorithm
 
 ### 3.3 Hardness Amplification and Lower Bounds
 
@@ -351,7 +373,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Status:** Progress on weak systems; strong systems open
 
 **References:**
-- [Cook & Reckhow 1979](https://doi.org/10.1016/0022-0000(79)90044-4): Proof complexity foundations
+- [Cook & Reckhow 1979](https://doi.org/10.2307/2273702): Proof complexity foundations
 - Haken (1985): Exponential resolution lower bounds
 - Krajíček (1995): Proof complexity and bounded arithmetic
 
@@ -393,7 +415,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Test Method:** Contributes toward Test 4
 
 **Barriers:**
-- ✓ Non-relativizing (algebraic)
+- ⚠ Relativization does not apply to algebraic proof systems in the usual sense
 - ⚠ Algebraic natural proofs exist
 
 **Potential Approaches:**
@@ -404,8 +426,10 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Status:** Active area; strong results for some systems
 
 **References:**
-- Grigoriev (1998): Polynomial Calculus lower bounds
-- Grochow & Pitassi (2018): IPS lower bounds
+- Grigoriev (FOCS 1998): Tseitin tautologies and Nullstellensatz degree lower bounds
+- [Razborov 1998](https://doi.org/10.1007/s000370050013); Impagliazzo, Pudlák, Sgall (1999): Polynomial Calculus lower bounds
+- [Grochow & Pitassi, J. ACM 2018](https://doi.org/10.1145/3230742): the Ideal Proof System; superpolynomial IPS lower bounds would imply VP ≠ VNP
+- [Forbes, Shpilka, Tzameret, Wigderson](https://doi.org/10.4086/toc.2021.v017a010) (CCC 2016; Theory of Computing 2021): lower bounds for restricted IPS
 
 ---
 
@@ -471,16 +495,15 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Goal:** Prove circuit lower bounds via derandomization
 
 **Strategy:**
-- Show that either E has hard functions or BPP = P
-- If E has small circuits, then P ≠ NP ([Kabanets 2001](https://doi.org/10.1007/3-540-44676-1_14))
-- If E requires large circuits, get derandomization
-- Either way, meaningful result
+- Hardness vs randomness: if E requires circuits of size 2^{εn} for some ε > 0, then P = BPP (Impagliazzo and Wigderson 1997); derandomizing polynomial identity testing implies circuit lower bounds ([Kabanets and Impagliazzo 2004](https://doi.org/10.1007/s00037-004-0182-6))
+- If E has polynomial-size circuits, then P ≠ NP (Meyer's theorem in Karp and Lipton 1980: by padding, E ⊆ P/poly implies EXP ⊆ P/poly; EXP ⊆ P/poly implies EXP = Σ₂ᵖ; and P = NP would then give EXP = P)
+- If E requires circuits of size 2^{Ω(n)}, get derandomization
+- No dichotomy is known: E may have neither polynomial-size circuits nor require size 2^{Ω(n)}, and both branches are open
 
 **Test Method:** Conditional approach; one branch gives Test 4
 
 **Barriers:**
-- ✓ Non-relativizing (uses specific hardness)
-- ✓ Avoids standard barriers
+- ⚠ The hardness-to-randomness implications relativize (they are black-box reductions), so they do not avoid the relativization barrier. Some converse directions use non-relativizing ingredients, for example Impagliazzo, Kabanets and Wigderson (2002)
 
 **Potential Approaches:**
 - Pseudorandom generator constructions from hard functions
@@ -491,7 +514,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 **References:**
 - [Impagliazzo & Wigderson 1997](https://doi.org/10.1145/258533.258590): Hardness implies PRGs
-- [Kabanets 2001](https://doi.org/10.1007/3-540-44676-1_14): Derandomization and circuit lower bounds
+- [Kabanets 2001](https://doi.org/10.1006/jcss.2001.1763): Derandomization and circuit lower bounds
 
 ### 6.2 Pseudorandom Generator Constructions
 
@@ -505,7 +528,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Test Method:** Contributes to conditional results
 
 **Barriers:**
-- ✓ Non-relativizing (explicit constructions)
+- ⚠ The generator constructions are black-box and relativize; they do not avoid the relativization barrier
 
 **Potential Approaches:**
 - Nisan-Wigderson framework
@@ -515,8 +538,8 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Status:** Strong conditional results
 
 **References:**
-- [Nisan & Wigderson 1994](https://doi.org/10.1006/jcss.1994.1001): PRG from hard functions
-- Umans (2003): Pseudorandom generators and list-decodable codes
+- [Nisan & Wigderson 1994](https://doi.org/10.1016/S0022-0000(05)80043-1): PRG from hard functions
+- Umans (2003): Pseudo-random generators for all hardnesses
 
 ---
 
@@ -573,18 +596,19 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 **References:**
 - Levin (1986): Average-case completeness
-- Impagliazzo & Levin (1990): Random self-reducibility
+- [Impagliazzo & Levin, FOCS 1990](https://doi.org/10.1109/FSCS.1990.89604): "No better ways to generate hard NP instances than picking uniformly at random"
+- [Feigenbaum & Fortnow 1993](https://doi.org/10.1137/0222061), [Bogdanov & Trevisan 2006](https://doi.org/10.1137/S0097539705446974): random self-reducibility and the limits of worst-case to average-case reductions for NP
 
 ### 7.3 Fine-Grained Complexity Reductions
 
 **Goal:** Use fine-grained reductions to relate P vs NP to other conjectures
 
 **Strategy:**
-- Build network of equivalences between complexity conjectures
-- Find easier conjecture equivalent to P ≠ NP
-- Prove that conjecture
+- Build a network of reductions between complexity conjectures
+- Note the limits: SETH and ETH imply P ≠ NP, but no fine-grained hypothesis is known to be equivalent to P ≠ NP. The 3SUM and APSP hypotheses concern problems inside P and do not bear on P vs NP
+- A proof of SETH or ETH would imply P ≠ NP, but would be at least as hard
 
-**Test Method:** Test 1 (via equivalence)
+**Test Method:** None directly; no equivalence with P ≠ NP is known
 
 **Barriers:**
 - ⚠ Finding true equivalences difficult
@@ -598,7 +622,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 **References:**
 - Abboud, Vassilevska Williams, Yu (2015): Fine-grained complexity
-- Williams (2018): Fine-grained complexity surveys
+- V. Vassilevska Williams, "On some fine-grained questions in algorithms and complexity", [ICM 2018](https://doi.org/10.1142/9789813272880_0188)
 
 ---
 
@@ -638,7 +662,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 - Study phase transitions in satisfiability
 - Use spin glass models
 - Entropy and information theory methods
-- Thermodynamic approaches (2024 developments)
+- Thermodynamic approaches (speculative; no specific result is cited. An earlier version said "2024 developments" without a source)
 
 **Test Method:** Indirect; could inform Test 4 approaches
 
@@ -656,7 +680,6 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 **References:**
 - Mézard & Montanari (2009): Information, Physics, and Computation
-- Recent papers on thermodynamic approaches to complexity
 
 ### 8.3 Topological and Geometric Methods
 
@@ -705,7 +728,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Status:** Foundational interest; limited progress on P vs NP
 
 **References:**
-- [Fagin 1974](https://doi.org/10.1016/S0022-0000(74)80051-6): Descriptive complexity
+- Fagin 1974, "Generalized first-order spectra and polynomial-time recognizable sets", SIAM-AMS Proceedings 7 (no DOI): Descriptive complexity
 - Girard (1987): Linear logic
 
 ---
@@ -724,7 +747,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Test Method:** Indirect; would inform Test 4 strategies
 
 **Barriers:**
-- ✓ Non-relativizing problem (MCSP separates from oracles)
+- ⚠ Relation to the relativization barrier depends on the technique; MCSP-based arguments face the natural-proofs barrier
 - ⚠ Difficult to formalize connections
 
 **Potential Approaches:**
@@ -736,33 +759,35 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 **References:**
 - Kabanets & Cai (2000): MCSP and natural proofs
-- Murray & Williams (2018): MCSP connections
+- Murray & Williams (CCC 2015): on the NP-hardness of MCSP
 
 ### 9.2 Independence from Axiom Systems
 
 **Goal:** Prove P vs NP is independent of ZFC or other axiom systems
 
 **Strategy:**
-- Construct models of set theory with different answers
-- Show undecidability in formal sense
+- Show that ZFC proves neither P = NP nor P ≠ NP
 - Would explain difficulty of problem
+- Caveat: P vs NP is an arithmetic statement. Its truth is absolute between transitive models of ZFC, so forcing cannot change it. Any independence proof must work with models whose natural numbers are non-standard, or with weaker theories of arithmetic.
 
 **Test Method:** Would show Tests 1-4 cannot be satisfied in ZFC
 
 **Barriers:**
-- ⚠ Most believe P vs NP is decidable in ZFC
+- ⚠ Most researchers expect ZFC to prove one side (that is, that P vs NP is not independent of ZFC)
 - ⚠ Requires deep logic and set theory
 
 **Potential Approaches:**
-- Forcing arguments
-- Inner models
-- Large cardinals
+- Independence from weak arithmetic theories (bounded arithmetic, fragments of PA)
+- Proof-theoretic strength (for example, unprovability in theories conservative over PA)
+- Forcing and inner models cannot change the truth of P vs NP, for the absoluteness reason above. For the same reason, adding CH, ¬CH or AC as an axiom cannot help: an arithmetic sentence provable in ZF + AC or in ZFC + CH is already provable without them (Aaronson, *P ?= NP*, §3.1, footnote 24)
+- Large cardinal axioms are not ruled out by this argument. As new axioms they can prove new arithmetic sentences, such as Con(ZFC), so in principle they could decide P vs NP where ZFC does not. No such connection is known
 
 **Status:** Speculative; most doubt independence
 
 **References:**
 - See [proofs/p_vs_np_undecidable/](proofs/p_vs_np_undecidable/README.md)
-- Aaronson (2013): Undecidability discussions
+- Aaronson, "[Is P Versus NP Formally Independent?](https://www.scottaaronson.com/papers/indep.pdf)", Bulletin of the EATCS 81 (2003)
+- Aaronson, [*P ?= NP*](https://www.scottaaronson.com/papers/pnp.pdf) (2016), §3.1
 
 ### 9.3 Conditional Lower Bounds
 
@@ -816,7 +841,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 
 **References:**
 - [Cook 1971](https://doi.org/10.1145/800157.805047): SAT is NP-complete
-- [Karp 1972](https://doi.org/10.1007/978-3-540-68279-0_8): 21 NP-complete problems
+- [Karp 1972](https://doi.org/10.1007/978-1-4684-2001-2_9): 21 NP-complete problems
 
 ### 10.2 Restricted Input Classes
 
@@ -848,7 +873,7 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 **Goal:** Separate related classes (NP vs coNP, NP vs PSPACE, etc.) to build toward P vs NP
 
 **Strategy:**
-- Prove NP ≠ coNP (believed easier than P ≠ NP)
+- Prove NP ≠ coNP (at least as hard as P ≠ NP, since NP ≠ coNP implies P ≠ NP)
 - Prove NP ⊊ PSPACE
 - Use techniques on easier problems first
 
@@ -877,13 +902,13 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 Based on recent progress and potential to overcome barriers:
 
 1. **Algorithm-to-Lower-Bound (Williams' Framework)** §3.1
-   - ✓ Non-relativizing
-   - ✓ Avoids natural proofs
-   - ✓ Recent success (NEXP ⊄ ACC^0)
+   - ✓ Uses non-relativizing ingredients
+   - ⚠ Relation to natural proofs is subtle (Williams 2013/2016)
+   - ✓ Recent success (NEXP ⊄ ACC^0, now NQP ⊄ ACC^0)
    - Target: Extend to stronger circuit classes
 
 2. **Geometric Complexity Theory** §2.1
-   - ✓ Non-relativizing
+   - ⚠ Designed to avoid the known barriers (not proved); occurrence obstructions are ruled out (Bürgisser, Ikenmeyer, Panova 2019)
    - ✓ Potentially avoids natural proofs
    - Target: Permanent vs determinant, VP vs VNP
 
@@ -892,8 +917,8 @@ Based on recent progress and potential to overcome barriers:
    - Target: NP vs coNP via super-polynomial proof sizes
 
 4. **Derandomization Connection** §6.1
-   - ✓ Non-relativizing
-   - ✓ Creates dichotomy (either result useful)
+   - ⚠ The hardness-to-randomness direction relativizes
+   - ⚠ No dichotomy is known; both branches are open
    - Target: Circuit lower bounds or BPP = P
 
 ### Key Principles for New Strategies
@@ -910,7 +935,7 @@ Any new strategy should:
    - Learn from partial results
 
 3. **Provide Verification Path:**
-   - Must eventually satisfy one of four test methods
+   - Must eventually satisfy one of the four test methods (Test 1 is the only equivalence; see above)
    - Should be formalizable in proof assistants
 
 4. **Allow Incremental Progress:**
@@ -925,7 +950,7 @@ All strategies must ultimately produce:
 - **For Test 3:** Proof SAT ∉ P
 - **For Test 4:** Problem L ∈ NP, super-polynomial lower bound for L
 
-See [proofs/p_not_equal_np/](proofs/p_not_equal_np/README.md) for the formal verification framework that would validate any successful proof.
+See [proofs/p_not_equal_np/](proofs/p_not_equal_np/README.md) for the formal verification framework. It can check a proof only if the proof is stated against the repository's shared machine model and uses no axioms beyond those listed for certified theorems.
 
 ---
 
@@ -970,7 +995,7 @@ This document catalogs known approaches and potential strategies for proving P �
 
 **Remember:** Success likely requires fundamentally new mathematical insights not yet conceived. The strategies listed here represent current knowledge, but the breakthrough may come from entirely new directions.
 
-Any successful proof must satisfy one of the [four formal test methods](proofs/p_not_equal_np/README.md) and overcome all known barriers. The formal verification framework in this repository stands ready to validate any claimed proof.
+Any successful proof must satisfy one of the [four formal test methods](#formal-framework-reference) and overcome all known barriers. The formal framework in this repository can check a claimed proof once it is expressed against the shared machine model ([FORMAL_STATEMENT.md](FORMAL_STATEMENT.md)) without unlisted axioms. Translating an informal proof into that form is a separate, often large, task.
 
 ---
 

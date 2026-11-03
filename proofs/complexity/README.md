@@ -5,6 +5,31 @@ and Agda formalizations. The three implementations use the same mathematical
 model; they are separate checked implementations, not a cross-assistant proof
 of equivalence.
 
+## Status
+
+This model is the formal meaning of P and NP in the current proofs. The target
+is `Complexity.PEqualsNP`; [FORMAL_STATEMENT.md](../../FORMAL_STATEMENT.md)
+relates it to the Clay statement. As of November 2026, the following are
+proved on top of the model and certified in
+[the result manifest](../../scripts/proof_status.json):
+
+- `Complexity.pSubsetNP`: P ⊆ NP, in this directory.
+- `Issue532.SATVerifier.satInNP`: SAT ∈ NP, with an explicit 45-state
+  verifier. The SAT language and the premises `SATHard` and `CookLevin` are
+  defined in [`issue532/lean/Machines.lean`](../experiments/issue532/lean/Machines.lean).
+- `Issue7.ClockedSAT.pNotEqualsNP_of_pi2`: the Π⁰₂ clocked-SAT sentence
+  implies `P ≠ NP`, with no premise.
+- `Issue568.Tableau.boundedAccept_iff_run`: bounded machine tableaux match
+  `Run`, the first slice of a constructive Cook–Levin theorem.
+
+NP-hardness of SAT (`SATHard`) is **not** proved; it is the main open premise.
+Without it, `InP SAT` and `PEqualsNP` are different statements here.
+`CircuitSATInNP` and `PSubsetPPoly` are premises on `main`; unmerged PRs
+[#631](https://github.com/konard/p-vs-np/pull/631) and
+[#632](https://github.com/konard/p-vs-np/pull/632) prove them (as of
+2026-11-03). Every named premise is listed in
+[proofs/HYPOTHESES.md](../HYPOTHESES.md).
+
 ## Machine and cost semantics
 
 Inputs and certificates are finite lists of bits. A deterministic one-tape

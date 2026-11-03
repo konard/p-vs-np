@@ -17,7 +17,7 @@ The [Lean](refutation/lean/ZhuRefutation.lean) and
 six-vertex Γ digraph. Each vertex has two incoming and outgoing arcs, and the
 graph is strongly connected. Its projector graph has three C4 components and
 eight labeled perfect matchings. This directly contradicts Theorem 1(c3),
-which bounds the number of C4 components by n/4=1 (with n=6). The
+which bounds the number of C4 components by n/4=1 (with n=6, in natural-number division, as the Lean file states it). The
 code-permutation convention illustrated in Zhu's paper gives four code-weight
 classes, more than the separate Lemma 4 bound n/2=3. Different
 matchings also produce different cycle outcomes in the inverse digraph.

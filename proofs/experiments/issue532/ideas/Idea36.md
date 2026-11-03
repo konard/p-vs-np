@@ -14,7 +14,8 @@ returns optimal solutions. Over the shared machine model, the open obligation
 `ExactRoundingObligation` asks for a polynomial-time `Complexity.Machine` map
 that appends an optimal vertex cover to every word-encoded instance. With the
 named known theorems `CoverCheckInP` (the certificate check is in P) and
-`VCHard` (Karp 1972) it gives `InP VC` and `PEqualsNP`.
+`VCHard` (Karp 1972) it gives `InP VC` and `PEqualsNP`. Both named theorems
+are open in [proofs/HYPOTHESES.md](../../../HYPOTHESES.md) as of 2026-11-03.
 
 ## 1. The idea at full strength
 
@@ -73,7 +74,8 @@ machine outputs `g w` within `p.eval |w|` steps of its `Run`) from
   `CoverCheck u` holds iff `coverOf u` is a cover of `edgesOf u` within
   `budgetOf u`.
 - `OptimalCover edges vs C` says `C` is a cover of minimum cost.
-- Named known theorems (true, not mechanised here):
+- Named known theorems (true, not mechanised here; both open in
+  `proofs/HYPOTHESES.md` as of 2026-11-03):
   `CoverCheckInP : Prop := InP CoverCheck` (the certificate check of vertex
   cover ∈ NP) and `VCHard : Prop := NPHard VC` (Karp 1972).
 - The open obligation:
@@ -221,7 +223,8 @@ theorem exactRounding_gives_pEqualsNP (hard : VCHard) (hc : CoverCheckInP)
 ```
 
 The route needs two named hypotheses, both known theorems that are not
-mechanised here: `CoverCheckInP` (checking a candidate cover is polynomial) and
+mechanised here (both open as of 2026-11-03; `VCHard` is planned to follow
+from #624 and one more reduction): `CoverCheckInP` (checking a candidate cover is polynomial) and
 `VCHard` (vertex cover is NP-hard, Karp 1972). By
 `exactRoundingObligation_iff_schema`, the obligation is exactly the generic
 schema `ExactRoundingObligationFor` with machine-computed roundings and some
@@ -255,8 +258,9 @@ cannot be assumed.
 
 **Caveats.** `CoverCheckInP` and `VCHard` are named hypotheses, not mechanised
 theorems. Linear programming in P and the literature of section 5 are cited,
-not formalized. The machine-model part is so far only in Lean; `Idea36.v` has
-the combinatorics and the schema.
+not formalized. The machine-model part is proved in both files: `Idea36.v`
+also has `exactRounding_inP`, `exactRounding_gives_pEqualsNP`,
+`not_forall_reduces_coverCheck` and `exactRoundingObligation_iff_schema`.
 
 ## 7. Failure modes this idea catches
 

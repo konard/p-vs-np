@@ -32,10 +32,13 @@ as a hypothesis says nothing about P versus NP.
   `evalCNF`, `Satisfiable`, `bruteForce_correct`, `encodeCNF`, `decode`,
   `decode_encode`; the language `SAT` with `sat_iff`, `sat_encode`;
   `SATInNP`, `SATHard`, `CookLevin`, `pEqualsNP_of_inP_sat`,
-  `inP_sat_of_pEqualsNP`, `inP_sat_iff`.
+  `inP_sat_of_pEqualsNP`, `inP_sat_iff`. As of 2026-11-03, `SATInNP` is
+  proved as `SATVerifier.satInNP`. `SATHard` and `CookLevin` are open on main
+  and in progress in PR #630 (unmerged).
 * `proofs/experiments/issue532/lean/Circuits.lean`: NAND straight-line
   programs, `InPPoly`, `SuperpolyLowerBound`, `superpoly_iff_not_inPPoly`, the
-  named known theorem `PSubsetPPoly`, and `pNotEqualsNP_of_superpoly_sat`.
+  named known theorem `PSubsetPPoly` (open on main; proved in PR #632,
+  unmerged as of 2026-11-03), and `pNotEqualsNP_of_superpoly_sat`.
 
 ## Rules
 
@@ -52,8 +55,10 @@ as a hypothesis says nothing about P versus NP.
    `Computes m f p`.
 3. **Every open obligation reaches the separation question.** Prove a
    conditional theorem from the obligation to `InP SAT`, `PEqualsNP` or
-   `PNotEqualsNP`. Known theorems that are not mechanised (Cook–Levin halves,
-   `PSubsetPPoly`, a machine construction such as seed enumeration) are named
+   `PNotEqualsNP`. Known theorems that are not mechanised on main (as of 2026-11-03:
+   the Cook–Levin hardness half, in progress in PR #630; `PSubsetPPoly`,
+   proved in PR #632, unmerged; a machine construction such as seed
+   enumeration) are named
    `def … : Prop` in the file or in the shared layer, documented as "Known
    theorem, not mechanised here" with a citation, and appear only as explicit
    hypotheses. They must be true statements.
@@ -75,4 +80,5 @@ as a hypothesis says nothing about P versus NP.
    file, or the shared layer), section 6 (how far toward P vs NP, naming the
    known-theorem hypotheses), and the verdict. Remove caveats that described
    the old free-cost model; state honestly what remains (for example "the
-   route needs `SATHard`, which is not mechanised").
+   route needs `SATHard`, which is open on main and in progress in PR #630").
+   Date such status lines.

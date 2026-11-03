@@ -42,9 +42,11 @@ every word within one polynomial `c·(n+1)^d` (equivalently `PolyDec L`).
   bound (`computes_output_poly`, shared layer).
 * Composition runs the concatenated table `appendMachine m m'`: the first
   table, then the second with every state shifted. The running times add.
-* Known theorems appear only as the named hypotheses of the shared layer:
-  `SATHard := NPHard SAT` and `SATInNP := InNP SAT` (Cook–Levin, not
-  mechanised).
+* Known theorems appear only as named hypotheses of the shared layer. This
+  file uses one: `SATHard := NPHard SAT`, the hardness half of Cook–Levin. As
+  of 2026-11-03 it is open on main, and PR #630 (unmerged) covers part of it.
+  The membership half `SATInNP := InNP SAT` is proved
+  (`SATVerifier.satInNP`) and not used here.
 
 **Abstract schema (kept).** The earlier abstract model, where an `Algo α β`
 is a pair `(run, time)` whose `time` is a declared field, is kept as a schema
@@ -101,8 +103,9 @@ reduction from `L` to `M` plus a polynomial decider for `M` gives one for
 In Rocq, `polyDeciderFor_of_inP` takes the step count from the computable
 `stepCount` (with `stepCount_of_run`) where Lean uses `Classical.choose`, and
 takes `L` as an explicit argument; the statements are the same.
-Not machine-checked: the Cook–Levin theorem, which enters only as the named
-hypothesis `SATHard`. No theorem in either file proves or refutes
+Not machine-checked on main as of 2026-11-03: the hardness half of
+Cook–Levin, which enters only as the named hypothesis `SATHard` (PR #630,
+unmerged, covers part of it). No theorem in either file proves or refutes
 P = NP.
 
 ## 4. Complete argument
@@ -205,7 +208,7 @@ in the other direction (`M` to SAT) proves nothing about `M`.
   converse), so the reduction contributes no progress unless `M` is already
   known to be in P. It yields `PEqualsNP` only under the named hypothesis
   `SATHard` (`pEqualsNP_of_sat_reduction_route`), which is the hardness half
-  of Cook–Levin and is not mechanised here. Idea 29 labels this proposition
+  of Cook–Levin and is open on main as of 2026-11-03 (PR #630, unmerged). Idea 29 labels this proposition
   as its open obligation (`SATReducesToP`). Symmetrically, a proof of P ≠ NP
   needs `¬ InP` for some NP language, which reductions can then spread
   (`hardness_transfer`) but not create.

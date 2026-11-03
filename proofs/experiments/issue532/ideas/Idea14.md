@@ -66,12 +66,14 @@ def NPinRP : Prop := InRP SAT
 def SeedCompression (L : Language) : Prop := InRP L → PolySeedRP L
 ```
 
-* **Named known theorem, not mechanised here:**
+* **Named known theorem, not mechanised here** (open in
+  [HYPOTHESES.md](../../../HYPOTHESES.md) as of 2026-11-03):
   `SeedEnumeration : Prop := ∀ L, PolySeedRP L → InP L`. Its mathematics is
   proved (`logSeed_enumeration`: trying all at most `(n+1)^k` seeds, each run
   halting within `p`, gives the right answer). The missing part is the
   single-tape machine that enumerates the seeds and simulates `m`, which is
-  the standard derandomization-by-enumeration argument (Gill 1977).
+  the standard derandomization-by-enumeration argument. That argument is
+  folklore; the probabilistic classes themselves are from Gill (1977).
 
 ## 3. What is machine-checked
 
@@ -218,7 +220,8 @@ SAT is open and widely believed false.
 
   Both are needed. `rp_sat_with_seed_compression` shows they suffice,
   together with the named known theorem `SeedEnumeration` and, for
-  `PEqualsNP`, `SATHard` (Cook–Levin). Note that (1) alone is the statement
+  `PEqualsNP`, `SATHard` (Cook–Levin; open on main as of 2026-11-03, PR #630
+  unmerged). Note that (1) alone is the statement
   NP = RP (since RP ⊆ NP, and SAT is NP-complete by the cited Cook–Levin
   theorem). It is open and widely believed false, but it is not known to imply
   P = NP. `not_forall_inRP` shows `InRP` is a genuine restriction.
@@ -226,7 +229,9 @@ SAT is open and widely believed false.
   says nothing about all algorithms (see [Idea 12](Idea12.md) on why
   hardness has to be proved, not observed).
 * **Caveats.** `SeedEnumeration` (the enumerating machine) and `SATHard` are
-  named hypotheses, not mechanised; both are standard theorems. The
+  named hypotheses; both are standard theorems. As of 2026-11-03 both are open
+  in [HYPOTHESES.md](../../../HYPOTHESES.md), and PR #630 (unmerged) covers
+  part of `SATHard`. The
   machine-model part is in both `Idea14.lean` and `Idea14.v`. The one Rocq
   difference is the computable, clocked `seedAccepts` described in section 3.
 

@@ -1,5 +1,10 @@
 # Issue 568: constructive SAT track
 
+Status at 2026-11-03: the tableau slice below (PR #622, merged) is the first
+Cook–Levin slice; 5 theorems per prover are certified rows of
+`scripts/proof_status.json`. `SATHard` is still open
+([#624](https://github.com/konard/p-vs-np/issues/624)). No SAT algorithm is claimed.
+
 The target is one fixed `Complexity.Machine` and one fixed polynomial that
 decide `Issue532.Machines.SAT` on **every encoded word**, with the bound
 measured by `Complexity.Run`. The existing `Issue609.PEqualsNPAttempt.Candidate`
@@ -29,7 +34,7 @@ machine, start, answer, and time `t`:
 `boundedAccept_iff_run` then proves that a bounded accepting trace exists
 exactly when `Run` accepts within the clock. This discharges the **local
 transition soundness and completeness** obligation for this representation.
-Before this PR there was no trace representation or theorem connected to the
+Before PR #622 there was no trace representation or theorem connected to the
 shared `Run`. It does not yet discharge `SATHard`.
 
 `trace_span_bound` proves that each represented configuration uses at most
@@ -51,6 +56,14 @@ configurations**. A later rectangular tableau must additionally prove that
 bounded cell-neighborhood clauses implement those transitions, including tape
 edges and state encoding. That per-cell CNF theorem is still open.
 
+Five of these results are certified rows of `scripts/proof_status.json` in
+each prover: `localTrace_iff_run`, `boundedAccept_iff_run`,
+`bounded_initial_span`, `wrong_successor_rejected` and `zero_clock_rejected`.
+`trace_span_bound` and `wrong_successor_halts` compile but are not manifest
+rows. Recount with
+`python3 -I -c "import json; print(sum('/issue568/' in e['source'] for e in json.load(open('scripts/proof_status.json'))['lean']))"`
+(prints 5; use `'rocq'` for Rocq, also 5).
+
 All listed results have **no explicit theorem hypotheses** beyond their
 universally quantified machine, input, and clock data. The certified manifest
 records Lean's standard `propext` allowance, plus `Quot.sound` for the width
@@ -70,6 +83,8 @@ does not discharge them.
    Prove the *encoded bit length* bound, including variable identifiers and
    clause delimiters. Finally construct a reduction `Machine` and prove its
    `Computes` polynomial `Run` bound. Only then can `SATHard` be assembled.
+   PR [#630](https://github.com/konard/p-vs-np/pull/630) holds further slices of
+   this work; as of 2026-11-03 it is unmerged and its CI is failing.
 2. **Executable baseline.** Reuse issue #8's verified DPLL semantics and the
    repaired Python backtracking experiment. Relate their representations,
    prove simplification, propagation, branching, backtracking, and termination
@@ -133,6 +148,9 @@ python3 scripts/check_proof_status.py --lean
 python3 scripts/check_proof_status.py --rocq
 ```
 
-The initial regression probes failed before the new modules existed. The
-paired regression files and the certified-result audit now run in CI. No
+The initial regression probes failed before the new modules existed. CI
+compiles `experiments/issue568/TraceRegression.lean` in the Lean job and
+`TraceRegression.v` through `_CoqProject` in the Rocq job. The certified-result
+jobs build `Tableau` and run `check_proof_status.py`. On pull requests each
+prover's jobs run only when its files, the workflow or the manifest change. No
 experimental randomness is used in this slice.

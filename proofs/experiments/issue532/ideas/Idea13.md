@@ -186,7 +186,8 @@ computed function is unique, `computes_unique`), a contradiction.
   gap reductions, which are cited and not mechanised, so no conditional
   theorem to `InP SAT` is stated here. The FPTAS results
   (`fptas_poly_bounded_exact`) are arithmetic about a given time bound `T`;
-  they are not tied to a machine. The machine-model part is Lean-only so far.
+  they are not tied to a machine. The machine-model part (`PolyApprox`,
+  `polyApprox_decides_gap`, `not_forall_polyApprox`) is in both files.
 * **For P ≠ NP** the route gives nothing directly. Inapproximability
   theorems are themselves conditional on P ≠ NP.
 

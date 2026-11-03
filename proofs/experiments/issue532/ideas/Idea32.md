@@ -120,7 +120,7 @@ theorem isolation_route_gives_pEqualsNP (hard : SATHard) (hI : IsolationObligati
     (hS : PromiseSolver) : PEqualsNP
 ```
 
-The time of the map and of the solver is the step count of a `Run`. `isolation_promise_inP` composes the two machines with `inP_of_promise_reduction` from the shared layer. The step to `PEqualsNP` needs the named hypothesis `SATHard` (NP-hardness of `SAT`, the hard half of Cook–Levin), which is stated in `Machines.lean` and not mechanised. Proving P = NP along this route therefore needs **two** things, neither of which is known:
+The time of the map and of the solver is the step count of a `Run`. `isolation_promise_inP` composes the two machines with `inP_of_promise_reduction` from the shared layer. The step to `PEqualsNP` needs the named hypothesis `SATHard` (NP-hardness of `SAT`, the hard half of Cook–Levin), which is stated in `Machines.lean`. It is open on main and in progress in PR #630 (unmerged as of 2026-11-03). Proving P = NP along this route therefore needs **two** things, neither of which is known:
 
 1. `IsolationObligation`, a *deterministic* polynomial-time isolation map. Only a randomized one that succeeds with probability `Ω(1/n)` is known (Valiant–Vazirani), and whether isolation can be derandomized is open.
 2. `PromiseSolver`, a polynomial-time algorithm for SAT on the Unique-SAT promise. By Valiant–Vazirani such an algorithm would already give NP = RP, and no such algorithm is known.
@@ -131,7 +131,7 @@ Non-vacuity. `not_forall_promise_class` shows that deciding on `UniquePromise` i
 
 Barriers. Valiant–Vazirani relativizes, so the randomized reduction works relative to every oracle. Any argument that derandomizes it *and* solves Unique-SAT would, if relativizing, contradict Baker–Gill–Solovay (1975). On the lower-bound side, proving `¬ PromiseSolver` would prove `¬ InP SAT` (`promiseSolver_of_inP`), so it is at least as hard as P ≠ NP.
 
-Caveats. Only the deterministic skeleton is formalized. The Valiant–Vazirani reduction and its probability analysis are not formalized. `SATHard` is a named hypothesis, not a mechanised theorem. The machine-model part is so far only in Lean; `Idea32.v` has the general theorems and the schema.
+Caveats. Only the deterministic skeleton is formalized. The Valiant–Vazirani reduction and its probability analysis are not formalized. `SATHard` is a named hypothesis, not a mechanised theorem (open on main; in progress in PR #630, unmerged as of 2026-11-03). The machine-model part is proved in both files: `Idea32.v` also has `isolation_promise_inP`, `isolation_route_gives_pEqualsNP`, `promiseSolver_iff_inP`, `schema_of_isolationObligation` and `not_forall_promise_class`.
 
 Relation to other ideas: restricted SAT variants (Phase 6), and Idea 29 (reductions compose and preserve membership in P, but only when they are total and answer-preserving).
 

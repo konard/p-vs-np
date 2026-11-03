@@ -9,7 +9,7 @@ As a *route to a uniform polynomial-time algorithm*, the idea is refuted in gene
 1. **Size.** The advice is exponential. Even parity, which is in P, needs a decision tree with `2^n` leaves (`parity_tree_leaves`).
 2. **Uniformity.** Advice can encode anything. Every length-only language has one-bit advice, i.e. a one-node tree at every length. For *every* enumeration of uniform deciders, some such language is decided by none of them (`advice_beyond_uniform`).
 
-So a family of small objects, one per length, is not an algorithm. Closing the gap is the open obligation `UniformSATAdvice`, stated in the shared machine model: a polynomial-time `Complexity.Machine` attaches length-indexed advice to the input, and a polynomial-time machine decides SAT from the input with its advice. Meeting it puts SAT in P (`inP_sat_of_uniformSATAdvice`), so with `SATHard` it gives P = NP (`pEqualsNP_of_uniformSATAdvice`). A superpolynomial circuit lower bound for SAT refutes it, given the known theorem `PSubsetPPoly` (`not_uniformSATAdvice_of_superpoly`). The obligation is not vacuous: some language has no uniform polynomial advice (`not_forall_uniformAdvice`). Uniform advice is thus a uniform algorithm in disguise, and nothing here decides P vs NP.
+So a family of small objects, one per length, is not an algorithm. Closing the gap is the open obligation `UniformSATAdvice`, stated in the shared machine model: a polynomial-time `Complexity.Machine` attaches length-indexed advice to the input, and a polynomial-time machine decides SAT from the input with its advice. Meeting it puts SAT in P (`inP_sat_of_uniformSATAdvice`), so with `SATHard` it gives P = NP (`pEqualsNP_of_uniformSATAdvice`). A superpolynomial circuit lower bound for SAT refutes it, given the known theorem `PSubsetPPoly` (`not_uniformSATAdvice_of_superpoly`; `PSubsetPPoly` is open on main and proved in PR #632, unmerged as of 2026-11-03). The obligation is not vacuous: some language has no uniform polynomial advice (`not_forall_uniformAdvice`). Uniform advice is thus a uniform algorithm in disguise, and nothing here decides P vs NP.
 
 ## 1. The idea at full strength
 
@@ -88,7 +88,7 @@ def UniformSATAdvice : Prop := UniformAdvice Machines.SAT
 
 In Rocq, `DTree.eval` is named `teval`, and `leaves`, `size`, `leafList` are plain functions. Helper lemmas are shared by both files (`nodup_map_cons`, `leaves_pos`). The Rocq file additionally proves `nodup_app_intro`, `firstn_app_exact`, `skipn_app_exact`, `uncovered_or_cover` and `differ_or_agree`. The last two are constructive case splits, which Lean handles with `Classical.byContradiction` (core Lean, no added declarations).
 
-The machine-model rows have the same names in Rocq, and implicit Lean arguments are explicit `forall`s there. `not_uniformSATAdvice_of_superpoly` uses the constructive direction `Circuits.not_inPPoly_of_superpoly` in Rocq, where Lean uses `superpoly_iff_not_inPPoly`; the Rocq equivalence needs excluded middle as a premise, and the direction used here does not. In Rocq the schema instance builds the local `Poly` record (`mkPoly`) from the `Complexity.Polynomial` bound. Neither file uses axioms.
+The machine-model rows have the same names in Rocq, and implicit Lean arguments are explicit `forall`s there. `not_uniformSATAdvice_of_superpoly` uses the constructive direction `Circuits.not_inPPoly_of_superpoly` in Rocq, where Lean uses `superpoly_iff_not_inPPoly`; the Rocq equivalence needs excluded middle as a premise, and the direction used here does not. In Rocq the schema instance builds the local `Poly` record (`mkPoly`) from the `Complexity.Polynomial` bound. Neither file declares an axiom.
 
 ## 4. Complete argument
 
@@ -127,8 +127,8 @@ def UniformSATAdvice : Prop := UniformAdvice Machines.SAT
 Mechanised consequences:
 
 * `inP_sat_of_uniformSATAdvice : UniformSATAdvice → InP Machines.SAT`, with no further hypotheses.
-* `pEqualsNP_of_uniformSATAdvice : Machines.SATHard → UniformSATAdvice → PEqualsNP`. The hypothesis `SATHard` is the hardness half of Cook–Levin, a known theorem that is not mechanised.
-* `not_uniformSATAdvice_of_superpoly : Circuits.PSubsetPPoly → Circuits.SuperpolyLowerBound Machines.SAT → ¬ UniformSATAdvice`. The hypothesis `PSubsetPPoly` is the known inclusion P ⊆ P/poly, not mechanised.
+* `pEqualsNP_of_uniformSATAdvice : Machines.SATHard → UniformSATAdvice → PEqualsNP`. The hypothesis `SATHard` is the hardness half of Cook–Levin, a known theorem. It is open on main and in progress in PR #630 (unmerged as of 2026-11-03).
+* `not_uniformSATAdvice_of_superpoly : Circuits.PSubsetPPoly → Circuits.SuperpolyLowerBound Machines.SAT → ¬ UniformSATAdvice`. The hypothesis `PSubsetPPoly` is the known inclusion P ⊆ P/poly. It is open on main and proved in PR #632 (unmerged as of 2026-11-03).
 * `not_forall_uniformAdvice`: the class is not everything.
 * `uniformPolyAdviceFor_of_uniformAdvice`: the machine version instantiates the schema `UniformPolyAdviceFor`, with `Uniform` the generators whose advice a polynomial-time machine can attach.
 

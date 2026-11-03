@@ -15,7 +15,9 @@ on the shared machine and circuit model as the open obligations
 `SATNotInPPoly` (`¬ InPPoly SAT`) and `NPNotInPPoly`
 (`∃ L, InNP L ∧ ¬ InPPoly L`), and the conditional separations
 `pNotEqualsNP_of_satNotInPPoly` and `pNotEqualsNP_of_npNotInPPoly` are proved
-from the named known theorem `PSubsetPPoly`. `SATInNP` is proved in
+from the named known theorem `PSubsetPPoly`. As of 2026-11-03
+`PSubsetPPoly` is not proved on main; it is discharged in PR #632, unmerged
+(see [proofs/HYPOTHESES.md](../../../HYPOTHESES.md)). `SATInNP` is proved in
 `SATVerifier` (`SATVerifier.satInNP`), so the SAT form
 `pNotEqualsNP_of_satNotInPPoly'` needs only `PSubsetPPoly`. In the same model, P/poly is
 proved not to be contained in P (`ppoly_not_subset_p`).
@@ -52,7 +54,8 @@ for SAT, yields SAT ∈ P*. The second reading claims *SAT ∉ P/poly*.
 * **Shared model.** `InPPoly L` (from `Circuits.lean`): some polynomial `p`
   bounds, at every positive length `n`, the gate count of a well-formed
   circuit deciding `L` on the words of length `n`. `PSubsetPPoly` (P ⊆ P/poly)
-  is a named known theorem there.
+  is a named known theorem there. It is discharged in PR #632, unmerged, as
+  of 2026-11-03.
 * **Open obligations.** `SATNotInPPoly := ¬ InPPoly SAT` with
   `SAT = Issue532.Machines.SAT`, and
   `NPNotInPPoly := ∃ L, InNP L ∧ ¬ InPPoly L` (NP ⊄ P/poly).
@@ -86,7 +89,7 @@ for SAT, yields SAT ∈ P*. The second reading claims *SAT ∉ P/poly*.
 | `npNotInPPoly_of_sat'` | `SATNotInPPoly → NPNotInPPoly`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`). | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `pNotEqualsNP_of_npNotInPPoly` | Conditional: `PSubsetPPoly → NPNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `pNotEqualsNP_of_satNotInPPoly` | Conditional: `SATInNP → PSubsetPPoly → SATNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
-| `pNotEqualsNP_of_satNotInPPoly'` | Conditional: `PSubsetPPoly → SATNotInPPoly → PNotEqualsNP` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it; `PSubsetPPoly` remains a named hypothesis). | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
+| `pNotEqualsNP_of_satNotInPPoly'` | Conditional: `PSubsetPPoly → SATNotInPPoly → PNotEqualsNP` (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it; `PSubsetPPoly` remains a named hypothesis on main; PR #632, unmerged, discharges it). | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `nonuniform_lower_bound_separates` | The schema theorem at the shared classes: `PSubsetPPoly → NPNotInPPoly → PNotEqualsNP`. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `not_inPPoly_nonvacuous` | Non-vacuity: some language is outside `InPPoly` (counting), and constant languages are inside. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
 | `ppoly_strictly_bigger_than_p_if` | With `PSubsetPPoly`, P is strictly contained in P/poly. | [Idea19.lean](../lean/Idea19.lean) | [Idea19.v](../rocq/Idea19.v) |
@@ -165,7 +168,8 @@ input `[false]`, and advice `[true]` fails on input `[true]`.
 ## 5. Known results and literature
 
 * R. M. Karp and R. J. Lipton, "Some connections between nonuniform and
-  uniform complexity classes", *STOC* 1980. This paper introduced advice
+  uniform complexity classes", *STOC* 1980, pp. 302–309,
+  doi 10.1145/800141.804678. This paper introduced advice
   classes such as P/poly. The Karp–Lipton theorem states that NP ⊆ P/poly
   implies the polynomial hierarchy collapses to Σ₂ᵖ. The fact that P/poly
   contains undecidable unary languages is standard folklore; its core is the
@@ -196,11 +200,13 @@ What is **not** formalized:
   problem again. If that procedure exists the advice is unnecessary.
 * **As a lower-bound route (P ≠ NP): developed to an open obligation.**
   `NPNotInPPoly` (or `SATNotInPPoly`; `SATInNP` is proved in `SATVerifier`)
-  together with the named known theorem `PSubsetPPoly` gives P ≠ NP
+  together with the named known theorem `PSubsetPPoly` (discharged in
+  PR #632, unmerged, as of 2026-11-03) gives P ≠ NP
   (`pNotEqualsNP_of_npNotInPPoly`, `pNotEqualsNP_of_satNotInPPoly'`). The obligation implies P ≠ NP (with
   the standard classes, where P ⊆ P/poly), and the converse implication is
   not known. By the NP-completeness of SAT (Cook–Levin, cited, not
-  formalized) and closure of P/poly under polynomial-time reductions, it is
+  formalized on main; `SATHard` is in progress in PR #630, unmerged, as of
+  2026-11-03) and closure of P/poly under polynomial-time reductions, it is
   equivalent to SAT having no polynomial-size circuit family.
 * **Barriers.** Circuit lower bounds for NP face the natural proofs barrier
   (Razborov–Rudich, *JCSS* 1997, assuming pseudorandom functions) and
@@ -214,7 +220,7 @@ What is **not** formalized:
   circuit convention made `SAT` vacuously outside P/poly (the empty circuit
   outputs `false` on the empty word, which encodes a satisfiable formula);
   `Circuits.lean` now quantifies over `0 < n`. `PSubsetPPoly` is a named
-  hypothesis, not proved here.
+  hypothesis, not proved here; PR #632 (unmerged, 2026-11-03) discharges it.
 
 ## 7. Failure modes this idea catches
 

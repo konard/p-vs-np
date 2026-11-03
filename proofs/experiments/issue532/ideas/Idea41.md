@@ -1,6 +1,6 @@
 # Idea 41 — Williams' algorithmic method (fast circuit satisfiability ⇒ circuit lower bounds)
 
-**Verdict:** Developed to an open obligation (conditional theorem proved). Williams' method turns a satisfiability algorithm into a circuit lower bound. The files state it in the shared machine model: if one machine decides satisfiability of NAND circuits with `n` inputs and `(n+1)^k` gates in `2^n / n^{ω(1)}` `Run` steps (`FastCircuitSAT`, the open obligation), then `NEXP ⊄ P/poly` (`williams_method`). Three known theorems enter as named explicit hypotheses: the nondeterministic time hierarchy (`NTimeHierarchy`), the easy-witness lemma (`EasyWitnessLemma`) and Williams' speedup construction (`WilliamsSpeedup`). The diagonal part of the hierarchy theorem is proved (`lazy_diagonal`, `nTimeHierarchy_of_lazyDiagonal`), leaving a pure simulation statement. The hierarchy hypothesis is the one [Idea 16](Idea16.md) states: both files use one class `NTIME(T)` (`inNTIME_iff_idea16`), Idea 16's `NTimeHierarchy` gives the one used here (`nTimeHierarchy_of_idea16`, `williams_method_idea16`), and the simulation statement for every `k ≥ 3` gives Idea 16's (`idea16_nTimeHierarchy_of_lazyDiagonal`). Idea 16's statement is itself a named known theorem, not a proof, so this replaces one hypothesis by a shared one; it does not remove it. The obligation is tied to P versus NP in both directions. `P = NP` implies it (`fastCircuitSAT_of_pEqualsNP`, proved from the membership of circuit satisfiability in NP, `CircuitSATInNP`, which is a named hypothesis here), so refuting it would prove `P ≠ NP` (`pNotEqualsNP_of_not_fastCircuitSAT`). Proving it gives `NEXP ⊄ P/poly`, which is not known to imply `P ≠ NP`. For `ACC⁰` circuits instead of general circuits the algorithm exists, and the method gives the unconditional `NEXP ⊄ ACC⁰` (Williams 2011) and `NQP ⊄ ACC⁰` (Murray–Williams 2018), which are cited and not mechanised.
+**Verdict:** Developed to an open obligation (conditional theorem proved). Williams' method turns a satisfiability algorithm into a circuit lower bound. The files state it in the shared machine model: if one machine decides satisfiability of NAND circuits with `n` inputs and `(n+1)^k` gates in `2^n / n^{ω(1)}` `Run` steps (`FastCircuitSAT`, the open obligation), then `NEXP ⊄ P/poly` (`williams_method`). Three known theorems enter as named explicit hypotheses: the nondeterministic time hierarchy (`NTimeHierarchy`), the easy-witness lemma (`EasyWitnessLemma`) and Williams' speedup construction (`WilliamsSpeedup`). The diagonal part of the hierarchy theorem is proved (`lazy_diagonal`, `nTimeHierarchy_of_lazyDiagonal`), leaving a pure simulation statement. The hierarchy hypothesis is the one [Idea 16](Idea16.md) states: both files use one class `NTIME(T)` (`inNTIME_iff_idea16`), Idea 16's `NTimeHierarchy` gives the one used here (`nTimeHierarchy_of_idea16`, `williams_method_idea16`), and the simulation statement for every `k ≥ 3` gives Idea 16's (`idea16_nTimeHierarchy_of_lazyDiagonal`). Idea 16's statement is itself a named known theorem, not a proof, so this replaces one hypothesis by a shared one; it does not remove it. The obligation is tied to P versus NP in both directions. `P = NP` implies it (`fastCircuitSAT_of_pEqualsNP`, proved from the membership of circuit satisfiability in NP, `CircuitSATInNP`, which is a named hypothesis on main; PR #631, unmerged as of 2026-11-03, discharges it), so refuting it would prove `P ≠ NP` (`pNotEqualsNP_of_not_fastCircuitSAT`). Proving it gives `NEXP ⊄ P/poly`, which is not known to imply `P ≠ NP`. For `ACC⁰` circuits instead of general circuits the algorithm exists, and the method gives the unconditional `NEXP ⊄ ACC⁰` (Williams 2011) and `NQP ⊄ ACC⁰` (Murray–Williams 2018), which are cited and not mechanised.
 
 ## 1. The idea at full strength
 
@@ -65,7 +65,8 @@ programs, `WF`, `output`, `InPPoly`).
   `CircuitSatisfiable n C :≡ ∃ x, |x| = n ∧ output x C = true`, and
   `CircuitSAT w = true` iff `w` encodes a well-formed satisfiable circuit.
   `CircuitSATInNP :≡ InNP CircuitSAT` is a known theorem, used only as a
-  hypothesis.
+  hypothesis. It is open on main and discharged in PR #631 (unmerged as of
+  2026-11-03).
 * **Exhaustive search.** `bruteCircuitSAT n C` evaluates `C` on the `2^n`
   vectors of `allAssignments n`. It evaluates `2^n · |C|` gates
   (`bruteForceGateEvaluations_eq`).
@@ -120,8 +121,9 @@ programs, `WF`, `output`, `InPPoly`).
 `FastCircuitSAT` is a `def … : Prop` in Lean and a `Definition … : Prop` in
 Rocq. It is never assumed. `NTimeHierarchy`, `EasyWitnessLemma`,
 `WilliamsSpeedup`, `LazyDiagonalSimulation` and `CircuitSATInNP` are true
-statements of the literature. They are not mechanised here, and every use is
-an explicit hypothesis. No theorem in either file proves or refutes P = NP.
+statements of the literature. They are not mechanised on main as of
+2026-11-03, and every use is an explicit hypothesis. PR #631 (unmerged)
+discharges `CircuitSATInNP`. No theorem in either file proves or refutes P = NP.
 
 The Rocq file uses no axioms (`Print Assumptions` reports "Closed under the
 global context" for `williams_method`, `fastCircuitSAT_of_pEqualsNP`,
@@ -140,7 +142,14 @@ last group is audited by `experiments/issue532_idea41/Assumptions.v`). It differ
   rejects trailing bits. Rocq's `CircuitSAT` uses the decoder,
   well-formedness check, and `bruteCircuitSAT`; `circuitSAT_iff` shows it is
   exactly the Lean language. The `verifyCircuit` function is not yet a
-  shared-model `Machine` with a proved polynomial `Run` bound.
+  shared-model `Machine` with a proved polynomial `Run` bound. The decoder
+  and certificate check were added for issue #567 (PR #623, merged). Six of
+  their theorems are certified in `scripts/proof_status.json`, in Lean and
+  Rocq: `decCircuit_encCircuit`, `decCircuit_sound`, `checkCircuit_iff`,
+  `verifyCircuit_spec`, `circuitSAT_iff_verifyCircuit` and
+  `verifyCircuit_cert_bound`. No other Idea 41 theorem is certified. The
+  residual-key counterexample `coarseKey_not_satisfiability_complete` is in
+  [issue567](../../issue567/README.md), not in this file.
 * **`acceptedLanguage` is computable.** It enumerates the certificates of
   bounded length and replays each run with the step-bounded interpreter
   `runFor` (`acceptedLanguage_spec`).
@@ -227,11 +236,13 @@ argument: reading the input takes `poly(n)` steps, far below
   bounds", STOC 2010; SIAM J. Comput. 42(3), 2013. The method: a
   `2^n / n^{ω(1)}` circuit-satisfiability algorithm for poly-size circuits
   gives `NEXP ⊄ P/poly`.
-* R. Williams, "Non-uniform ACC circuit lower bounds", CCC 2011; J. ACM 61(1),
-  2014. An `ACC⁰`-satisfiability algorithm in time `2^{n - n^δ}` for circuits
+* R. Williams, "Non-uniform ACC circuit lower bounds", CCC 2011, 115-125,
+  DOI [10.1109/CCC.2011.36](https://doi.org/10.1109/CCC.2011.36); J. ACM
+  61(1), 2014, DOI [10.1145/2559903](https://doi.org/10.1145/2559903). An `ACC⁰`-satisfiability algorithm in time `2^{n - n^δ}` for circuits
   of size `2^{n^ε}` gives `NEXP ⊄ ACC⁰`.
 * C. Murray and R. Williams, "Circuit lower bounds for nondeterministic
-  quasi-polytime: an easy witness lemma for NP and NQP", STOC 2018. It gives
+  quasi-polytime: an easy witness lemma for NP and NQP", STOC 2018, 890-901, DOI
+  [10.1145/3188745.3188910](https://doi.org/10.1145/3188745.3188910). It gives
   `NQP ⊄ ACC⁰`.
 * R. Impagliazzo, V. Kabanets and A. Wigderson, "In search of an easy
   witness: exponential time vs. probabilistic polynomial time", JCSS 65(4),
@@ -270,14 +281,15 @@ argument: reading the input takes `poly(n)` steps, far below
 * **Exact remaining obligation:** `FastCircuitSAT`, a machine that beats
   exhaustive search for general circuit satisfiability by a superpolynomial
   factor. It is open. Nothing known rules it out, and it is weaker than the
-  Strong Exponential Time Hypothesis failing for circuits.
+  Strong Exponential Time Hypothesis failing for circuits. SETH is not
+  formalized on main (draft PR #639, unmerged as of 2026-11-03).
 * **Two directions, two outcomes.**
   * Proving `FastCircuitSAT` gives `NEXP ⊄ P/poly`. That is a major open lower
     bound, but it is **not known to imply P ≠ NP**.
-  * Refuting `FastCircuitSAT` proves `P ≠ NP`
+  * Refuting `FastCircuitSAT` proves `P ≠ NP`, given `CircuitSATInNP`
     (`pNotEqualsNP_of_not_fastCircuitSAT`). A refutation is a lower bound
     against every machine, the same kind of statement as Idea 17's
-    `AllAlgorithmsSuperpolynomial`.
+    `SATMachinesSuperpolynomial` (schema `AllAlgorithmsSuperpolynomialFor`).
 * **Known theorems used as hypotheses:** `NTimeHierarchy` (or Idea 16's
   `Idea16.NTimeHierarchy`, or the simulation statement
   `LazyDiagonalSimulation`), `EasyWitnessLemma`, `WilliamsSpeedup`
@@ -285,7 +297,8 @@ argument: reading the input takes `poly(n)` steps, far below
   1. the universal nondeterministic simulation behind
      `LazyDiagonalSimulation`;
   2. the finite-machine implementation and polynomial runtime proof for the
-     now-specified circuit verifier behind `CircuitSATInNP`.
+     now-specified circuit verifier behind `CircuitSATInNP`. PR #631
+     (unmerged as of 2026-11-03) does this and discharges `CircuitSATInNP`.
   The easy-witness lemma and the speedup construction are long proofs and
   are not attempted here.
 * **For `P ≠ NP`** the method would need an NP-level version: a lower bound
@@ -305,7 +318,7 @@ argument: reading the input takes `poly(n)` steps, far below
   checker enforces this for every open obligation.
 * **Class confusion** (families 5 and 16): `NEXP ⊄ P/poly`
   and `NEXP ⊄ ACC⁰` are lower bounds for exponential-time classes. Neither
-  is a statement about NP, and neither implies `P ≠ NP`.
+  is a statement about NP, and neither is known to imply `P ≠ NP`.
 * **Quantifier order** (Idea 34): `FastCircuitSAT` fixes the machine before
   the slack exponent `c` (`∀ k, ∃ m, ∀ c, ∃ n₀`). Swapping `∃ m` and `∀ c`
   gives a weaker statement that the speedup does not use.

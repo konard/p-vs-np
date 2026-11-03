@@ -10,6 +10,18 @@
 
 This document catalogs the theoretical tools, mathematical methodologies, computational techniques, and resources available for studying and potentially solving the P vs NP problem. It serves as a comprehensive guide for researchers approaching this fundamental question in computational complexity theory.
 
+**Last reviewed:** 2026-11-03. This is background material. The precise statements checked in this repository are in [FORMAL_STATEMENT.md](FORMAL_STATEMENT.md). Named open premises are listed in [proofs/HYPOTHESES.md](proofs/HYPOTHESES.md). The operative plan is [ROADMAP.md](ROADMAP.md).
+
+### Status note (2026-11-03): ETH and SETH
+
+As of 2026-11-03:
+
+- **Definitions.** The Exponential Time Hypothesis (ETH) says that there is a δ > 0 such that 3-SAT on n variables has no algorithm running in time 2^{δn}. The Strong Exponential Time Hypothesis (SETH) says that for every ε > 0 there is a k such that k-SAT has no algorithm running in time O(2^{(1-ε)n}). Both are conjectures (Impagliazzo and Paturi 2001). Neither is a theorem.
+- **Relation to P vs NP.** ETH implies P ≠ NP. The converse is not known, so ETH is at least as strong as P ≠ NP; whether it is strictly stronger is unknown. A refutation of ETH is not known to imply P = NP: a 2^{o(n)} algorithm can still be superpolynomial.
+- **Recent claims (not yet reviewed).** On 26 and 27 October 2026, two AI-lab releases claimed that ETH is false. The OpenAI repository `openai/math` (family 378, "The Exponential Time Hypothesis is False") claims a deterministic algorithm that counts satisfying assignments of k-SAT formulas in time 2^{O_k(n (log log n)^2/√log n)}. This is the bound in its Lean theorem `exact_count_and_sat`; the manuscript claims a sharper exponent. That theorem is stated on the repository's own `PrimitiveMachine` multitape model over Mathlib `Turing.TM0`-style tapes, not on Mathlib's TM2 model. The Lean development does not define ETH, so the step from the theorem to "ETH is false" is informal. The manuscript also states that SETH, Gap-ETH and NSETH fail. The Anthropic repository `anthropics/formal-math` (`eth/`, "A 2^o(n) Time Algorithm for 3-SAT") defines ETH over Mathlib's `Turing.FinTM2` model and contains a Lean theorem `MainResults.ethIsFalse`. Neither claim has been peer reviewed. Impagliazzo, Paturi and Williams are reviewing the OpenAI claim; no outside review of the Anthropic claim is announced as of 2026-11-03.
+- **Fine-grained hypotheses.** In October 2026 the same Anthropic repository (`3sum-apsp/`) added a Lean proof of a claimed result of Alman and Vassilevska Williams: truly subquadratic 3SUM and truly subcubic APSP. If it holds, the integer 3SUM and APSP hypotheses of §6.4 are false: the Lean statement uses a word RAM with integer inputs, and the running times for real inputs are not formalized. These are statements about problems inside P. They do not bear on P vs NP.
+- **Effect here.** The P vs NP question is unchanged. No theorem listed in `scripts/proof_status.json` uses ETH or SETH as a premise. Treat any result stated "under ETH" or "under SETH" as conditional on a disputed conjecture until the review ends. Claim tracking is in [literature/CLAIMED_PROOFS_2017_2026.md](literature/CLAIMED_PROOFS_2017_2026.md).
+
 ---
 
 ## 1. Theoretical Foundations
@@ -147,7 +159,7 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
 
 **Polynomial Methods**
 - **Applications:**
-  - Circuit lower bounds ([Razborov-Smolensky 1987](https://doi.org/10.1016/0022-0000(93)90044-5))
+  - Circuit lower bounds for AC⁰[p], p prime ([Razborov 1987](https://doi.org/10.1007/BF01137685), [Smolensky 1987](https://doi.org/10.1145/28395.28404))
   - IP = PSPACE proof ([Shamir 1992](https://doi.org/10.1145/146585.146609))
   - Algebraic complexity theory
 - **Techniques:**
@@ -196,8 +208,8 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
   - Descriptive complexity
   - Finite model theory
 - **Key Results:**
-  - Fagin's theorem ([Fagin 1974](https://doi.org/10.1016/S0022-0000(74)80051-6)): NP = existential second-order logic
-  - Immerman-Szelepcsényi ([Immerman 1988](https://doi.org/10.1137/0217032), [Szelepcsényi 1988](https://doi.org/10.1007/BF02579094)): NL = coNL
+  - Fagin's theorem (Fagin 1974, "Generalized first-order spectra and polynomial-time recognizable sets", SIAM-AMS Proceedings 7, 43-73; no DOI): NP = existential second-order logic
+  - Immerman-Szelepcsényi ([Immerman 1988](https://doi.org/10.1137/0217058), [Szelepcsényi 1988](https://doi.org/10.1007/BF00299636)): NL = coNL
 
 **Model Theory**
 - **Applications:**
@@ -225,7 +237,7 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
   - Derandomization
 - **Key Results:**
   - [Impagliazzo-Wigderson 1997](https://doi.org/10.1145/258533.258590): hard functions imply PRGs
-  - [Nisan-Wigderson 1994](https://doi.org/10.1006/jcss.1994.1001) generator
+  - [Nisan-Wigderson 1994](https://doi.org/10.1016/S0022-0000(05)80043-1) generator
 - **Tools:**
   - Random number testing suites
   - Pseudorandom generator implementations
@@ -304,20 +316,21 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
 
 **Monotone Circuit Lower Bounds**
 - **Method:** Analyze circuits without NOT gates
-- **Key Result:** [Razborov 1985](https://doi.org/10.1007/BF01305233) - monotone circuit for CLIQUE requires exponential size
+- **Key Result:** Razborov 1985 (Soviet Math. Doklady 31; no DOI): monotone circuits for CLIQUE need superpolynomial size n^{Ω(log n)}. Exponential monotone bounds followed: Andreev (1985) for an explicit function in NP, and [Alon and Boppana (1987)](https://doi.org/10.1007/BF02579196) for CLIQUE.
 - **Technique:** Approximation method
 - **Limitation:** Doesn't apply to general circuits
 
 **Constant-Depth Circuit Lower Bounds**
-- **[Ajtai 1983](https://doi.org/10.1145/800061.808726), [Furst, Saxe, Sipser 1984](https://doi.org/10.1016/0022-0000(84)90091-7):**
+- **[Ajtai 1983](https://doi.org/10.1016/0168-0072(83)90038-6), [Furst, Saxe, Sipser 1984](https://doi.org/10.1007/BF01744431):**
   - PARITY not in AC^0
   - Method: Switching lemma, random restrictions
-- **[Håstad 1987](https://doi.org/10.1145/28395.28400):**
+- **[Håstad 1986](https://doi.org/10.1145/12130.12132) (STOC 1986; thesis 1987):**
   - Optimal AC^0 lower bounds
   - Refined switching lemma
-- **[Razborov-Smolensky 1987](https://doi.org/10.1016/0022-0000(93)90044-5):**
-  - ACC^0 lower bounds for MOD functions
+- **[Razborov 1987](https://doi.org/10.1007/BF01137685), [Smolensky 1987](https://doi.org/10.1145/28395.28404):**
+  - AC⁰[p] lower bounds for p prime: MOD_q (q not a power of p) and MAJORITY need exponential size
   - Method: Polynomial approximation
+  - For ACC⁰ (composite moduli) the first superpolynomial lower bound for an explicit class is Williams' NEXP ⊄ ACC⁰ (§3.3)
 
 **Communication Complexity Lower Bounds**
 - **Method:** Study communication required for distributed computation
@@ -340,14 +353,14 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
 
 ### 3.3 Algorithm Design Implies Lower Bounds
 
-**Williams' Technique ([Williams 2011](https://arxiv.org/abs/1111.1261))**
+**Williams' Technique (Williams, "Non-uniform ACC Circuit Lower Bounds", [CCC 2011](https://doi.org/10.1109/CCC.2011.36); [J. ACM 2014](https://doi.org/10.1145/2559903); survey: [arXiv:1111.1261](https://arxiv.org/abs/1111.1261))**
 - **Insight:** Better algorithms for circuit satisfiability imply circuit lower bounds
-- **Result:** NEXP ⊄ ACC^0
+- **Result:** NEXP ⊄ ACC^0, later strengthened to NQP ⊄ ACC^0 ([Murray, Williams, STOC 2018](https://doi.org/10.1145/3188745.3188910))
 - **Method:**
   1. Design fast satisfiability algorithm for circuit class C
   2. Use algorithm in diagonalization
-  3. Conclude NEXP or NEXP/poly not in C
-- **Significance:** First major non-relativizing separation in decades
+  3. Conclude NEXP ⊄ C
+- **Significance:** A major circuit lower bound whose proof uses non-relativizing ingredients. It is not the first non-relativizing result: IP = PSPACE (Shamir 1992) and MA_EXP ⊄ P/poly (Buhrman, Fortnow, Thierauf 1998) came earlier.
 
 **Tools for Implementation:**
 - Algorithm analysis
@@ -439,33 +452,26 @@ This document catalogs the theoretical tools, mathematical methodologies, comput
 
 **Interactive Theorem Provers**
 
-This repository includes working examples of four major proof assistants, with bootstrap proofs in `proofs/`:
+This repository checks its formal files with three proof assistants. Isabelle files are archived. The setup below is as of 2026-11-03 (commit `ecedd2b`). The shared definitions of machines, P and NP are described in [proofs/complexity/README.md](proofs/complexity/README.md). The exact checked statements are in [FORMAL_STATEMENT.md](FORMAL_STATEMENT.md).
 
-1. **Lean 4** ([proofs/Basic.lean](proofs/Basic.lean))
-   - Modern proof assistant with emphasis on automation
-   - Excellent for mathematical reasoning and type theory
-   - Active development and growing library (Mathlib)
-   - Configuration: `lakefile.lean`, `Main.lean`
-   - Verified by GitHub Actions on every push
+1. **Lean 4** (bootstrap file: [proofs/basic/lean/Basic.lean](proofs/basic/lean/Basic.lean))
+   - Version pinned in `lean-toolchain` (`leanprover/lean4:v4.34.1`).
+   - Core Lean 4 only. The project does not use Mathlib: `lake-manifest.json` lists no packages.
+   - Configuration: `lakefile.lean`. Its library target builds every `.lean` file under `proofs/`.
 
-2. **Rocq** ([proofs/Basic.v](proofs/Basic.v))
-   - Mature proof assistant based on Calculus of Inductive Constructions
-   - Strong ecosystem and extensive libraries (MathComp, Stdpp)
-   - Used for verified software (CompCert) and mathematics
-   - Tested with versions 8.18 and latest
-   - Verified by GitHub Actions on every push
+2. **Rocq** (bootstrap file: [proofs/basic/rocq/Basic.v](proofs/basic/rocq/Basic.v))
+   - Based on the Calculus of Inductive Constructions.
+   - CI uses the `rocq/rocq-prover:9.0` image (see `.github/workflows/verification.yml`). The research log of issue 532 also reports local checks with Rocq 9.2.
+   - The core files import only the Rocq standard library (`Stdlib`). Files are listed in `_CoqProject`.
 
-3. **Isabelle/HOL** ([proofs/Basic.thy](proofs/Basic.thy))
-   - Higher-order logic framework
-   - Powerful automation (sledgehammer, auto, simp)
-   - Used for large-scale verification projects
-   - Verified by GitHub Actions on every push
+3. **Agda** (bootstrap file: [proofs/basic/agda/Basic.agda](proofs/basic/agda/Basic.agda))
+   - CI uses a container image pinned by digest (`ghcr.io/codewars/agda`).
+   - CI checks an explicit list of six files, starting with `proofs/complexity/agda/Complexity.agda`. `Basic.agda` is not on that list. One checked file, `PvsNPDecidable.agda`, declares a disclosed `excludedMiddle` postulate, which two other checked files import.
 
-4. **Agda** ([proofs/Basic.agda](proofs/Basic.agda))
-   - Dependently-typed functional programming language
-   - Proof assistant based on intensional type theory
-   - Close correspondence between programs and proofs
-   - Verified by GitHub Actions on every push
+4. **Isabelle/HOL** (archived, not checked)
+   - The Isabelle files were moved to `archive/isabelle/`, for example `archive/isabelle/proofs/basic/isabelle/Basic.thy`. The CI workflow no longer runs Isabelle.
+
+**How CI runs.** There is one workflow, `.github/workflows/verification.yml`. Pushes to `main` and manual runs check all three provers. Pull requests run only the prover jobs whose files changed. The theorems listed in `scripts/proof_status.json` (78 for Lean, 78 for Rocq) are also checked for the axioms they use, by `scripts/check_proof_status.py`. Open premises are named hypotheses, listed in [proofs/HYPOTHESES.md](proofs/HYPOTHESES.md).
 
 **Bootstrap Proofs Include:**
 - Logical reasoning (modus ponens, logical operators)
@@ -480,9 +486,19 @@ This repository includes working examples of four major proof assistants, with b
 - Machine-checked reasoning
 - Automated proof checking via CI/CD
 
+**External formal artifacts (reference material only).** Several public formal developments are useful to read:
+- Mathlib's computability library, including its Turing-machine models (`Turing.TM2`, the multi-stack model used for `TM2ComputableInPolyTime`).
+- [CSLib](https://github.com/leanprover/cslib), a Lean library for computer science (Barrett et al., arXiv 2602.04846, 2026).
+- `uds-psl/cook-levin`, a Rocq mechanisation of the Cook–Levin theorem (Gäher and Kunze, ITP 2021).
+- The Isabelle Archive of Formal Proofs entry `Cook_Levin` (Balbach, 2023), for multi-tape Turing machines.
+- Checking tools: `leanprover/comparator`, which checks that a proof matches a fixed challenge statement, and nanoda, an independent Lean 4 kernel checker.
+- The [Palomar registry](https://palomar-registry.org/) of Lean-verified results (`palomar-registry` in [literature/registry.json](literature/registry.json)). It records claims from fixed versions of their source files, checks the proofs with Lean, and publishes the exact statement, the libraries used and the review's comments. It is not peer review.
+
+None of these transfers a theorem into this repository. They use different machine models, encodings and libraries. A theorem about Mathlib's TM2 model, or about the call-by-value λ-calculus used by `uds-psl/cook-levin`, is not a theorem about the finite-machine model here. Using one would first need a proof that the models agree up to polynomial overhead. See [FORMAL_STATEMENT.md](FORMAL_STATEMENT.md).
+
 **Notable Verified Proofs:**
-- Four-color theorem ([Gonthier 2008](https://doi.org/10.1090/S0002-9904-2008-01217-9), Rocq)
-- Kepler conjecture ([Hales et al. 2017](https://doi.org/10.1017/fmp.2017.1), Isabelle)
+- Four-color theorem (Gonthier, "Formal proof: the four-color theorem", Notices of the AMS 55(11), 2008, 1382-1393; no DOI; Rocq)
+- Kepler conjecture ([Hales et al. 2017](https://doi.org/10.1017/fmp.2017.1), HOL Light and Isabelle)
 - Odd order theorem ([Gonthier et al. 2013](https://doi.org/10.1007/978-3-642-39634-2_14), Rocq/MathComp)
 
 **Automated Theorem Provers**
@@ -614,7 +630,7 @@ This repository includes working examples of four major proof assistants, with b
 - **Statistical mechanics:**
   - Phase transitions in satisfiability
   - Spin glass models
-  - Entropy methods (2024 thermodynamic approach)
+  - Entropy methods
 - **Quantum computation:**
   - Quantum complexity classes
   - Quantum algorithms
@@ -624,7 +640,7 @@ This repository includes working examples of four major proof assistants, with b
   - Existence related to P vs NP
   - Cryptographic hardness assumptions
 - **Applications:**
-  - RSA, DES security
+  - RSA, lattice-based schemes
   - Blockchain and consensus
 
 **Connections to Optimization**
@@ -650,7 +666,7 @@ This repository includes working examples of four major proof assistants, with b
 
 **Goals:**
 - Prove P ≠ NP or VP ≠ VNP via algebraic geometry
-- Use representation theory and orbit closures ([Mulmuley, Sohoni 2001](https://doi.org/10.1137/S0097539700366802))
+- Use representation theory and orbit closures ([Mulmuley, Sohoni 2001](https://doi.org/10.1137/S009753970038715X))
 
 **Key Concepts:**
 - **Orbit closures:** Geometric objects representing complexity
@@ -678,7 +694,7 @@ This repository includes working examples of four major proof assistants, with b
 - Connect to NP vs coNP
 
 **Key Result:**
-- If NP ≠ coNP, no proof system has polynomial-size proofs for all tautologies ([Cook, Reckhow 1979](https://doi.org/10.1016/0022-0000(79)90044-4))
+- If NP ≠ coNP, no proof system has polynomial-size proofs for all tautologies ([Cook, Reckhow 1979](https://doi.org/10.2307/2273702))
 
 **Research Areas:**
 - Lower bounds for resolution
@@ -709,7 +725,7 @@ This repository includes working examples of four major proof assistants, with b
 
 **Connection to P vs NP:**
 - If E requires exponential circuits, then BPP = P ([Impagliazzo, Wigderson 1997](https://doi.org/10.1145/258533.258590))
-- If E has small circuits, then P ≠ NP ([Kabanets 2001](https://doi.org/10.1007/3-540-44676-1_14))
+- If E has polynomial-size circuits, then P ≠ NP. This follows from Meyer's theorem in Karp and Lipton (1980). By padding, E ⊆ P/poly implies EXP ⊆ P/poly; EXP ⊆ P/poly implies EXP = Σ₂ᵖ; and P = NP would then give EXP = P, which contradicts the time hierarchy theorem. Related easy-witness results are in [Kabanets 2001](https://doi.org/10.1006/jcss.2001.1763) and Impagliazzo, Kabanets and Wigderson (2002).
 
 **Tools:**
 - PRG implementations
@@ -722,7 +738,7 @@ This repository includes working examples of four major proof assistants, with b
 - Classify problems by best possible running time
 
 **Key Hypotheses:**
-- **Strong Exponential Time Hypothesis (SETH):** SAT requires 2^n time
+- **Strong Exponential Time Hypothesis (SETH), a conjecture:** for every ε > 0 there is a k such that k-SAT is not solvable in time O(2^{(1-ε)n}) (see the status note at the top)
 - **3SUM hypothesis**
 - **APSP hypothesis**
 
@@ -886,7 +902,7 @@ This repository includes working examples of four major proof assistants, with b
 
 ### 10.1 Emerging Approaches
 
-**Thermodynamic Methods (2024):**
+**Thermodynamic Methods** (speculative; no specific result on P vs NP is cited here. An earlier version said "2024" without a source.)
 - Information theory and entropy
 - Statistical mechanics connections
 - Energy landscapes of problems
@@ -899,6 +915,14 @@ This repository includes working examples of four major proof assistants, with b
 **Algorithmic Improvements:**
 - Better SAT algorithms imply lower bounds (Williams' approach)
 - Understanding limits of algorithms
+
+**Recent results (as of 2026-11-03):**
+- Williams, "Simulating Time With Square-Root Space" (STOC 2025): TIME[t] ⊆ SPACE[√(t log t)] for multitape Turing machines.
+- Cook and Mertz (STOC 2024): Tree Evaluation in O(log n · log log n) space.
+- Chen, Hirahara and Ren, and independently Li (STOC 2024): the symmetric exponential-time class S₂E requires near-maximum circuit size.
+- AI-generated mathematics. On 6 October 2026, `openai/math` released a collection of AI-generated manuscripts: 722 manuscripts in 372 families at release, 721 in 373 families at commit 4eaee87 (2026-10-30) (the figure recorded in [literature/registry.json](literature/registry.json)). Some carry Lean proofs of restricted lower bounds, for example for depth-3 circuits, an Ω(n³) permanent-versus-determinant bound, SDP lifts, Weisfeiler–Leman, depth-5 IMM and sensitivity. The release also includes a claimed proof of the Unique Games Conjecture (family 102). Three manuscripts were withdrawn after a sign error. None of this has been peer reviewed. Lean-checked statements still need a check that their definitions match the intended ones.
+
+None of these results resolves P vs NP.
 
 ### 10.2 Open Problems Beyond P vs NP
 

@@ -1,5 +1,9 @@
 # Issue #8: the target `NP ⊆ P` and a verified DPLL solver
 
+Status at 2026-11-03: all 14 theorems in the "Verified scope" table are
+certified rows of `scripts/proof_status.json` in each prover. `NP ⊆ P` is not
+proved. `SATHard` is open ([#624](https://github.com/konard/p-vs-np/issues/624)).
+
 Issue #8 asked to "try prove P = NP". Its corrected target is **`NP ⊆ P`**.
 The shared statement `Complexity.PEqualsNP` is literally
 `∀ L, InNP L → InP L` (`npSubsetP_iff_pEqualsNP`). Because `P ⊆ NP` is proved
@@ -20,7 +24,7 @@ an explicit premise. There are no axioms, `sorry` or `Admitted`.
 
 | Defect in PR #41 | Reproduction or fix |
 | --- | --- |
-| `PEqualsNPAttempt.lean` declared `axiom contradiction_from_separation : False`, so every statement in the file was provable, together with axioms for a hypothetical solver, its time bound and its correctness | The file is not in `main`. Issue #609 replaced it and `KnownBarriers.lean` with paired files that assert no axioms. This directory adds no axioms either; `scripts/proof_status.json` audits every conclusion. |
+| `PEqualsNPAttempt.lean` declared `axiom contradiction_from_separation : False`, so every statement in the file was provable, together with axioms for a hypothetical solver, its time bound and its correctness | The file is not in `main`. PR #41 was merged on 2026-09-29 only after this file was dropped; what it merged is this directory. Issue #609 replaced the file and `KnownBarriers.lean` with paired files that assert no axioms. This directory adds no axioms either; `scripts/proof_status.json` lists its 14 main conclusions, and CI audits their assumptions. |
 | The Python DPLL in `experiments/sat_solvers/dpll_basic.py` answered UNSAT for the satisfiable `(¬x1 ∨ x2) ∧ (¬x2 ∨ x3) ∧ (¬x1 ∨ ¬x3) ∧ (x1 ∨ ¬x2) ∧ (x1 ∨ x3)` (issue #610) | PR #616 fixed the Python solver. `issue610_satisfiable` and `issue610_sat` prove the formula satisfiable in the shared semantics, and `dpllSAT_issue610` checks that the verified solver accepts it. |
 | No solver was connected to the shared SAT language, and no cost was stated | `dpll_correct` and `dpllSAT_eq_SAT` prove a DPLL search correct on every word. `dpllSAT_calls_le` bounds its calls. `candidate_of_dpll_machine` names what a polynomial-time machine for it would give. |
 | The write-up and next-steps documents contained wrong citations and claims | They are replaced by the corrected [`np_subset_p_proof_attempt.md`](../np_subset_p_proof_attempt.md), which lists each correction. |
@@ -65,6 +69,12 @@ not a count of `Run` steps of a `Complexity.Machine`.
 | Call bound, which is not polynomial | `dpllSAT_calls_le`, `calls_bound_not_polynomial` |
 | A polynomial `Run` bound for `dpllSAT` gives a `Candidate`, and with `SATHard` gives `NP ⊆ P`. Conversely, `NP ⊆ P` gives such a machine without `SATHard` | `candidate_of_dpll_machine`, `npSubsetP_of_dpll_machine`, `dpll_machine_of_npSubsetP` |
 
+Recount the certified rows with
+`python3 -I -c "import json; print(sum('/issue8/' in e['source'] for e in json.load(open('scripts/proof_status.json'))['lean']))"`
+(prints 14; use `'rocq'` for Rocq, also 14). Helper lemmas such as
+`issue610_satisfiable`, `dpllSAT_iff` and `dpllCalls_lt` compile but are not
+manifest rows.
+
 ## What blocks this attempt
 
 `npSubsetP_of_dpll_machine` and `dpll_machine_of_npSubsetP` show that, given
@@ -74,7 +84,8 @@ number of `Run` steps. Nothing else in the file is open.
 
 * The only bound proved for DPLL is exponential. DPLL-style search without
   learning produces tree-like resolution refutations, which need exponential
-  size on known families (for example the pigeonhole formulas; Haken 1985
+  size on known families (for example the pigeonhole formulas; Haken 1985,
+  DOI [10.1016/0304-3975(85)90144-6](https://doi.org/10.1016/0304-3975(85)90144-6),
   proves the lower bound even for general resolution). A different algorithm
   would be needed, not a better analysis of this one.
 * The obligation cannot be met by a relativizing argument (Baker–Gill–Solovay
@@ -97,7 +108,8 @@ These steps are checkable now and do not presuppose the open problem:
 2. **`SATHard` in the shared model.** Cook–Levin is a known theorem.
    Proving it for `Complexity.Machine` removes the premise from
    `npSubsetP_iff_inP_sat`, `npSubsetP_iff_candidate` and
-   `npSubsetP_of_dpll_machine`.
+   `npSubsetP_of_dpll_machine`. PR [#630](https://github.com/konard/p-vs-np/pull/630)
+   holds partial work; as of 2026-11-03 it is unmerged and its CI is failing.
 3. **An exponential lower bound for this `dpll`.** A family of unsatisfiable
    formulas on which `dpllCalls` is at least `2^(Ω(n))` would prove formally
    that this solver is not polynomial. That result is about one algorithm, not

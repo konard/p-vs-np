@@ -1,5 +1,9 @@
 # Issue 587 Kardash 2-SAT regression
 
+Status at 2026-11-03: a passing regression for issue #587 (closed). CI runs
+the unit tests in its `Detect Changes` job and `check.sh` in the Lean and Rocq
+jobs.
+
 Before the fix, the Kardash refutation said that unit propagation and arc
 consistency decide 2-SAT, credited that to Krom (1967), and recorded it in Lean
 and Rocq as an assumption whose type was `True`. The two formulas from the
@@ -34,7 +38,8 @@ bash experiments/issue587/check.sh --lean
 bash experiments/issue587/check.sh --rocq
 ```
 
-Before the fix the source checks in `SourceClaims` fail (22 subtests); the
+Before the fix (PR #602) the source checks in `SourceClaims` failed (22
+subtests at that time); the
 behavioural tests pass on both sides, since they test the formulas rather
 than the files. The Rocq audit has a `.v.in` suffix so the normal full-project
 scan does not compile it on its own.

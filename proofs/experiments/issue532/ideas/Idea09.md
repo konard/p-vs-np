@@ -1,6 +1,6 @@
 # Idea 09 — Description length versus running time (and Levin universal search)
 
-**Verdict:** Refuted as a route (general theorem) — the inference "the shortest program for a task is also the fastest" is false for every target `v ↦ v + k` with `k ≥ 6` in an explicit loop language with honest size and cost semantics (`shortest_is_never_fastest`). The meta-algorithmic half of the idea is developed to full strength as Levin universal search: it is sound, complete, and within a fixed factor `8 · 2^i` of any witness-producing program `i` (`levin_search_bound`). Whether that search is polynomial for SAT is exactly the open obligation `SATWitnessMachine`, stated in the shared machine model (one `Complexity.Machine` outputs a satisfying assignment of every satisfiable encoded formula within a polynomial number of `Reaches` steps). It is proved to imply `InP SAT` and, with `SATHard`, `PEqualsNP`; the composition step `WitnessCheckInP` and `SATHard` are explicit hypotheses (known theorems, not mechanised). The converse holds by search-to-decision self-reducibility (cited, not formalized); nothing here decides the obligation.
+**Verdict:** Refuted as a route (general theorem). The inference "the shortest program for a task is also the fastest" is false for every target `v ↦ v + k` with `k ≥ 6` in an explicit loop language with honest size and cost semantics (`shortest_is_never_fastest`). The meta-algorithmic half of the idea is developed to full strength as Levin universal search: it is sound, complete, and within a fixed factor `8 · 2^i` of any witness-producing program `i` (`levin_search_bound`). Whether that search is polynomial for SAT is exactly the open obligation `SATWitnessMachine`, stated in the shared machine model (one `Complexity.Machine` outputs a satisfying assignment of every satisfiable encoded formula within a polynomial number of `Reaches` steps). It is proved to imply `InP SAT` and, with `SATHard`, `PEqualsNP`; the composition step `WitnessCheckInP` and `SATHard` are explicit hypotheses (known theorems, both open in [HYPOTHESES.md](../../../HYPOTHESES.md) as of 2026-11-03; PR #630, unmerged, covers part of `SATHard`). The converse holds by search-to-decision self-reducibility (cited, not formalized); nothing here decides the obligation.
 
 ## 1. The idea at full strength
 
@@ -85,8 +85,8 @@ the `i`-th machine of an enumeration `e` (well defined by
 **Known theorem used as a hypothesis.** `WitnessCheckInP`: for every
 `Computes m f p`, the language `x ↦ satCheck x (f x)` is in P (closure of P
 under composition with polynomial-time functions; single-tape simulation,
-Sipser Theorem 7.8). It is true but not mechanised here, and it appears only
-as a named hypothesis.
+Sipser Theorem 7.8). It is not mechanised here; it appears only as a named
+hypothesis, open in [HYPOTHESES.md](../../../HYPOTHESES.md) as of 2026-11-03.
 
 ## 3. What is machine-checked
 
@@ -116,7 +116,7 @@ as a named hypothesis.
 | `levin_poly_for` | If the schema holds (and runs are monotone), there are `K, c, d` such that Levin search finds a verified witness on every satisfiable `x` with `totalWork J < K · (c·sz(x)^d + c + 1)`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
 | `sat_iff_exists_witness` | `SAT x = true ↔ ∃ w, satCheck x w = true`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
 | `SATWitnessMachine` | Open obligation: one machine computes (`Computes m f p`) a satisfying assignment `f x` of every satisfiable `x`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
-| `WitnessCheckInP` | Known theorem, not mechanised (hypothesis only): `Computes m f p → InP (fun x => satCheck x (f x))`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
+| `WitnessCheckInP` | Known theorem, open as of 2026-11-03 (hypothesis only): `Computes m f p → InP (fun x => satCheck x (f x))`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
 | `inP_sat_of_witnessMachine` | `WitnessCheckInP → SATWitnessMachine → InP SAT`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
 | `pEqualsNP_of_witnessMachine` | `WitnessCheckInP → SATHard → SATWitnessMachine → PEqualsNP`. | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
 | `not_forall_polyWitnessMachine` | Non-vacuity: `¬ ∀ V, PolyWitnessMachine V` (Cantor over machine encodings). | [Lean](../lean/Idea09.lean) | [Rocq](../rocq/Idea09.v) |
@@ -291,10 +291,12 @@ time `O(2^{i_A} · T_A(n))` plus verification and simulation overhead
 step count, a satisfying assignment of every satisfiable encoded formula.
 Proved: it implies `InP SAT` given the composition theorem `WitnessCheckInP`
 (`inP_sat_of_witnessMachine`), and `PEqualsNP` given also `SATHard`
-(`pEqualsNP_of_witnessMachine`); both are true, cited, not mechanised, and
-used only as named hypotheses. The converse (P = NP gives a witness machine)
+(`pEqualsNP_of_witnessMachine`). Both premises are known theorems, cited and
+used only as named hypotheses. As of 2026-11-03 both are open on main; PR #630
+(unmerged) covers part of `SATHard`. The converse (P = NP gives a witness machine)
 holds by search-to-decision self-reducibility and is cited, not formalized.
-So the obligation is **equivalent to P = NP** and not weaker than the
+So, under these hypotheses and the cited converse, the obligation is
+**equivalent to P = NP** and not weaker than the
 original problem. The conditional theorems show that Levin search loses
 nothing beyond a fixed factor, not that the obligation is easier.
 `not_forall_polyWitnessMachine` shows that the witness-machine property is

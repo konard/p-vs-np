@@ -12,10 +12,12 @@ answer and polynomial step cost would be a polynomial-time SAT algorithm. That
 obligation is stated in the shared machine model (`Issue532.Machines`, time =
 `Complexity.Run` step count) as `SATMachineSelfReduction`: a polynomial-time
 machine step that removes one variable and keeps satisfiability, plus a machine
-for variable-free formulas. The Lean file proves that it gives `InP SAT`, and
-with `SATHard` gives `PEqualsNP`. Two known theorems enter only as named
+for variable-free formulas. The Lean and Rocq files prove that it gives
+`InP SAT`, and with `SATHard` gives `PEqualsNP`. Two known theorems enter only as named
 hypotheses: `IterationClosure` (iterating a length-non-increasing
 polynomial-time map `|x|` times stays polynomial) and `SATHard` (Cook–Levin).
+As of 2026-11-03 both are open on main; `SATHard` is in progress in PR #630
+(unmerged).
 The abstract-cost version survives as the schema `AdditiveSelfReductionFor`.
 
 ## 1. The idea at full strength
@@ -228,6 +230,8 @@ a machine `d` with `DecidesOn d q (fun y => satSize y = 0) SAT`. The file proves
 `IterationClosure → SATMachineSelfReduction → InP SAT` and, with `SATHard`,
 `PEqualsNP`. `IterationClosure` (iteration of a polynomial-time map) and
 `SATHard` (Cook–Levin) are known theorems stated as hypotheses, not proved.
+Both are open on main as of 2026-11-03; `SATHard` is in progress in PR #630
+(unmerged).
 Conversely, P = NP gives such a step by search-to-decision (cited, not
 formalized), so the obligation is as hard as P = NP.
 `not_forall_machineSelfReductionOf` shows the machine predicate is a real

@@ -8,8 +8,10 @@
 
 This document presents a catalog of formal approaches to P vs NP. Here the existing "decidability" formalizations prove the classical tautology `P = NP ∨ P ≠ NP`. They do not prove either disjunct, provide an algorithm to choose one, or establish that ZFC settles the question.
 
+**Terminology note (2026-11-03).** In this document, "P vs NP is decidable" means only that the classical disjunction `P = NP ∨ P ≠ NP` is provable, by excluded middle (`Classical.em` in Lean, `classic` in Rocq). It does not mean decidable in the computability sense (an algorithm that outputs the answer). It does not mean that ZFC proves one of the two sides. The certified theorem is `PvsNPDecidable.P_vs_NP_is_decidable` in [proofs/p_vs_np_decidable/](proofs/p_vs_np_decidable/README.md). The exact checked statements are in [FORMAL_STATEMENT.md](FORMAL_STATEMENT.md). The current roadmap for the independence question is [PROVING_P_VS_NP_UNDECIDABILITY.md](PROVING_P_VS_NP_UNDECIDABILITY.md).
+
 **Key Distinction:**
-- **"P vs NP is decidable"** (this document): The question has a definite truth value in classical logic
+- **"P vs NP is decidable"** (this document): the classical disjunction `P = NP ∨ P ≠ NP` holds. Every proposition satisfies this in classical logic, so it gives no information about which side is true
 - **"P vs NP is undecidable"**: The question might be independent of ZFC, similar to the Continuum Hypothesis
 
 The clocked-SAT formulation puts P = NP in Σ⁰₂ and P ≠ NP in Π⁰₂. Forcing preserves arithmetic truth between a transitive ground model and its set-forcing extensions. Whether either statement is provable in ZFC remains open; forcing invariance does not establish provability. See [Aaronson, *P ?= NP*, section 3.1 and footnote 24](https://www.scottaaronson.com/papers/pnp.pdf).
@@ -64,11 +66,11 @@ theorem P_vs_NP_decidable : PEqualsNP ∨ ¬PEqualsNP :=
 **Proof Assistant Support:**
 - **Lean 4**: `Classical.em`
 - **Rocq**: `classic` from `Classical_Prop`
-- **Isabelle/HOL**: Built-in classical logic
-- **Agda**: Requires postulated classical axiom
+- **Isabelle/HOL**: Built-in classical logic (the repository's Isabelle files are archived in `archive/isabelle/` and not checked by CI)
+- **Agda**: Requires postulated classical axiom (`PvsNPDecidable.agda` discloses its `excludedMiddle` postulate)
 
 **References:**
-- Russell & Whitehead, *Principia Mathematica* (1910-1913)
+- Whitehead & Russell, *Principia Mathematica* (1910-1913)
 - [Law of Excluded Middle](https://plato.stanford.edu/entries/logic-classical/)
 
 ---
@@ -188,7 +190,7 @@ P-vs-NP-decidable = search-for-proof PEqualsNP
 **Key Questions:**
 - Is "(P = NP) ∨ (P ≠ NP)" provable intuitionistically?
 - What computational content would a constructive proof have?
-- Can we prove ¬¬(P = NP ∨ P ≠ NP) intuitionistically?
+- ¬¬(P = NP ∨ P ≠ NP) is provable intuitionistically, as is ¬¬(A ∨ ¬A) for every proposition A (see the code below). The open part is the disjunction itself: by the disjunction property of intuitionistic arithmetic, a constructive proof of `P = NP ∨ P ≠ NP` would yield a proof of one side
 
 **Implementation:**
 ```agda
@@ -199,9 +201,10 @@ module PvsNP-Intuitionistic where
   -- decidable : PEqualsNP ⊎ (¬ PEqualsNP)
   -- decidable = ?  -- Likely impossible without classical axiom
 
-  -- But double negation may be provable
-  postulate
-    double-negation : ¬ ¬ (PEqualsNP ⊎ (¬ PEqualsNP))
+  -- The double negation is provable with no postulate,
+  -- for PEqualsNP as for any proposition:
+  double-negation : ¬ ¬ (PEqualsNP ⊎ (¬ PEqualsNP))
+  double-negation h = h (inj₂ (λ p → h (inj₁ p)))
 ```
 
 **Advantages:**
@@ -257,7 +260,7 @@ module PvsNP-Intuitionistic where
 **Key Insight:**
 In the standard model, either P = NP or P ≠ NP (no intermediate case).
 
-**Formalization:**
+**Formalization** (illustrative sketch; no such Isabelle file is in the repository):
 ```isabelle
 theorem standard_model_decidability:
   "PEqualsNP ∨ ¬PEqualsNP"
@@ -322,8 +325,8 @@ theorem standard_model_decidability:
 Forcing is a technique used by Cohen to prove independence of the Continuum Hypothesis from ZFC.
 
 **Application:**
-- Which forcing constructions preserve the standard machine encoding?
-- How does this differ from forcing results about CH?
+- Every set-forcing extension of a transitive model has the same natural numbers and the same arithmetic truth, so no forcing construction changes the clocked-SAT sentence (see the introduction)
+- CH is not arithmetic, which is why forcing can change CH but cannot change P vs NP
 - What would a genuine independence proof need beyond this method?
 
 **Advantages:**
@@ -336,7 +339,7 @@ Forcing is a technique used by Cohen to prove independence of the Continuum Hypo
 
 **References:**
 - Cohen, *Set Theory and the Continuum Hypothesis* (1966)
-- [Forcing in Set Theory](https://plato.stanford.edu/entries/forcing/)
+- [Forcing (mathematics)](https://en.wikipedia.org/wiki/Forcing_(mathematics))
 
 ---
 
@@ -358,7 +361,7 @@ Forcing is a technique used by Cohen to prove independence of the Continuum Hypo
 - **Z₂ (Second-Order Arithmetic)**: Stronger than PA
 - **Type Theory**: Various typed lambda calculi
 
-**Formal Investigation:**
+**Formal Investigation:** illustrative pseudo-code, not repository code. It uses `Axiom` and the undefined name `ZFC_holds`, which repository proof files may not (see hard rule 1 in [CLAUDE.md](CLAUDE.md)).
 ```rocq
 (* In Rocq with ZFC axioms *)
 Require Import Classical_Prop.
@@ -429,13 +432,15 @@ Qed.
 
 ### Strategy 4.3: Reverse Mathematics Approach
 
-**Principle:** Determine minimal axioms needed to prove decidability.
+**Principle:** Calibrate how much axiomatic strength would be needed to prove one side of P vs NP.
+
+**Correction (2026-11-03).** Earlier versions asked for the weakest system in which "decidability" is provable. In the sense of the terminology note above, decidability is the disjunction `P = NP ∨ P ≠ NP`. That is an instance of excluded middle, provable in classical first-order logic with no axioms, so it holds in RCA₀ and in every classical theory. The question was vacuous and has been replaced.
 
 **Approach:**
 1. Work within the reverse mathematics framework (RCA₀, WKL₀, ACA₀, ATR₀, Π¹₁-CA₀)
-2. Attempt to prove decidability at each level
-3. Determine the weakest system where decidability is provable
-4. Analyze what this tells us about the logical strength of decidability
+2. Ask in which subsystems P ≠ NP (a Π⁰₂ sentence) or P = NP (a Σ⁰₂ sentence) is provable or unprovable
+3. Use the known conservation results: WKL₀ is Π¹₁-conservative over RCA₀, whose first-order part is IΣ₁, and ACA₀ is conservative over PA for arithmetic sentences. So for P vs NP, provability in WKL₀ is the same as in IΣ₁, and provability in ACA₀ is the same as in PA
+4. Analyze what this tells us about the logical strength of each side
 
 **Framework:**
 - **RCA₀**: Recursive comprehension axiom (weakest)
@@ -443,26 +448,6 @@ Qed.
 - **ACA₀**: Arithmetic comprehension
 - **ATR₀**: Arithmetic transfinite recursion
 - **Π¹₁-CA₀**: Π¹₁ comprehension axiom (strongest)
-
-**Investigation:**
-```lean
--- Pseudo-code outline
-namespace Reversemath
-
--- Can we prove in RCA₀?
-axiom RCA0 : RCA_axioms
-
-theorem decidability_in_RCA0 :
-  RCA0 → (PEqualsNP ∨ ¬PEqualsNP) := sorry
-
--- If not, what about WKL₀?
-axiom WKL0 : WKL_axioms
-
-theorem decidability_in_WKL0 :
-  WKL0 → (PEqualsNP ∨ ¬PEqualsNP) := sorry
-
-end Reversemath
-```
 
 **Advantages:**
 - ✅ Precisely calibrates logical strength
@@ -506,9 +491,9 @@ end Reversemath
 
 **Example Encoding:**
 ```tptp
-% TPTP syntax
-fof(lem, axiom, ![P]: (P | ~P)).
-fof(p_eq_np, conjecture, p_equals_np | ~p_equals_np).
+% TPTP syntax: a propositional conjecture, provable from no axioms.
+% (A quantified ![P]: (P | ~P) is ill-formed in FOF: P would be a term, not a formula.)
+fof(p_eq_np, conjecture, (p_equals_np | ~ p_equals_np)).
 ```
 
 **Advantages:**
@@ -523,7 +508,7 @@ fof(p_eq_np, conjecture, p_equals_np | ~p_equals_np).
 
 **References:**
 - [TPTP Problem Library](http://www.tptp.org/)
-- [CADE ATP System Competition](http://www.tptp.org/CASC/)
+- [CADE ATP System Competition](https://tptp.org/CASC/)
 
 ---
 
@@ -548,8 +533,10 @@ fof(p_eq_np, conjecture, p_equals_np | ~p_equals_np).
 ```smt2
 ; SMT-LIB format
 (declare-const P_equals_NP Bool)
-(assert (or P_equals_NP (not P_equals_NP)))
-(check-sat)  ; Should return: sat
+; To check validity, assert the negation and expect unsat.
+; (Asserting the formula itself and getting sat shows only satisfiability.)
+(assert (not (or P_equals_NP (not P_equals_NP))))
+(check-sat)  ; expected: unsat
 ```
 
 **Advantages:**
@@ -573,7 +560,7 @@ fof(p_eq_np, conjecture, p_equals_np | ~p_equals_np).
 **Principle:** Combine interactive proving with automated tactics.
 
 **Approach:**
-1. Use proof assistants with strong automation (Isabelle, Lean, Rocq)
+1. Use proof assistants with strong automation (Lean and Rocq in this repository; Isabelle is archived)
 2. Apply automated tactics to decidability goal
 3. Fill gaps interactively where automation fails
 4. Verify entire proof is machine-checked
@@ -617,7 +604,7 @@ theorem P_vs_NP_decidable : PEqualsNP ∨ ¬PEqualsNP := by
 - **Δ⁰ₙ**: Formulas both Σ⁰ₙ and Π⁰ₙ
 
 **Analysis:**
-By NP-completeness of SAT, "P = NP" can be written as:
+Using SAT, "P = NP" can be written as follows. For the repository's machine model, [issue 7](proofs/experiments/issue7/README.md) checks how much of this needs NP-completeness. With no premise, the Σ⁰₂ form is equivalent to `InP SAT` (`Issue7.ClockedSAT.clockedSAT_iff_inP_sat`), and the Π⁰₂ form implies P ≠ NP (`Issue7.ClockedSAT.pNotEqualsNP_of_pi2`). The other two directions need the open premise `SATHard`.
 `∃ machine e, polynomial clock k ∀ input x, e halts within the clock and answers SAT correctly on x`.
 For fixed `e`, `k`, and `x`, the matrix is a finite computable check (SAT itself can be decided by exhaustive search). Thus P = NP is Σ⁰₂ and P ≠ NP is Π⁰₂. The displayed classification is an upper bound; quantifying over arbitrary languages without coding them as finite machines does not justify an arithmetical level.
 
@@ -664,7 +651,7 @@ For fixed `e`, `k`, and `x`, the matrix is a finite computable check (SAT itself
 
 **Key Questions:**
 - Are complexity classes absolute?
-- Does forcing preserve complexity class relationships?
+- Forcing preserves complexity class relationships, since they are arithmetic statements (see the introduction)
 - What about in non-standard models of arithmetic?
 
 **Advantages:**
@@ -727,7 +714,7 @@ For fixed `e`, `k`, and `x`, the matrix is a finite computable check (SAT itself
 **Approach:**
 1. Implement in Lean 4 (modern, automation)
 2. Implement in Rocq (mature, extensive libraries)
-3. Implement in Isabelle/HOL (classical, strong automation)
+3. Implement in Isabelle/HOL (classical, strong automation; archived in this repository)
 4. Implement in Agda (dependently-typed, constructive)
 5. Compare results and identify dependencies
 
@@ -737,12 +724,13 @@ For fixed `e`, `k`, and `x`, the matrix is a finite computable check (SAT itself
 - Documents axiom dependencies
 - Community review from multiple perspectives
 
-**Implementation Status:**
+**Implementation Status** (as of 2026-11-03):
 ```
-✅ Lean 4:  proofs/p_vs_np_decidable/lean/PvsNPDecidable.lean
-✅ Rocq:     proofs/p_vs_np_decidable/rocq/PvsNPDecidable.v
-✅ Isabelle: proofs/p_vs_np_decidable/isabelle/PvsNPDecidable.thy
-✅ Agda:    proofs/p_vs_np_decidable/agda/PvsNPDecidable.agda
+✅ Lean 4:  proofs/p_vs_np_decidable/lean/PvsNPDecidable.lean   (certified)
+✅ Rocq:     proofs/p_vs_np_decidable/rocq/PvsNPDecidable.v     (certified)
+✅ Agda:    proofs/p_vs_np_decidable/agda/PvsNPDecidable.agda  (CI-checked; disclosed excludedMiddle postulate)
+⚠️ Isabelle: no PvsNPDecidable.thy exists. Only PSubsetNP.thy is archived,
+             in archive/isabelle/proofs/p_vs_np_decidable/isabelle/, and CI does not check it.
 ```
 
 **Advantages:**
@@ -768,8 +756,9 @@ For fixed `e`, `k`, and `x`, the matrix is a finite computable check (SAT itself
 
 **Core Formalization:**
 ```lean
--- Minimal core
-axiom PEqualsNP : Prop
+-- Illustrative sketch; the checked file is
+-- proofs/p_vs_np_decidable/lean/PvsNPDecidable.lean
+variable (PEqualsNP : Prop)
 theorem decidable : PEqualsNP ∨ ¬PEqualsNP := Classical.em PEqualsNP
 ```
 
@@ -857,28 +846,27 @@ This proof applies the law of excluded middle...
 
 **Known Independent Statements:**
 - Continuum Hypothesis (CH)
-- Axiom of Choice (AC)
-- Suslin's Hypothesis
+- Axiom of Choice (AC, independent of ZF)
+- Suslin's Hypothesis (SH)
 - Diamond principle (◇)
 - Various large cardinal axioms
 
+**Correction (2026-11-03).** For CH, AC, SH and ◇ the question is closed. P vs NP is an arithmetic (Π⁰₂ / Σ⁰₂) sentence. Its truth is absolute between models of ZF that share the natural numbers (Shoenfield absoluteness). So an arithmetic sentence provable in ZF + AC, in ZFC + CH or ZFC + ¬CH, or from any statement proved independent of ZF by forcing, is already provable in ZF ([Aaronson, *P ?= NP*, §3.1, footnote 24](https://www.scottaaronson.com/papers/pnp.pdf)). Only axioms that add arithmetic consequences, such as large cardinal axioms or consistency statements, could matter.
+
 **Approach:**
-1. Investigate whether "P = NP" can be reduced to known independent statements
-2. Study if P vs NP decidability depends on these statements
-3. Analyze if forcing techniques apply
+1. Treat CH, AC, SH and ◇ as settled: adding them, or their negations, cannot decide P vs NP
+2. Ask whether large cardinal axioms or consistency statements, which do prove new arithmetic sentences, could bear on P vs NP
 
 **Key Question:**
-Is there a connection between P vs NP and set-theoretic independence?
+Could an axiom with new arithmetic consequences, such as a large cardinal axiom, decide P vs NP when ZFC does not?
 
 **Current Understanding:**
 - Many complexity theorists expect a proof, but independence from ZFC is unresolved
-- No known connection to standard independent statements
-- But possibility remains open
+- Statements settled by forcing or inner models (CH, AC, SH, ◇) cannot decide P vs NP
+- No connection to large cardinal axioms is known
 
 **Advantages:**
 - ✅ Leverages existing knowledge
-- ✅ Could resolve decidability question definitively
-- ✅ Uses proven techniques
 
 **Limitations:**
 - ⚠️ No known connections currently exist
@@ -887,7 +875,7 @@ Is there a connection between P vs NP and set-theoretic independence?
 
 **References:**
 - Kunen, *Set Theory* (2011)
-- [Independence Results in Set Theory](https://plato.stanford.edu/entries/set-theory-independence/)
+- [Independence and Large Cardinals](https://plato.stanford.edu/entries/independence-large-cardinals/)
 
 ---
 
@@ -936,8 +924,8 @@ Study proofs or independence results for related comparisons, while keeping thei
 2. Study relationship to meta-complexity problems
 3. Analyze if meta-complexity results imply decidability
 
-**Key Insight:**
-If determining class membership is decidable, this might imply P vs NP is decidable.
+**Key Insight (corrected 2026-11-03):**
+Whether L(M) ∈ P for a given machine M is undecidable (Rice's theorem). This says nothing about the provability of P vs NP, which is the sense used in this document.
 
 **Advantages:**
 - ✅ Novel perspective
@@ -951,7 +939,7 @@ If determining class membership is decidable, this might imply P vs NP is decida
 
 **References:**
 - Kabanets & Cai, "Circuit minimization problem" (2000)
-- [Meta-Complexity](https://en.wikipedia.org/wiki/Meta-complexity)
+- [Circuit minimization for Boolean functions](https://en.wikipedia.org/wiki/Circuit_minimization_for_Boolean_functions)
 
 ---
 
@@ -1068,22 +1056,24 @@ Use empirical insights to:
 
 ## 10. Implementation Roadmap
 
+> **Note (2026-11-03).** The operative plan of this repository is [ROADMAP.md](ROADMAP.md). The weekly phases below are kept as illustrative background. Their status lines were updated on 2026-11-03.
+
 ### Phase 1: Core Decidability Proof (Weeks 1-4)
 
 **Goal:** Establish basic decidability via classical logic in all proof assistants.
 
 **Tasks:**
 - ✅ **Week 1**: Review existing formalizations in `proofs/p_vs_np_decidable/`
-- ✅ **Week 2**: Verify all four proof assistants (Lean, Rocq, Isabelle, Agda)
+- ✅ **Week 2**: Verify the proof assistants (Lean, Rocq, Agda; Isabelle later archived)
 - ✅ **Week 3**: Add documentation and comments
 - ✅ **Week 4**: Write tutorial materials
 
 **Deliverables:**
-- Working proofs in all four systems
+- Working proofs in Lean, Rocq and Agda
 - Documentation explaining each approach
 - Comparison of classical axioms used
 
-**Status:** ✅ **COMPLETE** - All four proof assistants have working decidability proofs
+**Status:** ✅ **COMPLETE** (as of 2026-11-03). Lean and Rocq are certified in `scripts/proof_status.json`. Agda is checked by CI with a disclosed `excludedMiddle` postulate. Isabelle is archived in `archive/isabelle/` and not checked.
 
 ---
 
@@ -1091,11 +1081,11 @@ Use empirical insights to:
 
 **Goal:** Add complexity class definitions and relationships.
 
-**Tasks:**
-- **Week 5**: Formalize polynomial time more rigorously
-- **Week 6**: Prove P ⊆ NP in all systems
-- **Week 7**: Add NP-completeness framework
-- **Week 8**: Formalize Cook-Levin theorem statement
+**Tasks** (status as of 2026-11-03):
+- ✅ **Week 5**: Formalize polynomial time more rigorously. Done in the shared model, [proofs/complexity/](proofs/complexity/README.md)
+- ✅ **Week 6**: Prove P ⊆ NP. Done: `Complexity.pSubsetNP` (Lean and Rocq, certified) and the Agda version
+- 🟡 **Week 7**: Add NP-completeness framework. Partly done: SAT ∈ NP is proved (`Issue532.SATVerifier.satInNP`); NP-hardness of SAT (`SATHard`) is an open premise
+- 🟡 **Week 8**: Formalize Cook-Levin theorem statement. Stated as `CookLevin`, with `cookLevin_iff_satHard`. The first slice of a constructive proof is in [proofs/experiments/issue568/](proofs/experiments/issue568/README.md)
 
 **Deliverables:**
 - Enhanced proof frameworks
@@ -1211,7 +1201,7 @@ Classical logic proves `P = NP ∨ P ≠ NP` by excluded middle. The repository'
 **For Immediate Implementation:**
 1. ✅ Classical logic approach (completed)
 2. Multi-proof-assistant verification (completed)
-3. Extended formalization with P ⊆ NP (in progress)
+3. Extended formalization with P ⊆ NP (completed; see Phase 2)
 
 **For Research Investigation:**
 1. Arithmetical hierarchy classification
@@ -1226,7 +1216,7 @@ Classical logic proves `P = NP ∨ P ≠ NP` by excluded middle. The repository'
 
 ### Next Steps
 
-1. **Complete Phase 2**: Enhance existing formalizations with full complexity class definitions
+1. **Complete Phase 2**: The remaining item is `SATHard` (see [ROADMAP.md](ROADMAP.md))
 2. **Begin Phase 3**: Meta-mathematical analysis of independence
 3. **Document Progress**: Maintain comprehensive records
 4. **Engage Community**: Share results with logic and complexity theory communities
@@ -1241,7 +1231,7 @@ Whether a specified theory proves either side of P vs NP is a foundational quest
 
 ---
 
-**Last Updated:** October 2025
+**Last Updated:** 2026-11-03
 
 **Related Issues:** #16
 

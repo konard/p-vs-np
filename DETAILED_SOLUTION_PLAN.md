@@ -24,11 +24,22 @@ The phases outlined below are educational milestones for:
 
 This plan emphasizes collaboration, peer review, and working on tractable open problems. The timeline is aspirational for skill-building, not a linear path to breakthrough results.
 
+> **How this plan relates to the repository (as of 2026-11-03)**
+>
+> - This document is background guidance for an individual researcher who wants to build expertise. It is not the repository's work plan.
+> - The operative plan is [ROADMAP.md](ROADMAP.md). The principles behind it are in [RESEARCH_VISION.md](RESEARCH_VISION.md).
+> - The repository measures progress by the five result classes defined in [RESEARCH_VISION.md](RESEARCH_VISION.md#2-principles), not by months: (1) known theorem mechanized; (2) algorithm-specific refutation; (3) restricted-model lower bound; (4) conditional general result; (5) unconditional general result.
+> - The phases and month ranges below are illustrative. Where they conflict with ROADMAP.md, ROADMAP.md wins.
+> - Formal artifacts: the shared machine model is described in [proofs/complexity/README.md](proofs/complexity/README.md). The precise statement is in [FORMAL_STATEMENT.md](FORMAL_STATEMENT.md), and the open premises are listed in [proofs/HYPOTHESES.md](proofs/HYPOTHESES.md).
+> - Already certified in Lean and Rocq over that model: P ⊆ NP; SAT ∈ NP ([issue532](proofs/experiments/issue532/RESEARCH_LOG.md)); the clocked-SAT reduction of P ≠ NP to a Π₂ statement ([issue7](proofs/experiments/issue7/)); an exponential call bound for DPLL ([issue8](proofs/experiments/issue8/)); and bounded machine tableau semantics ([issue568](proofs/experiments/issue568/)). Some directions of these results are conditional on the stated premise `SATHard` (Cook-Levin hardness of SAT), which is not yet proved in the repository.
+>
+> Last reviewed: 2026-11-03.
+
 ---
 
 ## Overview
 
-This document outlines a comprehensive, scientifically rigorous plan for approaching the P vs NP problem. Given the extraordinary difficulty of this problem and 50+ years of unsuccessful attempts, this plan emphasizes:
+This document outlines a broad study plan for approaching the P vs NP problem. The month ranges in the phase headings are illustrative only (see the note above). Given the extraordinary difficulty of this problem and 50+ years of unsuccessful attempts, this plan emphasizes:
 1. Building deep foundational understanding
 2. Identifying and focusing on promising research directions
 3. Making incremental progress on related problems
@@ -99,7 +110,7 @@ Develop expert-level understanding of computational complexity theory, known res
 - [ ] Constant-depth circuit lower bounds
   - Switching lemma (Håstad)
   - PARITY not in AC^0
-  - ACC^0 lower bounds (Razborov-Smolensky)
+  - AC^0[p] lower bounds for prime p (Razborov 1987, Smolensky 1987); for ACC^0 the known lower bounds are much weaker (Williams 2011 and successors)
 - [ ] Communication complexity lower bounds
 
 **Month 6: Modern Techniques and Barriers**
@@ -135,13 +146,13 @@ Choose specific research direction(s) and develop specialized expertise. Identif
 **Evaluate Possible Directions:**
 
 1. **Circuit Lower Bounds**
-   - Pro: Direct path to P ≠ NP
+   - Pro: A superpolynomial circuit lower bound for SAT would imply P ≠ NP (since P ⊆ P/poly)
    - Con: Natural proofs barrier
    - Focus: Non-natural techniques, structured circuits
 
 2. **Algebraic/Geometric Methods**
-   - Pro: Non-relativizing, avoids some barriers
-   - Con: Requires advanced mathematics
+   - Pro: Algebraic methods are not obviously subject to the Boolean barriers in their usual form
+   - Con: Requires advanced mathematics; VP ≠ VNP is not known to imply P ≠ NP (see [P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md](P_NOT_EQUAL_NP_SOLUTION_STRATEGIES.md#23-valiants-model-vp-vs-vnp))
    - Focus: GCT, arithmetic circuits, VP vs VNP
 
 3. **Algorithm-to-Lower-Bound Techniques**
@@ -160,7 +171,7 @@ Choose specific research direction(s) and develop specialized expertise. Identif
    - Focus: Polynomial hierarchy, fine-grained complexity
 
 6. **Derandomization and Pseudorandomness**
-   - Pro: Connected to P vs NP via Kabanets observation
+   - Pro: Connected to circuit lower bounds via Kabanets and Impagliazzo (2004): derandomizing polynomial identity testing implies circuit lower bounds
    - Con: Intermediate difficulty
    - Focus: PRGs, hardness vs randomness
 
@@ -321,7 +332,7 @@ Pursue long-term research program with potential for major breakthrough or signi
 2. Study GCT literature thoroughly
 3. Work on intermediate milestones
 4. Develop new obstructions
-5. Build toward VP vs VNP, then P vs NP
+5. Build toward VP vs VNP (the Boolean question P vs NP would need further steps; VP ≠ VNP is not known to imply P ≠ NP)
 
 **Option 2: Algorithmic Lower Bounds**
 - Extend Williams' technique
@@ -485,7 +496,7 @@ Integrate insights from multiple approaches, synthesize understanding, and ident
 - Formal definitions and statements
 - Careful proofs with all details
 - Peer review and validation
-- Use proof assistants when appropriate
+- Use proof assistants when appropriate (in this repository: Lean 4 and Rocq, with Agda checked in CI; see [TOOLS_AND_METHODOLOGIES.md](TOOLS_AND_METHODOLOGIES.md))
 
 ### Avoiding Common Pitfalls
 
@@ -592,6 +603,8 @@ Integrate insights from multiple approaches, synthesize understanding, and ident
 ---
 
 ## Milestones and Evaluation
+
+The year ranges below are illustrative milestones for an individual researcher. The repository itself tracks progress by result class in [ROADMAP.md](ROADMAP.md), not by calendar time.
 
 ### Short-Term Milestones (Year 1)
 - [ ] Complete foundational study
@@ -716,7 +729,7 @@ The P vs NP problem stands as one of the greatest intellectual challenges of our
 ## Next Steps
 
 **Immediate Actions:**
-1. Begin Phase 1 foundational study
+1. Begin Phase 1 foundational study (for repository work, start from [ROADMAP.md](ROADMAP.md) and [CONTRIBUTING.md](CONTRIBUTING.md))
 2. Acquire necessary textbooks and resources
 3. Set up research environment
 4. Establish mentor relationship

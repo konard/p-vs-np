@@ -194,7 +194,8 @@ member refutes the obligation (`bounded_member_refutes`).
 ## 5. Known results and literature
 
 - S. A. Cook, R. A. Reckhow, "The relative efficiency of propositional proof
-  systems", *Journal of Symbolic Logic* 44(1), 1979. They define proof systems
+  systems", *Journal of Symbolic Logic* 44(1), 36-50, 1979,
+  DOI [10.2307/2273702](https://doi.org/10.2307/2273702). They define proof systems
   and p-simulation, and prove that a polynomially bounded proof system exists if
   and only if `NP = coNP`. The abstract simulation calculus is formalized here,
   and so are both directions "polynomially bounded system ⇒ in NP" and "in P ⇒
@@ -202,7 +203,8 @@ member refutes the obligation (`bounded_member_refutes`).
   with `NP = coNP`, which needs the coNP-completeness of TAUT, is **not**
   formalized. It enters only as the named hypothesis `CookReckhow`.
 - A. Haken, "The intractability of resolution", *Theoretical Computer Science*
-  39, 1985. Resolution proofs of the pigeonhole principle `PHP^{n+1}_n` need
+  39, 297-308, 1985, DOI
+  [10.1016/0304-3975(85)90144-6](https://doi.org/10.1016/0304-3975(85)90144-6). Resolution proofs of the pigeonhole principle `PHP^{n+1}_n` need
   exponential size. Not formalized (Idea 27 treats resolution itself).
 - S. R. Buss, "Polynomial size proofs of the propositional pigeonhole
   principle", *Journal of Symbolic Logic* 52(4), 1987. Frege systems have

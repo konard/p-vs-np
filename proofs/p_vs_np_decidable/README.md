@@ -20,6 +20,12 @@ proved their `P=NP` statement. The current files use binary words and finite
 machine programs instead. See [the regression experiment](../../experiments/issue571/)
 for the old proof and the compiler check that now rejects it.
 
+The Lean and Rocq theorems `PSubsetNP.pSubsetNP` and
+`PvsNPDecidable.P_vs_NP_is_decidable` are certified in
+[the result manifest](../../scripts/proof_status.json), as is the canonical
+`Complexity.pSubsetNP` in [`../complexity/`](../complexity/README.md). The Agda
+files are type-checked in CI but are not in the manifest.
+
 These files formalize P subset NP for the stated machine model. The repository
 has not proved an equivalence between this model and every presentation of
 Turing-machine complexity in the literature.

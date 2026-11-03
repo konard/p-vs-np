@@ -6,6 +6,18 @@
 
 ---
 
+> **Historical document (written 2025-10-14; header added 2026-11-03).** It records the response to issue #28 as of October 2025 and is not maintained. For the current state see [ROADMAP.md](ROADMAP.md) and [TOOLS_AND_METHODOLOGIES.md](TOOLS_AND_METHODOLOGIES.md).
+>
+> Erratum, as of 2026-11-03:
+> - Claim #1 was partly correct. `README.md` linked the right paths, but `TOOLS_AND_METHODOLOGIES.md` linked `proofs/Basic.lean`, `proofs/Basic.v`, `proofs/Basic.thy` and `proofs/Basic.agda`, which did not exist (checked against commit `eaeae05`). Those links were fixed on 2026-11-03. The files are [proofs/basic/lean/Basic.lean](proofs/basic/lean/Basic.lean), [proofs/basic/rocq/Basic.v](proofs/basic/rocq/Basic.v) and [proofs/basic/agda/Basic.agda](proofs/basic/agda/Basic.agda).
+> - `proofs/basic/isabelle/Basic.thy` no longer exists. Isabelle is archived; the file is now [archive/isabelle/proofs/basic/isabelle/Basic.thy](archive/isabelle/proofs/basic/isabelle/Basic.thy). The directory `proofs/basic/coq/` was renamed to `proofs/basic/rocq/`. The quoted evidence below originally read `proofs/basic/coq/Basic.v` and `coq.yml`; a later bulk coq-to-rocq rename changed those two lines.
+> - The workflows `lean.yml`, `rocq.yml` and `isabelle.yml` no longer exist. The only workflow is `.github/workflows/verification.yml`.
+> - Claim #3 (terminology) was later acted on. [SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md](SOLUTION_STRATEGIES_FOR_P_VS_NP_DECIDABILITY.md) now has a terminology note.
+> - Williams's ACC lower bound appeared at CCC 2011 (journal version JACM 2014). The year "2010" in the quoted text below is the preprint year.
+> - Claim #3 below refers to `proofs/p_vs_np_undecidability/`. The directory is [proofs/p_vs_np_undecidable/](proofs/p_vs_np_undecidable/README.md).
+> - Claim #6 attributes the (3 + 1/86)·n − o(n) bound to "Golovnev et al.". The first author is Find (Find, Golovnev, Hirsch and Kulikov, FOCS 2016). The bound was later superseded by 3.1n − o(n) (Li and Yang, STOC 2022, [doi:10.1145/3519935.3519976](https://doi.org/10.1145/3519935.3519976)).
+> - The counts in the executive summary and the conclusion do not match the body. In the body, claims #1 and #2 were judged incorrect; #4, #5 and #6 were valid and fixed; #7, #8 and #10 were enhancements that were made; #3 (partially valid) and #9 (already addressed) were not acted on in October 2025.
+
 ## Executive Summary
 
 This document provides a comprehensive response to the 10 issues raised by GPT-5 in Issue #28. After systematic verification of all claims, we found that:
