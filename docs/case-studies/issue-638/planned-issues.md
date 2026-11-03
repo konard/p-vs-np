@@ -88,13 +88,18 @@ and checked by `scripts/check_proof_status.py` in CI.
      [`sources/openai-math`](sources/openai-math/). The toolchain (v4.34.1) and
      Mathlib (`d13f23b`) pins match. The challenge statement elaborates, and
      its only `sorry` is the challenge theorem itself.
-  2. *Best effort:* `lake build OAI.Algorithms.SubexponentialSAT.Main` (about
-     4000 files). `#print axioms` shows no `sorryAx`. Comparator accepts the
+  2. *Best effort:* `lake build OAI.Algorithms.SubexponentialSAT.Main` (12014
+     build jobs). `#print axioms` shows no `sorryAx`. Comparator accepts the
      solution with nanoda forced on, which upstream leaves off.
 * **Method.** Jobs `openai-statement` and `openai-full`.
-* **Verdict.** See [Re-verification status](README.md#re-verification-status).
-  If `openai-full` does not finish on a hosted runner, criterion 2 is
-  **blocked** (resources), not failed.
+* **Verdict.** **Both criteria passed** (run
+  [41591216557](https://github.com/konard/p-vs-np/actions/runs/41591216557),
+  see [Re-verification status](README.md#re-verification-status) and
+  [`ci-evidence.md`](ci-evidence.md)). The best-effort part needed three
+  attempts. The first lost its runner (memory). The second built the
+  solution with swap and had clean axioms, but nanoda overflowed its stack.
+  The third raised the stack limit, and nanoda and Lean's kernel both
+  accepted.
 * **Fidelity.** [`fidelity-audit.md`](fidelity-audit.md) §3: faithful, with a
   weaker exponent than the paper and no Lean statement of ETH itself.
 

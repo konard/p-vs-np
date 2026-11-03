@@ -71,7 +71,7 @@ decided in time `O*(2^{δn})`.
 | Space | at every prefix of the run, visited cells `≤ S·(L+1)^e` | extra | Polynomial space. This is not needed for ETH, but it is part of the theorem. |
 | ETH itself | **not stated** | — | The challenge states the algorithm. The step "this algorithm ⇒ `s_3 = 0`" is a short informal argument outside Lean. |
 | Exponent vs paper | Lean: `(log log n)²`; paper: `log log n` | weaker than the paper | [`docs/378.md`](sources/openai-math/lean/docs/378.md) says so explicitly. Both bounds refute ETH. |
-| Comparator | `permitted_axioms: propext, Quot.sound, Classical.choice`; `enable_nanoda: false` | — | Upstream does not use the second kernel. Our `openai-full` job forces `enable_nanoda=true`. |
+| Comparator | `permitted_axioms: propext, Quot.sound, Classical.choice`; `enable_nanoda: false` | — | Upstream does not use the second kernel. Our `openai-full` job forces `enable_nanoda=true`, and nanoda accepts (run [41591216557](https://github.com/konard/p-vs-np/actions/runs/41591216557)). |
 | `E^NP` lower bound | **not formalized** | — | Recorded as planned issue P12. |
 
 **Findings (OpenAI).**
@@ -121,7 +121,7 @@ remains a named hypothesis.
 | Faithful to "ETH is false"? | **yes** (stated directly, slightly stronger) | **yes** (the algorithm is stated; ETH follows by an elementary informal step) |
 | Vacuity risks found? | none (`s_3 = ⊤` when no `δ` works; all alphabets finite; output through bijections with `Bool`) | none (finite states, three-symbol alphabet, explicit `Trace`) |
 | Gaps between Lean and paper | TM2 → RAM bridge is prose | sharper exponent and `E^NP` lower bound are prose |
-| Second kernel | nanoda upstream and in our CI | not upstream; forced in our `openai-full` job |
+| Second kernel | nanoda upstream and in our CI | not upstream; forced in our `openai-full` job, where nanoda accepts |
 
 This audit was done by reading the statements. It is not a formal proof of
 fidelity. The formal part is the transfer in P8, which is blocked.

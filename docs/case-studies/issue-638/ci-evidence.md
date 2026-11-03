@@ -193,3 +193,55 @@ The commit that records this run raises the stack limit
 (`ulimit -s unlimited`, inherited by comparator, landrun and nanoda) before
 the Comparator step. The build cache saved above lets the next run skip the
 3-hour build.
+
+## Run [41591216557](https://github.com/konard/p-vs-np/actions/runs/41591216557) (commit `9aba41a`, 2026-11-03)
+
+All four jobs **passed**:
+
+| Job | Result |
+|---|---|
+| `openai-statement` ([job 125768147471](https://github.com/konard/p-vs-np/actions/runs/41591216557/job/125768147471)) | passed (fourth time) |
+| `anthropic-eth` ([job 125768147752](https://github.com/konard/p-vs-np/actions/runs/41591216557/job/125768147752)) | passed (fourth time) |
+| `anthropic-3sum-apsp` ([job 125768147829](https://github.com/konard/p-vs-np/actions/runs/41591216557/job/125768147829)) | passed (fourth time) |
+| `openai-full` ([job 125768971029](https://github.com/konard/p-vs-np/actions/runs/41591216557/job/125768971029)) | **passed**: build, axioms, Comparator with nanoda |
+
+### `openai-full`: **passed**
+
+The build resumed from the cache saved by run 41570704897. Lake re-checked
+the traces and rebuilt nothing. The axiom audit is the same as before:
+
+```
+Cache restored from key: openai-build-4eaee87548250b2682affda7d05d947c05554bae-41570704897-1
+Build completed successfully (12014 jobs).                                   # 06:47:44
+'OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+Comparator, with the stack limit raised and nanoda forced on:
+
+```
+stack limit (KB): unlimited
+== comparator @ 575674928e239f5bc452aab72d1dd7b0f1326494
+== lean4export @ 076e8e57707e813375e8f9da8bf989799ace9680
+== nanoda_lib @ 68d5ca9db226849b41a6fff59d796ff19d0a8840
+== landrun @ 811cfff51ceaf3d9843708aa6d22e9b84ccac8b4
+Build completed successfully (8924 jobs).     # challenge, inside the sandbox
+Build completed successfully (12014 jobs).    # solution, inside the sandbox
+Running nanoda kernel on solution             # 06:56:11
+nanoda kernel accepts the solution            # 10:26:36 (3 h 30 min)
+Running Lean default kernel on solution.
+Lean default kernel accepts the solution
+Your solution is okay!
+PASS comparator-subexponentialsat.json
+All 1 comparator configuration(s) accepted.
+```
+
+So `openai/math@4eaee87` passes the same check as Anthropic's projects:
+
+* `OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat` has
+  the type of the trusted challenge statement (byte-identical to
+  [`sources/openai-math`](sources/openai-math/));
+* it uses only the three standard axioms;
+* two independent kernels accept it.
+
+The workflow file at this commit is the same as on the PR head. Later commits
+change only the case-study documents, which do not trigger this workflow.
