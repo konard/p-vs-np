@@ -220,6 +220,11 @@ and none is known (see Section 6).
   source of the strong version (SETH: the k-SAT exponent tends to 1; the name
   SETH was fixed in later work of Calabro, Impagliazzo and Paturi). Both are
   conjectures, and each implies P ≠ NP. (Not formalized.)
+  > **Status note (2026-11-03, issue #638).** In October 2026 OpenAI and Anthropic published Lean proofs
+  > claiming that ETH (hence SETH) is false. The claims are not yet peer
+  > reviewed. The implications ETH ⇒ P ≠ NP and SETH ⇒ P ≠ NP are now proved here
+  > (`pNotEqualsNP_of_eth`, `pNotEqualsNP_of_seth`). See
+  > [the issue #638 case study](../../../../docs/case-studies/issue-638/README.md).
 
 All of these improve the base of the exponent. None gives a polynomial
 algorithm, and none proves that no polynomial algorithm exists.
@@ -252,6 +257,12 @@ original problem. It is not an easier intermediate step.
   rules this out. The evidence against it is empirical and conjectural: decades
   of algorithm design have only improved the exponent's base (Section 5), and
   ETH/SETH, if true, imply that no subexponential algorithm exists.
+  > **Status note (2026-11-03, issue #638).** ETH and SETH are claimed refuted (October 2026, Lean
+  > proofs by OpenAI and Anthropic, not yet peer reviewed). If the claims stand,
+  > this piece of evidence is gone. The claimed algorithms are still
+  > superpolynomial, and a subexponential bound does not give a polynomial one
+  > (`logBudget_gap`), so `PolySATDecider` stays open. See
+  > [the issue #638 case study](../../../../docs/case-studies/issue-638/README.md).
 * To *refute* `PolySATDecider` (i.e., prove P ≠ NP) one must show a lower bound
   for *all* machines. The relativization (Baker–Gill–Solovay 1975), natural
   proofs (Razborov–Rudich 1997), and algebrization (Aaronson–Wigderson 2009)

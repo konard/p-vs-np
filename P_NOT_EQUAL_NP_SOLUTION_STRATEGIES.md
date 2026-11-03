@@ -594,6 +594,16 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 - 3SUM hypothesis
 - APSP hypothesis
 
+> **Status note (2026-11-03, issue #638).** Three of these hypotheses are now
+> claimed refuted by AI-lab results with Lean proofs, none yet peer reviewed.
+> **SETH** (and ETH) is claimed false by OpenAI and Anthropic (October 2026:
+> deterministic k-SAT in `2^{O_k(n·polyloglog n/√log n)}`). **3SUM** and
+> **APSP** are claimed false by Alman–Vassilevska Williams, with a Lean proof
+> by Anthropic (`n^{1.9992}` and `n^{2.99942}`). Re-verification status,
+> statement audit and consequences are in [the issue #638 case study](docs/case-studies/issue-638/README.md).
+> Formally proved here: ETH ⇒ P ≠ NP and SETH ⇒ P ≠ NP, so these hypotheses are
+> stronger than P ≠ NP, and refuting them does not give P = NP (`logBudget_gap`).
+
 **Status:** Growing field; mostly within-P separations
 
 **References:**

@@ -271,6 +271,11 @@ argument: reading the input takes `poly(n)` steps, far below
   exhaustive search for general circuit satisfiability by a superpolynomial
   factor. It is open. Nothing known rules it out, and it is weaker than the
   Strong Exponential Time Hypothesis failing for circuits.
+  > **Status note (2026-11-03, issue #638).** The October 2026 claims that refute ETH and SETH (Lean
+  > proofs by OpenAI and Anthropic, not yet peer reviewed) are about k-CNF SAT
+  > with fixed width `k`. They do not give a fast algorithm for general circuit
+  > satisfiability, so `FastCircuitSAT` stays open. See
+  > [the issue #638 case study](../../../../docs/case-studies/issue-638/README.md).
 * **Two directions, two outcomes.**
   * Proving `FastCircuitSAT` gives `NEXP ⊄ P/poly`. That is a major open lower
     bound, but it is **not known to imply P ≠ NP**.
