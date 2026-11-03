@@ -14,8 +14,10 @@ language of encoded satisfiable CNFs. The conditional theorems proved are:
 the obligation computes exactly the brute-force answer on every formula.
 `P = NP → PolySATDecider` needs no hypothesis: the membership half of
 Cook–Levin, `SATInNP`, is proved in `SATVerifier.lean` / `SATVerifier.v`
-with an explicit verifier machine. The hardness half `SATHard` is not
-mechanised; it enters only as a named hypothesis.
+with an explicit verifier machine. The hardness half `SATHard` enters only
+as a named hypothesis. As of 2026-11-03 it is open on main, and PR #630
+(unmerged) mechanizes part of it; see
+[HYPOTHESES.md](../../../HYPOTHESES.md).
 
 ## 1. The idea at full strength
 
@@ -81,7 +83,8 @@ compared with its `2^n` cost.
   halts within `5(|x|+|c|+2)²` steps with the answer
   `evalCNF (toAssign c) (decode x)`, and certificates of length `|x|+1`
   suffice). `SATHard := NPHard SAT` (every NP language `PolyReduces` to
-  `SAT`) is a known theorem used only as a named hypothesis, and
+  `SAT`) is a known theorem used only as a named hypothesis (open on main
+  as of 2026-11-03; PR #630, unmerged, covers part of it), and
   `CookLevin := SATInNP ∧ SATHard`.
 
 Why a machine model is needed: core Lean functions have no running time.
@@ -127,8 +130,9 @@ Rows whose Lean link is `Machines.lean` are proved once in the shared layer
 and used here; `Idea01.lean` imports it, and `Idea01.v` imports the Rocq
 twin `Machines.v`.
 
-Not machine-checked: the hardness half of the Cook–Levin theorem (it
-appears only as the named hypothesis `SATHard`, or inside `CookLevin`), any lower bound for machines
+Not machine-checked on main as of 2026-11-03: the hardness half of the
+Cook–Levin theorem (it appears only as the named hypothesis `SATHard`, or
+inside `CookLevin`; PR #630, unmerged, covers part of it), any lower bound for machines
 other than brute force, and the running time of brute force on the machine
 model. The cost proved here counts formula evaluations, not machine steps.
 
@@ -241,8 +245,9 @@ At full potential the idea gives the following, all proved:
    polynomially many machine steps" (`polySAT_agrees_with_bruteForce`).
 
 **Remaining obligation:** `PolySATDecider : Prop := InP SAT` (Lean and Rocq
-name). The route from it to `PEqualsNP` needs `SATHard`, which is not
-mechanised here; with `SATHard` it is *equivalent* to P = NP, and its
+name). The route from it to `PEqualsNP` needs `SATHard`, which is open on
+main as of 2026-11-03 (PR #630, unmerged, covers part of it). With `SATHard`
+it is *equivalent* to P = NP, and its
 negation is equivalent to P ≠ NP. So the obligation is exactly as hard as the
 original problem. It is not an easier intermediate step.
 
@@ -251,7 +256,13 @@ original problem. It is not an easier intermediate step.
 * To *prove* `PolySATDecider` one must give an algorithm. No barrier theorem
   rules this out. The evidence against it is empirical and conjectural: decades
   of algorithm design have only improved the exponent's base (Section 5), and
-  ETH/SETH, if true, imply that no subexponential algorithm exists.
+  ETH/SETH, if true, imply that no subexponential algorithm exists. On 26–27
+  October 2026, OpenAI and Anthropic each published a Lean-checked claim that
+  ETH is false. Neither claim is reviewed as of 2026-11-03. Impagliazzo,
+  Paturi and Williams are reviewing the OpenAI claim; no outside review of the
+  Anthropic claim is announced. Refuting ETH is not known to imply P = NP, so
+  if the claims hold they do not settle P vs NP. See
+  [CLAIMS.md](../../../../CLAIMS.md).
 * To *refute* `PolySATDecider` (i.e., prove P ≠ NP) one must show a lower bound
   for *all* machines. The relativization (Baker–Gill–Solovay 1975), natural
   proofs (Razborov–Rudich 1997), and algebrization (Aaronson–Wigderson 2009)

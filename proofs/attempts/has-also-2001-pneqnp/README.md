@@ -4,7 +4,21 @@
 **Author**: Seenil Gram (pseudonym "has also")
 **Year**: 2001
 **Claim**: P ≠ NP (derived from the stronger claim that EXP ⊆ NP)
-**Status**: **REFUTED** - Contradicts the Time Hierarchy Theorem
+**Status**: Informal/unverified analysis. The claimed corollary rests on an
+unpublished lemma that has not been examined here. Not refuted.
+
+> **Correction (2026-11-03).** Earlier versions of this README and of the
+> Lean and Rocq files called EXP ⊆ NP "provably false" and "a contradiction
+> with the Time Hierarchy Theorem". That is wrong. EXP ⊆ NP is equivalent to
+> NP = EXP, which is an open question. The hierarchy theorems give P ⊊ EXP
+> and NP ⊊ NEXP, and neither rules out NP = EXP. The "direct refutation" in
+> the old text used the language {⟨M, x, 1^(2^n)⟩ : M accepts x within 2^n
+> steps}. Its padding makes it decidable in time polynomial in its own input
+> length, so it is in P, not an example of a language outside NP. The formal
+> files in `lean/` and `rocq/` encode the old argument with unproved axioms
+> (one of them, that an EXPTIME-complete language is outside NP, is an open
+> problem stated as an axiom). They are historical sketches and refute
+> nothing.
 
 ## Source
 
@@ -16,119 +30,45 @@
 
 ## Summary of the Claimed Proof
 
-The paper presents the following argument:
+1. The paper proves an "Indistinguishability Lemma". Its details are not
+   available to this repository.
+2. It states EXP ⊆ NP as "a simple, direct corollary" (page 501).
+3. EXP ⊆ NP together with the deterministic time hierarchy (P ⊊ EXP) would
+   give P ≠ NP. That implication is valid. The open question is whether the
+   lemma and the corollary are correct.
 
-1. **Proves the "Indistinguishability Lemma"** - Details of this lemma are not publicly available
-2. **Claims as a corollary**: EXP ⊆ NP (stated on page 501 as "a simple, direct corollary")
-3. **Implied conclusion**: Since this would be a dramatic result, it could relate to P vs NP
+## What is known about EXP ⊆ NP
 
-## The Error: Contradiction with Fundamental Results
-
-The claim that **EXP ⊆ NP** is **provably false** and contradicts well-established theorems in complexity theory.
-
-### Why EXP ⊆ NP is Impossible
-
-We know from fundamental complexity theory results:
-
-1. **Time Hierarchy Theorem** (Hartmanis & Stearns, 1965):
-   - For sufficiently nice time functions f and g where f(n) log f(n) = o(g(n)):
-   - DTIME(f(n)) ⊊ DTIME(g(n)) (proper subset)
-
-2. **Specific consequence**: P ⊊ EXPTIME (proper subset)
-   - P = ∪ₖ DTIME(nᵏ)
-   - EXPTIME = ∪ₖ DTIME(2^(n^k))
-   - By the Time Hierarchy Theorem: P ≠ EXPTIME
-
-3. **Known inclusions**:
-   - P ⊆ NP ⊆ PSPACE ⊆ EXPTIME
-   - EXP = EXPTIME (same class by definition)
-
-4. **The contradiction**:
-   - If EXP ⊆ NP were true, then:
-   - EXPTIME ⊆ NP ⊆ PSPACE ⊆ EXPTIME
-   - This would imply NP = PSPACE = EXPTIME
-   - Combined with P ⊊ EXPTIME, this would give us P ⊊ NP
-   - **However**, the main issue is: EXPTIME ⊆ NP would mean we can verify exponential-time computations with polynomial-time nondeterministic machines
-   - This contradicts the Time Hierarchy Theorem's separation of P from EXPTIME
-
-### The Fundamental Error
-
-The claim that EXP ⊆ NP would require that:
-- Problems solvable in exponential time (2^(n^k) steps)
-- Can be *verified* in nondeterministic polynomial time (n^k steps)
-
-This is impossible because:
-
-1. **By the Time Hierarchy Theorem**: There exist languages L ∈ EXPTIME such that L ∉ P
-2. **If EXP ⊆ NP were true**:
-   - Every language in EXPTIME would be in NP
-   - NP ⊆ PSPACE ⊆ EXPTIME implies NP = PSPACE = EXPTIME
-   - But we also have P ⊆ NP
-   - So P ⊆ EXPTIME and P ⊊ EXPTIME (by Time Hierarchy)
-   - This is consistent so far...
-
-3. **The actual contradiction**:
-   - EXP ⊆ NP means EXPTIME ⊆ NTIME(n^k) for some k
-   - But by the Nondeterministic Time Hierarchy Theorem:
-   - NTIME(n^k) ⊊ NTIME(2^(n^k)) ⊆ NEXPTIME
-   - EXPTIME ⊆ NEXPTIME (easy to show)
-   - So if EXPTIME ⊆ NP, then EXPTIME ⊆ ∪ₖ NTIME(n^k)
-   - But NEXPTIME = ∪ₖ NTIME(2^(n^k)) properly contains ∪ₖ NTIME(n^k)
-   - And EXPTIME ⊆ NEXPTIME is known
-   - The issue is that EXPTIME has complete problems (like checking if a TM accepts after exponential time) that require exponential time to even write down a certificate
-
-### More Direct Refutation
-
-An even more direct refutation:
-
-**Theorem** (Folklore): EXPTIME-complete problems require exponential time certificates.
-
-**Example**: Let L = {⟨M, x, 1^(2^n)⟩ : M accepts x within 2^n steps}
-- L is EXPTIME-complete
-- Any certificate for L must encode at least one accepting computation
-- An accepting computation has length 2^n
-- But NP verifiers run in polynomial time and thus can only read polynomial-length certificates
-- Therefore, L ∉ NP
-- Since L ∈ EXPTIME and L ∉ NP, we have EXPTIME ⊄ NP
-- Therefore, EXP ⊄ NP
+- NP ⊆ PSPACE ⊆ EXP is known, so EXP ⊆ NP is the same as NP = EXP.
+- P ⊊ EXP (Hartmanis and Stearns 1965) and NP ⊊ NEXP (Cook 1973; Seiferas,
+  Fischer and Meyer 1978; Žák 1983) are known.
+- No known theorem rules out NP = EXP. It is widely believed false, but it
+  is open.
+- So a claim of EXP ⊆ NP is a claim stronger than P ≠ NP and cannot be
+  refuted by citing the hierarchy theorems.
 
 ## Type of Error
 
-**Category**: Fundamental misunderstanding of complexity class inclusions
+Unknown. Without the text of the Indistinguishability Lemma no step can be
+identified as wrong. Family 19 of
+[COMMON_ERRORS.md](../COMMON_ERRORS.md#attempt-coverage-index) (claims
+without an examinable argument) records this attempt at the evidence level
+"Informal/unverified analysis".
 
-**Specific Issues**:
-1. **Violates the Time Hierarchy Theorem** - proven result from 1965
-2. **Violates certificate complexity bounds** - NP problems need polynomial-size certificates
-3. **Would imply massive collapse** - NP = PSPACE = EXPTIME, contradicting widely-accepted separations
-4. **Likely error in the "Indistinguishability Lemma"** - The lemma's proof must contain a flaw
+## What would count as progress
 
-## Formalization Goal
-
-The formalizations in this directory demonstrate:
-
-1. **The known inclusion hierarchy**: P ⊆ NP ⊆ PSPACE ⊆ EXPTIME
-2. **The Time Hierarchy Theorem**: P ⊊ EXPTIME
-3. **Why EXP ⊆ NP is impossible**: Would contradict certificate size bounds
-4. **The specific contradiction**: An EXPTIME-complete problem cannot be in NP
-
-Each formalization will:
-- Define the relevant complexity classes
-- State the Time Hierarchy Theorem (as an axiom, since its proof is complex)
-- Show that EXP ⊆ NP leads to contradiction
-- Conclude that Gram's proof must contain an error
+- Obtain the paper and transcribe the Indistinguishability Lemma.
+- Find a concrete counterexample to the lemma, or name the unproved step as
+  an explicit premise (see [REFUTATION_PLAN.md](../REFUTATION_PLAN.md)).
+- Replace the axioms in `lean/` and `rocq/` with definitions from
+  `proofs/complexity`; never assume EXP ⊄ NP.
 
 ## Historical Context
 
-This paper appeared in peer-reviewed conference proceedings (ICICS 2001), demonstrating that even peer review can sometimes miss fundamental errors in complexity theory claims. The error is particularly egregious because:
-
-1. The claim contradicts a 1965 theorem (Time Hierarchy)
-2. The result (if true) would be far stronger than solving P vs NP
-3. It would overturn 60+ years of complexity theory understanding
-
-This serves as a cautionary tale about:
-- The importance of checking claimed results against known theorems
-- The difficulty of getting complexity theory results right
-- Why extraordinary claims require extraordinary scrutiny
+The paper appeared in the proceedings of a security conference (ICICS 2001)
+and claims a result stronger than P ≠ NP. Woeginger's list records it. The
+lesson for this repository is the one this README itself first got wrong:
+check whether a statement is known to be false before calling it false.
 
 ## References
 
@@ -144,11 +84,9 @@ This serves as a cautionary tale about:
 
 ## Verification Status
 
-- ✅ Rocq formalization: `rocq/GramRefutation.v`
-- ✅ Lean formalization: `lean/GramRefutation.lean`
-- ✅ Isabelle formalization: `isabelle/GramRefutation.thy`
-
-All formalizations demonstrate that the claim EXP ⊆ NP leads to contradiction with known complexity theory results.
+- `rocq/GramRefutation.v` and `lean/GramRefutation.lean` are historical
+  sketches built on unproved axioms, including an axiom that states an open
+  problem. They do not refute the claim. There is no Isabelle file.
 
 ## Notes
 
@@ -159,7 +97,9 @@ All formalizations demonstrate that the claim EXP ⊆ NP leads to contradiction 
 
 ## Lessons Learned
 
-1. **Check against known results**: Any P vs NP proof attempt must be consistent with the Time Hierarchy Theorem
-2. **Beware of "simple corollaries"**: If a major result follows as a "simple, direct corollary," check the intermediate steps carefully
-3. **Exponential ≠ Polynomial**: Claims that exponential-time problems can be solved/verified in polynomial time should be met with extreme skepticism
-4. **Peer review has limits**: Even conference proceedings can publish flawed proofs, especially for claims outside the main focus of the conference (this was a security conference, not a complexity theory conference)
+1. Before calling a statement false, check that it is known to be false.
+   EXP ⊆ NP is open.
+2. A padded language such as {⟨M, x, 1^(2^n)⟩} can be easy in its own input
+   length; padding changes complexity classes.
+3. A valid implication (EXP ⊆ NP and P ⊊ EXP give P ≠ NP) moves all the
+   weight onto the premise; examine the premise.

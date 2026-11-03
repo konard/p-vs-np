@@ -35,7 +35,9 @@ Circuit-SAT being NP-complete creates no logical circularity here. An algorithm 
 | Zero-step oracle and malformed-circuit rejection | Proved in the paired `WilliamsFramework` regression files. |
 | `FastCircuitSAT → NEXP ⊄ P/poly` | Proved **conditionally** from `NTimeHierarchy`, `EasyWitnessLemma`, and `WilliamsSpeedup`. |
 | `P = NP → FastCircuitSAT` | Proved **conditionally** from `CircuitSATInNP`. |
-| General-circuit fast SAT, model-level hierarchy, easy witnesses, speedup, `CircuitSATInNP` | Not discharged here. |
+| General-circuit fast SAT, model-level hierarchy, easy witnesses, speedup | Not discharged. |
+| `CircuitSATInNP` | Premise on `main`. Proved in unmerged PR [#631](https://github.com/konard/p-vs-np/pull/631) as of 2026-11-03. |
+| `PSubsetPPoly` (used by issue10's `NP ⊄ P/poly → NP ⊈ P` bridge) | Premise on `main`. Proved in unmerged PR [#632](https://github.com/konard/p-vs-np/pull/632) as of 2026-11-03. |
 | `NP ⊄ P/poly` or `P ≠ NP` | Not proved. |
 
-A concrete next obligation is `CircuitSATInNP`: build a shared `Machine` that parses `encCircuit`, checks `WF`, reads a satisfying assignment as a certificate, evaluates the NAND gates, and prove its `Run` bound polynomial in the input encoding length. That would remove one named premise from the `P = NP → FastCircuitSAT` bridge. The longer research target is `WilliamsSpeedup`, including the succinct Cook–Levin construction and its `Run` accounting. The [Idea 41 dossier](issue532/ideas/Idea41.md) records the exact remaining statements.
+A concrete next obligation is `CircuitSATInNP`: build a shared `Machine` that parses `encCircuit`, checks `WF`, reads a satisfying assignment as a certificate, evaluates the NAND gates, and prove its `Run` bound polynomial in the input encoding length. That would remove one named premise from the `P = NP → FastCircuitSAT` bridge. As of 2026-11-03, unmerged PR [#631](https://github.com/konard/p-vs-np/pull/631) proves `CircuitSATInNP` this way; on `main` it is still a premise. The longer research target is `WilliamsSpeedup`, including the succinct Cook–Levin construction and its `Run` accounting. The [Idea 41 dossier](issue532/ideas/Idea41.md) records the exact remaining statements.

@@ -4,7 +4,7 @@
 
 Everything is stated over the shared layer: the machine model (`InP`, `InNP`, `Issue532.Machines.SAT`) and the shared NAND circuit model of `Circuits.lean` (`InPPoly`, `SuperpolyLowerBound`). Two facts are proved in general.
 
-*Transfer.* A circuit lower bound, a simulation of fast algorithms by small circuits, and a size bound together exclude a fast algorithm (`lower_bound_transfer`, `no_fast_algorithm`). For the machine model the simulation is the known theorem P ⊆ P/poly, used only as the named hypothesis `PSubsetPPoly`. With it, `sat_lower_bound_separates` proves `SATCircuitLowerBound → PNotEqualsNP` (also given `SATInNP`; since `SATInNP` is proved in `SATVerifier` as `SATVerifier.satInNP`, `sat_lower_bound_separates'` needs only `PSubsetPPoly`), and `explicit_lower_bound_separates` proves `ExplicitNPLowerBound → PNotEqualsNP`.
+*Transfer.* A circuit lower bound, a simulation of fast algorithms by small circuits, and a size bound together exclude a fast algorithm (`lower_bound_transfer`, `no_fast_algorithm`). For the machine model the simulation is the known theorem P ⊆ P/poly, used only as the named hypothesis `PSubsetPPoly`. It is open on main; a proof is in PR #632 (unmerged as of 2026-11-03). With it, `sat_lower_bound_separates` proves `SATCircuitLowerBound → PNotEqualsNP` (also given `SATInNP`; since `SATInNP` is proved in `SATVerifier` as `SATVerifier.satInNP`, `sat_lower_bound_separates'` needs only `PSubsetPPoly`), and `explicit_lower_bound_separates` proves `ExplicitNPLowerBound → PNotEqualsNP`.
 
 *Shannon counting.* For the shared model, the following is machine-checked for all `n, g`: if `(g+1)·((n+g)²)^g < 2^(2^n)`, then some Boolean function on `n` bits has no circuit with at most `g` NAND gates (`shannon_circuits`). The argument uses words, truth tables and a pigeonhole principle, all proved from scratch. The counting core now lives in `Circuits.lean`, where `exists_superpolyLowerBound` also turns it into a language with a superpolynomial lower bound.
 
@@ -25,7 +25,7 @@ At full strength, the idea is the classical program for proving P ≠ NP through
 * Circuits. A circuit is a NAND straight-line program `C : List (ℕ × ℕ)`. Gate `(i,j)` appends `¬(wᵢ ∧ wⱼ)` to the wire list, which starts with the input `x`. The output is the last wire. `WF n C` means that gate `k` reads only wires `< n + k`. The size of `C` is its length.
 * `InPPoly L :≡ ∃ p, ∀ n, 0 < n → ∃ C, WF n C ∧ |C| ≤ p(n) ∧ ∀ x, |x| = n → output x C = L x` (shared, `Circuits.lean`).
 * `SuperpolyLowerBound L :≡ ∀ p, ∃ n, 0 < n ∧ ∀ C, WF n C → |C| ≤ p(n) → ∃ x, |x| = n ∧ output x C ≠ L x` (shared). The condition `0 < n` matters. A circuit with no inputs and no gates has no output wire, so without it every language that accepts the empty word would trivially have a "lower bound" at `n = 0`.
-* `PSubsetPPoly :≡ ∀ L, InP L → InPPoly L`. This is a known theorem (Savage 1972; Pippenger–Fischer 1979), not mechanised here, and it is used only as a named hypothesis.
+* `PSubsetPPoly :≡ ∀ L, InP L → InPPoly L`. This is a known theorem (Savage 1972; Pippenger–Fischer 1979). It is used here only as a named hypothesis. It is open on main and proved in PR #632 (unmerged as of 2026-11-03).
 
 Here polynomials are `p(n) = c·(n+1)^k`.
 
@@ -139,7 +139,7 @@ What is missing:
    * *Natural proofs.* The counting property "has no small circuit" is large (most functions have it). A lower-bound proof that uses a large, efficiently checkable property cannot work if pseudorandom functions exist (Razborov–Rudich). The pigeonhole argument above is the prototype of a large property. It escapes the barrier only because it is non-constructive, and for the same reason it cannot name a function.
    * *Relativization.* Pure simulation/diagonalization arguments relativize (Baker–Gill–Solovay), so they cannot settle P vs NP.
    * *Algebrization.* Arithmetization-based techniques do not suffice either (Aaronson–Wigderson).
-3. **The quantitative simulation** (machine steps to circuit gates, `PSubsetPPoly`) is only a named hypothesis here. It must also be formalized to remove it from the conditional theorems.
+3. **The quantitative simulation** (machine steps to circuit gates, `PSubsetPPoly`) is only a named hypothesis here. PR #632 (unmerged as of 2026-11-03) proves it in the shared machine model. Once that PR is merged, it can be removed from the conditional theorems.
 4. **Earlier vacuity bug (fixed).** Before the refactor, the shared `SuperpolyLowerBound` allowed `n = 0`. The only well-formed circuit on 0 inputs is empty, so its output is `false`, while `SAT [] = true`. That made the SAT bound trivially true. Both `InPPoly` and `SuperpolyLowerBound` now require `0 < n`, and `inPPoly_const` shows that the fixed notion is not degenerate.
 
 Relation to the other ideas:

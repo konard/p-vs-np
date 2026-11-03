@@ -1,5 +1,8 @@
 # Issue #588 audit closure
 
+Status at 2026-11-03: all 18 defect issues (#570–#587) are closed and each
+fixing PR is merged. The counts below were rechecked on `main` at `ecedd2b`.
+
 Issue #588 audited `main` at `c4a7803d3f5f589b30a6ff2affba3ec087384c30` and
 filed 18 defect reports (#570–#587). Each has been fixed by a merged pull
 request that added a regression check. This directory contains the closure
@@ -58,24 +61,41 @@ jobs. The Rocq group compiled every `.v` file in the repository.
 
 `admission_inventory.py --root` reproduces the audit's counts at `c4a7803`.
 
-| Measure | Audit (`c4a7803`) | Now (`653b2f0`) |
-|---------|-------------------|-----------------|
-| Lean `sorry` | 393 in 115/189 files | 384 in 111/191 files |
-| Rocq `Admitted`/`admit` | 480 in 119/188 files | 464 in 115/190 files |
-| Lean `refutation/` files with admissions | 40/61 | 37/62 |
-| Rocq `refutation/` files with admissions | 39/61 | 36/62 |
+| Measure | Audit (`c4a7803`) | `653b2f0` | `ecedd2b` (2026-11-03) |
+|---------|-------------------|-----------|------------------------|
+| Lean `sorry` | 393 in 115/189 files | 384 in 111/191 files | 384 in 111/243 files |
+| Rocq `Admitted`/`admit` | 480 in 119/188 files | 464 in 115/190 files | 464 in 115/242 files |
+| Lean `refutation/` files with admissions | 40/61 | 37/62 | 37/62 |
+| Rocq `refutation/` files with admissions | 39/61 | 36/62 | 36/62 |
+
+The `ecedd2b` column is the output of
+`python3 -I experiments/issue588/admission_inventory.py` from the repository
+root. CI runs the same command. The file totals grew because new admission-free
+files were added.
 
 These admissions are in historical attempt material. The certified conclusions
 listed in `scripts/proof_status.json` contain no admissions, and CI rejects any
 axioms outside each theorem's allowance. With the offline checker, 39 of 116
-attempts are complete under the stricter #582 rule. Completeness is still a
+attempts are complete under the stricter #582 rule (recompute with
+`python3 -I scripts/check_attempt_structure.py --offline --quiet --json report.json`
+and read `summary` in `report.json`). Completeness is still a
 structural measure, not evidence of correctness.
 
 ## Remaining work outside the 18 reports
 
 The audit noted that other per-attempt defects may remain. After these fixes,
-the historical attempts still contain 38 Lean `axiom … : True` declarations in
-21 files and 35 Rocq `Axiom … : True.` declarations in 18 files. For example,
+the historical attempts still contain 40 Lean `axiom … : True` declarations in
+23 files and 35 Rocq `Axiom … : True.` declarations in 18 files, at both
+`653b2f0` and `ecedd2b`. An earlier count gave 38 Lean declarations in 21
+files; the command below ignores comments and allows binders and line breaks:
+
+```sh
+python3 -I -c 'import re,pathlib as P
+for e,k,t,c in ((".lean","axiom",r"\s*$",r"--[^\n]*|/-.*?-/"),(".v","Axiom",r"\s*\.",r"\(\*.*?\*\)")):
+ h=[len(re.findall(r"(?m)^\s*"+k+r"\s+\S+(?:\s*[({][^)}]*[)}])*\s*:\s*True"+t,re.sub(c,"",f.read_text(errors="replace"),flags=re.S))) for f in P.Path("proofs/attempts").rglob("*"+e)]
+ print(e,sum(h),sum(1 for x in h if x))'
+```
+ For example,
 `proofs/attempts/renjit-2006-conpeqnp/refutation/lean/RenjitRefutation.lean`
 declares `axiom paper_withdrawn : True`. These declarations are logically
 harmless, but a reader can mistake them for formalized claims. Like the

@@ -31,5 +31,11 @@ would require additional metatheory and hypotheses. The excluded-middle
 example is a semantic disjunction, not a decision procedure or an
 independence theorem. Agda obtains it from an explicit classical postulate.
 
-The Isabelle files in [`../../archive/isabelle/`](../../archive/isabelle/) are
+The arithmetic form of the question is studied separately in
+[`../experiments/issue7/`](../experiments/issue7/README.md): its Π⁰₂
+clocked-SAT sentence implies `P ≠ NP` with no premise
+(`Issue7.ClockedSAT.pNotEqualsNP_of_pi2`), and the converse needs `SATHard`.
+No independence result is proved anywhere in this repository.
+
+The Isabelle files in [`../../archive/isabelle/`](../../archive/README.md) are
 historical toy-model material and are not checked by the current CI.

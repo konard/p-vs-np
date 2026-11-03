@@ -11,9 +11,15 @@ The lower-bound test quantifies over every finite machine and every polynomial
 bound and refers to their runs. It cannot be met by assigning an unrelated
 `timeComplexity` field to an arbitrary function.
 
-The SAT test takes SAT's NP membership as a premise. The NP-completeness test
-takes a completeness predicate and a proof that every problem it marks belongs
-to NP as premises. These files do **not** contain a polynomial-time reduction
+The SAT test `test_SAT_not_in_P` is stated for an arbitrary decision problem
+and takes its NP membership as an argument. For the repository's SAT language
+(`Issue532.Machines.SAT`), that argument is no longer open: the certified
+theorem `Issue532.SATVerifier.satInNP` proves SAT ∈ NP. NP-hardness of SAT
+(`SATHard`) remains an open named premise; see
+[FORMAL_STATEMENT.md](../../FORMAL_STATEMENT.md) and
+[proofs/HYPOTHESES.md](../HYPOTHESES.md). The NP-completeness test takes a
+completeness predicate and a proof that every problem it marks belongs to NP
+as premises. These files do **not** contain a polynomial-time reduction
 semantics or a proof that SAT is NP-complete. In particular, they do not prove
 `P ≠ NP` or supply a SAT lower bound. The earlier unconditional SAT and
 NP-completeness axioms have been removed from these tests.

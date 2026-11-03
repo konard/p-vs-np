@@ -2,7 +2,7 @@
 
 **Verdict:** Correct tool, insufficient alone (general theorem proved)
 
-Polynomial-time many-one (Karp) reductions compose. This is proved in the repository's shared machine model: a machine reduction (`PolyReduces`) is a finite-table machine that writes `f x` within a polynomial number of `Run` steps, and two of them compose by concatenating their tables (`computes_comp`, `polyReduces_trans`). Membership in P transfers backwards along a chain (`inP_of_chain`), and NP-hardness transfers forwards (`npHard_of_reduces`). That makes the tool sound, but it only moves hardness around. The theorem `satReducesToP_iff_inP_sat` shows that the open obligation "reduce SAT to some language in P" is *equivalent* to `InP SAT`. It yields `PEqualsNP` only under the named hypothesis `SATHard` (the hardness half of Cook–Levin, not mechanised here). So any argument of the form "reduce NP to something easy" still owes a genuine machine reduction and a genuine polynomial-time machine. The explicit-polynomial arithmetic (`Poly.comp_bound` and friends) and the earlier abstract-cost development are kept, the latter as a schema.
+Polynomial-time many-one (Karp) reductions compose. This is proved in the repository's shared machine model: a machine reduction (`PolyReduces`) is a finite-table machine that writes `f x` within a polynomial number of `Run` steps, and two of them compose by concatenating their tables (`computes_comp`, `polyReduces_trans`). Membership in P transfers backwards along a chain (`inP_of_chain`), and NP-hardness transfers forwards (`npHard_of_reduces`). That makes the tool sound, but it only moves hardness around. The theorem `satReducesToP_iff_inP_sat` shows that the open obligation "reduce SAT to some language in P" is *equivalent* to `InP SAT`. It yields `PEqualsNP` only under the named hypothesis `SATHard` (the hardness half of Cook–Levin; open on main and in progress in PR #630, unmerged as of 2026-11-03). So any argument of the form "reduce NP to something easy" still owes a genuine machine reduction and a genuine polynomial-time machine. The explicit-polynomial arithmetic (`Poly.comp_bound` and friends) and the earlier abstract-cost development are kept, the latter as a schema.
 
 ## 1. The idea at full strength
 
@@ -108,7 +108,7 @@ because the Rocq file does not use classical logic to produce the `bool`
 decider; `inPFor_of_inP` computes the step count with `stepCount` where Lean
 uses `Classical.choose`.
 Not machine-checked in either language: any concrete NP-complete reduction and the hardness half of the Cook–Levin theorem, which enters
-only through the named hypotheses `SATHard` and `CookLevin`. The membership half, `SATInNP`, is proved in `SATVerifier` (`SATVerifier.satInNP`).
+only through the named hypotheses `SATHard` and `CookLevin`. Both are open on main. The hardness proof is in progress in PR #630 (unmerged as of 2026-11-03). The membership half, `SATInNP`, is proved in `SATVerifier` (`SATVerifier.satInNP`).
 
 ## 4. Complete argument
 
@@ -169,7 +169,7 @@ counted, `inPFor_every` shows `InPFor` holds for every language.
 * L. A. Levin, "Universal sequential search problems", *Problems of Information Transmission*, 1973 (Russian original). Independent discovery of NP-completeness.
 * Standard textbook facts (for example Arora–Barak, *Computational Complexity: A Modern Approach*, 2009): P is closed under polynomial-time many-one reductions; if any NP-complete problem is in P then P = NP.
 
-Not formalized here: any concrete NP-complete reduction, in particular the hardness half of the Cook–Levin theorem, which appears only as the named hypotheses `SATHard` and `CookLevin`. The membership half (`SATInNP`) is proved in `SATVerifier` (`SATVerifier.satInNP`). Idea 28 formalizes one concrete reduction (Tseitin, formula-SAT ≤ 3-SAT) together with its size bounds.
+Not formalized here: any concrete NP-complete reduction, in particular the hardness half of the Cook–Levin theorem, which appears only as the named hypotheses `SATHard` and `CookLevin` (open on main; in progress in PR #630, unmerged as of 2026-11-03). The membership half (`SATInNP`) is proved in `SATVerifier` (`SATVerifier.satInNP`). Idea 28 formalizes one concrete reduction (Tseitin, formula-SAT ≤ 3-SAT) together with its size bounds.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
@@ -187,7 +187,8 @@ By `satReducesToP_iff_inP_sat` it is equivalent to `InP SAT`. It implies
 `PNotEqualsNP` with no further premise (`pNotEqualsNP_of_not_satReducesToP'`;
 the unprimed version takes `SATInNP`, which is proved in `SATVerifier`).
 The hypotheses `SATHard` and `CookLevin` are the hardness half and the whole
-of the known Cook–Levin theorem; they are not proved here. The
+of the known Cook–Levin theorem. They are open on main and in progress in
+PR #630 (unmerged as of 2026-11-03). The
 only content a "reduce NP to P" argument can add is the explicit reduction
 and the explicit decider (`satReducesToP_of_chain` accepts any finite chain).
 Both must satisfy:

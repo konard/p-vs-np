@@ -1,5 +1,10 @@
 # Issue 578 reproduction
 
+Status at 2026-11-03: a passing regression for issue #578 (closed). CI runs
+`scripts/check_gubin_audit.py` and `check_paper_lp.py`. It compiles the Lean
+and Rocq Gubin files only as part of the full Lean and Rocq builds. CI does
+not run `reproduce_old_contradictions.sh` or `search_paper_lp.py`.
+
 Run `bash experiments/issue578/reproduce_old_contradictions.sh` from a checkout
 containing commit `c4a7803d3f5f589b30a6ff2affba3ec087384c30`. The script
 loads the old source from that commit into a temporary directory and appends

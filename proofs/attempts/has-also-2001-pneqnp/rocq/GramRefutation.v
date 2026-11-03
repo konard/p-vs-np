@@ -8,6 +8,10 @@ From proofs.complexity.rocq Require Import Complexity.
 
   Paper: "Redundancy, Obscurity, Self-Containment & Independence"
   Published: ICICS 2001, LNCS 2229, pp. 495-501
+
+  CORRECTION (2026-11-03): EXP ⊆ NP is equivalent to NP = EXP, an open
+  question. The axioms below assume an open problem, so this file refutes
+  nothing. See ../README.md.
 *)
 
 From Stdlib Require Import String.

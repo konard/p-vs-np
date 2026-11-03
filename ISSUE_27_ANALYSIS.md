@@ -2,6 +2,16 @@
 
 **Navigation:** [↑ Back to Repository Root](README.md)
 
+> **Historical document (written 2025-10-14; header added 2026-11-03).** It records the response to issue #27 as of October 2025 and is not maintained. For the current state see [ROADMAP.md](ROADMAP.md), [RESEARCH_VISION.md](RESEARCH_VISION.md) and [proofs/complexity/README.md](proofs/complexity/README.md).
+>
+> Known stale points, as of 2026-11-03:
+> - The `/tmp/gh-issue-solver-...` paths and the "21 files" count describe the October 2025 checkout. The `proofs/` tree now holds about 940 files.
+> - "7 subdirectories" was wrong even in October 2025: the `ls` output shown lists 5 subdirectories. The 7 is the link count of the `proofs` directory.
+> - Isabelle/HOL is no longer part of the verified toolchain. Its files were moved to `archive/isabelle/`. CI checks Lean 4, Rocq and a fixed list of Agda files.
+> - "All proofs are automatically verified by GitHub Actions" was too strong. Today the single workflow `.github/workflows/verification.yml` runs every prover on pushes to `main`, but pull requests run only the jobs for changed paths.
+> - Isabelle/HOL is based on simple type theory, not dependent types, so the sentence grouping it with Lean, Rocq and Agda under "dependent type systems" was inaccurate.
+> - Quotations and line numbers from `README.md`, `DETAILED_SOLUTION_PLAN.md`, `TOOLS_AND_METHODOLOGIES.md` and `proofs/p_not_equal_np/README.md` refer to the October 2025 versions of those files. Those files have since changed.
+
 ---
 
 ## Executive Summary

@@ -6,13 +6,17 @@ Every entry here has **historical sketch** status. A Lean or Rocq file may compi
 **Legend:**
 - ✓ = Claims P = NP
 - ✗ = Claims P ≠ NP
-- ? = Claims unprovable
+- ? = Claims unprovable or undecidable
 - 📄 = Has ORIGINAL.md (root or original/)
 - 📎 = Has original paper file (PDF/HTML/TXT/TEX, root or original/)
 - 🔷 = Has Lean formalization
 - 🔶 = Has Rocq formalization
 
 Formal badges include legacy root-level `lean/` and `rocq/` files; structure warnings and completeness are reported separately by the checker.
+
+The generator assigns the claim symbol by substring matching on the README claim line or the folder name. Three ✓ rows state a different claim: Renjit (2006) claims co-NP = NP, the Delacorte/Czerwinski (2007) folder records a claim that P = PSPACE, which would give P = NP, and Jaeger (2011) claims both directions, depending on whether the first Peano axiom is assumed. Read each README for the exact claim.
+
+This table does not record whether a claim has been refuted. The evidence level of each folder (concrete refutation, conditional result, identified gap, or informal/unverified analysis) is in the [coverage index](COMMON_ERRORS.md#attempt-coverage-index). The work order for raising those levels is [REFUTATION_PLAN.md](REFUTATION_PLAN.md).
 
 ---
 

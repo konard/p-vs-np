@@ -104,16 +104,17 @@ The would-be obligation (Order) is not open. It is false, since resolution has e
 * Subsumption and deduplication keep the procedure inside resolution, so the same lower bounds apply.
 * Adding *extension variables* changes the proof system to extended resolution (Idea 28), for which no superpolynomial lower bound is known.
 
-So the only unblocked direction leaves this idea and becomes the open question of Idea 28 (see `ERSuperpolyLowerBound` there).
+So the only unblocked direction leaves this idea and becomes the open question of Idea 28 (see `ERNotPolyBounded` there).
 
 The open obligation, as stated in [Idea28.lean](../lean/Idea28.lean):
 
 ```lean
-def ERSuperpolyLowerBound (family : Nat → CNF) : Prop :=
-  (∀ n, ¬ Satisfiable (family n)) ∧
-  ∀ c k : Nat, ∃ n, ∀ π, ERDerives (family n) π → [] ∈ π →
-    c * (size (family n) + 1) ^ k < π.length
+def ERNotPolyBounded : Prop :=
+  ∀ c k : Nat, ∃ φ : CNF, SAT (satWord φ) = false ∧
+    ∀ π, ERDerives φ π → [] ∈ π → c * (size φ + 1) ^ k < π.length
 ```
+
+Idea 28 also keeps the family form as the schema `ERSuperpolyLowerBoundFor family`, and proves `erNotPolyBounded_iff_family : ERNotPolyBounded ↔ ∃ family, ERSuperpolyLowerBoundFor family`.
 
 As an algorithmic route to P = NP, the idea is therefore closed. It gives no information about P ≠ NP: a lower bound for resolution is a lower bound for one proof system, and by Cook–Reckhow, NP ≠ coNP needs lower bounds for *every* propositional proof system.
 

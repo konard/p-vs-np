@@ -1,5 +1,8 @@
 # Weiss growth regression
 
+Status at 2026-11-03: a passing regression for issue #586 (closed). CI runs
+`check.sh` in the Lean job.
+
 Run `bash experiments/issue586/check.sh` from the repository root. It builds
 the Lean refutation, verifies the concrete counterexample to the old witness,
 and prints the axiom dependencies of the four counting theorems. The check

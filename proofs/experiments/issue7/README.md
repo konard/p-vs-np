@@ -1,5 +1,10 @@
 # Issue #7: the clocked-SAT sentence in the shared model
 
+Status at 2026-11-03: all 15 theorems in the table below are certified rows of
+`scripts/proof_status.json` in each prover. Cook–Levin hardness in the shared
+model is tracked in [#624](https://github.com/konard/p-vs-np/issues/624) and
+is not yet on `main`. Nothing about ZFC is proved.
+
 Issue #7 asked to "try prove P vs NP is undecidable". The corrected target is
 **independence from a fixed object theory** `T = ZFC`:
 
@@ -60,6 +65,11 @@ express P ≠ NP.
 wrong on the satisfiable empty formula under every clock. It says nothing
 about other machines.
 
+Each name in the table is a manifest row in both provers. Recount with
+`python3 -I -c "import json; print(sum('/issue7/' in e['source'] for e in json.load(open('scripts/proof_status.json'))['lean']))"`
+(prints 15; use `'rocq'` for Rocq, also 15). The helper lemmas `runFor_sound`,
+`runFor_complete` and `inP_const` compile but are not manifest rows.
+
 Assumption audit, from `#print axioms` and `Print Assumptions`:
 
 * Lean uses only `propext`, `Quot.sound` and, for the theorems that go
@@ -100,7 +110,9 @@ These steps are checkable now and do not presuppose the open problem:
 1. **`SATHard` in the shared model.** Cook–Levin is a known theorem. Proving
    it for `Complexity.Machine` removes the premise from
    `pEqualsNP_of_clockedSAT`, `clockedSAT_iff_pEqualsNP` and
-   `pi2_of_pNotEqualsNP`.
+   `pi2_of_pNotEqualsNP`. Issue [#624](https://github.com/konard/p-vs-np/issues/624)
+   tracks it. PR [#630](https://github.com/konard/p-vs-np/pull/630) holds partial
+   work; as of 2026-11-03 it is unmerged and its CI is failing.
 2. **A coding of machines and clocks as natural numbers.** `ClockedSAT`
    quantifies over `Machine` and `Polynomial` values. The arithmetic sentence
    quantifies over codes `e` and `k`. A proved coding would state `ClockedSAT`
@@ -123,7 +135,11 @@ rocq compile -Q . '' proofs/experiments/issue7/rocq/ClockedSAT.v
 python3 scripts/check_proof_status.py --lean
 python3 scripts/check_proof_status.py --rocq
 python3 experiments/issue579/check_claims.py
+bash experiments/issue7/check_claims_mutations.sh
 ```
+
+CI runs the two scripts in its `Detect Changes` job, and the certified-result
+jobs build `ClockedSAT` and run `check_proof_status.py`.
 
 The conclusions are listed in `scripts/proof_status.json`. A clean report does
 not discharge the explicit premise `SATHard`, and it says nothing about ZFC

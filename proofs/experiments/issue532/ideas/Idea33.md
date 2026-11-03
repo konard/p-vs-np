@@ -229,7 +229,10 @@ files prove `WorstToAverage SAT δ → AvgPolyDec SAT δ → InP SAT` and
 `¬ WorstToAverage SAT δ → PNotEqualsNP` (the primed form
 `pNotEqualsNP_of_not_worstToAverage'` has no `SATInNP` premise, since
 `SATInNP` is proved as `SATVerifier.satInNP`). This instance is
-deliberately **not** labelled an open obligation. Under the shared CNF
+deliberately **not** labelled an open obligation in the source files. The
+register [proofs/HYPOTHESES.md](../../../HYPOTHESES.md) still lists
+`WorstToAverage` with class `obligation` and status open (as of 2026-11-03).
+Under the shared CNF
 encoding most words of each length decode to formulas containing the empty
 clause, so SAT is plausibly easy on average under the uniform distribution
 (this is not proved here). Then `WorstToAverage SAT δ` would be about as

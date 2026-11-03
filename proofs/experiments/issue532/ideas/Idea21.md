@@ -183,8 +183,10 @@ What is **not** formalized:
   (`leaves_eq`, `dpllLeaves_le`).
 * **Refuted in full strength.** By the published theorems in Section 5, for
   every branching heuristic, DPLL (tree-like resolution) and CDCL (general
-  resolution) take time exponential in the input size on the pigeonhole,
-  Tseitin and random 3-CNF families. So no member of this algorithm family
+  resolution) take time `2^(N^Ω(1))` on inputs of size `N` from the
+  pigeonhole, Tseitin and random 3-CNF families. The bound is `2^Ω(N)` for
+  Tseitin and random 3-CNF; `PHP^{n+1}_n` has size `Θ(n³)`, so Haken's
+  `2^Ω(n)` is `2^Ω(N^(1/3))`. So no member of this algorithm family
   is a polynomial SAT algorithm. That is an unconditional theorem, but only
   about this family.
 * **What remains open.** A polynomial SAT algorithm outside the resolution
@@ -192,8 +194,9 @@ What is **not** formalized:
   itself. No new obligation is defined here. The algorithmic obligation is
   the exact polynomial decider of Idea 01/22 (`ExactPolyDecider` in Idea
   22), and the proof-complexity obligation (every proof system
-  superpolynomial, equivalent to NP ≠ coNP) is `NoPolyBoundedProofSystem`
-  in Idea 23.
+  superpolynomial, equivalent to NP ≠ coNP under `SATHard`, `CookReckhowNP`
+  and `NPClosedUnderReductions` by `noPolyBounded_iff_npNeCoNP'`) is
+  `NoPolyBoundedUNSATProofSystem` in Idea 23.
 * **Barriers.** Resolution lower bounds are proved against a restricted
   model, so relativization and natural proofs do not block them. They also
   say nothing about unrestricted algorithms, so they cannot be lifted to

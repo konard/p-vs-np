@@ -9,12 +9,13 @@ variables gives some function a representation of length at least `2^n`. They
 also prove that fewer than `2^b` truth tables can have codes shorter than `b`.
 Compact representations therefore exist only for special families. Restricted
 to CNF-definable functions, the idea is exactly as hard as SAT itself. The Lean
-file proves this in the shared machine model. The open obligation `CompiledSAT`
+and Rocq files prove this in the shared machine model. The open obligation `CompiledSAT`
 asks for a `Complexity.Machine` that compiles every instance in polynomial time,
 and a polynomial-time machine that reads satisfiability off the compiled
 representation. `compiles_iff_inP` proves that such a compilation exists for a
 language exactly when it is in P, so `CompiledSAT ↔ InP SAT`
-(`compiledSAT_iff`). With `SATHard` (not mechanised) the obligation gives
+(`compiledSAT_iff`). With `SATHard` (open on main; in progress in PR #630, unmerged as of
+2026-11-03) the obligation gives
 `PEqualsNP` (`pEqualsNP_of_compiledSAT`).
 
 ## 1. The idea at full strength
@@ -203,7 +204,8 @@ theorem pEqualsNP_of_compiledSAT (hard : Machines.SATHard) (h : CompiledSAT) : P
 ```
 
 Its only hypothesis besides the obligation is `SATHard`, the hardness half of
-Cook–Levin (shared layer, not mechanised). `compiledSAT_iff` proves
+Cook–Levin (shared layer; open on main and in progress in PR #630, unmerged
+as of 2026-11-03). `compiledSAT_iff` proves
 `CompiledSAT ↔ InP Machines.SAT`, so nothing is gained over the original
 problem. `not_forall_compiles` confirms that `Compiles` is not satisfied by
 every language, and `compactTractableCompilationFor_of_compiles` shows that the
@@ -220,7 +222,8 @@ Darwiche and Marquis.
 are known. Proving that *no* polynomial-time compilation with polynomial-time
 queries exists means proving SAT ∉ P, i.e. P ≠ NP, so it faces all the
 barriers of that problem, including relativization and, for circuit-based
-approaches, natural proofs (see Ideas 38 and 39).
+approaches, natural proofs (see Idea 38 for relativization and Ideas 10 and
+30 for natural proofs).
 
 **Honest conclusion.** The route is refuted in its general form. In the
 restricted form it is equivalent to the open problem. No proof of P = NP or

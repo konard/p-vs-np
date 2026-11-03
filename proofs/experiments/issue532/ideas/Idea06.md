@@ -13,7 +13,7 @@ So the entire difficulty is *computing* a local minimum of an exact
 neighbourhood. In the shared machine model this is the open obligation
 `ExactLocalSearch`: a polynomial-time `Complexity.Machine` attaches to every
 instance a local minimum of an exact neighbourhood. Given the named known
-theorem `CNFEvalInP` (CNF evaluation is in P, not mechanised here), it puts SAT
+theorem `CNFEvalInP` (CNF evaluation is in P; open as of 2026-11-03), it puts SAT
 in P (`inP_sat_of_exactLocalSearch`), and with `SATHard` it gives P = NP
 (`pEqualsNP_of_exactLocalSearch`). The neighbourhood part is free
 (`exactLocalSearch_of_globalMin`), so the obligation amounts to computing a
@@ -110,7 +110,7 @@ def ExactLocalSearch : Prop := LocalSearchSolves Machines.SAT
 | `trapCNF_allFalse_cost` | `unsatCount (all-false) (trapCNF k) = 1`. | [Idea06.lean](../lean/Idea06.lean) | [Idea06.v](../rocq/Idea06.v) |
 | `trapCNF_near_allFalse` | If `Within k (k+1) all-false b`, then `evalCNF b (trapCNF k) = false`. | [Idea06.lean](../lean/Idea06.lean) | [Idea06.v](../rocq/Idea06.v) |
 | `sat_ofM`, `splitPacked_pack`, `evalLang_pack` | Translation to the shared CNF syntax; the packed prefix splits off; `EvalLang (pack bits ++ x)` evaluates `decode x` under `assignOf bits`. | [Idea06.lean](../lean/Idea06.lean) | [Idea06.v](../rocq/Idea06.v) |
-| `CNFEvalInP` | Named known theorem (not mechanised): `InP EvalLang`. | [Idea06.lean](../lean/Idea06.lean) | [Idea06.v](../rocq/Idea06.v) |
+| `CNFEvalInP` | Named known theorem (open as of 2026-11-03): `InP EvalLang`. | [Idea06.lean](../lean/Idea06.lean) | [Idea06.v](../rocq/Idea06.v) |
 | `ExactLocalSearch` | Open obligation: `LocalSearchSolves Machines.SAT`. | [Idea06.lean](../lean/Idea06.lean) | [Idea06.v](../rocq/Idea06.v) |
 | `localMin_decides` | With an exact neighbourhood, a local minimum satisfies `φ` iff `φ` is satisfiable. | [Idea06.lean](../lean/Idea06.lean) | [Idea06.v](../rocq/Idea06.v) |
 | `localSearchSolves_reduces` | `LocalSearchSolves L` gives a polynomial-time machine reduction `L x = EvalLang (g x)`. | [Idea06.lean](../lean/Idea06.lean) | [Idea06.v](../rocq/Idea06.v) |
@@ -127,7 +127,7 @@ the known theorem `CNFEvalInP`, and the converse of the conditional theorem
 (Section 6). The schema `ExactAllFor` was called `ExactAll` before the move to
 the machine model; both files now use the new name.
 
-In Rocq, `exists_not_reducible` is proved by a pointwise constructive diagonal: the helper `viaMachine` runs a (machine, polynomial) pair with the computable step-bounded `runOut` and reads the output with `readBits` (Lean's `viaMachine M m` takes the machine alone and is noncomputable), `viaMachine_eq` shows that it agrees with `M (f x)` pointwise (Lean states a function equality), and no function extensionality or excluded middle is needed. Implicit Lean arguments are explicit `forall`s in Rocq. Neither file uses axioms. The CNF bridge `ofM` (with `evalClause_ofM`, `evalCNF_ofM`,
+In Rocq, `exists_not_reducible` is proved by a pointwise constructive diagonal: the helper `viaMachine` runs a (machine, polynomial) pair with the computable step-bounded `runOut` and reads the output with `readBits` (Lean's `viaMachine M m` takes the machine alone and is noncomputable), `viaMachine_eq` shows that it agrees with `M (f x)` pointwise (Lean states a function equality), and no function extensionality or excluded middle is needed. Implicit Lean arguments are explicit `forall`s in Rocq. Neither file declares an axiom. The Lean file uses `Classical.choice` (through `Classical.propDecidable`), which the repository allows. The CNF bridge `ofM` (with `evalClause_ofM`, `evalCNF_ofM`,
 `sat_ofM`) and the packing helpers `pack`, `splitPacked`, `assignOf` have the
 same names in both files.
 
@@ -251,7 +251,9 @@ Mechanised consequences:
 * `exactLocalSearch_of_globalMin`: the exact neighbourhood itself costs
   nothing, and all the content is in computing a minimum.
 
-The hypotheses are known theorems that are not mechanised here. `CNFEvalInP`
+The hypotheses are known theorems used as named hypotheses. As of 2026-11-03
+both are open in [HYPOTHESES.md](../../../HYPOTHESES.md), and PR #630
+(unmerged) covers part of `SATHard`. `CNFEvalInP`
 says that evaluating a CNF under a given assignment is in P (Cook 1971;
 Arora–Barak Ch. 2). `SATHard` is the hardness half of Cook–Levin. Conversely,
 if P = NP, a minimum-`unsatCount` assignment can be computed in polynomial
@@ -259,7 +261,8 @@ time. The question "is there an assignment falsifying at most `k` clauses?" is
 in NP, hence in P. Binary search on `k` finds the optimum, and self-reduction
 (fixing one variable at a time) finds an assignment attaining it. `exactLocalSearch_of_globalMin`
 then gives `ExactLocalSearch`. This converse is argued informally and is not
-mechanised. So `ExactLocalSearch` is equivalent to P = NP, and the route is
+mechanised. So, under `SATHard` and `CNFEvalInP` and with this informal
+converse, `ExactLocalSearch` is equivalent to P = NP, and the route is
 Idea 01's `PolySATDecider` in another guise.
 `bounded_flip_not_exact` rules out every fixed-radius flip neighbourhood,
 the most natural efficiently searchable family.

@@ -36,6 +36,22 @@ jobs:
     - name: Check certified source boundary
       run: python3 scripts/check_proof_status.py
 
+    - name: Check formal statement and hypothesis manifest
+      run: |
+        python3 -I scripts/test_check_formal_statement.py
+        python3 -I scripts/check_formal_statement.py
+
+    - name: Check literature registry
+      run: |
+        python3 -I scripts/test_check_literature_registry.py
+        python3 -I scripts/check_literature_registry.py
+        python3 -I scripts/check_literature_registry.py --check-render
+
+    - name: Check claims ledger
+      run: |
+        python3 -I scripts/test_check_claims.py
+        python3 -I scripts/check_claims.py --run-scripts
+
     - name: Check exact Gubin paper LP witness
       run: python3 experiments/issue578/check_paper_lp.py
 

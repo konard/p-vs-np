@@ -16,7 +16,9 @@ into unit CNF by such a machine) gives `InP SAT` by
 `inP_sat_of_unitReduction`, and `PEqualsNP` by `pEqualsNP_of_unitReduction`.
 Both take as hypotheses the named known theorem `UnitSATInP` (a
 polynomial-time machine decides unit CNF) and, for `PEqualsNP`, `SATHard`.
-Neither is mechanised. The obligation is as hard as P = NP: if P = NP, the
+Neither is mechanised on main. As of 2026-11-03,
+[proofs/HYPOTHESES.md](../../../HYPOTHESES.md) lists `UnitSATInP` as open and
+`SATHard` as in progress in PR #630, unmerged. The obligation is as hard as P = NP: if P = NP, the
 reduction exists (decide, then output `[]` or `[[]]`). The size-only schema
 `PolySizeReductionIntoFor` carries no P vs NP content, because
 `unit_size_reduction_exists` proves it for unit CNF with a non-constructive
@@ -73,7 +75,8 @@ affine). The second half is the whole problem.
   polynomial size bound is part of `Computes`.
 * **Open obligation** (Lean, `UnitReduction`):
   `def UnitReduction : Prop := ReducesInto Machines.SAT IsUnitCNF`.
-* **Known theorem, not mechanised here** (`UnitSATInP`):
+* **Known theorem, not mechanised here** (`UnitSATInP`; status open in
+  proofs/HYPOTHESES.md, 2026-11-03):
   `def UnitSATInP : Prop := SATInPOn IsUnitCNF`. The decider is the quadratic
   scan `unitDecide`, whose correctness is proved (`unitDecide_correct`); what
   is missing is a `Complexity.Machine` running it on encoded formulas. Unit
@@ -98,11 +101,10 @@ affine). The second half is the whole problem.
 | `PolySizeReductionIntoFor` (def) | Size-only schema: a satisfiability-preserving map into `R` with polynomial size blow-up. Computability is not part of the definition. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `poly_comp_bound` | `c'*(c*(n+1)^k+1)^k' ≤ (c'*(c+1)^k')*(n+1)^(k*k')` for all naturals. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `restriction_transfer` | Given the schema for `R`, a decider correct on `R` and a cost function `dcost` polynomially bounded in input size, the composite decides SAT correctly and `dcost` of the reduced instance is polynomially bounded in the original size. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
-
 | `sat_ofM` | The shared language `Machines.SAT` is satisfiability of the decoded CNF read in this file's syntax. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `ReducesInto` (def) | `L` reduces into the class `R` by a `Complexity.Machine` computing the map within a polynomial number of steps. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `SATInPOn` (def) | A polynomial-time machine decides SAT on every word that decodes into `R` (promise problem). | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
-| `UnitSATInP` (def) | Known theorem, not mechanised: `SATInPOn IsUnitCNF`. Used only as a hypothesis. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
+| `UnitSATInP` (def) | Known theorem, not mechanised (open in proofs/HYPOTHESES.md, 2026-11-03): `SATInPOn IsUnitCNF`. Used only as a hypothesis. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `UnitReduction` (def) | Open obligation: `ReducesInto Machines.SAT IsUnitCNF`. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `inP_of_reducesInto` | `ReducesInto L R` and `SATInPOn R` give `InP L` (via `Machines.inP_of_promise_reduction`). | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
 | `reducesInto_preserves` | A machine reduction of SAT into `R` restricts to a satisfiability-preserving map of CNFs into `R`. | [Idea18.lean](../lean/Idea18.lean) | [Idea18.v](../rocq/Idea18.v) |
@@ -182,7 +184,8 @@ into the 1-valid class would make it `true`.
 obligation `ReducesInto Machines.SAT R` holds. For trivial classes it provably
 fails (by the previous theorems). For nontrivial classes in P, such as Horn,
 2-CNF, unit CNF or affine, it gives `InP SAT` (`inP_of_reducesInto`), and with
-`SATHard` (Cook–Levin hardness, not mechanised) it gives P = NP
+`SATHard` (Cook–Levin hardness; in progress in PR #630, unmerged, as of
+2026-11-03) it gives P = NP
 (`pEqualsNP_of_reducesInto`). So proving it is at least as hard as proving
 P = NP. For classes where it is known to hold, such as
 3-CNF, 1-in-3-SAT or NAE-3-SAT, the class is NP-complete, and the
@@ -224,9 +227,10 @@ transfer theorems.
   `SATInPOn R`. The proved route is
   `pEqualsNP_of_unitReduction (hard : Machines.SATHard) (hU : UnitSATInP)
   (h : UnitReduction) : PEqualsNP`. Its two hypotheses besides the
-  obligation are known theorems that are not mechanised: `SATHard`
-  (Cook–Levin hardness, shared layer) and `UnitSATInP` (a machine running the
-  quadratic unit-CNF scan). `not_forall_reducesInto` shows that the
+  obligation are known theorems that are not mechanised on main: `SATHard`
+  (Cook–Levin hardness, shared layer; in progress in PR #630, unmerged) and
+  `UnitSATInP` (a machine running the quadratic unit-CNF scan; open). Status
+  as of 2026-11-03. `not_forall_reducesInto` shows that the
   obligation is a statement about SAT: for every class `R` some language has
   no machine reduction into it. Conversely (argued, not mechanised), if
   P = NP then SAT reduces to any nontrivial class. Given an instance, decide

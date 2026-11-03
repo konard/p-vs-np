@@ -11,7 +11,8 @@ within a polynomial number of `Run` steps drives the self-reduction to a
 witness with total `Run` step count of all questions polynomial in the
 encoding length (`decision_to_search`). So finding a witness is no harder
 than deciding, and, with the NP-hardness of SAT (`SATHard`, a named
-hypothesis: Cook–Levin, not mechanised), P = NP is equivalent to
+hypothesis: Cook–Levin, not mechanised on main; in progress in PR #630,
+unmerged, as of 2026-11-03), P = NP is equivalent to
 polynomial-time SAT search. The tool does not produce a fast decider. The
 remaining obligation `ExactPolyDecider := PolyDec SAT` is exactly SAT ∈ P.
 
@@ -203,14 +204,15 @@ What is **not** formalized:
   machine: `PolySearch` bounds the `Run` steps of the questions only; a single
   machine running the whole search would add a polynomial overhead.
 * Cook–Levin. Its NP-hardness half appears only as the named hypothesis
-  `SATHard` of `pEqualsNP_of_exactPolyDecider`.
+  `SATHard` of `pEqualsNP_of_exactPolyDecider`. As of 2026-11-03 `SATHard`
+  is in progress in PR #630, unmerged.
 * The Bellare–Goldwasser separation.
 
 ## 6. How far the idea can be pushed toward P vs NP
 
 * **Full potential.** `decision_to_search` (in the shared machine model) and
   `search_gives_decider`, combined with Cook–Levin (the hypothesis
-  `SATHard`, not mechanised), show that P = NP iff SAT search is in
+  `SATHard`, not mechanised on main; PR #630, unmerged), show that P = NP iff SAT search is in
   polynomial time. The reduction costs one
   decider call per variable, with polynomial overhead. This is as strong as
   it gets. Any polynomial SAT decider, even one found non-constructively,
@@ -222,7 +224,8 @@ What is **not** formalized:
   about `Complexity.Machine` deciders and `Run` step counts. It is `InP SAT`
   (`inP_sat_of_exactPolyDecider`) and gives `PEqualsNP` under `SATHard`
   (`pEqualsNP_of_exactPolyDecider`); the converse holds under `SATInNP`
-  (`inP_sat_of_pEqualsNP` in the shared layer). It is neither weaker nor
+  (`inP_sat_of_pEqualsNP` in the shared layer), and with no premise by the
+  certified `SATVerifier.inP_sat_of_pEqualsNP'`. It is neither weaker nor
   stronger than P = NP, and the self-reduction adds nothing toward proving
   it.
 * **Toward P ≠ NP.** By the converse, a superpolynomial lower bound for

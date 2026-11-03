@@ -78,9 +78,9 @@ def ERNotPolyBounded : Prop :=
 | `ERPolyBounded` (def), `erNotPolyBounded_iff` | `ERNotPolyBounded ↔ ¬ ERPolyBounded` (Rocq: given excluded middle; the forward direction without it is `erNotPolyBounded_not_polyBounded`) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `erNotPolyBounded_iff_family` | The obligation holds iff some family meets `ERSuperpolyLowerBoundFor` (Rocq: given a choice principle; the backward direction without it is `erNotPolyBounded_of_family`) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `ResDerives`, `erDerives_of_res` | Resolution derivations are extended-resolution derivations | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
-| `ResNotPolyBounded` (def) | Resolution is not polynomially bounded (known, Haken 1985; not mechanised) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `ResNotPolyBounded` (def) | Resolution is not polynomially bounded (known, Haken 1985; not mechanised; status open in proofs/HYPOTHESES.md, 2026-11-03) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `resNotPolyBounded_of_er` | Conditional theorem: `ERNotPolyBounded → ResNotPolyBounded` (the honest conclusion) | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
-| `CookReckhowER` (def) | Named known theorem (Cook–Reckhow 1979): `¬ NPEqualsCoNP → ERNotPolyBounded` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
+| `CookReckhowER` (def) | Named known theorem (Cook–Reckhow 1979), not mechanised; status open in proofs/HYPOTHESES.md, 2026-11-03: `¬ NPEqualsCoNP → ERNotPolyBounded` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `erNotPolyBounded_of_npNeCoNP` | Given `CookReckhowER`, NP ≠ coNP implies the obligation | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `contra`, `sat_contra` | `x₀ ∧ ¬x₀` is rejected by `SAT` | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
 | `noRules_notPolyBounded` | Non-vacuity: the schema `NotPolyBoundedFor` holds for the system with no rules | [Idea28.lean](../lean/Idea28.lean) | [Idea28.v](../rocq/Idea28.v) |
@@ -154,7 +154,7 @@ Here `SAT` is `Issue532.Machines.SAT` and `satWord` is the machine encoding of t
 
 * `erNotPolyBounded_iff_family`: the obligation is equivalent to the existence of a family meeting the schema `ERSuperpolyLowerBoundFor`.
 * `resNotPolyBounded_of_er`: the obligation implies the same statement for resolution. This is the honest conclusion. A lower bound for one proof system transfers only to the systems that it simulates.
-* `erNotPolyBounded_of_npNeCoNP`: given the named known theorem `CookReckhowER` (Cook–Reckhow 1979), NP ≠ coNP implies the obligation.
+* `erNotPolyBounded_of_npNeCoNP`: given the named known theorem `CookReckhowER` (Cook–Reckhow 1979; not mechanised, status open in [proofs/HYPOTHESES.md](../../../HYPOTHESES.md) as of 2026-11-03), NP ≠ coNP implies the obligation.
 * The converse is not known. The obligation would **not** by itself imply NP ≠ coNP or P ≠ NP, because it is a lower bound for one proof system. For this reason the file proves no conditional theorem to `PNotEqualsNP`.
 * Non-vacuity: `noRules_notPolyBounded` shows that `NotPolyBoundedFor` holds for a trivial system, and `oneStep_not_notPolyBounded` shows that it fails for an unsound one. `emptyClause_not_superpoly` shows that the family schema fails for the empty-clause family.
 * No witness of the obligation is known. Extended Frege is the strongest system of the Cook–Reckhow program in common use, and even for Frege no superpolynomial lower bound is known.

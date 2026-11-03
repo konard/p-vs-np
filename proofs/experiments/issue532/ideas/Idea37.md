@@ -11,7 +11,8 @@ polynomial time. The route to P = NP is therefore reduced to one precise open
 obligation over the shared machine model, `LogParamFPTObligation`: a
 `Complexity.Machine` decides `SAT` within `2^(param x) · (|x|+1)^c` `Run` steps
 for a parameter with `2^(param x) ≤ (|x|+1)^b` on **every** word. It gives
-`InP SAT`, and with `SATHard` it gives `PEqualsNP`.
+`InP SAT`, and with `SATHard` it gives `PEqualsNP`. `SATHard` is open on main
+and in progress in PR #630 (unmerged as of 2026-11-03).
 
 ## 1. The idea at full strength
 
@@ -170,8 +171,8 @@ theorem logParam_route_gives_pEqualsNP (hard : SATHard) (h : LogParamFPTObligati
 The time is the step count of a `Run` of a `Complexity.Machine`, so the
 obligation cannot be met by choosing a convenient cost function. The step from
 `InP SAT` to `PEqualsNP` needs the named hypothesis `SATHard` (NP-hardness of
-`SAT`, the hard half of Cook–Levin), stated in `Machines.lean` and not
-mechanised. `logParamFPT_iff_schema` shows that `LogParamFPT L` is exactly the
+`SAT`, the hard half of Cook–Levin), stated in `Machines.lean`. It is open on
+main and in progress in PR #630 (unmerged as of 2026-11-03). `logParamFPT_iff_schema` shows that `LogParamFPT L` is exactly the
 generic schema `LogParamFPTObligationFor` instantiated with machines, their
 step count `steps` and the size `|x| + 1`. `not_forall_logParamFPT` shows that
 `LogParamFPT` is not a consequence of the definitions: it fails for the
@@ -187,7 +188,12 @@ equivalent: take `param = 0`.
 **Why the obligation is hard.** Under ETH (Impagliazzo–Paturi), no
 NP-complete problem admits a parameter with both properties, since that would
 give a polynomial-time, hence subexponential, algorithm for 3-SAT. So the
-obligation is at least as hard as refuting ETH. Parameters that are small on
+obligation is at least as hard as refuting ETH. Refuting ETH is not
+known to suffice: a subexponential algorithm need not be polynomial. On 26–27 October 2026,
+OpenAI and Anthropic published Lean-checked claims that ETH is false. They
+are unreviewed as of 2026-11-03 (see the [README](../../../../README.md)). If
+they hold, they do not meet this obligation, and refuting ETH is not known to
+imply P = NP. Parameters that are small on
 "typical" or "structured" instances (treewidth, backdoor size) are not small on
 all instances. A padding trick, which pads an instance with `k` variables to
 length `2^k`, makes any parameter logarithmic but needs an exponential-size
@@ -197,10 +203,13 @@ reduction. That is not a polynomial reduction.
 parameterized algorithms yield polynomial time. It is useful for auditing
 claims of the form "SAT is FPT in parameter X, and X is small".
 
-**Caveats.** `SATHard` is a named hypothesis, not a mechanised theorem. ETH and
-the parameterized results of section 5 are cited, not formalized. The
-machine-model part is so far only in Lean; `Idea37.v` has the arithmetic and
-the schema.
+**Caveats.** `SATHard` is a named hypothesis, not a mechanised theorem (open
+on main; in progress in PR #630, unmerged as of 2026-11-03). ETH and SETH are
+formalized only in draft PR #639 (unmerged as of 2026-11-03). The
+parameterized results of section 5 are cited, not formalized. The
+machine-model part is proved in both files: `Idea37.v` also has
+`logParam_obligation_inP`, `logParam_route_gives_pEqualsNP`,
+`not_forall_logParamFPT` and `logParamFPT_iff_schema`.
 
 ## 7. Failure modes this idea catches
 

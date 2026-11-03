@@ -1,5 +1,12 @@
 # Issue 44 Woeginger Coverage Verification
 
+Status at 2026-11-03: this is a record of the 2026-05-09 run. Rerun offline
+today, the checker still reports 116 attempts scanned, 116 valid, 39 complete
+and 56 with warnings. The live Woeginger rows were not re-fetched. Recompute
+the offline counts with
+`python3 -I scripts/check_attempt_structure.py --offline --quiet --json report.json`
+and read the `summary` object in `report.json`.
+
 Verification run: 2026-05-09 20:24:31 UTC
 
 Issue 44 asks to re-check the repository against Gerhard Woeginger's live

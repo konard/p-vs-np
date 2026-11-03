@@ -20,7 +20,10 @@ of NP under reductions) it is equivalent to NP ≠ coNP
 premise: the obligation implies `PNotEqualsNP` with no other premise
 (`pNotEqualsNP_of_noPolyBounded'`), and the equivalence needs only
 `SATHard`, `CookReckhowNP` and `NPClosedUnderReductions`
-(`noPolyBounded_iff_npNeCoNP'`). The abstract schema
+(`noPolyBounded_iff_npNeCoNP'`). As of 2026-11-03,
+[proofs/HYPOTHESES.md](../../../HYPOTHESES.md) lists `CookReckhowNP` and
+`NPClosedUnderReductions` as open and `SATHard` as in progress in PR #630,
+unmerged. The abstract schema
 `NoPolyBoundedProofSystemFor Efficient`, with a free efficiency predicate,
 is kept for the abstract results.
 
@@ -83,6 +86,8 @@ research log records the core step of resolution: from `P ∨ R` and
   * `NPClosedUnderReductions := ∀ L L', PolyReduces L L' → InNP L' → InNP L`
     (Karp 1972);
   * `SATHard` (the hardness half of Cook–Levin, from the shared layer);
+  * status as of 2026-11-03: `CookReckhowNP` and `NPClosedUnderReductions`
+    are open; `SATHard` is in progress in PR #630, unmerged;
   * `SATInNP` (the membership half of Cook–Levin, from the shared layer) is
     not a hypothesis: it is proved in `SATVerifier.lean` / `SATVerifier.v`
     (`SATVerifier.satInNP`). The unprimed theorems still take it as a
@@ -113,7 +118,7 @@ research log records the core step of resolution: from `P ∨ R` and
 | `not_inP_sat_of_noPolyBounded` | `NoPolyBoundedUNSATProofSystem → ¬ InP SAT`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `pNotEqualsNP_of_noPolyBounded` | `SATInNP → NoPolyBoundedUNSATProofSystem → PNotEqualsNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `pNotEqualsNP_of_noPolyBounded'` | `NoPolyBoundedUNSATProofSystem → PNotEqualsNP`, with no `SATInNP` premise (`SATInNP` is proved: `SATVerifier.satInNP`). | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
-| `CookReckhowNP`, `NPClosedUnderReductions` (defs) | Known theorems, not mechanised here: every NP language has a polynomially bounded machine proof system; NP is closed under reductions. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
+| `CookReckhowNP`, `NPClosedUnderReductions` (defs) | Known theorems, not mechanised here (open in proofs/HYPOTHESES.md, 2026-11-03): every NP language has a polynomially bounded machine proof system; NP is closed under reductions. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `polyReduces_complement` | A reduction from `L` to `L'` is one from `complement L` to `complement L'`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `npNeCoNP_of_noPolyBounded`, `pNotEqualsNP_via_coNP` | With `SATInNP` and `CookReckhowNP`, the obligation gives `¬ NPEqualsCoNP`, hence `PNotEqualsNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
 | `npNeCoNP_of_noPolyBounded'`, `pNotEqualsNP_via_coNP'` | With `CookReckhowNP` alone (the `SATInNP` premise is dropped, since `SATVerifier.satInNP` proves it), the obligation gives `¬ NPEqualsCoNP`, hence `PNotEqualsNP`. | [Idea23.lean](../lean/Idea23.lean) | [Idea23.v](../rocq/Idea23.v) |
@@ -261,7 +266,8 @@ What is **not** formalized:
 * The Cook–Reckhow direction "NP ⊆ bounded proof systems"
   (`CookReckhowNP`), closure of NP under reductions
   (`NPClosedUnderReductions`) and the hardness half of Cook–Levin
-  (`SATHard`). These are named hypotheses. The membership half (`SATInNP`)
+  (`SATHard`). These are named hypotheses. As of 2026-11-03 the first two
+  are open and `SATHard` is in progress in PR #630, unmerged. The membership half (`SATInNP`)
   is proved in `SATVerifier` (`SATVerifier.satInNP`). The direction "bounded system ⇒
   NP" is proved (`inNP_of_polyBounded`).
 
@@ -291,10 +297,9 @@ What is **not** formalized:
 * **Barriers.** Lower bounds for strong proof systems face obstacles
   analogous to those for circuits. Known lower-bound methods for a proof
   system often rest on circuit lower bounds for a corresponding circuit
-  class (feasible interpolation, restriction methods). Feasible
-  interpolation is known to fail for extended Frege and for Frege under
-  cryptographic assumptions (Krajíček–Pudlák 1998; Bonet–Pitassi–Raz
-  2000). Lower bounds for Frege and extended Frege are widely expected to
+  class (feasible interpolation, restriction methods). Under cryptographic
+  assumptions, feasible interpolation fails for extended Frege
+  (Krajíček–Pudlák 1998) and for Frege (Bonet–Pitassi–Raz 2000). Lower bounds for Frege and extended Frege are widely expected to
   be at least as hard as circuit lower bounds for classes such as `NC¹`
   and `P/poly`, but this is a heuristic analogy, not a proved barrier
   theorem. Relativization is not the relevant barrier here.

@@ -122,7 +122,11 @@ barrier itself in the shared model.
 `NonRelativizingIngredientFor`, `BGSCollapse`, `BGSSeparation`,
 `UniversalSimulation`, `UniversalSimulationO` and `NTimeHierarchy` are
 `def ... : Prop`. The last five are known theorems, not mechanised here; they
-appear only as explicit hypotheses. The Rocq names are the Lean names.
+appear only as explicit hypotheses. As of 2026-11-03,
+[proofs/HYPOTHESES.md](../../../HYPOTHESES.md) lists all five, and
+`TimeHierarchy`, with status open. `NTimeHierarchy` has a second, different
+definition at `lean/Idea41.lean:482`; HYPOTHESES.md records the two names as a
+known defect. The Rocq names are the Lean names.
 Rocq-specific differences:
 
 - Constructor and field names: `OInstruction` is `obase | oquery`, the table
@@ -238,7 +242,8 @@ formalized here.
   7(4), 1973. The nondeterministic time hierarchy.
 * J. I. Seiferas, M. J. Fischer and A. R. Meyer, "Separating
   nondeterministic time complexity classes", J. ACM 25(1), 1978, and
-  S. Žák, "A Turing machine time hierarchy", TCS 21(3), 1983. The
+  S. Žák, "A Turing machine time hierarchy", TCS 26(3), 1983, 327–333,
+  doi 10.1016/0304-3975(83)90015-4. The
   nondeterministic hierarchy for all time-constructible `T₁(n+1) = o(T₂(n))`.
   These results are for multitape machines; the one-tape model here pays an
   `O(|M|·T)`-type simulation overhead, which is why `NTimeHierarchy` keeps
@@ -285,7 +290,8 @@ formalized here.
   `NonRelativizingIngredientFor` for `S O := "P^O ≠ NP^O"`, which is a
   requirement on techniques, not a statement about machines. Known non-relativizing techniques
   (arithmetization, as in IP = PSPACE) are blocked for P vs NP by
-  algebrization, and circuit-based ones by natural proofs.
+  algebrization, and circuit-based ones by natural proofs (under standard
+  cryptographic assumptions).
 * **Scope of the model:** "relativizes" is modelled as "holds in every
   world" for statements built from oracle-extended enumerations. Real
   relativization is a property of proofs, a meta-level notion. The model

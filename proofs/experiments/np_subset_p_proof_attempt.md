@@ -17,7 +17,7 @@ Issue #8 contributes a concrete solver for that statement. `dpllSAT` is a DPLL s
 | DPLL decides the shared SAT language; the issue #610 formula is accepted and `[[]]` is rejected | Proved. |
 | DPLL makes fewer than `2^(|w|+1)` calls | Proved. The bound counts calls, not `Run` steps. |
 | A polynomial `Run` bound for any SAT machine | Not proved. It is equivalent to `NP ⊆ P` given `SATHard`. |
-| `SATHard` (Cook–Levin hardness) in the shared model | Not discharged here. |
+| `SATHard` (Cook–Levin hardness) in the shared model | Not discharged on `main`. The first Cook–Levin slice is proved in [`issue568/`](issue568/README.md); further slices are in unmerged PR [#630](https://github.com/konard/p-vs-np/pull/630), whose CI is failing as of 2026-11-03. |
 | `NP ⊆ P` or its negation | Not proved. |
 
 ## The routes, corrected

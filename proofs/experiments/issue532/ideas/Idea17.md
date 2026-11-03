@@ -20,7 +20,9 @@ is exactly SAT ∉ P, gives P != NP from `SATInNP`
 `SATVerifier`, so `pNotEqualsNP_of_satMachinesSuperpolynomial'` needs no
 premise besides the obligation), and is equivalent to
 P != NP under the named Cook–Levin hypothesis
-(`satMachinesSuperpolynomial_iff_pNotEqualsNP`). It is therefore the
+(`satMachinesSuperpolynomial_iff_pNotEqualsNP`). `CookLevin` is not proved on
+main as of 2026-11-03; it is in progress in PR #630, unmerged (see
+[proofs/HYPOTHESES.md](../../../HYPOTHESES.md)). It is therefore the
 original problem, not a weaker one.
 
 ## 1. The idea at full strength
@@ -217,7 +219,11 @@ polynomials.
 * R. Impagliazzo and R. Paturi, "On the complexity of k-SAT", *Journal of
   Computer and System Sciences* 62(2) (2001). The Exponential Time
   Hypothesis. It is a conjecture, not a theorem. It implies P != NP; the
-  converse implication is not known.
+  converse implication is not known. On 26–27 October 2026 OpenAI and
+  Anthropic published claims, Lean-checked but not peer reviewed, that ETH is
+  false. Impagliazzo, Paturi and Williams are reviewing the OpenAI claim only.
+  Refuting ETH is not known to imply P = NP. As of 2026-11-03 ETH is
+  formalized here only in draft PR #639, unmerged.
 * T. Baker, J. Gill, R. Solovay, "Relativizations of the P =? NP question",
   *SIAM Journal on Computing* 4(4) (1975). Oracles relative to which P = NP
   and P != NP.
@@ -255,7 +261,8 @@ counting and growth facts of Section 3 are machine-checked.
   * Counting over candidates is a property of the search space, not of the
     algorithm. Schöning and PPSZ show that the search space size is not the
     complexity even for k-SAT.
-  * ETH-style statements (`2^(δn)` for 3-SAT) are conjectures. Assuming
+  * ETH-style statements (`2^(δn)` for 3-SAT) are conjectures (and, as of
+    2026-11-03, ETH itself faces unreviewed refutation claims). Assuming
     them is COMMON_ERRORS family 12 (smuggling the conclusion).
 
 ## 7. Failure modes this idea catches

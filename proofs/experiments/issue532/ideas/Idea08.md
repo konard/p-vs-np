@@ -151,8 +151,9 @@ finite sample determines the function (`two_consistent_extensions`), so no
 is a polynomial-time consistent-hypothesis finder for a class rich enough to
 contain a SAT decider. For classes whose consistency problem is NP-hard (minimum
 DFAs, Gold 1978; 3-term DNF, Pitt–Valiant 1988), such a finder would decide an
-NP-hard problem in polynomial time and hence, by those cited reductions and
-Cook–Levin (none formalized), give Idea 01's `PolySATDecider`. The P ≠ NP direction is not available here either: "shortest
+NP-hard problem in polynomial time and hence, by those cited reductions (not
+formalized) and SAT ∈ NP (proved as `SATVerifier.satInNP`), give Idea 01's
+`PolySATDecider`. The P ≠ NP direction is not available here either: "shortest
 consistent program is NP-hard to find" says nothing about whether *other*
 algorithms can decide SAT, because a decider need not be learned from examples.
 
