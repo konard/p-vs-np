@@ -6,6 +6,13 @@
 # statement files at that commit are byte-identical to the archived copies, so
 # the case study and the checked statements cannot drift apart.
 #
+# The verifier scripts that are run from the upstream checkout
+# (.github/scripts/comparator-check.sh and <project>/scripts/PrintAxioms.lean of
+# anthropics/formal-math) are archived too, under
+# docs/case-studies/issue-638/sources/anthropic-formal-math-ci/, and are
+# diffed against the checkout before they run.  Every #print axioms log must
+# be non-empty and must name the theorems it is meant to cover.
+#
 # * anthropic-eth        anthropics/formal-math eth/: full build, #print axioms,
 #                        and Comparator (with lean4export, nanoda and landrun)
 #                        through the upstream script .github/scripts/comparator-check.sh
@@ -14,12 +21,17 @@
 #                        statement ComparatorChallenges/SubexponentialSAT.lean
 #                        against the pinned Mathlib (cheap; must pass)
 # * openai-full          openai/math: build OAI.Algorithms.SubexponentialSAT.Main
-#                        (about 4000 Lean files), print axioms, run Comparator.
-#                        Best effort: it may exceed the 6-hour limit of a
-#                        hosted runner, so it is continue-on-error and its
-#                        outcome is reported in the job summary.  The build
-#                        directory is cached, so a later run (e.g. a manual
-#                        workflow_dispatch) resumes an unfinished build.
+#                        (12014 build jobs; a cold build took 2 h 40 min and
+#                        almost all of the runner's 16 GB of memory in run
+#                        41570704897, and nanoda then needs about 4 hours),
+#                        print axioms, run Comparator.  It runs only on
+#                        workflow_dispatch.  It is continue-on-error, so a
+#                        green run of the whole workflow does NOT mean that it
+#                        passed: read the job's own conclusion and summary.  The
+#                        package build directory is cached under one fixed key
+#                        per pinned commit, so a later dispatch resumes or
+#                        reuses an earlier build (Comparator re-checks the
+#                        exported terms in both kernels either way).
 name: External Lean re-verification (issue 638)
 
 on:
@@ -28,9 +40,12 @@ on:
     paths:
       - '.github/workflows/external-lean-reverification.yml'
       - 'docs/case-studies/issue-638/sources/**'
+      - 'experiments/issue638/check_axioms_log.sh'
+      - 'experiments/issue638/test_check_axioms_log.sh'
   schedule:
-    # Weekly, so that a pinned upstream build that stops working is noticed.
-    - cron: '17 4 * * 1'
+    # Monthly, so that a pinned upstream build that stops working is noticed
+    # without spending runner hours every week.  openai-full is not scheduled.
+    - cron: '17 4 1 * *'
 
 permissions:
   contents: read
@@ -42,8 +57,11 @@ defaults:
     shell: bash
 
 concurrency:
-  group: external-lean-reverification-${{ github.ref }}
-  cancel-in-progress: true
+  # One group per event: a new push cancels an older pull_request run, but a
+  # push never cancels a manual dispatch (openai-full takes up to six hours of
+  # runner time), and a second dispatch waits for the first.
+  group: external-lean-reverification-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   ANTHROPIC_REPO: https://github.com/anthropics/formal-math.git
@@ -57,7 +75,7 @@ env:
 jobs:
   anthropic:
     name: anthropic-${{ matrix.project }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 150
     strategy:
       fail-fast: false
@@ -66,9 +84,12 @@ jobs:
           - project: eth
             archive: anthropic-formal-math-eth
             trusted: MainResults.lean Challenge.lean comparator.json lakefile.toml lean-toolchain
+            # Theorems that the upstream scripts/PrintAxioms.lean must report on.
+            theorems: MainResults.ethIsFalse MainResults.mainTheorem
           - project: 3sum-apsp
             archive: anthropic-formal-math-3sum-apsp
             trusted: EndStatement.lean comparator-endstatement.json comparator-paperstatements.json lakefile.toml lean-toolchain
+            theorems: ThreeSumApsp.endStatement_theorem_19
     steps:
       - uses: actions/checkout@v4
 
@@ -86,6 +107,14 @@ jobs:
             diff -u "$ARCHIVE/${{ matrix.archive }}/$f" "upstream/${{ matrix.project }}/$f"
             echo "identical: ${{ matrix.project }}/$f"
           done
+
+      - name: Verifier scripts match the archived copies
+        run: |
+          for f in .github/scripts/comparator-check.sh ${{ matrix.project }}/scripts/PrintAxioms.lean; do
+            diff -u "$ARCHIVE/anthropic-formal-math-ci/$f" "upstream/$f"
+            echo "identical: $f"
+          done
+          bash experiments/issue638/test_check_axioms_log.sh
 
       - name: Install elan
         run: |
@@ -105,16 +134,11 @@ jobs:
       - name: Print axioms
         working-directory: upstream/${{ matrix.project }}
         run: |
-          lake env lean scripts/PrintAxioms.lean | tee "$RUNNER_TEMP/axioms.log"
-          # Only the three standard axioms may appear, never sorryAx.
-          if grep -E "sorryAx" "$RUNNER_TEMP/axioms.log"; then
-            echo "::error::sorryAx in ${{ matrix.project }}"; exit 1
-          fi
-          leftover="$(grep -oE "\[[^]]*\]" "$RUNNER_TEMP/axioms.log" | tr -d '[] ' | tr ',' '\n' \
-            | grep -vxE 'propext|Quot.sound|Classical.choice|' || true)"
-          if [ -n "$leftover" ]; then
-            echo "::error::non-standard axioms: $leftover"; exit 1
-          fi
+          lake env lean scripts/PrintAxioms.lean 2>&1 | tee "$RUNNER_TEMP/axioms.log"
+          # Non-empty, one report per `#print axioms`, the named theorems
+          # present, and only propext, Classical.choice and Quot.sound.
+          bash "$GITHUB_WORKSPACE/experiments/issue638/check_axioms_log.sh" "$RUNNER_TEMP/axioms.log" \
+            "$(grep -c '^#print axioms ' scripts/PrintAxioms.lean)" ${{ matrix.theorems }}
 
       - name: Comparator (lean4export + nanoda + landrun)
         working-directory: upstream/${{ matrix.project }}
@@ -144,7 +168,7 @@ jobs:
           if-no-files-found: ignore
 
   openai-statement:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -216,10 +240,15 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   openai-full:
-    runs-on: ubuntu-latest
-    # Best effort: the solution has about 4000 Lean files and may not finish
-    # within the 6-hour limit of a hosted runner.  A failure or time-out here is
-    # reported as "blocked" in the case study, not as a refutation.
+    runs-on: ubuntu-24.04
+    # Manual only (`gh workflow run external-lean-reverification.yml --ref
+    # <branch>`): a run costs several hours of runner time, so pushes and the
+    # monthly schedule do not start it.
+    if: github.event_name == 'workflow_dispatch'
+    # continue-on-error: a failure or time-out here is reported as "blocked"
+    # in the case study, not as a refutation.  It also means that the run as
+    # a whole is green even when this job fails, so the case study quotes this
+    # job's own conclusion and log lines, never the run's overall status.
     continue-on-error: true
     timeout-minutes: 355
     needs: openai-statement
@@ -273,13 +302,16 @@ jobs:
       # can write this cache, and Comparator re-checks the exported proof terms
       # with the Lean kernel and nanoda, so a restored .olean cannot make a
       # wrong proof pass.  It lets a later run resume a build that did not
-      # finish within one job.
+      # finish within one job.  One fixed key per pinned commit; the prefix
+      # restore key also finds the older per-run keys
+      # (openai-build-<commit>-<run id>-<attempt>).
       - name: Restore partial build
+        id: restore-build
         uses: actions/cache/restore@v4
         with:
           path: upstream/lean/.lake/build
-          key: openai-build-${{ env.OPENAI_COMMIT }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: openai-build-${{ env.OPENAI_COMMIT }}-
+          key: openai-build-${{ env.OPENAI_COMMIT }}
+          restore-keys: openai-build-${{ env.OPENAI_COMMIT }}
 
       - name: Build the SubexponentialSAT solution
         working-directory: upstream/lean
@@ -304,12 +336,14 @@ jobs:
           timeout -s INT 280m lake build OAI.Algorithms.SubexponentialSAT.Main 2>&1 \
             | tee "$log" | { grep --line-buffered -vE '^(✔|ℹ)' || true; }
 
+      # A cache key cannot be overwritten, so save only when the fixed key was
+      # not an exact hit (first run, or restored from an older per-run key).
       - name: Save partial build
-        if: always()
+        if: always() && steps.restore-build.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: upstream/lean/.lake/build
-          key: openai-build-${{ env.OPENAI_COMMIT }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: openai-build-${{ env.OPENAI_COMMIT }}
 
       - name: Print axioms
         working-directory: upstream/lean
@@ -318,8 +352,9 @@ jobs:
           import OAI.Algorithms.SubexponentialSAT.Main
           #print axioms OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat
           EOF
-          lake env lean "$RUNNER_TEMP/PrintAxioms.lean" | tee "$RUNNER_TEMP/openai-axioms.log"
-          ! grep -q sorryAx "$RUNNER_TEMP/openai-axioms.log"
+          lake env lean "$RUNNER_TEMP/PrintAxioms.lean" 2>&1 | tee "$RUNNER_TEMP/openai-axioms.log"
+          bash "$GITHUB_WORKSPACE/experiments/issue638/check_axioms_log.sh" "$RUNNER_TEMP/openai-axioms.log" \
+            1 OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat
 
       - name: Comparator (lean4export + nanoda + landrun)
         working-directory: upstream/lean
@@ -330,6 +365,10 @@ jobs:
           git -C "$RUNNER_TEMP/anthropic" remote add origin "$ANTHROPIC_REPO"
           git -C "$RUNNER_TEMP/anthropic" fetch -q --depth 1 origin "$ANTHROPIC_COMMIT"
           git -C "$RUNNER_TEMP/anthropic" checkout -q --detach FETCH_HEAD
+          test "$(git -C "$RUNNER_TEMP/anthropic" rev-parse HEAD)" = "$ANTHROPIC_COMMIT"
+          f=.github/scripts/comparator-check.sh
+          diff -u "$GITHUB_WORKSPACE/$ARCHIVE/anthropic-formal-math-ci/$f" "$RUNNER_TEMP/anthropic/$f"
+          echo "identical: $f"
           # The upstream script looks for comparator*.json next to the lakefile;
           # it forces enable_nanoda=true, which OpenAI's own config leaves off.
           cp ComparatorChallenges/SubexponentialSAT.json comparator-subexponentialsat.json
