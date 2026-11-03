@@ -95,6 +95,10 @@ merged.
 
 Items can run in parallel unless a dependency is stated.
 
+- **Review follow-ups (#641).** Close the gaps the 2026-11-03 review found:
+  weak checks in `scripts/check_claims.py`, 15 claims missing from
+  CLAIMS.md, duplicate `NTimeHierarchy` and `InNTIME` definitions, and
+  registry entries for the critiques the refutation plan relies on.
 - **#624 slices 3-4.** Build the reduction as a `Complexity.Machine` with a
   polynomial `Run` bound, then assemble `satHard` and `cookLevin`. Make the
   18 bridges unconditional, keeping primed conditional names. Then re-derive
