@@ -36,6 +36,7 @@
 | [`README.md`](README.md) | This analysis: requirements, timeline, catalog, verdicts, tools |
 | [`planned-issues.md`](planned-issues.md) | One issue draft per idea, with test plan, verdict and evidence (executed in PR #639) |
 | [`fidelity-audit.md`](fidelity-audit.md) | Line-by-line comparison of the labs' Lean statements with the textbook ETH |
+| [`ci-evidence.md`](ci-evidence.md) | Key lines of the CI logs of the external re-verification runs |
 | [`sources/`](sources/) | Byte-identical copies of the trusted upstream statement files at pinned commits (see `COMMIT.txt` in each folder) |
 
 Each `sources/` folder keeps the upstream licence notice (`NOTICE`, Apache-2.0
@@ -128,8 +129,8 @@ last run on this PR.
 
 | Job | What it checks | Result |
 |---|---|---|
-| `anthropic-eth` | trusted files byte-identical to `sources/`; `lake build`; `#print axioms` shows only `propext`, `Classical.choice`, `Quot.sound`; Comparator (lean4export + nanoda + landrun) prints `Your solution is okay!` | _pending_ |
-| `anthropic-3sum-apsp` | same, for both Comparator configurations | _pending_ |
+| `anthropic-eth` | trusted files byte-identical to `sources/`; `lake build`; `#print axioms` shows only `propext`, `Classical.choice`, `Quot.sound`; Comparator (lean4export + nanoda + landrun) prints `Your solution is okay!` | **passed** in run [41548220250](https://github.com/konard/p-vs-np/actions/runs/41548220250): 9768 build jobs, `ethIsFalse` and `mainTheorem` use only the three standard axioms, nanoda accepts, Comparator `Your solution is okay!` ([evidence](ci-evidence.md)) |
+| `anthropic-3sum-apsp` | same, for both Comparator configurations | **passed** in run [41548220250](https://github.com/konard/p-vs-np/actions/runs/41548220250): 3298 build jobs, 137 declarations with standard axioms only, both configurations accepted by Comparator and nanoda ([evidence](ci-evidence.md)) |
 | `openai-statement` | trusted challenge files byte-identical; toolchain v4.34.1 and Mathlib `d13f23b` pinned; the challenge statement elaborates; its only `sorry` is the challenge itself | _pending_ |
 | `openai-full` | `lake build OAI.Algorithms.SubexponentialSAT.Main` (~4000 files), no `sorryAx`, Comparator | _pending_ (best effort) |
 

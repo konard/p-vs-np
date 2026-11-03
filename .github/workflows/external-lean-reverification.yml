@@ -260,7 +260,7 @@ jobs:
           GLIBC_TUNABLES: glibc.malloc.mmap_max=0:glibc.malloc.arena_max=1
         run: |
           lake build OAI.Algorithms.SubexponentialSAT.Main 2>&1 \
-            | tee "$RUNNER_TEMP/openai-build.log" | grep -vE '^(✔|ℹ)' | tail -n 80
+            | tee "$RUNNER_TEMP/openai-build.log" | { grep -vE '^(✔|ℹ)' || true; } | tail -n 80
 
       - name: Print axioms
         working-directory: upstream/lean
