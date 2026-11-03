@@ -243,7 +243,67 @@ So `openai/math@4eaee87` passes the same check as Anthropic's projects:
 * it uses only the three standard axioms;
 * two independent kernels accept it.
 
-Later commits change only the case-study documents, so the workflow file
-is the one checked here. GitHub applies the `pull_request` path filter to the
-whole PR diff, and this PR changes the workflow, so every push re-runs all
-four jobs. The PR description links the run on the final head.
+GitHub applies the `pull_request` path filter to the whole PR diff, and this
+PR changes the workflow, so every push re-runs the workflow.
+
+## Run [41619710887](https://github.com/konard/p-vs-np/actions/runs/41619710887) (commit `187e1e6`, 2026-11-03)
+
+All four jobs **passed** again:
+
+| Job | Result |
+|---|---|
+| `openai-statement` ([job 125862357059](https://github.com/konard/p-vs-np/actions/runs/41619710887/job/125862357059)) | passed |
+| `anthropic-eth` ([job 125862357356](https://github.com/konard/p-vs-np/actions/runs/41619710887/job/125862357356)) | passed; 2 axiom reports (`ethIsFalse`, `mainTheorem`), standard axioms only |
+| `anthropic-3sum-apsp` ([job 125862357450](https://github.com/konard/p-vs-np/actions/runs/41619710887/job/125862357450)) | passed; 137 axiom reports, standard axioms only |
+| `openai-full` ([job 125863680449](https://github.com/konard/p-vs-np/actions/runs/41619710887/job/125863680449)) | **passed** |
+
+```
+Cache restored from key: openai-build-4eaee87548250b2682affda7d05d947c05554bae-41591216557-1
+Build completed successfully (12014 jobs).                       # 10:39:48
+'OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Running nanoda kernel on solution                                # 10:49:38
+nanoda kernel accepts the solution                               # 14:44:30 (3 h 55 min)
+Lean default kernel accepts the solution
+Your solution is okay!
+PASS comparator-subexponentialsat.json
+All 1 comparator configuration(s) accepted.
+```
+
+Note the wrapped axiom list above. The anthropic jobs' old axiom check read
+`[...]` lists line by line, so it would not have seen an extra axiom inside a
+wrapped list (the anthropic lists happen to fit on one line). Since commit
+`e1cfc05`, every axioms log goes through
+[`experiments/issue638/check_axioms_log.sh`](../../../experiments/issue638/check_axioms_log.sh).
+It joins the log into one line, requires one report per `#print axioms`, and
+requires the named theorems to be present, so an empty log fails.
+
+## Reading these runs: `continue-on-error`
+
+`openai-full` is `continue-on-error: true`. A run's overall conclusion is
+therefore **success even when `openai-full` fails**. This happened in two runs:
+
+* run 41553031734 is green overall, but `openai-full` lost its runner;
+* run 41570704897 is green overall, but in `openai-full` Comparator did not
+  accept (nanoda stack overflow).
+
+This file and the case study report each job's own result and log lines. The
+passing `openai-full` results are those of runs 41591216557 and 41619710887.
+
+## Workflow changes after run 41619710887 (commit `e1cfc05`)
+
+* The upstream verifier scripts that run from the checkout
+  (`.github/scripts/comparator-check.sh`, `eth/scripts/PrintAxioms.lean`,
+  `3sum-apsp/scripts/PrintAxioms.lean`) are archived in
+  [`sources/anthropic-formal-math-ci`](sources/anthropic-formal-math-ci/).
+  The jobs, `openai-full` included, `diff` them against the checkout before
+  running them.
+* `openai-full` runs only on `workflow_dispatch`. Its build cache uses one
+  fixed key per pinned commit, `openai-build-<commit>`, and the prefix restore
+  still finds the older per-run keys.
+* The schedule is monthly, runners are pinned to `ubuntu-24.04`, and a push
+  no longer cancels a running dispatch.
+
+The run on the final head of the PR, including a dispatched `openai-full`, is
+linked from the PR description.
