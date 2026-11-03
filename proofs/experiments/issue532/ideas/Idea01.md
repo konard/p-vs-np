@@ -259,8 +259,9 @@ original problem. It is not an easier intermediate step.
   ETH/SETH, if true, imply that no subexponential algorithm exists.
   > **Status note (2026-11-03, issue #638).** ETH and SETH are claimed refuted (October 2026, Lean
   > proofs by OpenAI and Anthropic, not yet peer reviewed). If the claims stand,
-  > this piece of evidence is gone. The claimed algorithms are still
-  > superpolynomial, and a subexponential bound does not give a polynomial one
+  > this piece of evidence is gone. The claimed *time bounds* are still
+  > superpolynomial (the true running time of the algorithms is not known),
+  > and a subexponential upper bound does not give a polynomial one
   > (`logBudget_gap`), so `PolySATDecider` stays open. See
   > [the issue #638 case study](../../../../docs/case-studies/issue-638/README.md).
 * To *refute* `PolySATDecider` (i.e., prove P ≠ NP) one must show a lower bound

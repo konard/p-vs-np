@@ -36,7 +36,7 @@ with `a = 0` is a polynomial-time bound.
 
 ## Certified results
 
-All 13 theorems are listed, in both Lean and Rocq, in
+All 15 theorems are listed, in both Lean and Rocq, in
 [`scripts/proof_status.json`](../../../scripts/proof_status.json) and are checked
 in CI by `scripts/check_proof_status.py`. None has a theorem hypothesis that is
 not displayed in its statement.
@@ -53,6 +53,8 @@ not displayed in its statement.
 | `subexpKSAT_of_logBudget` | a k-SAT decider within `c · logBudget n · (|x|+1)^c` gives `SubexpKSAT k` | propext, Quot.sound | none |
 | `logBudget_not_polynomial` | `¬ PolynomiallyBounded logBudget` | propext, Classical.choice, Quot.sound | none |
 | `logBudget_gap` | `logBudget ≤ C_d · 2^{n/d}` for every `d > 0`, and `logBudget` is not polynomial | propext, Classical.choice, Quot.sound | none |
+| `eightSquare` | eq. (12) of Anthropic's paper (the eight-square identity): for all `x, y, u, v ∈ {0,1}³`, `2·[x = v]·[y = u] = [x ⊕ y ⊕ u ⊕ v = 0]·(σ(x,y)σ(v,u) + σ(x,u)σ(v,y))`, all 4096 settings | propext | none |
+| `eightSquare_cancel` | eq. (28): `p ⊕ q = p' ⊕ q'` and `q ≠ q'` give `σ(p,q)σ(p',q') + σ(p,q')σ(p',q) = 0` | propext | none |
 | `swap_eq_id_sub_singlet` | on two bits, `SWAP = I − 2·singlet` (integer 4×4 matrices) | none | none |
 | `singlet_sq` | `(2·singlet)² = 2·(2·singlet)` | propext | none |
 | `swap_sq` | `SWAP² = I` | propext | none |
@@ -70,37 +72,51 @@ are proved in both files but are not separately listed.
    `pNotEqualsNP_of_seth`). The proof uses the repository's proved
    `SATVerifier.satInNP` and `Idea41.poly_le_two_pow`. If `P = NP`, then SAT is
    in P, and a polynomial bound is `O*(2^{δn})` for every δ. No Cook–Levin
-   hypothesis is needed. So the hypotheses are **strictly stronger** than
-   `P ≠ NP`, which is why papers that assume them prove more.
+   hypothesis is needed. So each hypothesis is **at least as strong as**
+   `P ≠ NP`. Whether either is strictly stronger is unknown.
 2. **A subexponential k-SAT algorithm refutes ETH, and for every k also SETH**
-   (`eth_iff_not_subexp3`, `not_seth_of_subexpAllK`). This is the logical
-   form of the October 2026 claims, stated over our machine model.
-3. **Refuting ETH does not give P = NP**. `logBudget_gap` shows that a budget
-   can be below every `2^{δn}` and still not be polynomial. The labs' bounds
-   `2^{C·n·loglog n/√log n}` are above `logBudget` for large n. Even a fully
-   verified ETH refutation therefore leaves `P vs NP` open. `P ≠ NP` loses one
-   of its *stronger* conditional supports (ETH), and nothing more.
-4. **The algebraic seed of Anthropic's key idea** (`swap_eq_id_sub_singlet`).
-   This is the one-bit identity only. The tensor-rank bound `≤ 12^λ` that the
-   upstream README builds on it is checked **numerically** for `λ ≤ 4` by
+   (`eth_iff_not_subexp3`, `not_seth_of_subexpAllK`). These are unfoldings of
+   the definitions. The labs' theorems are about other machine models and
+   are not transported here (P8), so `SubexpKSAT 3` is a named hypothesis.
+3. **P = NP is not derivable from a subexponential bound alone.**
+   `logBudget_gap` shows that a budget can be below every `2^{δn}` and still
+   not be polynomial. (Informal remark, not proved here: the labs' time
+   bounds `2^{C·n·loglog n/√log n}` are above `logBudget` for large n.)
+   Whether ¬ETH implies P = NP is open; it is trivially true if P = NP. A
+   verified ETH refutation would remove one conditional support of `P ≠ NP`
+   (ETH), and the bounds alone say nothing more.
+4. **The paper's eight-square identity** (`eightSquare`,
+   `eightSquare_cancel`): eq. (12) and eq. (28) of Anthropic's paper
+   (`eth/paper.pdf` at `16a5ce4`, §2.4, Lemma 2, Appendix F), the identity
+   the algorithm is built on, checked by `decide` at every setting. The
+   general rank bound the paper derives from it (gain ρ = 11/12) is not
+   proved here (follow-up [#642](https://github.com/konard/p-vs-np/issues/642)).
+5. **The identity in the upstream README's condensed hint**
+   (`swap_eq_id_sub_singlet`): the textbook 4×4 fact `SWAP = I − 2·singlet`.
+   It is not evidence about the algorithm. The rank bound `≤ 12^λ` that the
+   hint builds on it is checked **exactly over ℚ** (Bareiss elimination),
+   under one reading of row/column rank, for `λ ≤ 4` by
    [`experiments/issue638/swap_singlet_ranks.py`](../../../experiments/issue638/swap_singlet_ranks.py)
    ([output](../../../experiments/issue638/results/swap_singlet_ranks.txt)). It is
    not proved here.
 
 ## Open obligations
 
-* **Model transfer (planned issue P8).** Moving the labs' theorems from Mathlib's
+* **Model transfer (planned issue P8, [#643](https://github.com/konard/p-vs-np/issues/643)).** Moving the labs' theorems from Mathlib's
   `Turing.FinTM2` (Anthropic) or OpenAI's `PrimitiveMachine` to
   `Complexity.Machine` needs a simulation theorem with a polynomial time
   overhead, plus an encoding translation from their CNF encodings to
   `encodeCNF`. The repository has no Mathlib dependency, so the labs' Lean
   code cannot be imported directly. Until this is done, `SubexpKSAT 3` is
   **not** a theorem of this repository. It is a named hypothesis.
-* **Sparsification (planned issue P9).** SETH ⇒ ETH needs the
+* **Sparsification (planned issue P9, [#644](https://github.com/konard/p-vs-np/issues/644)).** SETH ⇒ ETH needs the
   Impagliazzo–Paturi–Zane sparsification lemma. It is not formalized here.
   Anthropic's `eth/` development contains a sparsification library, which is
   the closest existing component.
-* The rank bound `≤ 12^λ` for all λ (see item 4).
+* The general rank bound for all λ (items 4 and 5,
+  [#642](https://github.com/konard/p-vs-np/issues/642)).
+* The `E^NP` circuit lower bound claimed by both labs (P12,
+  [#645](https://github.com/konard/p-vs-np/issues/645)).
 
 ## Reproduce
 

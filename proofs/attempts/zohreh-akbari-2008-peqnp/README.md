@@ -123,6 +123,15 @@ The clique problem has been extensively studied for over 50 years. If a simple p
 
 Under plausible complexity assumptions:
 - Strong Exponential Time Hypothesis (SETH) implies no algorithm faster than n^((1-o(1))k) for finding k-cliques
+
+> **Status note (2026-11-03, issue #638).** The bullet above is inaccurate:
+> k-Clique is solvable in `O(n^{ωk/3})` time by fast matrix multiplication
+> (Nešetřil–Poljak 1985), which is faster than `n^{(1-o(1))k}`. The standard
+> conditional bound is that ETH rules out `f(k)·n^{o(k)}` algorithms (Chen et
+> al. 2006). Moreover, ETH and SETH are now claimed refuted (October 2026,
+> Lean proofs by OpenAI and Anthropic, not yet peer reviewed). Neither point
+> affects the refutation of a *polynomial* Clique algorithm. See
+> [the issue #638 case study](../../../docs/case-studies/issue-638/README.md).
 - 3-SUM hardness implies certain approaches require superlinear time
 
 ## Broader Context

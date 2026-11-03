@@ -135,6 +135,13 @@ The difficulty of 3-SAT is well-established:
 3. **Decades of research**: No polynomial algorithm found despite extensive effort
 4. **Best known algorithms**: DPLL, CDCL still require exponential time in worst case
 
+> **Status note (2026-11-03, issue #638).** Point 2 is a hypothesis, not an
+> established fact, and it is now claimed refuted (October 2026, Lean proofs
+> by OpenAI and Anthropic of `2^{o(n)}`-type algorithms for 3-SAT, not yet
+> peer reviewed). The claimed time bounds are still superpolynomial, so the
+> refutation of a *polynomial* 3-SAT algorithm here is unaffected. See
+> [the issue #638 case study](../../../../docs/case-studies/issue-638/README.md).
+
 ### Pattern of Representation-Based Attempts
 
 Many P=NP attempts claim to solve via representation changes:

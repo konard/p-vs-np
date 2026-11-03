@@ -71,6 +71,17 @@ The Clique Problem has been extensively studied for over 50 years:
 2. **Hardness of Approximation**: Hastad (1999) showed Clique is hard to approximate within n^(1-epsilon)
 3. **Exponential Time Hypothesis**: Implies no algorithm can solve Clique in sub-exponential time
 
+> **Status note (2026-11-03, issue #638).** ETH is claimed refuted (October
+> 2026, Lean proofs by OpenAI and Anthropic, not yet peer reviewed), and
+> Anthropic's paper claims `O(2^{δn})` algorithms for Clique, Independent Set
+> and Vertex Cover for every `δ > 0`. If the claims stand, point 3 no longer
+> holds. The refutation of Mimouni's algorithm does not depend on it: the
+> Lean and Rocq files name their assumption `exponential_time_hypothesis`,
+> but it actually asserts Clique ∉ P (equivalent to P ≠ NP), which is weaker
+> than ETH and unaffected by the claims. The concrete errors of the algorithm
+> are what refute it. See
+> [the issue #638 case study](../../../../docs/case-studies/issue-638/README.md).
+
 If Mimouni's algorithm were correct, it would contradict:
 - 50+ years of complexity theory research
 - The Exponential Time Hypothesis

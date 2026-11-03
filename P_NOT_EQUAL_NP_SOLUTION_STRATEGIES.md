@@ -602,7 +602,10 @@ Any strategy below must ultimately produce evidence satisfying one of these test
 > by Anthropic (`n^{1.9992}` and `n^{2.99942}`). Re-verification status,
 > statement audit and consequences are in [the issue #638 case study](docs/case-studies/issue-638/README.md).
 > Formally proved here: ETH ⇒ P ≠ NP and SETH ⇒ P ≠ NP, so these hypotheses are
-> stronger than P ≠ NP, and refuting them does not give P = NP (`logBudget_gap`).
+> at least as strong as P ≠ NP (whether strictly stronger is unknown). P = NP is
+> not derivable from the claimed subexponential bounds alone: a subexponential
+> upper bound does not give a polynomial one (`logBudget_gap`). Whether ¬ETH
+> implies P = NP is open.
 
 **Status:** Growing field; mostly within-P separations
 

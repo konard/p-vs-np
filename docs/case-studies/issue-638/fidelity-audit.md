@@ -103,16 +103,20 @@ remains a named hypothesis.
 
 ## 5. What no statement says
 
-* Neither statement mentions `P` or `NP`. `logBudget_gap` (proved here)
-  shows that subexponential bounds of this kind are superpolynomial in
-  general. In particular, `2^{n·polyloglog n/√log n}` is not polynomial, so
-  `P = NP` does not follow.
+* Neither statement mentions `P` or `NP`. A subexponential *upper bound*
+  does not give a polynomial one: `logBudget_gap` (proved here) exhibits a
+  budget below every `C·2^{n/d}` that is not polynomially bounded, and
+  `2^{n·polyloglog n/√log n}` is not polynomial either (informal remark). So
+  `P = NP` is **not derivable from the bounds alone**. Whether ¬ETH implies
+  P = NP is open; it is trivially true if P = NP. The true running time of
+  the algorithms is not known; only their upper bounds are.
 * Neither says anything about SETH directly. OpenAI's theorem covers every
   `k ≥ 2` with an `o(n)` exponent, and Anthropic's covers every `k ≥ 1`. Each
   therefore gives `SubexpAllK`, hence `¬ SETH` by `not_seth_of_subexpAllK`,
   under the same transfer as above.
 * Neither covers randomized lower bounds, circuit size, or quantum
-  algorithms.
+  algorithms. Both labs claim an `E^NP` circuit lower bound in prose only
+  (P12, [#645](https://github.com/konard/p-vs-np/issues/645)).
 
 ## 6. Verdict
 
@@ -120,7 +124,7 @@ remains a named hypothesis.
 |---|---|---|
 | Faithful to "ETH is false"? | **yes** (stated directly, slightly stronger) | **yes** (the algorithm is stated; ETH follows by an elementary informal step) |
 | Vacuity risks found? | none (`s_3 = ⊤` when no `δ` works; all alphabets finite; output through bijections with `Bool`) | none (finite states, three-symbol alphabet, explicit `Trace`) |
-| Gaps between Lean and paper | TM2 → RAM bridge is prose | sharper exponent and `E^NP` lower bound are prose |
+| Gaps between Lean and paper | TM2 → RAM bridge and `E^NP` lower bound are prose | sharper exponent and `E^NP` lower bound are prose |
 | Second kernel | nanoda upstream and in our CI | not upstream; forced in our `openai-full` job, where nanoda accepts |
 
 This audit was done by reading the statements. It is not a formal proof of

@@ -203,8 +203,11 @@ certified result changes.
 * **Peer review is pending.** A passing kernel check means only that the
   formal statement is proved. The fidelity of the statement (see the audit) and
   the paper's prose claims (e.g. the `E^NP` lower bound) are not covered.
-* **Open items with follow-up issues:** P6 general rank bound, P8, P9, P12
-  (links in [`planned-issues.md`](planned-issues.md)).
+* **Open items with follow-up issues:** P6 general rank bound
+  ([#642](https://github.com/konard/p-vs-np/issues/642)), P8
+  ([#643](https://github.com/konard/p-vs-np/issues/643)), P9
+  ([#644](https://github.com/konard/p-vs-np/issues/644)), P12
+  ([#645](https://github.com/konard/p-vs-np/issues/645)).
 * **P8 is blocked.** Moving the theorems into `Complexity.Machine` needs
   Mathlib (which this repository does not use) or a re-implementation of TM2
   semantics, plus a simulation with polynomial overhead. Until that exists,

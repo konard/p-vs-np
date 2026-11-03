@@ -295,6 +295,9 @@ Based on Stephen Cook's official problem description and extensive research in c
 - [Historical Proof Attempts](proofs/attempts/) - Formal analysis of failed P vs NP attempts
   - [Ted Swart (1986/87)](proofs/attempts/ted-swart-1986-87-peqnp/README.md) - P=NP via linear programming (refuted by Yannakakis)
 
+### Case Studies
+- [Issue #638: ETH, SETH and AI-lab results since 2025-10-13](docs/case-studies/issue-638/README.md) - Claimed refutations of ETH and SETH by OpenAI and Anthropic (October 2026), their re-verification in CI, and formal proofs that ETH and SETH each imply P ≠ NP
+
 All documents are interlinked - you can navigate between them using hyperlinks within each file.
 
 ---
