@@ -300,8 +300,12 @@ passing `openai-full` results are those of runs 41591216557 and 41619710887.
   The jobs, `openai-full` included, `diff` them against the checkout before
   running them.
 * `openai-full` runs only on `workflow_dispatch`. Its build cache uses one
-  fixed key per pinned commit, `openai-build-<commit>`, and the prefix restore
-  still finds the older per-run keys.
+  fixed key per pinned commit, `openai-build-<commit>`. GitHub scopes caches
+  by ref, and the older per-run caches were all saved by `pull_request` runs
+  (`refs/pull/639/merge`), which a dispatch on the branch cannot read. So the
+  first dispatch on a ref builds cold and saves the cache after the build
+  step; its Comparator step may then hit the 6-hour job limit. The next
+  dispatch on that ref resumes from the cache.
 * The schedule is monthly, runners are pinned to `ubuntu-24.04`, and a push
   no longer cancels a running dispatch.
 

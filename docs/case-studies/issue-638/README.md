@@ -228,9 +228,11 @@ certified result changes.
   swap). nanoda needs an unlimited stack and 3 h 30 min to 3 h 55 min. The job
   therefore relies on the build cache, now under one fixed key per pinned
   commit (`openai-build-<commit>`): a run without a cache hit cannot finish
-  both the build and nanoda within the 6-hour job limit. If the cache
-  expires, the first dispatch rebuilds and saves it, and its Comparator step
-  may time out. The next dispatch then completes. Such a time-out is a
+  both the build and nanoda within the 6-hour job limit. GitHub scopes
+  caches by ref: a dispatch reads caches of its branch and of the default
+  branch, not those of `pull_request` runs. So the first dispatch on a new
+  ref (or after the cache expires) rebuilds and saves the cache, and its
+  Comparator step may time out. The next dispatch on that ref then completes. Such a time-out is a
   resource limit, not a rejection. The job runs only when dispatched by hand.
 * **Primary and secondary sources.** Anthropic's discovery date and token
   count are primary (paper §1 "Provenance"). OpenAI's dates, the open-letter

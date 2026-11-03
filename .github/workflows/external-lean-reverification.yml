@@ -302,9 +302,12 @@ jobs:
       # can write this cache, and Comparator re-checks the exported proof terms
       # with the Lean kernel and nanoda, so a restored .olean cannot make a
       # wrong proof pass.  It lets a later run resume a build that did not
-      # finish within one job.  One fixed key per pinned commit; the prefix
-      # restore key also finds the older per-run keys
-      # (openai-build-<commit>-<run id>-<attempt>).
+      # finish within one job.  One fixed key per pinned commit.  GitHub scopes
+      # caches by ref: a dispatch on a branch reads caches of that branch and
+      # of the default branch, not those saved by pull_request runs
+      # (refs/pull/N/merge).  So the first dispatch on a new ref builds cold,
+      # saves the cache after the build step, and its Comparator step may hit
+      # the job limit; the next dispatch on that ref then resumes from it.
       - name: Restore partial build
         id: restore-build
         uses: actions/cache/restore@v4
@@ -337,7 +340,8 @@ jobs:
             | tee "$log" | { grep --line-buffered -vE '^(✔|ℹ)' || true; }
 
       # A cache key cannot be overwritten, so save only when the fixed key was
-      # not an exact hit (first run, or restored from an older per-run key).
+      # not an exact hit (first run on this ref, or restored by prefix from an
+      # older per-run key openai-build-<commit>-<run id>-<attempt>).
       - name: Save partial build
         if: always() && steps.restore-build.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
