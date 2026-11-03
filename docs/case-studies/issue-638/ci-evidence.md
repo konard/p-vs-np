@@ -309,5 +309,36 @@ passing `openai-full` results are those of runs 41591216557 and 41619710887.
 * The schedule is monthly, runners are pinned to `ubuntu-24.04`, and a push
   no longer cancels a running dispatch.
 
-The run on the final head of the PR, including a dispatched `openai-full`, is
-linked from the PR description.
+## Dispatch run 41659979673 (commit `054c403`): cold build, cache saved, cancelled in Comparator
+
+The first `workflow_dispatch` run with the fixed cache key
+([run 41659979673](https://github.com/konard/p-vs-np/actions/runs/41659979673)).
+`openai-statement`, `anthropic-eth` and `anthropic-3sum-apsp` passed.
+[`openai-full`](https://github.com/konard/p-vs-np/actions/runs/41659979673/job/126002211945)
+was **cancelled by us** after the build, for the reason below:
+
+```text
+Restore partial build  15:12:36  Cache not found for input keys: openai-build-4eaee87548250b2682affda7d05d947c05554bae, ...
+Build ...              18:33:56  Build completed successfully (12014 jobs).        # cold build, 3 h 21 min
+Save partial build     18:35:18  Cache saved with key: openai-build-4eaee87548250b2682affda7d05d947c05554bae
+Print axioms           18:35:40  axioms log .../openai-axioms.log: 1 reports, all named theorems present, standard axioms only
+Comparator             18:36:51  ##[error]The operation was canceled.
+```
+
+The cache miss is the expected first-dispatch miss described above (the old
+caches belonged to `refs/pull/639/merge`). The new cache was saved under
+`refs/heads/issue-638-43afa079e5cc` (1.9 GB). The Comparator step had started
+at 18:35:40 with about 2 h 27 min left before the 355-minute job limit, while
+nanoda alone took 3 h 30 min and 3 h 55 min in the two passing runs. It could
+not finish, so the run was cancelled and dispatched again. This cancellation
+says nothing about the proof: the build, the axioms check and the cache were
+all done.
+
+The three per-run `openai-build-<commit>-<run_id>-1` caches on
+`refs/pull/639/merge` (1.9 GB each) were deleted afterwards. No job reads them:
+pull-request runs skip `openai-full`, and the key is now fixed.
+
+The next dispatch on the same ref,
+[run 41695515133](https://github.com/konard/p-vs-np/actions/runs/41695515133)
+on head `934d5b8`, restores this cache. Its result is recorded in the PR
+description.
