@@ -17,7 +17,9 @@
 #                        (about 4000 Lean files), print axioms, run Comparator.
 #                        Best effort: it may exceed the 6-hour limit of a
 #                        hosted runner, so it is continue-on-error and its
-#                        outcome is reported in the job summary.
+#                        outcome is reported in the job summary.  The build
+#                        directory is cached, so a later run (e.g. a manual
+#                        workflow_dispatch) resumes an unfinished build.
 name: External Lean re-verification (issue 638)
 
 on:
@@ -219,7 +221,7 @@ jobs:
     # within the 6-hour limit of a hosted runner.  A failure or time-out here is
     # reported as "blocked" in the case study, not as a refutation.
     continue-on-error: true
-    timeout-minutes: 350
+    timeout-minutes: 355
     needs: openai-statement
     steps:
       - uses: actions/checkout@v4
@@ -231,6 +233,19 @@ jobs:
 
       - name: Raise vm.max_map_count (see openai/math lean/README.md)
         run: sudo sysctl -w vm.max_map_count=1048576
+
+      # Run 41553031734 lost its runner ("received a shutdown signal") after
+      # 2.5 hours of `lake build`, with no log of the cause.  A large swap file
+      # gives the 16 GB runner headroom if the cause was memory, and the
+      # monitor in the build step records memory use either way.
+      - name: Add swap space
+        run: |
+          sudo fallocate -l 32G /swapfile-oai
+          sudo chmod 600 /swapfile-oai
+          sudo mkswap /swapfile-oai
+          sudo swapon /swapfile-oai
+          swapon --show
+          free -m
 
       - name: Fetch openai/math at the pinned commit
         run: |
@@ -253,14 +268,48 @@ jobs:
           lake exe cache get
           df -h /
 
+      # Build outputs of the openai/math package itself (not Mathlib, which
+      # comes from `lake exe cache get`).  Only workflows of this repository
+      # can write this cache, and Comparator re-checks the exported proof terms
+      # with the Lean kernel and nanoda, so a restored .olean cannot make a
+      # wrong proof pass.  It lets a later run resume a build that did not
+      # finish within one job.
+      - name: Restore partial build
+        uses: actions/cache/restore@v4
+        with:
+          path: upstream/lean/.lake/build
+          key: openai-build-${{ env.OPENAI_COMMIT }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: openai-build-${{ env.OPENAI_COMMIT }}-
+
       - name: Build the SubexponentialSAT solution
         working-directory: upstream/lean
-        timeout-minutes: 300
+        timeout-minutes: 290
         env:
           GLIBC_TUNABLES: glibc.malloc.mmap_max=0:glibc.malloc.arena_max=1
         run: |
-          lake build OAI.Algorithms.SubexponentialSAT.Main 2>&1 \
-            | tee "$RUNNER_TEMP/openai-build.log" | { grep -vE '^(✔|ℹ)' || true; } | tail -n 80
+          log="$RUNNER_TEMP/openai-build.log"
+          : > "$log"
+          # Every 5 minutes: memory, swap, free disk and the last progress line.
+          # This goes to the job log as it happens, so it survives a lost runner.
+          (
+            while sleep 300; do
+              mem=$(free -m | awk '/^Mem:/{printf "mem used %s of %s MB, available %s MB", $3, $2, $7} /^Swap:/{printf "; swap used %s of %s MB", $3, $2}')
+              last=$(grep -aE '^(✔|✖|⚠) \[' "$log" | tail -n 1 | cut -c1-140)
+              echo "[monitor $(date -u +%H:%M)] $mem; disk free $(df -h --output=avail / | tail -n 1 | tr -d ' '); $last"
+            done
+          ) &
+          monitor=$!
+          trap 'kill "$monitor" 2>/dev/null || true' EXIT
+          # Stop cleanly before the step limit so the cache can still be saved.
+          timeout -s INT 280m lake build OAI.Algorithms.SubexponentialSAT.Main 2>&1 \
+            | tee "$log" | { grep --line-buffered -vE '^(✔|ℹ)' || true; }
+
+      - name: Save partial build
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: upstream/lean/.lake/build
+          key: openai-build-${{ env.OPENAI_COMMIT }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Print axioms
         working-directory: upstream/lean
@@ -293,6 +342,9 @@ jobs:
             echo "### openai/math SubexponentialSAT full build @ $OPENAI_COMMIT"
             echo '```'
             grep -E "^(error|✖)|Build completed|build failed" "$RUNNER_TEMP/openai-build.log" 2>/dev/null | tail -n 20 || echo "(no build log)"
+            grep -aE '^(✔|✖|⚠) \[' "$RUNNER_TEMP/openai-build.log" 2>/dev/null | tail -n 1 || true
+            sudo dmesg 2>/dev/null | grep -iE "out of memory|killed process" | tail -n 5 || true
+            free -m
             cat "$RUNNER_TEMP/openai-axioms.log" 2>/dev/null || echo "(no axioms log)"
             grep -h -E "Your solution is okay!" "$RUNNER_TEMP"/comparator-logs/*.log 2>/dev/null || echo "(comparator did not accept or did not run)"
             echo '```'

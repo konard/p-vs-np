@@ -71,3 +71,68 @@ prints backticks, so the check failed. Commit `2381434` fixes the pattern
 and requires that every `sorry` warning comes from the challenge file. As a
 consequence, `openai-full` (`needs: openai-statement`) was skipped in this
 run.
+
+## Run [41553031734](https://github.com/konard/p-vs-np/actions/runs/41553031734) (commit `600a189`, 2026-11-03)
+
+### `openai-statement`: **passed** ([job 125645069679](https://github.com/konard/p-vs-np/actions/runs/41553031734/job/125645069679))
+
+```
+identical: lean/ComparatorChallenges/SubexponentialSAT.lean
+identical: lean/ComparatorChallenges/SubexponentialSAT.json
+grep -qx 'leanprover/lean4:v4.34.1' upstream/lean/lean-toolchain
+info: installing /home/runner/.elan/toolchains/leanprover--lean4---v4.34.1
+info: mathlib: checking out revision 'd13f23b723b8a846827a245b89c10fc7d3f11612'
+warning: ComparatorChallenges/SubexponentialSAT.lean:194:8: declaration uses `sorry`
+'OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat' depends on axioms:
+  [propext, sorryAx, Classical.choice, Quot.sound]
+```
+
+The `sorryAx` is expected. The challenge file states the theorem and
+leaves its proof as `sorry`, which the solution then fills. The check only
+asks that the statement elaborates against the pinned Mathlib and that no
+other file contributes a `sorry`.
+
+### `anthropic-eth`: **passed again** ([job 125645070020](https://github.com/konard/p-vs-np/actions/runs/41553031734/job/125645070020))
+
+The output is the same as in run 41548220250: five files identical,
+`Build completed successfully (9768 jobs)`, `ethIsFalse` and `mainTheorem`
+depend only on `[propext, Classical.choice, Quot.sound]`,
+`nanoda kernel accepts the solution`, `Your solution is okay!`,
+`All 1 comparator configuration(s) accepted.`
+
+### `anthropic-3sum-apsp`: **passed again** ([job 125645069968](https://github.com/konard/p-vs-np/actions/runs/41553031734/job/125645069968))
+
+The output is the same as in run 41548220250: five files identical,
+`Build completed successfully (3298 jobs)`, nanoda accepts both
+configurations, `PASS comparator-endstatement.json`,
+`PASS comparator-paperstatements.json`,
+`All 2 comparator configuration(s) accepted.`
+
+### `openai-full`: **runner lost during the build** ([job 125646167760](https://github.com/konard/p-vs-np/actions/runs/41553031734/job/125646167760))
+
+The pinned Mathlib cache was fetched (8908 files), and `lake build
+OAI.Algorithms.SubexponentialSAT.Main` started at 00:35. At 03:07, 2 h 32 min
+later and before the 300-minute step limit, GitHub stopped the runner:
+
+```
+/dev/root       145G   55G   91G  38% /          # before the build
+2026-11-03T03:07:15Z ##[error]The runner has received a shutdown signal. …
+2026-11-03T03:07:15Z ##[error]Process completed with exit code 143.
+```
+
+The steps marked `if: always()` (summary, log upload) were skipped because
+the runner itself was gone. The build step only printed its output at the
+end, so the log does not show how far the build got or why the runner
+stopped. Disk space was not the cause (91 GB free). Memory exhaustion on the
+16 GB runner is plausible, because OpenAI's README warns about memory
+mapping limits, but this log cannot confirm it. This is **not** a build
+error in OpenAI's proof.
+
+The commit that records this run changes the job as follows:
+
+* adds 32 GB of swap;
+* prints memory, swap, disk and the last progress line every 5 minutes, so a
+  lost runner still leaves evidence;
+* stops the build cleanly at 280 minutes;
+* caches `.lake/build`, so a later run resumes the build instead of starting
+  again.
