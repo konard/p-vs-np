@@ -136,3 +136,60 @@ The commit that records this run changes the job as follows:
 * stops the build cleanly at 280 minutes;
 * caches `.lake/build`, so a later run resumes the build instead of starting
   again.
+
+## Run [41570704897](https://github.com/konard/p-vs-np/actions/runs/41570704897) (commit `42c986a`, 2026-11-03)
+
+`openai-statement`, `anthropic-eth` and `anthropic-3sum-apsp` **passed** for
+the third time, with the same key lines as above.
+
+### `openai-full`: **build and axioms passed; Comparator stopped by a nanoda stack overflow** ([job 125703580857](https://github.com/konard/p-vs-np/actions/runs/41570704897/job/125703580857))
+
+The build cache was empty, so the whole build ran (03:20 → 05:59). The
+monitor added in `42c986a` shows why the previous runner was lost. Near the
+end of the build, memory use reached 15.4 of 16 GB and swap use 15.7 GB:
+
+```
+[monitor 03:40] mem used 2744 of 15982 MB, available 13237 MB; swap used 1210 of 35839 MB; disk free 54G; ✔ [9517/12014] …
+[monitor 04:40] mem used 8069 of 15982 MB, available 7912 MB; swap used 1927 of 35839 MB; disk free 41G; ✔ [11171/12014] …
+[monitor 05:20] mem used 8239 of 15982 MB, available 7742 MB; swap used 7195 of 35839 MB; disk free 36G; ✔ [11876/12014] …
+[monitor 05:40] mem used 15389 of 15982 MB, available 592 MB; swap used 15677 of 35839 MB; disk free 35G; ✔ [11995/12014] …
+Build completed successfully (12014 jobs).                                           # 05:59:41
+Cache saved with key: openai-build-4eaee87548250b2682affda7d05d947c05554bae-41570704897-1
+```
+
+`#print axioms` (step "Print axioms") and the build-time audits in `Final.lean`:
+
+```
+'OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_and_sat' depends on axioms: [propext, Classical.choice, Quot.sound]
+'OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.compiled_exact_count_and_sat' depends on axioms: [propext, Classical.choice, Quot.sound]
+'OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.exact_count_eth' depends on axioms: [propext, Classical.choice, Quot.sound]
+'OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.sat_polynomial_space' depends on axioms: [propext, Classical.choice, Quot.sound]
+'OAI.Algorithms.SubexponentialSAT.SqrtLogSpace.original_sat_main' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+Comparator (pins as in run 41548220250) built the challenge (8924 jobs) and
+the solution (12014 jobs) in its sandbox, exported both, and ran the two
+kernels:
+
+```
+Running nanoda kernel on solution                    # 06:07:46
+thread 'main' (36906) has overflowed its stack       # 06:15:41
+fatal runtime error: stack overflow, aborting
+nanoda kernel rejected the solution
+Running Lean default kernel on solution.
+Lean default kernel accepts the solution
+uncaught exception: nanoda exited with 134
+##[error]comparator did not accept comparator-subexponentialsat.json (exit status 1)
+```
+
+So **Lean's own kernel accepts the exported solution** against the trusted
+challenge statement, under Comparator's sandbox and axiom whitelist. The
+second kernel did not reach a verdict. Exit 134 is `SIGABRT` after a stack
+overflow on the 8 MB default main-thread stack. That is a resource limit,
+not a type error that nanoda found. Comparator still reports it as a
+rejection, so the run counts as **not accepted**.
+
+The commit that records this run raises the stack limit
+(`ulimit -s unlimited`, inherited by comparator, landrun and nanoda) before
+the Comparator step. The build cache saved above lets the next run skip the
+3-hour build.

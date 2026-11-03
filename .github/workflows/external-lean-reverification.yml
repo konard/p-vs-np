@@ -333,6 +333,14 @@ jobs:
           # The upstream script looks for comparator*.json next to the lakefile;
           # it forces enable_nanoda=true, which OpenAI's own config leaves off.
           cp ComparatorChallenges/SubexponentialSAT.json comparator-subexponentialsat.json
+          # Run 41570704897: nanoda's main thread overflowed the default 8 MB
+          # stack on this proof ("thread 'main' has overflowed its stack",
+          # exit 134) while the Lean kernel accepted it.  The main-thread stack
+          # of a process is bounded by RLIMIT_STACK, which is inherited through
+          # comparator and landrun, so raise it here.  This changes resources
+          # only; nanoda still has to accept the exported terms.
+          ulimit -s unlimited 2>/dev/null || ulimit -s "$(ulimit -Hs)"
+          echo "stack limit (KB): $(ulimit -s)"
           bash "$RUNNER_TEMP/anthropic/.github/scripts/comparator-check.sh"
 
       - name: Summary
