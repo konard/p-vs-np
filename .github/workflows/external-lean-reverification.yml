@@ -33,6 +33,12 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    # An explicit `bash` makes GitHub run `bash -eo pipefail`, so that
+    # `lake build ... | tee ...` fails when the build fails.
+    shell: bash
+
 concurrency:
   group: external-lean-reverification-${{ github.ref }}
   cancel-in-progress: true
@@ -192,7 +198,10 @@ jobs:
           lake env lean Check.lean 2>&1 | tee -a "$RUNNER_TEMP/statement.log"
           # The challenge is a statement with `sorry` and nothing else.
           grep -q "sorryAx" "$RUNNER_TEMP/statement.log"
-          test "$(grep -c "declaration uses 'sorry'" "$RUNNER_TEMP/statement.log")" -ge 1
+          # Lean prints `declaration uses `sorry`` (backticks; older versions used quotes).
+          grep -qE "declaration uses .sorry." "$RUNNER_TEMP/statement.log"
+          # Every sorry warning must come from the challenge file.
+          ! grep -E "declaration uses .sorry." "$RUNNER_TEMP/statement.log" | grep -v "ComparatorChallenges/SubexponentialSAT.lean"
 
       - name: Summary
         if: always()
@@ -200,7 +209,7 @@ jobs:
           {
             echo "### openai/math challenge statement @ $OPENAI_COMMIT"
             echo '```'
-            cat "$RUNNER_TEMP/statement.log" 2>/dev/null | tail -n 60
+            tail -n 60 "$RUNNER_TEMP/statement.log" 2>/dev/null || echo "(no statement log)"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
