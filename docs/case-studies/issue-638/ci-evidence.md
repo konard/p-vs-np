@@ -243,5 +243,7 @@ So `openai/math@4eaee87` passes the same check as Anthropic's projects:
 * it uses only the three standard axioms;
 * two independent kernels accept it.
 
-The workflow file at this commit is the same as on the PR head. Later commits
-change only the case-study documents, which do not trigger this workflow.
+Later commits change only the case-study documents, so the workflow file
+is the one checked here. GitHub applies the `pull_request` path filter to the
+whole PR diff, and this PR changes the workflow, so every push re-runs all
+four jobs. The PR description links the run on the final head.
