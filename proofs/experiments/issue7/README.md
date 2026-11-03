@@ -1,8 +1,9 @@
 # Issue #7: the clocked-SAT sentence in the shared model
 
 Status at 2026-11-03: all 15 theorems in the table below are certified rows of
-`scripts/proof_status.json` in each prover. `SATHard` is still open on `main`
-([#624](https://github.com/konard/p-vs-np/issues/624)). Nothing about ZFC is proved.
+`scripts/proof_status.json` in each prover. Cook–Levin hardness in the shared
+model is tracked in [#624](https://github.com/konard/p-vs-np/issues/624) and
+is not yet on `main`. Nothing about ZFC is proved.
 
 Issue #7 asked to "try prove P vs NP is undecidable". The corrected target is
 **independence from a fixed object theory** `T = ZFC`:
